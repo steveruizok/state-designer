@@ -24,7 +24,9 @@
   "dependencies": {
     "@rebass/forms": "^4.0.6",
     "@types/lodash-es": "^4.17.3",
+    "immer": "^5.1.0",
     "lodash-es": "^4.17.15",
+    "react-dom": "^16.12.0",
     "utility-types": "^3.10.0"
   },
   "peerDependencies": {
@@ -37,7 +39,7 @@
     "@types/react": "^16.7.22",
     "cross-env": "^5.2.0",
     "gh-pages": "^2.0.1",
-    "react": "^16.8.6",
+    "react": "^16.12.0",
     "react-scripts": "^3.0.1",
     "rollup": "^1.1.2",
     "rollup-plugin-babel": "^4.3.2",

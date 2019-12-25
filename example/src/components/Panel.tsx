@@ -1,5 +1,5 @@
-import React from "react";
-import { Box } from "rebass";
+import React from "react"
+import { Box } from "rebass"
 
 export interface Props {}
 
@@ -7,6 +7,7 @@ const Panel: React.FC<Props> = ({ children }) => {
   return (
     <Box
       bg="gray80"
+      p={2}
       sx={{
         position: "absolute",
         top: 0,
@@ -21,7 +22,7 @@ const Panel: React.FC<Props> = ({ children }) => {
     >
       {children}
     </Box>
-  );
-};
+  )
+}
 
-export default Panel;
+export default Panel

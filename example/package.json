@@ -19,11 +19,9 @@
     "framer-motion": "^1.7.0",
     "immer": "^5.1.0",
     "lodash-es": "^4.17.15",
-    "react": "link:../node_modules/react",
-    "react-dom": "^16.8.6",
     "react-scripts": "^3.0.1",
-    "state-designer": "link:..",
     "rebass": "^4.0.7",
+    "state-designer": "link:..",
     "styled-system": "^5.1.4",
     "typescript": "^3.7.4"
   },

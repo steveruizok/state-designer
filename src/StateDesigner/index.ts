@@ -1,5 +1,6 @@
-import { castArray } from "lodash-es"
+import { castArray, uniqueId } from "lodash-es"
 import { NonUndefined } from "utility-types"
+import produce, { Draft } from "immer"
 
 type NamedOrInSeries<T, K> = keyof K | T | (keyof K | T)[]
 
@@ -89,7 +90,7 @@ interface IEventHandler<D> {
   wait?: number
 }
 
-type IEvent<D> = IEventHandler<D>[]
+type IEvent<D> = IEventHandler<Draft<D>>[]
 
 type IEvents<D> = { [key: string]: IEvent<D>[] }
 
@@ -114,7 +115,7 @@ type Subscriber<D, V extends IComputedValuesConfig<D>> = (
 
 // Machine configuration
 
-export interface IConfig<
+export interface StateDesignerConfig<
   D extends { [key: string]: any },
   A extends Record<string, IAction<D>>,
   C extends Record<string, ICondition<D>>,
@@ -129,6 +130,30 @@ export interface IConfig<
   values?: V
 }
 
+export function createStateDesignerConfig<
+  D extends { [key: string]: any },
+  A extends Record<string, IAction<D>>,
+  C extends Record<string, ICondition<D>>,
+  R extends Record<string, IResult<D>>,
+  V extends IComputedValuesConfig<D>
+>(options: StateDesignerConfig<D, A, C, R, V>) {
+  return options
+}
+
+export function createStateDesignerData<D>(options: D) {
+  return options
+}
+
+export function createStateDesigner<
+  D extends { [key: string]: any },
+  A extends Record<string, IAction<D>>,
+  C extends Record<string, ICondition<D>>,
+  R extends Record<string, IResult<D>>,
+  V extends IComputedValuesConfig<D>
+>(config: StateDesignerConfig<D, A, C, R, V>) {
+  return new StateDesigner(config)
+}
+
 /* --------------------- Machine -------------------- */
 
 class StateDesigner<
@@ -138,6 +163,7 @@ class StateDesigner<
   R extends Record<string, IResult<D>>,
   V extends Record<string, IComputedValue<D>>
 > {
+  id = uniqueId()
   data: any
   root: IStateNode<D, A, C, R, V>
   namedFunctions: NamedFunctions<A, C, R>
@@ -145,7 +171,7 @@ class StateDesigner<
   valueFunctions: undefined extends V ? undefined : V
   values: undefined extends V ? undefined : IComputedReturnValues<D, V>
 
-  constructor(options = {} as IConfig<D, A, C, R, V>) {
+  constructor(options = {} as StateDesignerConfig<D, A, C, R, V>) {
     const { data, on = {}, values, actions, conditions, results } = options
 
     this.data = data
@@ -190,9 +216,7 @@ class StateDesigner<
     values: undefined extends V ? undefined : IComputedReturnValues<D, V>
   ) => this.subscribers.forEach(subscriber => subscriber(data, values))
 
-  onDataDidChange = (draft: D) => {
-    this.data = draft
-
+  onDataDidChange = () => {
     const { data, valueFunctions } = this
 
     if (valueFunctions !== undefined) {
@@ -212,9 +236,11 @@ class StateDesigner<
   }
 
   send = (event: string, payload?: any) => {
-    let draft = { ...this.data }
     let result: any = undefined
-    this.root.handleEvent(event, draft, payload, result)
+    this.data = produce(this.data, (draft: Draft<D>) => {
+      this.root.handleEvent(event, draft, payload, result)
+    })
+    this.onDataDidChange()
   }
 
   can = (event: string, payload?: any): boolean => {
@@ -355,13 +381,18 @@ class IStateNode<
     }, {})
   }
 
-  public handleEvent = (event: string, draft: D, payload: any, result: any) => {
+  public handleEvent = (
+    event: string,
+    draft: Draft<D>,
+    payload: any,
+    result: any
+  ) => {
     let eventHandlers = this.events[event]
     if (eventHandlers === undefined) return
 
     let didChange = false
 
-    const beginHandlingEvent = (handler: IEventHandler<D>) => {
+    const beginHandlingEvent = (handler: IEventHandler<Draft<D>>) => {
       if (this.handleEventHandler(handler, draft, payload, result))
         didChange = true
 
@@ -370,9 +401,9 @@ class IStateNode<
       // if the previous events caused any actions to run,
       // then report the change back to the mothership.
       if (this.parent !== undefined) {
-        this.parent.handleEvent(event, draft, payload, result)
+        return this.parent.handleEvent(event, draft, payload, result)
       } else if (didChange) {
-        this.machine.onDataDidChange(draft)
+        return draft
       }
     }
 
@@ -421,8 +452,8 @@ class IStateNode<
   }
 
   private canEventHandlerRun = (
-    handler: IEventHandler<D>,
-    draft: D,
+    handler: IEventHandler<Draft<D>>,
+    draft: D | Draft<D>,
     payload: any,
     result: any
   ) => {
@@ -453,8 +484,8 @@ class IStateNode<
   }
 
   private handleEventHandler = (
-    handler: IEventHandler<D>,
-    draft: D,
+    handler: IEventHandler<Draft<D>>,
+    draft: Draft<D>,
     payload: any,
     result: any
   ) => {

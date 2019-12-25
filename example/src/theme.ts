@@ -104,6 +104,23 @@ export default {
       borderColor: "gray90"
     }
   },
+  lists: {
+    loose: {
+      display: "grid",
+      gridAutoFlow: "row",
+      gridGap: 3,
+      p: 2
+    }
+  },
+  containers: {
+    state: {
+      p: 2,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderStyle: "solid",
+      borderColor: "gray30"
+    }
+  },
   buttons: {
     primary: {
       fontSize: 1,

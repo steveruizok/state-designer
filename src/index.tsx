@@ -1,6 +1,9 @@
 import * as React from "react"
 import StateDesigner, {
-  IConfig,
+  createStateDesignerConfig,
+  createStateDesignerData,
+  createStateDesigner,
+  StateDesignerConfig,
   IAction,
   ICondition,
   IResult,
@@ -32,7 +35,7 @@ export function useStateDesigner<
   R extends Record<string, IResult<D>>,
   V extends Record<string, IComputedValue<D>>
 >(
-  options: IConfig<D, A, C, R, V>,
+  options: StateDesignerConfig<D, A, C, R, V>,
   dependencies?: any[]
 ): State<D, undefined extends V ? undefined : IComputedReturnValues<D, V>>
 export function useStateDesigner<
@@ -42,7 +45,7 @@ export function useStateDesigner<
   R extends Record<string, IResult<D>>,
   V extends Record<string, IComputedValue<D>>
 >(
-  options: StateDesigner<D, A, C, R, V> | IConfig<D, A, C, R, V>,
+  options: StateDesigner<D, A, C, R, V> | StateDesignerConfig<D, A, C, R, V>,
   dependencies: any[] = []
 ): State<D, undefined extends V ? undefined : IComputedReturnValues<D, V>> {
   // The hook can accept either a pre-existing machine (so that
@@ -94,4 +97,10 @@ export function useStateDesigner<
   return state
 }
 
-export { StateDesigner }
+export {
+  StateDesigner,
+  createStateDesigner,
+  StateDesignerConfig,
+  createStateDesignerConfig,
+  createStateDesignerData
+}
