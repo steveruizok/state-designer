@@ -74,7 +74,12 @@ const NamedFunction: React.FC<{
   const { id, editing, dirty, clean } = data
 
   return (
-    <Box p={1} as="li" sx={{ border: "1px solid #ccc", borderRadius: 8 }}>
+    <Box
+      p={1}
+      as="li"
+      my={2}
+      sx={{ border: "1px solid #ccc", borderRadius: 8 }}
+    >
       {/* <form> */}
       <Box
         sx={{
@@ -129,12 +134,20 @@ const NamedFunction: React.FC<{
               disabled={true}
             />
             <Button onClick={() => send("EDIT")}>Edit</Button>
-            <button disabled={!canMoveDown} onClick={onMoveDown}>
+            <Button
+              disabled={!canMoveDown}
+              opacity={canMoveDown ? 1 : 0.5}
+              onClick={onMoveDown}
+            >
               ▼
-            </button>
-            <button disabled={!canMoveUp} onClick={onMoveUp}>
+            </Button>
+            <Button
+              disabled={!canMoveUp}
+              opacity={canMoveUp ? 1 : 0.5}
+              onClick={onMoveUp}
+            >
               ▲
-            </button>
+            </Button>
           </Box>
         )}
       </Box>

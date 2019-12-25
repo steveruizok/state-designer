@@ -1,5 +1,6 @@
 import {
   StateDesigner,
+  createStateDesigner,
   createStateDesignerConfig,
   createStateDesignerData
 } from "state-designer"
@@ -71,6 +72,10 @@ export const namedFunctionConfig = createStateDesignerConfig({
   }
 })
 
-export const namedFunctionStateDesigner = new StateDesigner(namedFunctionConfig)
+export type NamedFunctionConfig = typeof namedFunctionConfig
+
+export const namedFunctionStateDesigner = createStateDesigner(
+  namedFunctionConfig
+)
 
 export type NamedFunctionStateDesigner = typeof namedFunctionStateDesigner

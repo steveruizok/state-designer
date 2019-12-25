@@ -6,43 +6,35 @@ type NamedOrInSeries<T, K> = keyof K | T | (keyof K | T)[]
 
 // Named Functions
 
-type INamedFunctions<T> = { [key: string]: T }
+// type INamedFunctions<T> = { [key: string]: T }
 
 // Actions
 
-export type IActionConfig<D, P = any, R = any> = (
-  data: D,
-  payload: P,
-  result: R
-) => any
+export type IActionConfig<D> = (data: D, payload: any, result: any) => any
 
-export type IAction<D, P = any, R = any> = (
-  data: D,
-  payload: P,
-  result: R
-) => any
+export type IAction<D> = (data: D, payload: any, result: any) => any
 
 type IActions<D, A> = NamedOrInSeries<IAction<D>, A>
 
 // Conditions
 
-export type ICondition<D, P = any, R = any> = (
+export type ICondition<D> = (
   data: Readonly<D>,
-  payload: P,
-  result: R
+  payload: any,
+  result: any
 ) => boolean
 
-type IConditions<D, C> = NamedOrInSeries<ICondition<D>, C>
+type IConditions<D, A> = NamedOrInSeries<ICondition<D>, A>
 
 // Computed results
 
-export type IResult<D, P = any, R = any> = (
+export type IResult<D> = (
   data: Readonly<D>,
-  payload: P,
-  result: R
+  payload: any,
+  result: any
 ) => NonUndefined<any>
 
-type IResults<D, R> = NamedOrInSeries<IResult<D>, R>
+type IResults<D, A> = NamedOrInSeries<IResult<D>, A>
 
 // Computed values
 
@@ -54,8 +46,8 @@ export type IComputedValues<D> = {
 
 export type IComputedValuesConfig<D> = { [key: string]: IComputedValue<D> }
 
-export type IComputedReturnValues<D, T extends IComputedValues<D>> = {
-  [key in keyof T]: ReturnType<T[key]>
+export type IComputedReturnValues<C extends StateDesignerConfig> = {
+  [key in keyof C["values"]]: ReturnType<C["values"][key]>
 }
 
 // Event Handlers (Config)
@@ -81,18 +73,20 @@ type IEventsConfig<D, A, C, R> = Record<string, IEventConfig<D, A, C, R>>
 
 // Event Handlers (final)
 
-interface IEventHandler<D> {
-  do: IAction<D>[]
-  if: ICondition<D>[]
-  ifAny: ICondition<D>[]
-  unless: ICondition<D>[]
-  get: IResult<D>[]
+interface IEventHandler<C extends StateDesignerConfig> {
+  do: IAction<C>[]
+  if: ICondition<C>[]
+  ifAny: ICondition<C>[]
+  unless: ICondition<C>[]
+  get: IResult<C>[]
   wait?: number
 }
 
-type IEvent<D> = IEventHandler<Draft<D>>[]
+type IEvent<C extends StateDesignerConfig> = IEventHandler<C>[]
 
-type IEvents<D> = { [key: string]: IEvent<D>[] }
+type IEvents<C extends StateDesignerConfig> = {
+  [key: string]: IEvent<C>[]
+}
 
 // Named functions
 
@@ -108,19 +102,19 @@ type NamedFunctions<A, C, R> = {
 
 // Machine subscriber
 
-type Subscriber<D, V extends IComputedValuesConfig<D>> = (
-  data: D,
-  values: undefined extends V ? undefined : IComputedReturnValues<D, V>
+type Subscriber<C extends StateDesignerConfig> = (
+  data: C["data"],
+  values: undefined extends C["values"] ? undefined : IComputedReturnValues<C>
 ) => void
 
 // Machine configuration
 
 export interface StateDesignerConfig<
-  D extends { [key: string]: any },
-  A extends Record<string, IAction<D>>,
-  C extends Record<string, ICondition<D>>,
-  R extends Record<string, IResult<D>>,
-  V extends IComputedValuesConfig<D>
+  D extends { [key: string]: any } = any,
+  A extends Record<string, IAction<D>> = any,
+  C extends Record<string, ICondition<D>> = any,
+  R extends Record<string, IResult<D>> = any,
+  V extends IComputedValuesConfig<D> = any
 > {
   data: D
   on?: IEventsConfig<D, A, C, R>
@@ -156,40 +150,36 @@ export function createStateDesigner<
 
 /* --------------------- Machine -------------------- */
 
-class StateDesigner<
-  D extends any,
-  A extends Record<string, IAction<D>>,
-  C extends Record<string, ICondition<D>>,
-  R extends Record<string, IResult<D>>,
-  V extends Record<string, IComputedValue<D>>
-> {
+class StateDesigner<C extends StateDesignerConfig> {
   id = uniqueId()
-  data: any
-  root: IStateNode<D, A, C, R, V>
-  namedFunctions: NamedFunctions<A, C, R>
-  subscribers = new Set<Subscriber<D, V>>([])
-  valueFunctions: undefined extends V ? undefined : V
-  values: undefined extends V ? undefined : IComputedReturnValues<D, V>
+  data: C["data"]
+  root: IStateNode<C>
+  namedFunctions: NamedFunctions<C["actions"], C["conditions"], C["results"]>
+  subscribers = new Set<Subscriber<C>>([])
+  valueFunctions: undefined extends C["values"] ? undefined : C["values"]
+  values: undefined extends C["values"] ? undefined : IComputedReturnValues<C>
 
-  constructor(options = {} as StateDesignerConfig<D, A, C, R, V>) {
+  constructor(options = {} as C) {
     const { data, on = {}, values, actions, conditions, results } = options
 
     this.data = data
 
-    this.valueFunctions = values as undefined extends V ? undefined : V
+    this.valueFunctions = values as undefined extends C["values"]
+      ? undefined
+      : C["values"]
 
     if (values === undefined) {
-      this.values = undefined as undefined extends V
+      this.values = undefined as undefined extends C["values"]
         ? undefined
-        : IComputedReturnValues<D, V>
+        : IComputedReturnValues<C>
     } else {
-      this.values = Object.keys(values as V).reduce<
-        IComputedReturnValues<D, V>
+      this.values = Object.keys(values as C["values"]).reduce<
+        IComputedReturnValues<C>
       >(
-        (acc, key: keyof V) =>
-          Object.assign(acc, { [key]: (values as V)[key](data) }),
-        {} as IComputedReturnValues<D, V>
-      ) as undefined extends V ? undefined : IComputedReturnValues<D, V>
+        (acc, key: keyof C["values"]) =>
+          Object.assign(acc, { [key]: (values as C["values"])[key](data) }),
+        {} as IComputedReturnValues<C>
+      ) as undefined extends C["values"] ? undefined : IComputedReturnValues<C>
     }
 
     this.namedFunctions = {
@@ -201,43 +191,47 @@ class StateDesigner<
   }
 
   private getUpdatedValues = (
-    valueFunctions: V,
-    draft: D
-  ): undefined extends V ? undefined : IComputedReturnValues<D, V> => {
-    return Object.keys(valueFunctions as V).reduce<IComputedReturnValues<D, V>>(
-      (acc, key: keyof V) =>
-        Object.assign(acc, { [key]: (valueFunctions as V)[key](draft) }),
-      {} as IComputedReturnValues<D, V>
-    ) as undefined extends V ? undefined : IComputedReturnValues<D, V>
+    valueFunctions: C["values"],
+    draft: C["data"]
+  ): undefined extends C["values"] ? undefined : IComputedReturnValues<C> => {
+    return Object.keys(valueFunctions as C["values"]).reduce<
+      IComputedReturnValues<C>
+    >(
+      (acc, key: keyof C["values"]) =>
+        Object.assign(acc, {
+          [key]: (valueFunctions as C["values"])[key](draft)
+        }),
+      {} as IComputedReturnValues<C>
+    ) as undefined extends C["values"] ? undefined : IComputedReturnValues<C>
   }
 
   private notifySubscribers = (
-    data: D,
-    values: undefined extends V ? undefined : IComputedReturnValues<D, V>
+    data: C["data"],
+    values: undefined extends C["values"] ? undefined : IComputedReturnValues<C>
   ) => this.subscribers.forEach(subscriber => subscriber(data, values))
 
   onDataDidChange = () => {
     const { data, valueFunctions } = this
 
     if (valueFunctions !== undefined) {
-      this.values = this.getUpdatedValues(valueFunctions as V, data)
+      this.values = this.getUpdatedValues(valueFunctions as C["values"], data)
     }
 
     this.notifySubscribers(data, this.values)
   }
 
-  subscribe = (onChange: Subscriber<D, V>) => {
+  subscribe = (onChange: Subscriber<C>) => {
     this.subscribers.add(onChange)
     return () => this.unsubscribe(onChange)
   }
 
-  unsubscribe = (onChange: Subscriber<D, V>) => {
+  unsubscribe = (onChange: Subscriber<C>) => {
     this.subscribers.delete(onChange)
   }
 
   send = (event: string, payload?: any) => {
     let result: any = undefined
-    this.data = produce(this.data, (draft: Draft<D>) => {
+    this.data = produce(this.data, (draft: Draft<C["data"]>) => {
       this.root.handleEvent(event, draft, payload, result)
     })
     this.onDataDidChange()
@@ -252,46 +246,41 @@ class StateDesigner<
 
 /* ------------------- State Node ------------------- */
 
-interface IStateNodeConfig<
-  D extends any,
-  A extends INamedFunctions<IAction<D>>,
-  C extends INamedFunctions<ICondition<D>>,
-  R extends INamedFunctions<IResult<D>>,
-  V extends Record<string, IComputedValue<D>>
-> {
-  on?: IEventsConfig<D, A, C, R>
-  machine: StateDesigner<D, A, C, R, V>
+interface IStateNodeConfig<C extends StateDesignerConfig> {
+  on?: IEventsConfig<C["data"], C["actions"], C["conditions"], C["results"]>
+  machine: StateDesigner<C>
 }
 
-class IStateNode<
-  D extends any,
-  A extends INamedFunctions<IAction<D>>,
-  C extends INamedFunctions<ICondition<D>>,
-  R extends INamedFunctions<IResult<D>>,
-  V extends Record<string, IComputedValue<D>>
-> {
+class IStateNode<C extends StateDesignerConfig> {
   active = false
-  machine: StateDesigner<D, A, C, R, V>
-  parent?: IStateNode<D, A, C, R, V>
-  children: IStateNode<D, A, C, R, V>[] = []
-  events: IEvents<D> = {}
+  machine: StateDesigner<C>
+  parent?: IStateNode<C>
+  children: IStateNode<C>[] = []
+  events: IEvents<C> = {}
 
-  constructor(options = {} as IStateNodeConfig<D, A, C, R, V>) {
+  constructor(options = {} as IStateNodeConfig<C>) {
     const { machine, on = {} } = options
 
     this.machine = machine
 
-    this.events = Object.keys(on).reduce<IEvents<D>>((acc, key) => {
+    this.events = Object.keys(on).reduce<IEvents<C>>((acc, key) => {
       const { namedFunctions } = this.machine
 
       // A helpers for this tricky (one-off) operation
       function getFunction<
-        T extends A | C | R,
-        K extends IAction<D> | ICondition<D> | IResult<D>
+        T extends C["actions"] | C["conditions"] | C["results"],
+        K extends
+          | IAction<C["data"]>
+          | ICondition<C["data"]>
+          | IResult<C["data"]>
       >(
         group: "actions" | "conditions" | "results",
         item: keyof T | K
-      ): IAction<D> | ICondition<D> | IResult<D> | undefined {
+      ):
+        | IAction<C["data"]>
+        | ICondition<C["data"]>
+        | IResult<C["data"]>
+        | undefined {
         if (typeof item === "string") {
           // Item is a string (key of one of the named function groups)
           const items = namedFunctions[group]
@@ -311,15 +300,18 @@ class IStateNode<
           return result
         } else {
           // Item is an anonymous function (of a ype depending on the group)
-          return item as IAction<D> | ICondition<D> | IResult<D>
+          return item as
+            | IAction<C["data"]>
+            | ICondition<C["data"]>
+            | IResult<C["data"]>
         }
       }
 
-      acc[key] = castArray(on[key]).map<IEvent<D>>(eventHandler => {
+      acc[key] = castArray(on[key]).map<IEvent<C["data"]>>(eventHandler => {
         const handlers = castArray(eventHandler)
 
-        return handlers.map<IEventHandler<D>>(v => {
-          let result: IEventHandler<D> = {
+        return handlers.map<IEventHandler<C>>(v => {
+          let result: IEventHandler<C> = {
             get: [],
             if: [],
             unless: [],
@@ -332,45 +324,64 @@ class IStateNode<
           // a named action function, or a partial event handler object.
 
           if (typeof v === "string" || typeof v === "function") {
-            const item = getFunction<A, IAction<D>>("actions", v)
+            const item = getFunction<C["actions"], IAction<C["data"]>>(
+              "actions",
+              v
+            )
             if (item !== undefined) result.do = [item]
           } else if (typeof v === "object") {
-            result.get = castArray(v.get || []).reduce<IResult<D>[]>(
+            result.get = castArray(v.get || []).reduce<IResult<C["data"]>[]>(
               (acc, a) => {
-                const item = getFunction<R, IResult<D>>("results", a)
+                const item = getFunction<C["results"], IResult<C["data"]>>(
+                  "results",
+                  a
+                )
                 return item === undefined ? acc : [...acc, item]
               },
               []
             )
 
-            result.if = castArray(v.if || []).reduce<ICondition<D>[]>(
+            result.if = castArray(v.if || []).reduce<ICondition<C["data"]>[]>(
               (acc, a) => {
-                const item = getFunction<C, ICondition<D>>("conditions", a)
+                const item = getFunction<
+                  C["conditions"],
+                  ICondition<C["data"]>
+                >("conditions", a)
                 return item === undefined ? acc : [...acc, item]
               },
               []
             )
 
-            result.unless = castArray(v.unless || []).reduce<ICondition<D>[]>(
-              (acc, a) => {
-                const item = getFunction<C, ICondition<D>>("conditions", a)
-                return item === undefined ? acc : [...acc, item]
-              },
-              []
-            )
-
-            result.ifAny = castArray(v.ifAny || []).reduce<ICondition<D>[]>(
-              (acc, a) => {
-                const item = getFunction<C, ICondition<D>>("conditions", a)
-                return item === undefined ? acc : [...acc, item]
-              },
-              []
-            )
-
-            result.do = castArray(v.do || []).reduce<IAction<D>[]>((acc, a) => {
-              const item = getFunction<A, IAction<D>>("actions", a)
+            result.unless = castArray(v.unless || []).reduce<
+              ICondition<C["data"]>[]
+            >((acc, a) => {
+              const item = getFunction<C["conditions"], ICondition<C["data"]>>(
+                "conditions",
+                a
+              )
               return item === undefined ? acc : [...acc, item]
             }, [])
+
+            result.ifAny = castArray(v.ifAny || []).reduce<
+              ICondition<C["data"]>[]
+            >((acc, a) => {
+              const item = getFunction<C["conditions"], ICondition<C["data"]>>(
+                "conditions",
+                a
+              )
+              return item === undefined ? acc : [...acc, item]
+            }, [])
+
+            result.do = castArray(v.do || []).reduce<IAction<C["data"]>[]>(
+              (acc, a) => {
+                const item = getFunction<C["conditions"], IAction<C["data"]>>(
+                  "actions",
+                  a
+                )
+                return item === undefined ? acc : [...acc, item]
+              },
+              []
+            )
           }
 
           return result
@@ -383,7 +394,7 @@ class IStateNode<
 
   public handleEvent = (
     event: string,
-    draft: Draft<D>,
+    draft: Draft<C["data"]>,
     payload: any,
     result: any
   ) => {
@@ -392,7 +403,7 @@ class IStateNode<
 
     let didChange = false
 
-    const beginHandlingEvent = (handler: IEventHandler<Draft<D>>) => {
+    const beginHandlingEvent = (handler: IEventHandler<C>) => {
       if (this.handleEventHandler(handler, draft, payload, result))
         didChange = true
 
@@ -420,7 +431,7 @@ class IStateNode<
 
   canHandleEvent = (
     event: string,
-    draft: D,
+    draft: Draft<C["data"]>,
     payload: any,
     result: any
   ): boolean => {
@@ -452,8 +463,8 @@ class IStateNode<
   }
 
   private canEventHandlerRun = (
-    handler: IEventHandler<Draft<D>>,
-    draft: D | Draft<D>,
+    handler: IEventHandler<C>,
+    draft: C["data"] | Draft<C["data"]>,
     payload: any,
     result: any
   ) => {
@@ -484,8 +495,8 @@ class IStateNode<
   }
 
   private handleEventHandler = (
-    handler: IEventHandler<Draft<D>>,
-    draft: Draft<D>,
+    handler: IEventHandler<C>,
+    draft: Draft<C["data"]>,
     payload: any,
     result: any
   ) => {

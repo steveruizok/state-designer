@@ -7,14 +7,15 @@ import {
 import { uniqueId, pullAt } from "lodash-es"
 
 import {
+  NamedFunctionStateDesigner,
   namedFunctionConfig,
-  NamedFunctionStateDesigner
+  NamedFunctionConfig
 } from "./namedFunction"
 
 interface NamedFunctionListData {
   items: {
     id: string
-    item: NamedFunctionStateDesigner
+    item: StateDesigner<NamedFunctionConfig>
   }[]
 }
 
