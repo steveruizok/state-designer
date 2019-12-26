@@ -18,6 +18,8 @@ type State<D, V> = {
   send: (event: string, payload?: any) => void
 }
 
+type Effect<T> = (state: T) => void | (() => void)
+
 export function useStateDesigner<
   D extends { [key: string]: any },
   A extends Record<string, IAction<D>>,
@@ -26,7 +28,15 @@ export function useStateDesigner<
   V extends IComputedValuesConfig<D>,
   Config extends StateDesignerConfig<D, A, C, R, V>
 >(
-  instance: StateDesigner<Config>,
+  options: StateDesigner<Config>,
+  effect?: Effect<
+    State<
+      D,
+      undefined extends StateDesigner<Config>["values"]
+        ? undefined
+        : IComputedReturnValues<Config>
+    >
+  >,
   dependencies?: any[]
 ): State<
   D,
@@ -41,6 +51,14 @@ export function useStateDesigner<
   Config extends StateDesignerConfig<D, A, C, R, V>
 >(
   options: StateDesignerConfig<D, A, C, R, V>,
+  effect?: Effect<
+    State<
+      D,
+      undefined extends Config["values"]
+        ? undefined
+        : IComputedReturnValues<Config>
+    >
+  >,
   dependencies?: any[]
 ): State<
   D,
@@ -55,6 +73,14 @@ export function useStateDesigner<
   Config extends StateDesignerConfig<D, A, C, R, V>
 >(
   options: StateDesigner<Config> | Config,
+  effect: Effect<
+    State<
+      D,
+      undefined extends Config["values"]
+        ? undefined
+        : IComputedReturnValues<Config>
+    >
+  > = () => {},
   dependencies: any[] = []
 ): State<
   D,
@@ -111,6 +137,19 @@ export function useStateDesigner<
           : IComputedReturnValues<Config>
       ) => setState(state => ({ ...state, data, values }))
     )
+  }, dependencies)
+
+  React.useEffect(() => {
+    if (effect !== undefined) {
+      return effect({
+        data: machine.current.data,
+        send: machine.current.send,
+        can: machine.current.can,
+        values: machine.current.values
+      })
+    }
+
+    return
   }, dependencies)
 
   return state

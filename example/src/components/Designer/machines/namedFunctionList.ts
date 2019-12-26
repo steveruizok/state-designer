@@ -1,29 +1,19 @@
-import {
-  StateDesigner,
-  createStateDesignerConfig,
-  createStateDesignerData
-} from "state-designer"
+import { uniqueId } from "lodash-es"
+import { StateDesigner, createStateDesignerConfig } from "state-designer"
+import { namedFunctionConfig, NamedFunctionConfig } from "./namedFunction"
 
-import { uniqueId, pullAt } from "lodash-es"
-
-import {
-  NamedFunctionStateDesigner,
-  namedFunctionConfig,
-  NamedFunctionConfig
-} from "./namedFunction"
-
-interface NamedFunctionListData {
+export interface NamedFunctionListData {
   items: {
     id: string
     item: StateDesigner<NamedFunctionConfig>
   }[]
 }
 
-const namedFunctionListData = createStateDesignerData<NamedFunctionListData>({
+const namedFunctionListData: NamedFunctionListData = {
   items: [{ id: uniqueId(), item: new StateDesigner(namedFunctionConfig) }]
-})
+}
 
-const namedFunctionListConfig = createStateDesignerConfig({
+export const namedFunctionListConfig = createStateDesignerConfig({
   data: namedFunctionListData,
   on: {
     CREATE_ITEM: {
@@ -65,4 +55,4 @@ const namedFunctionListConfig = createStateDesignerConfig({
   }
 })
 
-export const namedFunctionList = new StateDesigner(namedFunctionListConfig)
+export type NamedFunctionListConfig = typeof namedFunctionListConfig

@@ -5,7 +5,7 @@ import {
   createStateDesignerData
 } from "state-designer"
 
-import * as DS from "./types"
+import * as DS from "../types"
 
 export interface NamedFunctionData {
   id: string
@@ -18,11 +18,11 @@ export const namedFunctionData = createStateDesignerData<NamedFunctionData>({
   id: "0",
   editing: false,
   dirty: {
-    name: "increment",
+    name: "INCREMENT",
     code: "data.count++"
   },
   clean: {
-    name: "increment",
+    name: "INCREMENT",
     code: "data.count++"
   }
 })
@@ -73,9 +73,3 @@ export const namedFunctionConfig = createStateDesignerConfig({
 })
 
 export type NamedFunctionConfig = typeof namedFunctionConfig
-
-export const namedFunctionStateDesigner = createStateDesigner(
-  namedFunctionConfig
-)
-
-export type NamedFunctionStateDesigner = typeof namedFunctionStateDesigner
