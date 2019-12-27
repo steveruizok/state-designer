@@ -1,5 +1,4 @@
 import { castArray, uniqueId } from "lodash-es"
-import { NonUndefined } from "utility-types"
 import produce, { Draft } from "immer"
 
 type NamedOrInSeries<T, K> = keyof K | T | (keyof K | T)[]
@@ -26,13 +25,9 @@ export type ICondition<D> = (
 
 type IConditions<D, A> = NamedOrInSeries<ICondition<D>, A>
 
-// Computed results
+// Results
 
-export type IResult<D> = (
-  data: Readonly<D>,
-  payload: any,
-  result: any
-) => NonUndefined<any>
+export type IResult<D> = (data: Readonly<D>, payload: any, result: any) => void
 
 type IResults<D, A> = NamedOrInSeries<IResult<D>, A>
 
@@ -153,11 +148,11 @@ export function createStateDesigner<
 class StateDesigner<C extends StateDesignerConfig> {
   id = uniqueId()
   data: C["data"]
-  root: IStateNode<C>
   namedFunctions: NamedFunctions<C["actions"], C["conditions"], C["results"]>
-  subscribers = new Set<Subscriber<C>>([])
   valueFunctions: undefined extends C["values"] ? undefined : C["values"]
   values: undefined extends C["values"] ? undefined : IComputedReturnValues<C>
+  root: IStateNode<C>
+  subscribers = new Set<Subscriber<C>>([])
 
   constructor(options = {} as C) {
     const { data, on = {}, values, actions, conditions, results } = options
@@ -205,19 +200,15 @@ class StateDesigner<C extends StateDesignerConfig> {
     ) as undefined extends C["values"] ? undefined : IComputedReturnValues<C>
   }
 
-  private notifySubscribers = (
-    data: C["data"],
-    values: undefined extends C["values"] ? undefined : IComputedReturnValues<C>
-  ) => this.subscribers.forEach(subscriber => subscriber(data, values))
-
-  onDataDidChange = () => {
-    const { data, valueFunctions } = this
-
-    if (valueFunctions !== undefined) {
-      this.values = this.getUpdatedValues(valueFunctions as C["values"], data)
+  private notifySubscribers = () => {
+    if (this.valueFunctions !== undefined) {
+      this.values = this.getUpdatedValues(
+        this.valueFunctions as C["values"],
+        this.data
+      )
     }
 
-    this.notifySubscribers(data, this.values)
+    this.subscribers.forEach(subscriber => subscriber(this.data, this.values))
   }
 
   subscribe = (onChange: Subscriber<C>) => {
@@ -230,17 +221,16 @@ class StateDesigner<C extends StateDesignerConfig> {
   }
 
   send = (event: string, payload?: any) => {
-    let result: any = undefined
-    this.data = produce(this.data, (draft: Draft<C["data"]>) => {
-      this.root.handleEvent(event, draft, payload, result)
-    })
-    this.onDataDidChange()
+    this.data = produce(this.data, draft =>
+      this.root.handleEvent(event, draft, payload, {})
+    )
+    this.notifySubscribers()
   }
 
   can = (event: string, payload?: any): boolean => {
-    let draft = { ...this.data }
-    let result: any = undefined
-    return this.root.canHandleEvent(event, draft, payload, result)
+    return produce(this.data, draft =>
+      this.root.canHandleEvent(event, draft, payload, {})
+    )
   }
 }
 
@@ -268,19 +258,13 @@ class IStateNode<C extends StateDesignerConfig> {
 
       // A helpers for this tricky (one-off) operation
       function getFunction<
-        T extends C["actions"] | C["conditions"] | C["results"],
-        K extends
-          | IAction<C["data"]>
-          | ICondition<C["data"]>
-          | IResult<C["data"]>
-      >(
-        group: "actions" | "conditions" | "results",
-        item: keyof T | K
-      ):
-        | IAction<C["data"]>
-        | ICondition<C["data"]>
-        | IResult<C["data"]>
-        | undefined {
+        L extends "actions" | "conditions" | "results",
+        P extends "actions" extends L
+          ? IAction<C["data"]>
+          : "conditions" extends L
+          ? ICondition<C["data"]>
+          : IResult<C["data"]>
+      >(group: L, item: keyof C[L] | P): P | undefined {
         if (typeof item === "string") {
           // Item is a string (key of one of the named function groups)
           const items = namedFunctions[group]
@@ -300,10 +284,7 @@ class IStateNode<C extends StateDesignerConfig> {
           return result
         } else {
           // Item is an anonymous function (of a ype depending on the group)
-          return item as
-            | IAction<C["data"]>
-            | ICondition<C["data"]>
-            | IResult<C["data"]>
+          return item as P
         }
       }
 
@@ -324,18 +305,12 @@ class IStateNode<C extends StateDesignerConfig> {
           // a named action function, or a partial event handler object.
 
           if (typeof v === "string" || typeof v === "function") {
-            const item = getFunction<C["actions"], IAction<C["data"]>>(
-              "actions",
-              v
-            )
+            const item = getFunction("actions", v)
             if (item !== undefined) result.do = [item]
           } else if (typeof v === "object") {
             result.get = castArray(v.get || []).reduce<IResult<C["data"]>[]>(
               (acc, a) => {
-                const item = getFunction<C["results"], IResult<C["data"]>>(
-                  "results",
-                  a
-                )
+                const item = getFunction("results", a)
                 return item === undefined ? acc : [...acc, item]
               },
               []
@@ -343,10 +318,7 @@ class IStateNode<C extends StateDesignerConfig> {
 
             result.if = castArray(v.if || []).reduce<ICondition<C["data"]>[]>(
               (acc, a) => {
-                const item = getFunction<
-                  C["conditions"],
-                  ICondition<C["data"]>
-                >("conditions", a)
+                const item = getFunction("conditions", a)
                 return item === undefined ? acc : [...acc, item]
               },
               []
@@ -355,29 +327,20 @@ class IStateNode<C extends StateDesignerConfig> {
             result.unless = castArray(v.unless || []).reduce<
               ICondition<C["data"]>[]
             >((acc, a) => {
-              const item = getFunction<C["conditions"], ICondition<C["data"]>>(
-                "conditions",
-                a
-              )
+              const item = getFunction("conditions", a)
               return item === undefined ? acc : [...acc, item]
             }, [])
 
             result.ifAny = castArray(v.ifAny || []).reduce<
               ICondition<C["data"]>[]
             >((acc, a) => {
-              const item = getFunction<C["conditions"], ICondition<C["data"]>>(
-                "conditions",
-                a
-              )
+              const item = getFunction("conditions", a)
               return item === undefined ? acc : [...acc, item]
             }, [])
 
             result.do = castArray(v.do || []).reduce<IAction<C["data"]>[]>(
               (acc, a) => {
-                const item = getFunction<C["conditions"], IAction<C["data"]>>(
-                  "actions",
-                  a
-                )
+                const item = getFunction("actions", a)
                 return item === undefined ? acc : [...acc, item]
               },
               []
@@ -397,35 +360,28 @@ class IStateNode<C extends StateDesignerConfig> {
     draft: Draft<C["data"]>,
     payload: any,
     result: any
-  ) => {
+  ): Draft<C["data"]> => {
     let eventHandlers = this.events[event]
-    if (eventHandlers === undefined) return
+    if (eventHandlers === undefined) return draft
 
-    let didChange = false
+    for (let eventHandler of eventHandlers) {
+      for (let handler of eventHandler) {
+        // if (handler.wait !== undefined) {
+        //   setTimeout(() => beginHandlingEvent(handler), handler.wait * 1000)
+        // } else {
+        this.handleEventHandler(handler, draft, payload, result)
+        // }
+      }
+    }
 
-    const beginHandlingEvent = (handler: IEventHandler<C>) => {
-      if (this.handleEventHandler(handler, draft, payload, result))
-        didChange = true
-
+    if (this.parent !== undefined) {
       // If this state has a parent, then send the event
       // up the state tree.  When at the top of the tree,
       // if the previous events caused any actions to run,
       // then report the change back to the mothership.
-      if (this.parent !== undefined) {
-        return this.parent.handleEvent(event, draft, payload, result)
-      } else if (didChange) {
-        return draft
-      }
-    }
-
-    for (let eventHandler of eventHandlers) {
-      for (let handler of eventHandler) {
-        if (handler.wait !== undefined) {
-          setTimeout(() => beginHandlingEvent(handler), handler.wait * 1000)
-        } else {
-          beginHandlingEvent(handler)
-        }
-      }
+      return this.parent.handleEvent(event, draft, payload, result)
+    } else {
+      return draft
     }
   }
 
@@ -508,14 +464,15 @@ class IStateNode<C extends StateDesignerConfig> {
 
     // --- Conditions
 
-    if (!this.canEventHandlerRun(handler, draft, payload, result)) return
+    if (!this.canEventHandlerRun(handler, draft, payload, result)) return draft
 
     // --- Actions
-    for (let action of handler.do) action(draft, payload, result)
+    for (let action of handler.do) {
+      action(draft, payload, result)
+    }
 
     // --- Transition - TODO
-
-    return true
+    return draft
   }
 }
 

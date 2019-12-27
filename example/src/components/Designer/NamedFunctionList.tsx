@@ -1,27 +1,36 @@
 import React from "react"
 import { Box, Heading, Button } from "rebass"
-import { StateDesigner, useStateDesigner } from "state-designer"
-import { NamedFunctionListConfig } from "./machines/namedFunctionList"
-import { AnimatePresence, motion } from "framer-motion"
+import { List } from "./List"
+import { TitleRow } from "./TitleRow"
 import { NamedFunction } from "./NamedFunction"
+import { StateDesigner, useStateDesigner } from "state-designer"
+import { ActionListConfig } from "./machines/actionList"
+import { ConditionListConfig } from "./machines/conditionList"
+import { AnimatePresence, motion } from "framer-motion"
+
+type NamedListConfig = ActionListConfig | ConditionListConfig
 
 export const NamedFunctionList: React.FC<{
-  state: StateDesigner<NamedFunctionListConfig>
-}> = ({ state }) => {
-  const { data, send } = useStateDesigner(state, state => {})
+  name: string
+  state: StateDesigner<NamedListConfig>
+  onChange: (data: NamedListConfig["data"]) => void
+}> = ({ name, state, onChange }) => {
+  const { data, send } = useStateDesigner(state, state => onChange(state.data))
 
   return (
-    <Box p={2}>
-      <Heading>Named Functions</Heading>
-      <Button onClick={() => send("CREATE_ITEM")}>Add Action</Button>
-      <ul>
+    <Box>
+      <TitleRow>
+        <Heading>{name}s</Heading>
+        <Button onClick={() => send("CREATE_ITEM")}>Add {name}</Button>
+      </TitleRow>
+      <List>
         <AnimatePresence>
           {data.items.map((item, index) => {
             return (
               <motion.div
                 positionTransition={{ duration: 0.2 }}
                 key={item.id}
-                exit={{ opacity: 0 }}
+                exit={{ opacity: 0, transition: { duration: 0.2 } }}
               >
                 <NamedFunction
                   key={item.id}
@@ -32,6 +41,8 @@ export const NamedFunctionList: React.FC<{
                   onMoveDown={() =>
                     send("MOVE_ITEM", { id: item.id, delta: 1 })
                   }
+                  onRemove={() => send("REMOVE_ITEM", { id: item.id })}
+                  onChange={() => onChange(data)}
                 >
                   ...
                 </NamedFunction>
@@ -39,7 +50,7 @@ export const NamedFunctionList: React.FC<{
             )
           })}
         </AnimatePresence>
-      </ul>
+      </List>
     </Box>
   )
 }

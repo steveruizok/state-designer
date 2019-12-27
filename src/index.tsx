@@ -20,6 +20,8 @@ type State<D, V> = {
 
 type Effect<T> = (state: T) => void | (() => void)
 
+const defaultDependencies: any[] = []
+
 export function useStateDesigner<
   D extends { [key: string]: any },
   A extends Record<string, IAction<D>>,
@@ -64,6 +66,12 @@ export function useStateDesigner<
   D,
   undefined extends Config["values"] ? undefined : IComputedReturnValues<Config>
 >
+/**
+ *
+ * @param options The configuration object for a new machine, or else an existing machine
+ * @param effect An function to run each time the machine's state changes, and which (optionally) returns a function to "clean up after" the effect.
+ * @param dependencies An array of unrelated values that, when the hook updates, may cause the hook to re-subscribe to its machine, clean up its effect and run the effect again.
+ */
 export function useStateDesigner<
   D extends { [key: string]: any },
   A extends Record<string, IAction<D>>,
@@ -81,7 +89,7 @@ export function useStateDesigner<
         : IComputedReturnValues<Config>
     >
   > = () => {},
-  dependencies: any[] = []
+  dependencies: any[] = defaultDependencies
 ): State<
   D,
   undefined extends Config["values"] ? undefined : IComputedReturnValues<Config>
@@ -111,13 +119,10 @@ export function useStateDesigner<
     values: machine.current.values
   })
 
-  // When the (optional) dependencies change, and if the designer
-  // didn't provide a pre-existing machine, we'll create a new
-  // machine and update the values of the configuration.
   React.useEffect(() => {
+    // Rebuild this machine when dependencies change.
     if (!(options instanceof StateDesigner)) {
-      machine.current = new StateDesigner<Config>(options)
-
+      machine.current = new StateDesigner(options)
       setState({
         data: machine.current.data,
         send: machine.current.send,
@@ -135,21 +140,29 @@ export function useStateDesigner<
         values: undefined extends Config["values"]
           ? undefined
           : IComputedReturnValues<Config>
-      ) => setState(state => ({ ...state, data, values }))
+      ) => {
+        setState(state => {
+          return {
+            ...state,
+            data,
+            values
+          }
+        })
+      }
     )
   }, dependencies)
 
   React.useEffect(() => {
-    if (effect !== undefined) {
-      return effect({
-        data: machine.current.data,
-        send: machine.current.send,
-        can: machine.current.can,
-        values: machine.current.values
-      })
-    }
+    effect(state)
+  }, [state.data])
 
-    return
+  React.useEffect(() => {
+    return effect({
+      data: machine.current.data,
+      send: machine.current.send,
+      can: machine.current.can,
+      values: machine.current.values
+    })
   }, dependencies)
 
   return state

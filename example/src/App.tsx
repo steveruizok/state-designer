@@ -21,6 +21,15 @@ import {
 const App = () => {
   const { data, can, send } = useStateDesigner(Designer)
 
+  const example = useStateDesigner({
+    data: {
+      count: 0
+    },
+    results: {
+      double: data => {}
+    }
+  })
+
   return (
     <ThemeProvider theme={theme}>
       <DesignerComponent />
