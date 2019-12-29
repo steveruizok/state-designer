@@ -157,11 +157,11 @@ const Designer: React.FC<Props> = ({ children }) => {
       <Box>
         <Preview events={data.events} machine={captiveMachine} />
       </Box>
-      <DragList>
+      {/* <DragList>
         <Box>Hello0</Box>
         <Box>Hello1</Box>
         <Box>Hello2</Box>
-      </DragList>
+      </DragList> */}
     </Box>
   )
 }

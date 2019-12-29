@@ -127,14 +127,6 @@ export const EventHandler: React.FC<Props> = ({
               id: item.id
             })
           }
-          onUpdateCode={(item: DS.HandlerItem, code: string) =>
-            send("UPDATE_HANDLER_CONDITION", {
-              handlerId: id,
-              id: item.id,
-              name: item.name || "custom",
-              code
-            })
-          }
           onUpdateName={(item: DS.HandlerItem, code: string) =>
             send("UPDATE_HANDLER_CONDITION", {
               handlerId: id,
@@ -143,6 +135,14 @@ export const EventHandler: React.FC<Props> = ({
               name: code || "custom"
             })
           }
+          onUpdateCode={(item: DS.HandlerItem, code: string) => {
+            send("UPDATE_HANDLER_CONDITION", {
+              handlerId: id,
+              id: item.id,
+              name: item.name || "custom",
+              code
+            })
+          }}
         />
       </Box>
     </Mover>

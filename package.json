@@ -1,7 +1,7 @@
 {
   "name": "state-designer",
-  "version": "1.0.0",
-  "description": "A state and event management hook.",
+  "version": "1.0.1",
+  "description": "A state and event management tool.",
   "author": "steveruizok",
   "license": "MIT",
   "repository": "steveruizok/state-designer",

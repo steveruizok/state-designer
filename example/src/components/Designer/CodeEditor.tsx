@@ -96,9 +96,9 @@ export const CodeEditor: React.FC<Props> = ({
             position: "absolute",
             bottom: 0,
             left: 0,
-            height: 40,
+            height: 32,
             width: "100%",
-            background: "rgba(255, 255, 255, .1)"
+            background: "#ff5087"
           }}
         >
           <Text>{error}</Text>

@@ -52,6 +52,7 @@ export const EventHandlerItemList: React.FC<Props> = ({
           return (
             <Mover key={item.id}>
               <EventHandlerItem
+                key={item.id}
                 item={item}
                 items={namedFunctions}
                 canMoveDown={canMove(item, 1)}
@@ -59,8 +60,8 @@ export const EventHandlerItemList: React.FC<Props> = ({
                 onMoveDown={() => onMove(item, 1)}
                 onMoveUp={() => onMove(item, -1)}
                 onRemove={() => onRemove(item)}
-                onChangeCode={code => onUpdateName(item, code || "custom")}
-                onChangeName={code => onUpdateCode(item, code)}
+                onChangeCode={code => onUpdateCode(item, code)}
+                onChangeName={code => onUpdateName(item, code || "custom")}
               />
             </Mover>
           )
