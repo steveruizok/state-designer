@@ -19,6 +19,7 @@
     "start": "rollup -c -w",
     "prepare": "yarn run build",
     "predeploy": "cd example && yarn install && yarn run build",
+    "autodeploy": "yarn && cd example && yarn && yarn run build",
     "deploy": "gh-pages -d example/build"
   },
   "dependencies": {
