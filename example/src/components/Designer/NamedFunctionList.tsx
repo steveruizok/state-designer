@@ -1,5 +1,6 @@
 import React from "react"
-import { Box, Heading, Button } from "rebass"
+import { Button } from "./Inputs"
+import { Box, Heading } from "rebass"
 import { List } from "./List"
 import { TitleRow } from "./TitleRow"
 import { NamedFunction } from "./NamedFunction"

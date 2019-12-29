@@ -17,6 +17,7 @@ export enum Fences {
 export interface Props {
   readOnly?: boolean
   value?: string
+  highlight?: boolean
   startWith?: string
   endWith?: string
   error?: string
@@ -28,6 +29,7 @@ export const CodeEditor: React.FC<Props> = ({
   value = "",
   error,
   startWith,
+  highlight: shouldHighlight = true,
   endWith,
   style = {},
   onChange = () => {},
@@ -61,12 +63,11 @@ export const CodeEditor: React.FC<Props> = ({
 
   return (
     <Box
-      p={1}
       sx={{
-        width: "100%",
         position: "relative",
         border: "1px solid #ccc",
         borderRadius: 4,
+        overflow: "hidden",
         ...style
       }}
     >
@@ -74,11 +75,14 @@ export const CodeEditor: React.FC<Props> = ({
         value={textIn(value)}
         onValueChange={code => onChange(textOut(code || ""))}
         readOnly={readOnly}
-        highlight={code => highlight(code, languages.js)}
-        padding={4}
+        highlight={code =>
+          shouldHighlight ? highlight(code, languages.js) : code
+        }
+        padding={8}
         insertSpaces={false}
         style={{
-          backgroundColor: "#2b2734",
+          backgroundColor: "#f7f8fa",
+          fontWeight: 500,
           fontFamily: '"Fira code", "Fira Mono", monospace',
           fontSize: 14,
           lineHeight: 2

@@ -1,11 +1,13 @@
 import React from "react"
-import { Box, Button } from "rebass"
+import { Button } from "./Inputs"
+import { Box } from "rebass"
 import { Label, Input } from "@rebass/forms"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import { NamedFunctionConfig } from "./machines/namedFunction"
 import { List } from "./List"
 import { FlatList } from "./FlatList"
 import { CodeEditor, Fences } from "./CodeEditor"
+import { SaveCancelButtons } from "./SaveCancelButtons"
 
 export const NamedFunction: React.FC<{
   state: StateDesigner<NamedFunctionConfig>
@@ -24,7 +26,7 @@ export const NamedFunction: React.FC<{
   canMoveUp,
   onRemove = () => {}
 }) => {
-  const { data, send } = useStateDesigner(state, onChange)
+  const { data, send, can } = useStateDesigner(state, onChange)
   const { id, editing, dirty, clean } = data
 
   return (
@@ -41,16 +43,11 @@ export const NamedFunction: React.FC<{
             endWith={Fences.End}
             onChange={code => send("UPDATE_CODE", code)}
           />
-          <Box
-            sx={{
-              display: "grid",
-              gridAutoFlow: "column",
-              gap: 1
-            }}
-          >
-            <Button onClick={() => send("CANCEL")}>Cancel</Button>
-            <Button onClick={() => send("SAVE")}>Save</Button>
-          </Box>
+          <SaveCancelButtons
+            canSave={can("SAVE")}
+            onSave={() => send("SAVE")}
+            onCancel={() => send("CANCEL")}
+          />
         </List>
       ) : (
         <FlatList>

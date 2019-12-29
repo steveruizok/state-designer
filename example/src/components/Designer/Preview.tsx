@@ -1,8 +1,8 @@
 import React from "react"
-import { Box, Heading, Button } from "rebass"
+import { Button } from "./Inputs"
+import { Box, Heading } from "rebass"
 import { CodeEditor } from "./CodeEditor"
 import { List } from "./List"
-import { EventButtonsList } from "./EventButtonsList"
 
 import * as DS from "./types"
 

@@ -1,14 +1,11 @@
 import React from "react"
-import { Box, Text, Heading, Button } from "rebass"
-import { Label, Input } from "@rebass/forms"
+import { Box } from "rebass"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import {
-  getDefaultActionListConfig,
   getInitialActionListConfig,
   ActionListConfig
 } from "./machines/actionList"
 import {
-  getDefaultConditionListConfig,
   getInitialConditionListConfig,
   ConditionListConfig
 } from "./machines/conditionList"
@@ -18,6 +15,7 @@ import { Preview } from "./Preview"
 import { List } from "./List"
 import { EventsList } from "./EventsList"
 import * as DS from "./types"
+import DragList from "./DragList"
 
 export interface Props {}
 
@@ -26,8 +24,6 @@ export const namedActionsState = new StateDesigner(getInitialActionListConfig())
 export const namedConditionsState = new StateDesigner(
   getInitialConditionListConfig()
 )
-
-console.log(namedConditionsState)
 
 const Designer: React.FC<Props> = ({ children }) => {
   const { data, send } = useStateDesigner({
@@ -119,75 +115,54 @@ const Designer: React.FC<Props> = ({ children }) => {
       }, {})
     },
     undefined,
+    undefined,
     [data]
   )
 
-  // console.log({
-  //   data: {
-  //     count: 0
-  //   },
-  //   actions: data.namedActions.reduce<any>((acc, item) => {
-  //     acc[item.name] = getSafeFunction(item.code)
-  //     return acc
-  //   }, {}),
-  //   conditions: data.namedConditions.reduce<any>((acc, item) => {
-  //     acc[item.name] = getSafeFunction(item.code)
-  //     return acc
-  //   }, {}),
-  //   on: data.events.reduce<any>((acc, event) => {
-  //     acc[event.name] = event.handlers.map(handler => ({
-  //       do: handler.do.map(d => {
-  //         switch (d.type) {
-  //           case DS.HandlerItems.Custom: {
-  //             return getSafeFunction(d.code)
-  //           }
-  //           case DS.HandlerItems.Named: {
-  //             return d.name
-  //           }
-  //         }
-  //       }),
-  //       if: handler.if.map(d => {
-  //         switch (d.type) {
-  //           case DS.HandlerItems.Custom: {
-  //             return getSafeFunction(d.code)
-  //           }
-  //           case DS.HandlerItems.Named: {
-  //             return d.name
-  //           }
-  //         }
-  //       })
-  //     }))
-
-  //     return acc
-  //   }, {})
-  // })
-
   return (
-    <List p={2}>
-      <EventsList
-        state={eventsState}
-        actions={data.namedActions}
-        conditions={data.namedConditions}
-        onChange={(data: EventsListConfig["data"]) =>
-          send("UPDATE_EVENTS", data)
-        }
-      />
-      <NamedFunctionList
-        name="Action"
-        state={namedActionsState}
-        onChange={(data: ActionListConfig["data"]) =>
-          send("UPDATE_NAMED_ACTIONS", data)
-        }
-      />
-      <NamedFunctionList
-        name="Condition"
-        state={namedConditionsState}
-        onChange={(data: ConditionListConfig["data"]) =>
-          send("UPDATE_NAMED_CONDITIONS", data)
-        }
-      />
-      <Preview events={data.events} machine={captiveMachine} />
-    </List>
+    <Box
+      p={3}
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, 420px)",
+        gap: 3
+      }}
+    >
+      <List>
+        <NamedFunctionList
+          name="Action"
+          state={namedActionsState}
+          onChange={(data: ActionListConfig["data"]) =>
+            send("UPDATE_NAMED_ACTIONS", data)
+          }
+        />
+        <NamedFunctionList
+          name="Condition"
+          state={namedConditionsState}
+          onChange={(data: ConditionListConfig["data"]) =>
+            send("UPDATE_NAMED_CONDITIONS", data)
+          }
+        />
+      </List>
+      <Box>
+        <EventsList
+          state={eventsState}
+          actions={data.namedActions}
+          conditions={data.namedConditions}
+          onChange={(data: EventsListConfig["data"]) =>
+            send("UPDATE_EVENTS", data)
+          }
+        />
+      </Box>
+      <Box>
+        <Preview events={data.events} machine={captiveMachine} />
+      </Box>
+      <DragList>
+        <Box>Hello0</Box>
+        <Box>Hello1</Box>
+        <Box>Hello2</Box>
+      </DragList>
+    </Box>
   )
 }
 

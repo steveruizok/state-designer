@@ -1,5 +1,5 @@
-import React from "react";
-import { Box, Text } from "rebass";
+import React from "react"
+import { Box, Text } from "rebass"
 
 export interface Props {}
 
@@ -8,7 +8,7 @@ const RowItem: React.FC<Props> = ({ children }) => {
     <Box variant={"rowItem"}>
       <Text>{children}</Text>
     </Box>
-  );
-};
+  )
+}
 
-export default RowItem;
+export default RowItem

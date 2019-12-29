@@ -1,5 +1,5 @@
 import React from "react"
-import { Button } from "rebass"
+import { Button } from "./Inputs"
 import { List } from "./List"
 
 export const EventButtonsList: React.FC<{

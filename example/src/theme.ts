@@ -1,156 +1,199 @@
+import prismTheme from "@theme-ui/prism/presets/github.json"
+
+const heading = {
+  fontFamily: "heading",
+  fontWeight: "heading",
+  lineHeight: "heading",
+  a: {
+    color: "inherit",
+    textDecoration: "none"
+  }
+}
+
 export default {
+  breakpoints: ["52em", "90em", "100em"],
   colors: {
     text: "#000",
-    background: "#161616",
-    primary: "#fff",
-    secondary: "#ccc",
-    muted: "#aaa",
-    gray: "#777",
-    highlight: "hsla(205, 100%, 40%, 0.125)",
-    gray05: "#f2f2f2",
-    gray10: "#e4e4e3",
-    gray20: "#cbcaca",
-    gray30: "#b2b2b2",
-    gray70: "#4d4c4c",
-    gray80: "#333333",
-    gray85: "#2d2d2d",
-    gray90: "#161616"
+    code: "#272727",
+    codeBg: "#f6f8fa",
+    codeHl: "#e7ebed",
+    muted: "#f6f8fa",
+    background: "#fff",
+    primary: "#3333ff",
+    secondary: "#8855ff",
+    highlight: "#03d8ff",
+    gray: "#d8dde3"
   },
   fonts: {
     body: "system-ui, sans-serif",
-    heading: "inherit",
-    monospace: "Menlo, monospace"
+    heading: "system-ui, sans-serif",
+    monospace: "Fira Code, Menlo, monospace"
   },
-  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 96],
+  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72],
   fontWeights: {
-    body: 400,
-    heading: 700,
-    bold: 700
+    body: "400",
+    heading: "700"
   },
   lineHeights: {
     body: 1.5,
     heading: 1.25
   },
-  space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
-  sizes: {
-    avatar: 48
+  disabled: {
+    opacity: 0.5
   },
-  radii: {
-    default: 4,
-    circle: 99999
-  },
-  shadows: {
-    card: "0 0 4px rgba(0, 0, 0, .125)"
-  },
-  // rebass variants
-  text: {
-    heading: {
-      fontFamily: "heading",
-      lineHeight: "heading",
-      fontWeight: "heading"
-    },
-    display: {
-      fontFamily: "heading",
-      fontWeight: "heading",
-      lineHeight: "heading",
-      fontSize: [5, 6, 7]
-    },
-    caps: {
-      textTransform: "uppercase",
-      letterSpacing: "0.1em"
-    }
-  },
-  variants: {
-    avatar: {
-      width: "avatar",
-      height: "avatar",
-      borderRadius: "circle"
-    },
-    card: {
-      p: 2,
-      bg: "gray80",
-      boxShadow: "card"
-    },
-    link: {
-      color: "primary"
-    },
-    nav: {
-      fontSize: 1,
-      fontWeight: "bold",
-      display: "inline-block",
-      p: 2,
-      color: "inherit",
-      textDecoration: "none",
-      ":hover,:focus,.active": {
-        color: "primary"
-      }
-    },
-    titleRow: {
-      bg: "gray85",
-      borderStyle: "solid",
-      borderColor: "gray90",
-      borderLeftWidth: 0,
-      borderRightWidth: 0,
-      borderTopWidth: 0,
-      borderBottomWidth: 1,
-      py: 2,
-      px: 1
-    },
-    rowItem: {
-      px: 1,
-      py: 2,
-      borderBottomWidth: 1,
-      borderBottomStyle: "solid",
-      borderColor: "gray90"
-    }
-  },
-  lists: {
-    loose: {
-      display: "grid",
-      gridAutoFlow: "row",
-      gridGap: 3,
-      p: 2
-    }
-  },
-  containers: {
-    state: {
-      p: 2,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderStyle: "solid",
-      borderColor: "gray30"
-    }
-  },
-  buttons: {
+  buttonStyles: {
     primary: {
-      fontSize: 1,
-      px: 2,
-      fontWeight: "bold",
-      color: "background",
+      p: 3,
       bg: "primary",
-      borderRadius: "default"
+      color: "background"
     },
-    disabled: {
-      variant: "buttons.primary",
-      opacity: 0.5
-    },
-    outline: {
-      variant: "buttons.primary",
-      color: "primary",
-      bg: "transparent",
-      boxShadow: "inset 0 0 2px"
-    },
-    secondary: {
-      variant: "buttons.primary",
-      color: "background",
-      bg: "secondary"
+    list: {
+      p: 2,
+      bg: "muted",
+      color: "text",
+      borderStyle: "solid",
+      borderWidth: 1,
+      borderColor: "gray"
     }
+  },
+  textStyles: {
+    heading,
+    display: {
+      variant: "textStyles.heading",
+      fontSize: [5, 6, 7],
+      mt: 3
+    }
+  },
+  borderStyles: {
+    quote: "1px solid secondary"
   },
   styles: {
+    Container: {
+      p: 3,
+      maxWidth: 1024
+    },
     root: {
       fontFamily: "body",
-      fontWeight: "body",
-      lineHeight: "body"
+      lineHeight: "body",
+      fontWeight: "body"
+    },
+    h1: {
+      variant: "textStyles.display"
+    },
+    h2: {
+      variant: "textStyles.heading",
+      fontSize: 5
+    },
+    h3: {
+      variant: "textStyles.heading",
+      fontSize: 4
+    },
+    h4: {
+      variant: "textStyles.heading",
+      fontSize: 3
+    },
+    h5: {
+      variant: "textStyles.heading",
+      fontSize: 2
+    },
+    h6: {
+      variant: "textStyles.heading",
+      fontSize: 1
+    },
+    a: {
+      color: "primary",
+      textDecoration: "none",
+      "&:hover": {
+        textDecoration: "underline"
+      }
+    },
+    blockquote: {
+      m: 0,
+      borderLeft: (theme: any) => `1px solid ${theme.colors.gray}`,
+      pl: 4,
+      pr: 2,
+      py: 2,
+      fontStyle: "italic"
+    },
+    pre: {
+      ...prismTheme,
+      variant: "prism",
+      maxWidth: "100%",
+      tabSize: 2,
+      fontFamily: "monospace",
+      fontSize: 1,
+      p: 3,
+      borderRadius: 4,
+      overflow: "scroll",
+      scroll: "auto",
+      code: {
+        color: "inherit",
+        bg: "inherit",
+        border: "none",
+        px: 0,
+        borderRadius: 0
+      }
+    },
+    code: {
+      fontFamily: "monospace",
+      color: "code",
+      bg: "codeBg",
+      fontWeight: 500,
+      fontSize: 1,
+      // border: '1px solid #efefef',
+      px: 1,
+      borderRadius: 4
+    },
+    table: {
+      width: "100%",
+      my: 4,
+      borderCollapse: "separate",
+      borderSpacing: 0,
+      th: {
+        textAlign: "left",
+        py: "4px",
+        pr: "4px",
+        pl: 0,
+        borderColor: "muted",
+        borderBottomStyle: "solid"
+      },
+      td: {
+        textAlign: "left",
+        py: "4px",
+        pr: "4px",
+        pl: 0,
+        borderColor: "muted",
+        borderBottomStyle: "solid"
+      },
+      code: {
+        mx: -1
+      }
+    },
+    th: {
+      verticalAlign: "bottom",
+      borderBottomWidth: "2px"
+    },
+    td: {
+      verticalAlign: "top",
+      borderBottomWidth: "1px"
+    },
+    hr: {
+      border: 0,
+      borderBottom: (theme: any) => `1px solid ${theme.colors.gray}`,
+      mx: "auto",
+      my: 4
+    },
+    ul: {
+      my: 2
+    },
+    ol: {
+      my: 4
+    },
+    li: {
+      mb: 2
+    },
+    p: {
+      mb: 3
     }
   }
 }

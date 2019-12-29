@@ -1,5 +1,6 @@
 import React from "react"
-import { Box, Heading, Button } from "rebass"
+import { Button } from "./Inputs"
+import { Box, Heading } from "rebass"
 import { List } from "./List"
 import { TitleRow } from "./TitleRow"
 import { Event } from "./Event"
@@ -23,6 +24,7 @@ export const EventsList: React.FC<Props> = ({
 }) => {
   const { data, send } = useStateDesigner(state, state => onChange(state.data))
   const { items } = data
+
   return (
     <Box>
       <TitleRow>

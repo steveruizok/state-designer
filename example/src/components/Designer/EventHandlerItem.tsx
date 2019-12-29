@@ -1,12 +1,8 @@
 import React from "react"
-import { Box, Heading, Button } from "rebass"
+import { Button } from "./Inputs"
 import { Select } from "@rebass/forms"
 import { List } from "./List"
 import { FlatList } from "./FlatList"
-import { Event } from "./Event"
-import { StateDesigner, useStateDesigner } from "state-designer"
-import { EventsListConfig } from "./machines/eventsList"
-import { AnimatePresence, motion } from "framer-motion"
 import { CodeEditor, Fences } from "./CodeEditor"
 import * as DS from "./types"
 
@@ -22,7 +18,7 @@ export interface Props {
   canMoveUp: boolean
 }
 
-export const HandlerItem: React.FC<Props> = ({
+export const EventHandlerItem: React.FC<Props> = ({
   item,
   items,
   onChangeName,
@@ -37,7 +33,10 @@ export const HandlerItem: React.FC<Props> = ({
     <List>
       <FlatList>
         <Select
-          backgroundColor="#2b2834"
+          backgroundColor="#fafafa"
+          sx={{
+            border: "1px solid #ccc"
+          }}
           value={item.type === DS.HandlerItems.Custom ? "custom" : item.name}
           onChange={(e: any) => onChangeName(e.target.value)}
         >

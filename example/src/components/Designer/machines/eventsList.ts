@@ -50,7 +50,8 @@ export const eventsListConfig = createStateDesignerConfig({
       data.items[index] = data.items[index + delta]
       data.items[index + delta] = t
     },
-    removeEvent: (data, payload, index: number) => {
+    removeEvent: (data, payload, event) => {
+      const index = data.items.indexOf(event)
       data.items.splice(index, 1)
     }
   },

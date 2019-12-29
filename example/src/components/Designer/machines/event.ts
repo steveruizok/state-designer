@@ -21,7 +21,10 @@ export const createEventConfig = (data: EventData) =>
     on: {
       UPDATE_NAME: "updateName",
       EDIT_EVENT: "startEditingEvent",
-      SAVE_EVENT_EDIT: ["saveEventChanges", "stopEditingEvent"],
+      SAVE_EVENT_EDIT: {
+        if: ["nameIsValid", "codeIsValid"],
+        do: ["saveEventChanges", "stopEditingEvent"]
+      },
       CANCEL_EVENT_EDIT: "stopEditingEvent",
       CREATE_EVENT_HANDLER: {
         get: "newEventHandler",
@@ -192,21 +195,22 @@ export const createEventConfig = (data: EventData) =>
       }
     },
     conditions: {
-      nameIsValid: (d, { name }) => {
+      nameIsValid: data => {
+        const { name } = data.dirty
         try {
           new Function("data", "payload", "result", `const v = ${name}`)
+          return true
         } catch (e) {
           return false
         }
-        return true
       },
-      codeIsValid: (d, { code }) => {
-        try {
-          new Function("data", "payload", "result", code)
-        } catch (e) {
-          return false
-        }
-        return true
+      codeIsValid: data => {
+        const { handlers } = data.dirty
+        return handlers.every(
+          handler =>
+            handler.do.every(item => item.error === undefined) &&
+            handler.if.every(item => item.error === undefined)
+        )
       },
       canMoveEventHandler: (data, { delta }, index) =>
         !(delta + index < 0 || delta + index > data.dirty.handlers.length - 1),
@@ -223,7 +227,7 @@ export const createEventConfig = (data: EventData) =>
 
 export const emptyEventConfig = createEventConfig({
   id: uniqueId(),
-  editing: false,
+  editing: true,
   clean: {
     id: uniqueId(),
     name: "",
