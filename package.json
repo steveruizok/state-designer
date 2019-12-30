@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A state and event management tool.",
   "author": "steveruizok",
   "license": "MIT",
@@ -24,7 +24,9 @@
   },
   "dependencies": {
     "@rebass/forms": "^4.0.6",
+    "@types/deep-freeze": "^0.1.2",
     "@types/lodash-es": "^4.17.3",
+    "deep-freeze": "^0.0.1",
     "immer": "^5.1.0",
     "lodash-es": "^4.17.15",
     "react-dom": "^16.12.0",

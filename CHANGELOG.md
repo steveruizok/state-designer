@@ -1,0 +1,7 @@
+# Changelog
+
+## 1.0.2
+
+- Simplifies typing in `useStateDesigner` and `StateDesigner`.
+- Allows for a generic type (for data) in the `useStateDesigner` hook, e.g. `useStateDesigner<MyData>({...})`.
+- Cleans up functions for turning the event handler shorthand syntax in configuration files into full event handlers in the StateDesigner class.

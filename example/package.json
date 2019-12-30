@@ -18,6 +18,7 @@
     "@types/rebass": "^4.0.3",
     "@types/styled-system": "^5.1.4",
     "array-move": "^2.2.1",
+    "deep-freeze": "^0.0.1",
     "emotion-theming": "^10.0.27",
     "find-index": "^1.1.1",
     "framer-motion": "^1.7.0",
