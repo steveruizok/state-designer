@@ -17,6 +17,7 @@ const initialActionListData: NamedFunctionListData = {
         createNamedFunctionConfig({
           id: uniqueId(),
           editing: false,
+          hasChanges: false,
           error: undefined,
           dirty: {
             name: "increment",
@@ -42,6 +43,7 @@ const defaultActionListData: NamedFunctionListData = {
         createNamedFunctionConfig({
           id: uniqueId(),
           editing: false,
+          hasChanges: false,
           error: undefined,
           dirty: {
             name: "",
@@ -86,6 +88,7 @@ export const createActionListConfig = (data: NamedFunctionListData) =>
           createNamedFunctionConfig({
             id: uniqueId(),
             editing: false,
+            hasChanges: false,
             error: undefined,
             dirty: {
               name: "",

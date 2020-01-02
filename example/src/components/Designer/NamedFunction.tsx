@@ -8,6 +8,7 @@ import { List } from "./List"
 import { FlatList } from "./FlatList"
 import { CodeEditor, Fences } from "./CodeEditor"
 import { SaveCancelButtons } from "./SaveCancelButtons"
+import { Item } from "./item/Item"
 
 export const NamedFunction: React.FC<{
   state: StateDesigner<NamedFunctionConfig>
@@ -15,6 +16,7 @@ export const NamedFunction: React.FC<{
   onMoveDown: any
   canMoveUp: boolean
   canMoveDown: boolean
+  onDuplicate: any
   onChange: any
   onRemove: any
 }> = ({
@@ -24,52 +26,97 @@ export const NamedFunction: React.FC<{
   onMoveUp = () => {},
   canMoveDown,
   canMoveUp,
+  onDuplicate = () => {},
   onRemove = () => {}
 }) => {
   const { data, send, can } = useStateDesigner(state, onChange)
-  const { id, editing, dirty, clean } = data
+  const { id, editing, dirty, clean, error, hasChanges } = data
+
+  React.useEffect(
+    function enableKeyboardSave() {
+      function keyBoardSave(this: HTMLElement, e: KeyboardEvent) {
+        if (e.key === "s" && e.metaKey) {
+          e.preventDefault()
+          console.log("save")
+        }
+      }
+      if (editing) {
+        document.body.addEventListener("keydown", keyBoardSave)
+      }
+      return () => document.body.removeEventListener("keydown", keyBoardSave)
+    },
+    [editing]
+  )
+
+  function handleMoreSelect(option: string) {
+    switch (option) {
+      case "Cancel": {
+        send("CANCEL")
+        break
+      }
+      case "Save": {
+        send("SAVE")
+        break
+      }
+      case "Move Up": {
+        onMoveUp()
+        break
+      }
+      case "Move Down": {
+        onMoveDown()
+        break
+      }
+      case "Edit": {
+        send("EDIT")
+        break
+      }
+      case "Delete": {
+        onRemove()
+        break
+      }
+      case "Duplicate": {
+        onDuplicate()
+        break
+      }
+    }
+  }
+
+  let options = ["Edit", "Duplicate", "Delete"]
+
+  if (editing) {
+    if (hasChanges) options.unshift("Save")
+    options.unshift("Cancel")
+  } else {
+    if (canMoveDown) options.unshift("Move Down")
+    if (canMoveUp) options.unshift("Move Up")
+  }
 
   return (
-    <Box p={1} sx={{ border: "1px solid #ccc", borderRadius: 8 }}>
-      {editing ? (
-        <List>
-          <CodeEditor
-            value={dirty.name}
-            onChange={code => send("UPDATE_NAME", code)}
-          />
+    <Item
+      error={error}
+      options={options}
+      onMoreSelect={handleMoreSelect}
+      editing={editing}
+      dirty={hasChanges}
+      onCancel={() => send("CANCEL")}
+      onSave={() => send("SAVE")}
+    >
+      <List>
+        <CodeEditor
+          value={dirty.name}
+          readOnly={!editing}
+          onFocus={() => send("EDIT")}
+          onChange={code => send("UPDATE_NAME", code)}
+        />
+        {editing && (
           <CodeEditor
             value={dirty.code}
             startWith={Fences.FunctionArgs + Fences.Start}
             endWith={Fences.End}
             onChange={code => send("UPDATE_CODE", code)}
           />
-          <SaveCancelButtons
-            canSave={can("SAVE")}
-            onSave={() => send("SAVE")}
-            onCancel={() => send("CANCEL")}
-          />
-        </List>
-      ) : (
-        <FlatList>
-          <CodeEditor value={clean.name} readOnly />
-          <Button onClick={() => send("EDIT")}>Edit</Button>
-          <Button
-            disabled={!canMoveDown}
-            opacity={canMoveDown ? 1 : 0.5}
-            onClick={onMoveDown}
-          >
-            ▼
-          </Button>
-          <Button
-            disabled={!canMoveUp}
-            opacity={canMoveUp ? 1 : 0.5}
-            onClick={onMoveUp}
-          >
-            ▲
-          </Button>
-          <Button onClick={onRemove}>X</Button>
-        </FlatList>
-      )}
-    </Box>
+        )}
+      </List>
+    </Item>
   )
 }

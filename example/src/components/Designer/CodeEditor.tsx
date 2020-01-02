@@ -21,6 +21,8 @@ export interface Props {
   startWith?: string
   endWith?: string
   error?: string
+  onFocus?: () => void
+  onBlur?: () => void
   onChange?: (code: string) => void
   style?: React.CSSProperties
 }
@@ -32,6 +34,8 @@ export const CodeEditor: React.FC<Props> = ({
   highlight: shouldHighlight = true,
   endWith,
   style = {},
+  onFocus,
+  onBlur,
   onChange = () => {},
   readOnly = false
 }) => {
@@ -49,6 +53,8 @@ export const CodeEditor: React.FC<Props> = ({
   }
 
   function textOut(text: string) {
+    if (text.length === 0) return value
+
     let t = text
 
     if (startWith !== undefined) {
@@ -78,6 +84,8 @@ export const CodeEditor: React.FC<Props> = ({
         highlight={code =>
           shouldHighlight ? highlight(code, languages.js) : code
         }
+        onFocus={onFocus}
+        onBlur={onBlur}
         padding={8}
         insertSpaces={false}
         style={{

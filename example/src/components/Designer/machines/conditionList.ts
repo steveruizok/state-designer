@@ -17,6 +17,7 @@ const initialConditionListData: NamedFunctionListData = {
         createNamedFunctionConfig({
           id: uniqueId(),
           editing: false,
+          hasChanges: false,
           error: undefined,
           dirty: {
             name: "underMax",
@@ -42,6 +43,7 @@ const defaultConditionListData: NamedFunctionListData = {
         createNamedFunctionConfig({
           id: uniqueId(),
           editing: false,
+          hasChanges: false,
           error: undefined,
           dirty: {
             name: "",
@@ -86,6 +88,7 @@ export const createConditionListConfig = (data: NamedFunctionListData) =>
           createNamedFunctionConfig({
             id: uniqueId(),
             editing: false,
+            hasChanges: false,
             error: undefined,
             dirty: {
               name: "",

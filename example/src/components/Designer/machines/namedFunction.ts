@@ -10,6 +10,7 @@ import * as DS from "../types"
 
 export interface NamedFunctionData {
   id: string
+  hasChanges: boolean
   editing: boolean
   dirty: DS.NamedFunction
   clean: DS.NamedFunction
@@ -19,6 +20,7 @@ export interface NamedFunctionData {
 export const namedFunctionData = createStateDesignerData<NamedFunctionData>({
   id: uniqueId(),
   editing: false,
+  hasChanges: false,
   error: undefined,
   dirty: {
     name: "INCREMENT",
@@ -33,111 +35,30 @@ export const namedFunctionData = createStateDesignerData<NamedFunctionData>({
 })
 
 export const createNamedFunctionConfig = (data: NamedFunctionData) =>
-  createStateDesignerConfig({
-    data,
-    on: {
-      UPDATE_NAME: {
-        do: "updateName"
-      },
-      UPDATE_CODE: {
-        do: ["updateCode", "updateError"]
-      },
-      EDIT: {
-        do: "startEditing"
-      },
-      SAVE: {
-        if: "codeIsValid",
-        do: ["saveEdits", "stopEditing"]
-      },
-      CANCEL: {
-        do: ["cancelEdits", "stopEditing"]
-      }
-    },
-    actions: {
-      updateName: (data, name) => {
-        data.dirty.name = name
-      },
-      updateCode: (data, code) => {
-        data.dirty.code = code
-      },
-      cancelEdits: data => {
-        Object.assign(data.dirty, data.clean)
-      },
-      saveEdits: data => {
-        Object.assign(data.clean, data.dirty)
-      },
-      stopEditing: data => {
-        data.editing = false
-      },
-      startEditing: data => {
-        data.editing = true
-      },
-      updateError: data => {
-        try {
-          new Function("data", "payload", "result", data.dirty.code)
-        } catch (e) {
-          return (data.error = e.message)
-        }
-
-        if (
-          data.clean.mustReturn &&
-          data.dirty.code !== undefined &&
-          !data.dirty.code.includes("return")
-        ) {
-          data.error = "Must return a value."
-        }
-
-        return (data.error = undefined)
-      }
-    },
-    conditions: {
-      nameIsValid: data => data.dirty.name.length > 0,
-      codeIsValid: data => data.error === undefined
-    }
-  })
-
-export const namedActionData = createStateDesignerData<NamedFunctionData>({
-  id: uniqueId(),
-  editing: false,
-  error: undefined,
-  dirty: {
-    name: "INCREMENT",
-    code: "data.count++",
-    mustReturn: false
-  },
-  clean: {
-    name: "INCREMENT",
-    code: "data.count++",
-    mustReturn: false
-  }
-})
-
-export const nameConditionData = createStateDesignerData<NamedFunctionData>({
-  id: uniqueId(),
-  editing: false,
-  error: undefined,
-  dirty: {
-    name: "DECREMENT",
-    code: "return data.count--",
-    mustReturn: true
-  },
-  clean: {
-    name: "DECREMENT",
-    code: "return data.count--",
-    mustReturn: true
-  }
-})
+  getNamedFunctionConfig(data)
 
 export const getNamedFunctionConfig = (data: any) => {
   return createStateDesignerConfig({
     data: data,
     on: {
-      UPDATE_NAME: {
-        do: "updateName"
-      },
-      UPDATE_CODE: {
-        do: ["updateCode", "updateError"]
-      },
+      UPDATE_NAME: [
+        {
+          unless: "hasChanges",
+          do: "updateChanges"
+        },
+        {
+          do: ["updateName", "updateError"]
+        }
+      ],
+      UPDATE_CODE: [
+        {
+          unless: "hasChanges",
+          do: "updateChanges"
+        },
+        {
+          do: ["updateCode", "updateError"]
+        }
+      ],
       EDIT: {
         do: "startEditing"
       },
@@ -150,6 +71,7 @@ export const getNamedFunctionConfig = (data: any) => {
       }
     },
     actions: {
+      updateChanges: data => (data.hasChanges = true),
       updateName: (data, name) => {
         data.dirty.name = name
       },
@@ -172,7 +94,8 @@ export const getNamedFunctionConfig = (data: any) => {
         try {
           new Function("data", "payload", "result", data.dirty.code)
         } catch (e) {
-          return (data.error = e.message)
+          data.error = e.message
+          return
         }
 
         if (
@@ -181,13 +104,37 @@ export const getNamedFunctionConfig = (data: any) => {
           !data.dirty.code.includes("return")
         ) {
           data.error = "Must return a value."
+          return
+        }
+
+        if (data.dirty.name.length === 0) {
+          data.error = "Must have a name"
+          return
+        }
+
+        try {
+          new Function(`const ${data.dirty.name} = "str"`)
+        } catch (e) {
+          data.error = "Invalid name"
+          return false
         }
 
         return (data.error = undefined)
       }
     },
     conditions: {
-      nameIsValid: data => data.dirty.name.length > 0,
+      hasChanges: data => data.hasChanges,
+      nameIsValid: data => {
+        if (data.dirty.name.length > 0) return false
+
+        try {
+          Function(`const ${data.name} = "str"`)
+        } catch (e) {
+          return false
+        }
+
+        return true
+      },
       codeIsValid: data => data.error === undefined
     }
   })

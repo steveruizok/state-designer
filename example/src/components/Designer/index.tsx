@@ -15,7 +15,9 @@ import { Preview } from "./Preview"
 import { List } from "./List"
 import { EventsList } from "./EventsList"
 import * as DS from "./types"
-import DragList from "./DragList"
+import { Select } from "@rebass/forms"
+import { Item } from "./item/Item"
+import { Title } from "./item/Title"
 
 export interface Props {}
 
@@ -97,6 +99,9 @@ const Designer: React.FC<Props> = ({ children }) => {
               case DS.HandlerItems.Named: {
                 return d.name
               }
+              default: {
+                return
+              }
             }
           }),
           if: handler.if.map(d => {
@@ -106,6 +111,9 @@ const Designer: React.FC<Props> = ({ children }) => {
               }
               case DS.HandlerItems.Named: {
                 return d.name
+              }
+              default: {
+                return
               }
             }
           })
@@ -120,49 +128,63 @@ const Designer: React.FC<Props> = ({ children }) => {
   )
 
   return (
-    <Box
-      p={3}
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, 420px)",
-        gap: 3
-      }}
-    >
-      <List>
-        <NamedFunctionList
-          name="Action"
-          state={namedActionsState}
-          onChange={(data: ActionListConfig["data"]) =>
-            send("UPDATE_NAMED_ACTIONS", data)
-          }
-        />
-        <NamedFunctionList
-          name="Condition"
-          state={namedConditionsState}
-          onChange={(data: ConditionListConfig["data"]) =>
-            send("UPDATE_NAMED_CONDITIONS", data)
-          }
-        />
-      </List>
-      <Box>
-        <EventsList
-          state={eventsState}
-          actions={data.namedActions}
-          conditions={data.namedConditions}
-          onChange={(data: EventsListConfig["data"]) =>
-            send("UPDATE_EVENTS", data)
-          }
-        />
-      </Box>
-      <Box>
-        <Preview events={data.events} machine={captiveMachine} />
-      </Box>
-      {/* <DragList>
+    <>
+      <Box
+        p={3}
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, 460px)",
+          gap: 3
+        }}
+      >
+        <List>
+          <NamedFunctionList
+            name="Action"
+            state={namedActionsState}
+            onChange={(data: ActionListConfig["data"]) =>
+              send("UPDATE_NAMED_ACTIONS", data)
+            }
+          />
+          <NamedFunctionList
+            name="Condition"
+            state={namedConditionsState}
+            onChange={(data: ConditionListConfig["data"]) =>
+              send("UPDATE_NAMED_CONDITIONS", data)
+            }
+          />
+        </List>
+        <Box>
+          <EventsList
+            state={eventsState}
+            actions={data.namedActions}
+            conditions={data.namedConditions}
+            onChange={(data: EventsListConfig["data"]) =>
+              send("UPDATE_EVENTS", data)
+            }
+          />
+        </Box>
+        <Box>
+          <Preview events={data.events} machine={captiveMachine} />
+        </Box>
+        {/* <DragList>
         <Box>Hello0</Box>
         <Box>Hello1</Box>
         <Box>Hello2</Box>
       </DragList> */}
-    </Box>
+      </Box>
+      <Item>
+        <Item>
+          <Select />
+        </Item>
+        <Title title="Actions" />
+        <Item>
+          <Select />
+        </Item>
+        <Item>
+          <Select />
+        </Item>
+      </Item>
+    </>
   )
 }
 

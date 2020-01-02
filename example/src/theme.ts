@@ -18,7 +18,7 @@ export default {
     codeBg: "#f6f8fa",
     codeHl: "#e7ebed",
     muted: "#f6f8fa",
-    background: "#fff",
+    background: "#fafafa",
     primary: "#3333ff",
     secondary: "#8855ff",
     highlight: "#03d8ff",

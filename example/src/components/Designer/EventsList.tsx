@@ -4,6 +4,7 @@ import { Box, Heading } from "rebass"
 import { List } from "./List"
 import { TitleRow } from "./TitleRow"
 import { Event } from "./Event"
+import { Item } from "./item/Item"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import { EventsListConfig } from "./machines/eventsList"
 import { AnimatePresence, motion } from "framer-motion"
@@ -26,11 +27,7 @@ export const EventsList: React.FC<Props> = ({
   const { items } = data
 
   return (
-    <Box>
-      <TitleRow>
-        <Heading>Events</Heading>
-        <Button onClick={() => send("CREATE_EVENT")}>Add Event</Button>
-      </TitleRow>
+    <Item title={"Events"} onCreate={() => send("CREATE_EVENT")}>
       <List>
         <AnimatePresence>
           {items.map((item, index) => {
@@ -61,6 +58,6 @@ export const EventsList: React.FC<Props> = ({
           })}
         </AnimatePresence>
       </List>
-    </Box>
+    </Item>
   )
 }
