@@ -106,18 +106,17 @@ export const createConditionListConfig = (data: NamedFunctionListData) =>
     },
     actions: {
       addItem: (data, payload, newItem) => data.items.push(newItem),
-      moveItem: (data, { delta }, index) => {
-        const t = data.items[index]
-        data.items[index] = data.items[index + delta]
-        data.items[index + delta] = t
+      moveItem: (data, { target }, index) => {
+        const item = data.items.splice(index, 1)[0]
+        data.items.splice(target, 0, item)
       },
       removeItem: (data, payload, index: number) => {
         data.items.splice(index, 1)
       }
     },
     conditions: {
-      canMoveItem: (data, { delta }, index) =>
-        !(delta + index < 0 || delta + index > data.items.length - 1)
+      canMoveItem: (data, { target }) =>
+        !(target < 0 || target > data.items.length - 1)
     }
   })
 

@@ -1,4 +1,4 @@
-import { uniqueId } from "lodash-es"
+import { uniqueId, cloneDeep } from "lodash-es"
 import {
   StateDesigner,
   createStateDesigner,
@@ -29,6 +29,10 @@ export const createEventConfig = (data: EventData) =>
       CREATE_EVENT_HANDLER: {
         get: "newEventHandler",
         do: "addEventHandler"
+      },
+      DUPLICATE_EVENT_HANDLER: {
+        get: ["handlers", "handler"],
+        do: "duplicateEventHandler"
       },
       MOVE_EVENT_HANDLER: {
         get: ["handlers", "handlerIndex"],
@@ -132,10 +136,18 @@ export const createEventConfig = (data: EventData) =>
       addEventHandler: (data, p, eventHandler) => {
         data.dirty.handlers.push(eventHandler)
       },
-      moveEventHandler: (data, { delta }, index) => {
-        const t = data.dirty.handlers[index]
-        data.dirty.handlers[index] = data.dirty.handlers[index + delta]
-        data.dirty.handlers[index + delta] = t
+      duplicateEventHandler: (data, { id }) => {
+        const e = data.dirty.handlers.find(h => h.id === id)
+        if (!e) return
+
+        const t = cloneDeep(e)
+        t.id = uniqueId()
+
+        data.dirty.handlers.push(t)
+      },
+      moveEventHandler: (data, { target }, index) => {
+        const t = data.dirty.handlers.splice(index, 1)[0]
+        data.dirty.handlers.splice(target, 1, t)
       },
       removeEventHandler: (data, payload, index: number) => {
         data.dirty.handlers.splice(index, 1)
@@ -164,13 +176,15 @@ export const createEventConfig = (data: EventData) =>
       },
       moveHandlerItem: (
         data,
-        { id, delta },
+        { id, target },
         handlerItems: DS.HandlerItem[]
       ) => {
         const index = handlerItems.findIndex(v => v.id === id)
-        const t = handlerItems[index]
-        handlerItems[index] = handlerItems[index + delta]
-        handlerItems[index + delta] = t
+        const t = handlerItems.splice(index, 1)[0]
+        handlerItems.splice(target, 0, t)
+        // const t = handlerItems[index]
+        // handlerItems[index] = handlerItems[index + delta]
+        // handlerItems[index + delta] = t
       },
       updateHandlerError: (d, { code }, handlerItem: DS.HandlerItem) => {
         try {
@@ -212,15 +226,15 @@ export const createEventConfig = (data: EventData) =>
             handler.if.every(item => item.error === undefined)
         )
       },
-      canMoveEventHandler: (data, { delta }, index) =>
-        !(delta + index < 0 || delta + index > data.dirty.handlers.length - 1),
+      canMoveEventHandler: (data, { target }) =>
+        !(target < 0 || target > data.dirty.handlers.length - 1),
       canMoveHandlerItem: (
         data,
-        { id, delta },
+        { id, target },
         handlerItems: DS.HandlerItem[]
       ) => {
         const index = handlerItems.findIndex(h => h.id === id)
-        return !(delta + index < 0 || delta + index > handlerItems.length - 1)
+        return !(target < 0 || target > handlerItems.length - 1)
       }
     }
   })

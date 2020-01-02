@@ -21,6 +21,7 @@ export interface Props {
   startWith?: string
   endWith?: string
   error?: string
+  ignoreTab?: boolean
   onFocus?: () => void
   onBlur?: () => void
   onChange?: (code: string) => void
@@ -36,6 +37,7 @@ export const CodeEditor: React.FC<Props> = ({
   style = {},
   onFocus,
   onBlur,
+  ignoreTab = false,
   onChange = () => {},
   readOnly = false
 }) => {
@@ -78,6 +80,7 @@ export const CodeEditor: React.FC<Props> = ({
       }}
     >
       <Editor
+        tabSize={1}
         value={textIn(value)}
         onValueChange={code => onChange(textOut(code || ""))}
         readOnly={readOnly}
@@ -87,6 +90,7 @@ export const CodeEditor: React.FC<Props> = ({
         onFocus={onFocus}
         onBlur={onBlur}
         padding={8}
+        ignoreTabKey={ignoreTab}
         insertSpaces={false}
         style={{
           backgroundColor: "#f7f8fa",

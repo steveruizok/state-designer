@@ -3,15 +3,10 @@ import { Box, Text } from "rebass"
 import { Plus } from "react-feather"
 
 export interface Props {
-  title: string
-  onAddItem?: () => void
+  onCreate?: () => void
 }
 
-export const Title: React.FC<Props> = ({
-  title,
-  onAddItem = () => {},
-  children
-}) => {
+export const Title: React.FC<Props> = ({ onCreate, children }) => {
   return (
     <Box
       sx={{
@@ -19,8 +14,7 @@ export const Title: React.FC<Props> = ({
         height: 24,
         display: "grid",
         width: "100%",
-        gridTemplateColumns: "min-content 1fr",
-        gridAutoColumns: "fit-content",
+        gridTemplateColumns: "auto 1fr auto",
         gridAutoFlow: "column",
         alignItems: "center",
         lineHeight: 1
@@ -32,7 +26,7 @@ export const Title: React.FC<Props> = ({
           borderBottom: "1px dashed #777",
           left: -32,
           width: "calc(100% + 64px)",
-          top: 11,
+          top: 12,
           zIndex: 1
         }}
       />
@@ -40,6 +34,7 @@ export const Title: React.FC<Props> = ({
         px={2}
         sx={{
           backgroundColor: "background",
+          width: "fit-content",
           display: "inline",
           zIndex: 2,
           fontWeight: 600,
@@ -48,16 +43,17 @@ export const Title: React.FC<Props> = ({
           color: "#333"
         }}
       >
-        {title}
+        {children}
       </Text>
       <Box />
-      {onAddItem && (
+      {onCreate && (
         <Box
           px={2}
           sx={{
             zIndex: 2,
             backgroundColor: "background"
           }}
+          onClick={onCreate}
         >
           <Plus />
         </Box>

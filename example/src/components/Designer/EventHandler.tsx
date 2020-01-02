@@ -4,6 +4,8 @@ import { EventConfig } from "./machines/event"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import { Mover } from "./Mover"
 import { MovingHeader } from "./MovingHeader"
+import { Title } from "./item/Title"
+import { DraggableItem } from "./item/DraggableItem"
 import { EventHandlerItemList } from "./EventHandlerItemList"
 
 import * as DS from "./types"
@@ -14,6 +16,9 @@ export interface Props {
   actions: DS.NamedAction[]
   conditions: DS.NamedCondition[]
   onChange: () => void
+  draggable: boolean
+  draggableId: string
+  draggableIndex: number
 }
 
 export const EventHandler: React.FC<Props> = ({
@@ -21,130 +26,180 @@ export const EventHandler: React.FC<Props> = ({
   actions,
   conditions,
   event,
-  onChange
+  onChange,
+  draggable,
+  draggableId,
+  draggableIndex
 }) => {
   const { can, send } = useStateDesigner(event, onChange)
-  const { id } = handler
 
-  const canMoveUp = can("MOVE_EVENT_HANDLER", { id, delta: -1 })
-  const canMoveDown = can("MOVE_EVENT_HANDLER", { id, delta: 1 })
+  function handleMoreSelect(option: string) {
+    switch (option) {
+      case "Move Up": {
+        send("MOVE_EVENT_HANDLER", {
+          id: handler.id,
+          target: draggableIndex - 1
+        })
+        break
+      }
+      case "Move Down": {
+        send("MOVE_EVENT_HANDLER", {
+          id: handler.id,
+          target: draggableIndex + 1
+        })
+        break
+      }
+      case "Delete": {
+        send("REMOVE_EVENT_HANDLER", { id: handler.id })
+        break
+      }
+      case "Duplicate": {
+        send("DUPLICATE_EVENT_HANDLER", { id: handler.id })
+        break
+      }
+    }
+  }
+
+  let options = ["Duplicate", "Delete"]
+
+  if (can("MOVE_EVENT_HANDLER", { id: handler.id, target: draggableIndex - 1 }))
+    options.unshift("Move Down")
+  if (can("MOVE_EVENT_HANDLER", { id: handler.id, target: draggableIndex + 1 }))
+    options.unshift("Move Up")
 
   return (
-    <Mover>
-      <Box
-        m={1}
-        p={1}
-        sx={{
-          backgroundColor: "rgba(255, 220, 255, .08)",
-          border: "1px solid #ccc",
-          borderRadius: 8,
-          gap: 16
-        }}
+    <DraggableItem
+      {...{
+        draggable,
+        draggableId,
+        draggableIndex,
+        options
+      }}
+      onMoreSelect={handleMoreSelect}
+      title="Event Handler"
+
+      // onMoveDown={() =>
+      //   send("MOVE_EVENT_HANDLER", { id: handler.id, delta: 1 })
+      // }
+      // onMoveUp={() =>
+      //   send("MOVE_EVENT_HANDLER", { id: handler.id, delta: -1 })
+      // }
+      // onRemove={() => send("REMOVE_EVENT_HANDLER", { id: handler.id })}
+    >
+      <Title
+        onCreate={() =>
+          send("CREATE_HANDLER_ACTION", {
+            handlerId: handler.id,
+            mustReturn: false
+          })
+        }
       >
-        <MovingHeader
-          canMoveDown={canMoveDown}
-          canMoveUp={canMoveUp}
-          onMoveDown={() => send("MOVE_EVENT_HANDLER", { id, delta: 1 })}
-          onMoveUp={() => send("MOVE_EVENT_HANDLER", { id, delta: -1 })}
-          onRemove={() => send("REMOVE_EVENT_HANDLER", { id })}
-        >
-          <Heading fontSize={3}>Event Handler</Heading>
-        </MovingHeader>
-        <EventHandlerItemList
-          name="Action"
-          items={handler.do}
-          namedFunctions={actions}
-          onCreate={() =>
-            send("CREATE_HANDLER_ACTION", {
-              handlerId: id,
-              mustReturn: false
-            })
-          }
-          canMove={(item: DS.HandlerItem, delta: number) =>
-            can("MOVE_HANDLER_ACTION", {
-              handlerId: id,
-              id: item.id,
-              delta
-            })
-          }
-          onMove={(item: DS.HandlerItem, delta: number) =>
-            send("MOVE_HANDLER_ACTION", {
-              handlerId: id,
-              id: item.id,
-              delta
-            })
-          }
-          onRemove={(item: DS.HandlerItem) =>
-            send("REMOVE_HANDLER_ACTION", {
-              handlerId: id,
-              id: item.id
-            })
-          }
-          onUpdateCode={(item: DS.HandlerItem, code: string) =>
-            send("UPDATE_HANDLER_ACTION", {
-              handlerId: id,
-              id: item.id,
-              name: item.name || "custom",
-              code
-            })
-          }
-          onUpdateName={(item: DS.HandlerItem, code: string) =>
-            send("UPDATE_HANDLER_ACTION", {
-              handlerId: id,
-              id: item.id,
-              code: item.code,
-              name: code || "custom"
-            })
-          }
-        />
-        <EventHandlerItemList
-          name="Condition"
-          items={handler.if}
-          namedFunctions={conditions}
-          onCreate={() =>
-            send("CREATE_HANDLER_CONDITION", {
-              handlerId: id,
-              mustReturn: false
-            })
-          }
-          canMove={(item: DS.HandlerItem, delta: number) =>
-            can("MOVE_HANDLER_CONDITION", {
-              handlerId: id,
-              id: item.id,
-              delta
-            })
-          }
-          onMove={(item: DS.HandlerItem, delta: number) =>
-            send("MOVE_HANDLER_CONDITION", {
-              handlerId: id,
-              id: item.id,
-              delta
-            })
-          }
-          onRemove={(item: DS.HandlerItem) =>
-            send("REMOVE_HANDLER_CONDITION", {
-              handlerId: id,
-              id: item.id
-            })
-          }
-          onUpdateName={(item: DS.HandlerItem, code: string) =>
-            send("UPDATE_HANDLER_CONDITION", {
-              handlerId: id,
-              id: item.id,
-              code: item.code,
-              name: code || "custom"
-            })
-          }
-          onUpdateCode={(item: DS.HandlerItem, code: string) => {
-            send("UPDATE_HANDLER_CONDITION", {
-              handlerId: id,
-              id: item.id,
-              name: item.name || "custom",
-              code
-            })
-          }}
-        />
-      </Box>
-    </Mover>
+        Actions
+      </Title>
+      <EventHandlerItemList
+        name="Action"
+        items={handler.do}
+        namedFunctions={actions}
+        onDuplicate={(item: DS.HandlerItem) =>
+          send("DUPLICATE_HANDLER_ACTION", {
+            handlerId: handler.id,
+            id: item.id
+          })
+        }
+        canMove={(id: string, target: number) =>
+          can("MOVE_HANDLER_ACTION", {
+            handlerId: handler.id,
+            id,
+            target
+          })
+        }
+        onMove={(id: string, target: number) =>
+          send("MOVE_HANDLER_ACTION", {
+            handlerId: handler.id,
+            id,
+            target
+          })
+        }
+        onRemove={(item: DS.HandlerItem) =>
+          send("REMOVE_HANDLER_ACTION", {
+            handlerId: handler.id,
+            id: item.id
+          })
+        }
+        onUpdateCode={(item: DS.HandlerItem, code: string) =>
+          send("UPDATE_HANDLER_ACTION", {
+            handlerId: handler.id,
+            id: item.id,
+            name: item.name || "custom",
+            code
+          })
+        }
+        onUpdateName={(item: DS.HandlerItem, code: string) =>
+          send("UPDATE_HANDLER_ACTION", {
+            handlerId: handler.id,
+            id: item.id,
+            code: item.code,
+            name: code || "custom"
+          })
+        }
+      />
+      <Title
+        onCreate={() =>
+          send("CREATE_HANDLER_CONDITION", {
+            handlerId: handler.id,
+            mustReturn: true
+          })
+        }
+      >
+        Conditions
+      </Title>
+      <EventHandlerItemList
+        name="Condition"
+        items={handler.if}
+        namedFunctions={conditions}
+        onDuplicate={(item: DS.HandlerItem) =>
+          send("DUPLICATE_HANDLER_CONDITION", {
+            handlerId: handler.id,
+            id: item.id
+          })
+        }
+        canMove={(id: string, target: number) =>
+          can("MOVE_HANDLER_CONDITION", {
+            handlerId: handler.id,
+            id,
+            target
+          })
+        }
+        onMove={(id: string, target: number) =>
+          send("MOVE_HANDLER_CONDITION", {
+            handlerId: handler.id,
+            id,
+            target
+          })
+        }
+        onRemove={(item: DS.HandlerItem) =>
+          send("REMOVE_HANDLER_CONDITION", {
+            handlerId: handler.id,
+            id: item.id
+          })
+        }
+        onUpdateName={(item: DS.HandlerItem, code: string) =>
+          send("UPDATE_HANDLER_CONDITION", {
+            handlerId: handler.id,
+            id: item.id,
+            code: item.code,
+            name: code || "custom"
+          })
+        }
+        onUpdateCode={(item: DS.HandlerItem, code: string) => {
+          send("UPDATE_HANDLER_CONDITION", {
+            handlerId: handler.id,
+            id: item.id,
+            name: item.name || "custom",
+            code
+          })
+        }}
+      />
+    </DraggableItem>
   )
 }

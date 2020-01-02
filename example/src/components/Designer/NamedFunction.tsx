@@ -8,17 +8,21 @@ import { List } from "./List"
 import { FlatList } from "./FlatList"
 import { CodeEditor, Fences } from "./CodeEditor"
 import { SaveCancelButtons } from "./SaveCancelButtons"
-import { Item } from "./item/Item"
+import { DraggableItem } from "./item/DraggableItem"
 
 export const NamedFunction: React.FC<{
   state: StateDesigner<NamedFunctionConfig>
   onMoveUp: any
   onMoveDown: any
+  canDrag: boolean
   canMoveUp: boolean
   canMoveDown: boolean
   onDuplicate: any
   onChange: any
   onRemove: any
+  draggable: boolean
+  draggableId: string
+  draggableIndex: number
 }> = ({
   state,
   onChange,
@@ -26,8 +30,12 @@ export const NamedFunction: React.FC<{
   onMoveUp = () => {},
   canMoveDown,
   canMoveUp,
+  canDrag,
   onDuplicate = () => {},
-  onRemove = () => {}
+  onRemove = () => {},
+  draggable,
+  draggableId,
+  draggableIndex
 }) => {
   const { data, send, can } = useStateDesigner(state, onChange)
   const { id, editing, dirty, clean, error, hasChanges } = data
@@ -37,7 +45,7 @@ export const NamedFunction: React.FC<{
       function keyBoardSave(this: HTMLElement, e: KeyboardEvent) {
         if (e.key === "s" && e.metaKey) {
           e.preventDefault()
-          console.log("save")
+          send("SAVE")
         }
       }
       if (editing) {
@@ -92,17 +100,24 @@ export const NamedFunction: React.FC<{
   }
 
   return (
-    <Item
-      error={error}
-      options={options}
+    <DraggableItem
+      {...{
+        draggable,
+        draggableId,
+        draggableIndex,
+        error,
+        options,
+        editing
+      }}
       onMoreSelect={handleMoreSelect}
-      editing={editing}
+      draggable={canDrag}
       dirty={hasChanges}
       onCancel={() => send("CANCEL")}
       onSave={() => send("SAVE")}
     >
       <List>
         <CodeEditor
+          ignoreTab={true}
           value={dirty.name}
           readOnly={!editing}
           onFocus={() => send("EDIT")}
@@ -110,13 +125,15 @@ export const NamedFunction: React.FC<{
         />
         {editing && (
           <CodeEditor
+            ignoreTab={false}
             value={dirty.code}
             startWith={Fences.FunctionArgs + Fences.Start}
             endWith={Fences.End}
+            onBlur={() => send("BLUR")}
             onChange={code => send("UPDATE_CODE", code)}
           />
         )}
       </List>
-    </Item>
+    </DraggableItem>
   )
 }

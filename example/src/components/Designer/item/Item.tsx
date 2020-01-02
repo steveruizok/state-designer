@@ -1,25 +1,18 @@
 import React from "react"
 import { Box, Text } from "rebass"
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import { Code, Check, MoreHorizontal, X, Plus } from "react-feather"
-import {
-  useMotionValue,
-  useTransform,
-  AnimatePresence,
-  motion,
-  PanInfo
-} from "framer-motion"
+import { Draggable } from "react-beautiful-dnd"
 
 export interface Props {
   title?: string
+  titleSize?: number
   editing?: boolean
   dirty?: boolean
-  drag?: boolean
+  draggable?: boolean
+  draggableId?: number | string
+  draggableIndex?: number
   options?: string[]
   error?: string
-  onDragStart?: (e: any, info: PanInfo) => void
-  onDragEnd?: (e: any, info: PanInfo) => void
-  onDrag?: (e: any, info: PanInfo) => void
   onSave?: () => void
   onCancel?: () => void
   onMoreSelect?: (value: string) => void
@@ -28,9 +21,9 @@ export interface Props {
 
 export const Item: React.FC<Props> = ({
   title,
+  titleSize = 2,
   editing = false,
   dirty = false,
-  drag = false,
   error,
   options = [],
   onCreate,
@@ -44,28 +37,18 @@ export const Item: React.FC<Props> = ({
   const [hovered, setHovered] = React.useState(false)
 
   return (
-    <Box
-      m={1}
-      mb={2}
-      p={2}
-      // onMouseEnter={e => {
-      //   setHovered(true)
-      // }}
-      // onMouseLeave={e => {
-      //   setHovered(false)
-      // }}
-    >
+    <Box m={1} mb={2} p={2} maxWidth={560} backgroundColor={"background"}>
       <Box
         p={2}
         sx={{
           position: "relative",
-          border: `1px solid #aaa`,
+          border: `1px solid ${editing ? "#333" : "#aaa"}`,
           borderRadius: 4,
           minHeight: 60
         }}
       >
         {/*Header*/}
-        <ItemHeader title={title}>
+        <ItemHeader title={title} titleSize={titleSize}>
           {onCreate && (
             <Box
               sx={{
@@ -102,20 +85,6 @@ export const Item: React.FC<Props> = ({
             </Box>
           )}
         </ItemHeader>
-        {/*Dragging*/}
-        {drag && (
-          <Box
-            p={2}
-            sx={{
-              position: "absolute",
-              top: 10,
-              left: -16,
-              backgroundColor: "background"
-            }}
-          >
-            <Code size={16} style={{ transform: "rotate(90deg)" }} />
-          </Box>
-        )}
         {/*Body*/}
         <Box
           p={2}
@@ -147,15 +116,19 @@ export const Item: React.FC<Props> = ({
   )
 }
 
-const ItemHeader: React.FC<{ title?: string }> = ({ title, children }) => {
+const ItemHeader: React.FC<{ title?: string; titleSize?: number }> = ({
+  title,
+  titleSize = 2,
+  children
+}) => {
   return (
     <Box
       p={2}
       sx={{
         display: "grid",
         width: "100%",
-        gridTemplateColumns: "min-content 1fr",
-        gridAutoColumns: "fit-content",
+        gridTemplateColumns: "auto 1fr",
+        gridAutoColumns: "",
         gridAutoFlow: "column",
         alignItems: "center",
         lineHeight: 1,
@@ -170,10 +143,11 @@ const ItemHeader: React.FC<{ title?: string }> = ({ title, children }) => {
         fontFamily="body"
         px={2}
         sx={{
+          width: "fit-content",
           backgroundColor: "background",
           gridRow: 0,
-          fontSize: 14,
-          fontWeight: 600
+          fontSize: titleSize === 2 ? 14 : titleSize === 3 ? 16 : 12,
+          fontWeight: titleSize === 2 ? 600 : 800
         }}
       >
         {title}
@@ -232,37 +206,5 @@ const ItemFooter: React.FC<{}> = ({ children }) => {
         {children}
       </Box>
     </Box>
-  )
-}
-
-const ExpandingHorizontalList: React.FC<{}> = ({ children }) => {
-  return (
-    <AnimatePresence>
-      {React.Children.map(children, (node, index) => (
-        <motion.div
-          positionTransition={{ duration: 0.18 }}
-          style={{ overflow: "hidden" }}
-          exit={{ width: 0, opacity: 0 }}
-        >
-          {node}
-        </motion.div>
-      ))}
-    </AnimatePresence>
-  )
-}
-
-const ExpandingVerticalList: React.FC<{}> = ({ children }) => {
-  return (
-    <AnimatePresence>
-      {React.Children.map(children, (node, index) => (
-        <motion.div
-          positionTransition={{ duration: 0.18 }}
-          style={{ overflow: "hidden" }}
-          exit={{ height: 0, opacity: 0 }}
-        >
-          {node}
-        </motion.div>
-      ))}
-    </AnimatePresence>
   )
 }

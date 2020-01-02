@@ -7,8 +7,9 @@ import { NamedFunction } from "./NamedFunction"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import { ActionListConfig } from "./machines/actionList"
 import { ConditionListConfig } from "./machines/conditionList"
-import { AnimatePresence, motion } from "framer-motion"
+import { DragDropContext, Droppable } from "react-beautiful-dnd"
 import { Item } from "./item/Item"
+import { Title } from "./item/Title"
 
 type NamedListConfig = ActionListConfig | ConditionListConfig
 
@@ -17,38 +18,57 @@ export const NamedFunctionList: React.FC<{
   state: StateDesigner<NamedListConfig>
   onChange: (data: NamedListConfig["data"]) => void
 }> = ({ name, state, onChange }) => {
-  const { data, send } = useStateDesigner(state, state => onChange(state.data))
+  const { data, send, can } = useStateDesigner(state, state =>
+    onChange(state.data)
+  )
 
   return (
     <Item title={name + "s"} onCreate={() => send("CREATE_ITEM")}>
-      <List>
-        <AnimatePresence>
-          {data.items.map((item, index) => {
-            const { id } = item
-            return (
-              <motion.div
-                positionTransition={{ duration: 0.2 }}
-                key={id}
-                exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              >
-                <NamedFunction
-                  key={id}
-                  state={item.item}
-                  canMoveUp={index > 0 && data.items.length > 1}
-                  onMoveUp={() => send("MOVE_ITEM", { id, delta: -1 })}
-                  canMoveDown={index < data.items.length - 1}
-                  onMoveDown={() => send("MOVE_ITEM", { id, delta: 1 })}
-                  onDuplicate={() => send("DUPLICATE_ITEM", { id })}
-                  onRemove={() => send("REMOVE_ITEM", { id })}
-                  onChange={() => onChange(data)}
-                >
-                  ...
-                </NamedFunction>
-              </motion.div>
-            )
-          })}
-        </AnimatePresence>
-      </List>
+      <DragDropContext
+        onDragEnd={result =>
+          send("MOVE_ITEM", {
+            id: result.draggableId,
+            target: result.destination
+          })
+        }
+      >
+        <Droppable droppableId="droppable">
+          {(provided, snapshot) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+              {data.items.map((item, index) => {
+                const { id } = item
+                return (
+                  <NamedFunction
+                    key={id}
+                    draggable={data.items.length > 1}
+                    draggableId={id}
+                    draggableIndex={index}
+                    state={item.item}
+                    canDrag={data.items.length > 1}
+                    canMoveUp={can("MOVE_ITEM", {
+                      id,
+                      target: index - 1
+                    })}
+                    onMoveUp={() =>
+                      send("MOVE_ITEM", { id, target: index - 1 })
+                    }
+                    canMoveDown={can("MOVE_ITEM", {
+                      id,
+                      target: index + 1
+                    })}
+                    onMoveDown={() =>
+                      send("MOVE_ITEM", { id, target: index + 1 })
+                    }
+                    onDuplicate={() => send("DUPLICATE_ITEM", { id })}
+                    onRemove={() => send("REMOVE_ITEM", { id })}
+                    onChange={() => onChange(data)}
+                  />
+                )
+              })}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
     </Item>
   )
 }

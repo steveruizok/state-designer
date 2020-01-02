@@ -1,5 +1,5 @@
 import React from "react"
-import { Box } from "rebass"
+import { Flex, Box } from "rebass"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import {
   getInitialActionListConfig,
@@ -128,16 +128,29 @@ const Designer: React.FC<Props> = ({ children }) => {
   )
 
   return (
-    <>
+    <Box p={3}>
+      <Box mb={4}>
+        <h1>State Designer</h1>
+        Github
+      </Box>
       <Box
-        p={3}
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, 460px)",
-          gap: 3
+          gridGap: 10,
+          gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr) )",
+          gridAutoFlow: "row dense"
         }}
       >
-        <List>
+        <EventsList
+          state={eventsState}
+          actions={data.namedActions}
+          conditions={data.namedConditions}
+          onChange={(data: EventsListConfig["data"]) =>
+            send("UPDATE_EVENTS", data)
+          }
+        />
+        <Preview events={data.events} machine={captiveMachine} />
+        <Box>
           <NamedFunctionList
             name="Action"
             state={namedActionsState}
@@ -152,27 +165,13 @@ const Designer: React.FC<Props> = ({ children }) => {
               send("UPDATE_NAMED_CONDITIONS", data)
             }
           />
-        </List>
-        <Box>
-          <EventsList
-            state={eventsState}
-            actions={data.namedActions}
-            conditions={data.namedConditions}
-            onChange={(data: EventsListConfig["data"]) =>
-              send("UPDATE_EVENTS", data)
-            }
-          />
-        </Box>
-        <Box>
-          <Preview events={data.events} machine={captiveMachine} />
         </Box>
         {/* <DragList>
         <Box>Hello0</Box>
         <Box>Hello1</Box>
         <Box>Hello2</Box>
       </DragList> */}
-      </Box>
-      <Item>
+        {/* <Item>
         <Item>
           <Select />
         </Item>
@@ -183,8 +182,9 @@ const Designer: React.FC<Props> = ({ children }) => {
         <Item>
           <Select />
         </Item>
-      </Item>
-    </>
+      </Item> */}
+      </Box>
+    </Box>
   )
 }
 

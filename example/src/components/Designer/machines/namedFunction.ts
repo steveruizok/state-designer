@@ -59,6 +59,10 @@ export const getNamedFunctionConfig = (data: any) => {
           do: ["updateCode", "updateError"]
         }
       ],
+      BLUR: {
+        unless: "hasChanges",
+        do: "stopEditing"
+      },
       EDIT: {
         do: "startEditing"
       },

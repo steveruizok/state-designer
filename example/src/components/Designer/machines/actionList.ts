@@ -1,4 +1,4 @@
-import { uniqueId } from "lodash-es"
+import { uniqueId, pull } from "lodash-es"
 import { StateDesigner, createStateDesignerConfig } from "state-designer"
 import { createNamedFunctionConfig, NamedFunctionConfig } from "./namedFunction"
 
@@ -27,6 +27,27 @@ const initialActionListData: NamedFunctionListData = {
           clean: {
             name: "increment",
             code: "data.count++",
+            mustReturn: false
+          }
+        })
+      )
+    },
+    {
+      id: uniqueId(),
+      item: new StateDesigner(
+        createNamedFunctionConfig({
+          id: uniqueId(),
+          editing: false,
+          hasChanges: false,
+          error: undefined,
+          dirty: {
+            name: "decrement",
+            code: "data.count--",
+            mustReturn: false
+          },
+          clean: {
+            name: "decrement",
+            code: "data.count--",
             mustReturn: false
           }
         })
@@ -106,18 +127,17 @@ export const createActionListConfig = (data: NamedFunctionListData) =>
     },
     actions: {
       addItem: (data, payload, newItem) => data.items.push(newItem),
-      moveItem: (data, { delta }, index) => {
-        const t = data.items[index]
-        data.items[index] = data.items[index + delta]
-        data.items[index + delta] = t
+      moveItem: (data, { target }, index) => {
+        const item = data.items.splice(index, 1)[0]
+        data.items.splice(target, 0, item)
       },
       removeItem: (data, payload, index: number) => {
         data.items.splice(index, 1)
       }
     },
     conditions: {
-      canMoveItem: (data, { delta }, index) =>
-        !(delta + index < 0 || delta + index > data.items.length - 1)
+      canMoveItem: (data, { target }) =>
+        !(target < 0 || target > data.items.length - 1)
     }
   })
 

@@ -27,37 +27,23 @@ export const EventsList: React.FC<Props> = ({
   const { items } = data
 
   return (
-    <Item title={"Events"} onCreate={() => send("CREATE_EVENT")}>
-      <List>
-        <AnimatePresence>
-          {items.map((item, index) => {
-            return (
-              <motion.div
-                positionTransition={{ duration: 0.2 }}
-                key={item.id}
-                exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              >
-                <Event
-                  key={item.id}
-                  event={item.item}
-                  actions={actions}
-                  conditions={conditions}
-                  onChange={() => onChange(data)}
-                  canMoveUp={index > 0 && items.length > 1}
-                  onMoveUp={() =>
-                    send("MOVE_EVENT", { id: item.id, delta: -1 })
-                  }
-                  canMoveDown={index < items.length - 1}
-                  onMoveDown={() =>
-                    send("MOVE_EVENT", { id: item.id, delta: 1 })
-                  }
-                  onRemove={() => send("REMOVE_EVENT", { id: item.id })}
-                />
-              </motion.div>
-            )
-          })}
-        </AnimatePresence>
-      </List>
+    <Item title={"Events"} titleSize={3} onCreate={() => send("CREATE_EVENT")}>
+      {items.map((item, index) => {
+        return (
+          <Event
+            key={item.id}
+            event={item.item}
+            actions={actions}
+            conditions={conditions}
+            onChange={() => onChange(data)}
+            canMoveUp={index > 0 && items.length > 1}
+            onMoveUp={() => send("MOVE_EVENT", { id: item.id, delta: -1 })}
+            canMoveDown={index < items.length - 1}
+            onMoveDown={() => send("MOVE_EVENT", { id: item.id, delta: 1 })}
+            onRemove={() => send("REMOVE_EVENT", { id: item.id })}
+          />
+        )
+      })}
     </Item>
   )
 }

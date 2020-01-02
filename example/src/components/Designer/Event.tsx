@@ -13,6 +13,10 @@ import { MovingHeader } from "./MovingHeader"
 import { AnimatePresence } from "framer-motion"
 import { EventHandler } from "./EventHandler"
 import { EventHandlerItemList } from "./EventHandlerItemList"
+import { Item } from "./item/Item"
+import { DraggableItem } from "./item/DraggableItem"
+import { Title } from "./item/Title"
+import { DragDropContext, Droppable } from "react-beautiful-dnd"
 import * as DS from "./types"
 
 export interface Props {
@@ -39,10 +43,6 @@ export const Event: React.FC<Props> = ({
   actions,
   conditions,
   onChange,
-  canMoveDown,
-  canMoveUp,
-  onMoveDown,
-  onMoveUp,
   onRemove
 }) => {
   const { data, can, send } = useStateDesigner(event, onChange)
@@ -50,50 +50,55 @@ export const Event: React.FC<Props> = ({
   const { name, handlers } = dirty
 
   return (
-    <List p={1} sx={{ gap: 24, border: "1px solid #ccc", borderRadius: 8 }}>
-      {editing ? (
-        <List>
-          <CodeEditor
-            value={name}
-            onChange={code => send("UPDATE_NAME", { name: code.toUpperCase() })}
-          />
-          <List sx={{ border: "1px solid #ccc", borderRadius: 8 }}>
-            <TitleRow p={2}>
-              <Heading fontSize={3}>Event Handlers</Heading>
-              <Button onClick={() => send("CREATE_EVENT_HANDLER")}>
-                Create Event Handler
-              </Button>
-            </TitleRow>
-            <AnimatePresence>
-              {handlers.map((handler, index) => (
-                <EventHandler
-                  key={handler.id}
-                  handler={handler}
-                  event={event}
-                  onChange={onChange}
-                  actions={actions}
-                  conditions={conditions}
-                />
-              ))}
-            </AnimatePresence>
-          </List>
-          <SaveCancelButtons
-            canSave={can("SAVE_EVENT_EDIT")}
-            onCancel={() => send("CANCEL_EVENT_EDIT")}
-            onSave={() => send("SAVE_EVENT_EDIT")}
-          />
-        </List>
-      ) : (
-        <ClosedEvent
-          name={name}
-          onEdit={() => send("EDIT_EVENT")}
-          onMoveUp={onMoveUp}
-          canMoveUp={canMoveUp}
-          onMoveDown={onMoveDown}
-          canMoveDown={canMoveDown}
-          onRemove={onRemove}
-        />
+    <Item
+      error={can("SAVE_EVENT_EDIT") ? "" : "x"}
+      onCancel={() => send("CANCEL_EVENT_EDIT")}
+      onSave={() => send("SAVE_EVENT_EDIT")}
+      dirty={editing}
+      editing={editing}
+    >
+      <CodeEditor
+        value={name}
+        onChange={code => send("UPDATE_NAME", { name: code.toUpperCase() })}
+        onFocus={() => send("EDIT_EVENT")}
+      />
+      {editing && (
+        <>
+          <Title onCreate={() => send("CREATE_EVENT_HANDLER")}>
+            Event Handlers
+          </Title>
+          <DragDropContext
+            onDragEnd={result => {
+              if (!result.destination) return
+
+              send("MOVE_EVENT_HANDLER", {
+                id: result.draggableId,
+                target: result.destination.index
+              })
+            }}
+          >
+            <Droppable droppableId="droppable">
+              {(provided, snapshot) => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                  {handlers.map((handler, index) => (
+                    <EventHandler
+                      draggable={handlers.length > 1}
+                      draggableId={handler.id}
+                      draggableIndex={index}
+                      key={handler.id}
+                      handler={handler}
+                      event={event}
+                      onChange={onChange}
+                      actions={actions}
+                      conditions={conditions}
+                    />
+                  ))}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </>
       )}
-    </List>
+    </Item>
   )
 }
