@@ -1,8 +1,5 @@
 import React from "react"
-import { Button } from "./Inputs"
-import { Box, Heading } from "rebass"
 import { CodeEditor } from "./CodeEditor"
-import { List } from "./List"
 import { Item } from "./item/Item"
 import { uniqueId } from "lodash"
 import { motion, useAnimation } from "framer-motion"

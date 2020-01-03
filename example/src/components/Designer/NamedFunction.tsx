@@ -115,25 +115,23 @@ export const NamedFunction: React.FC<{
       onCancel={() => send("CANCEL")}
       onSave={() => send("SAVE")}
     >
-      <List>
+      <CodeEditor
+        ignoreTab={true}
+        value={dirty.name}
+        readOnly={!editing}
+        onFocus={() => send("EDIT")}
+        onChange={code => send("UPDATE_NAME", code)}
+      />
+      {editing && (
         <CodeEditor
-          ignoreTab={true}
-          value={dirty.name}
-          readOnly={!editing}
-          onFocus={() => send("EDIT")}
-          onChange={code => send("UPDATE_NAME", code)}
+          ignoreTab={false}
+          value={dirty.code}
+          startWith={Fences.FunctionArgs + Fences.Start}
+          endWith={Fences.End}
+          onBlur={() => send("BLUR")}
+          onChange={code => send("UPDATE_CODE", code)}
         />
-        {editing && (
-          <CodeEditor
-            ignoreTab={false}
-            value={dirty.code}
-            startWith={Fences.FunctionArgs + Fences.Start}
-            endWith={Fences.End}
-            onBlur={() => send("BLUR")}
-            onChange={code => send("UPDATE_CODE", code)}
-          />
-        )}
-      </List>
+      )}
     </DraggableItem>
   )
 }

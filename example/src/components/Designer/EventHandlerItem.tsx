@@ -1,5 +1,4 @@
 import React from "react"
-import { Button } from "./Inputs"
 import { Select } from "@rebass/forms"
 import { List } from "./List"
 import { FlatList } from "./FlatList"
@@ -77,33 +76,31 @@ export const EventHandlerItem: React.FC<Props> = ({
       }}
       onMoreSelect={handleMoreSelect}
     >
-      <List>
-        <FlatList>
-          <Select
-            backgroundColor="#fafafa"
-            sx={{
-              border: "1px solid #ccc"
-            }}
-            value={item.type === DS.HandlerItems.Custom ? "custom" : item.name}
-            onChange={(e: any) => onChangeName(e.target.value)}
-          >
-            {["custom", ...items.map(item => item.name)].map((name, index) => (
-              <option key={index} value={name}>
-                {name}
-              </option>
-            ))}
-          </Select>
-        </FlatList>
-        {item.type === DS.HandlerItems.Custom && (
-          <CodeEditor
-            startWith={Fences.FunctionArgs + Fences.Start}
-            endWith={Fences.End}
-            value={item.code}
-            error={item.error}
-            onChange={onChangeCode}
-          />
-        )}
-      </List>
+      <FlatList>
+        <Select
+          backgroundColor="#fafafa"
+          sx={{
+            border: "1px solid #ccc"
+          }}
+          value={item.type === DS.HandlerItems.Custom ? "custom" : item.name}
+          onChange={(e: any) => onChangeName(e.target.value)}
+        >
+          {["custom", ...items.map(item => item.name)].map((name, index) => (
+            <option key={index} value={name}>
+              {name}
+            </option>
+          ))}
+        </Select>
+      </FlatList>
+      {item.type === DS.HandlerItems.Custom && (
+        <CodeEditor
+          startWith={Fences.FunctionArgs + Fences.Start}
+          endWith={Fences.End}
+          value={item.code}
+          error={item.error}
+          onChange={onChangeCode}
+        />
+      )}
     </DraggableItem>
   )
 }

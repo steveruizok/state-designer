@@ -39,7 +39,14 @@ export const Item: React.FC<Props> = ({
   const [hovered, setHovered] = React.useState(false)
 
   return (
-    <Box m={1} mb={2} p={2} maxWidth={560} backgroundColor={"background"}>
+    <Box
+      m={1}
+      mb={2}
+      p={2}
+      maxWidth={560}
+      backgroundColor={"background"}
+      style={{}}
+    >
       <Box
         p={2}
         sx={{

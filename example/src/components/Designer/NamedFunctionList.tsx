@@ -1,15 +1,10 @@
 import React from "react"
-import { Button } from "./Inputs"
-import { Box, Heading } from "rebass"
-import { List } from "./List"
-import { TitleRow } from "./TitleRow"
 import { NamedFunction } from "./NamedFunction"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import { ActionListConfig } from "./machines/actionList"
 import { ConditionListConfig } from "./machines/conditionList"
 import { DragDropContext, Droppable } from "react-beautiful-dnd"
 import { Item } from "./item/Item"
-import { Title } from "./item/Title"
 
 type NamedListConfig = ActionListConfig | ConditionListConfig
 

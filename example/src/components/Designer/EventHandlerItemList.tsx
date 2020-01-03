@@ -1,10 +1,5 @@
 import React from "react"
-import { Heading } from "rebass"
-import { Button } from "./Inputs"
-import { List } from "./List"
-import { TitleRow } from "./TitleRow"
 import { EventHandlerItem } from "./EventHandlerItem"
-import { Item } from "./item/Item"
 import { DragDropContext, Droppable } from "react-beautiful-dnd"
 
 import * as DS from "./types"

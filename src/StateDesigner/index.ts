@@ -53,6 +53,7 @@ interface IEventHandlerConfig<D, A, C, R> {
   ifAny?: IConditions<D, C>
   unless?: IConditions<D, C>
   get?: IResults<D, R>
+  to?: string
   wait?: number
 }
 
@@ -74,6 +75,7 @@ interface IEventHandler<C extends StateDesignerConfig> {
   ifAny: ICondition<C>[]
   unless: ICondition<C>[]
   get: IResult<C>[]
+  to?: string
   wait?: number
 }
 
@@ -91,15 +93,27 @@ type NamedFunctions<A, C, R> = {
   results?: R
 }
 
+// States
+
+interface IStateConfig<D, A, C, R> {
+  on?: IEventsConfig<D, A, C, R>
+  onEvent?: IEventConfig<D, A, C, R>
+  states?: IStatesConfig<D, A, C, R>
+  initial?: string
+}
+
+type IStatesConfig<D, A, C, R> = Record<string, IStateConfig<D, A, C, R>>
+
 /* -------------------------------------------------- */
 /*                       Classes                      */
 /* -------------------------------------------------- */
 
 // Machine subscriber
 
-type Subscriber<C extends StateDesignerConfig> = (
-  data: C["data"],
-  values: undefined extends C["values"] ? undefined : IComputedReturnValues<C>
+type Subscriber<C extends StateDesignerConfig, S extends StateDesigner<C>> = (
+  active: S["active"],
+  data: S["data"],
+  values: S["values"]
 ) => void
 
 // Machine configuration
@@ -114,6 +128,8 @@ export interface StateDesignerConfig<
   data: D
   on?: IEventsConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
+  initial?: string
+  states?: IStatesConfig<D, A, C, R>
   actions?: A
   conditions?: C
   results?: R
@@ -152,12 +168,15 @@ class StateDesigner<C extends StateDesignerConfig> {
   namedFunctions: NamedFunctions<C["actions"], C["conditions"], C["results"]>
   valueFunctions: undefined extends C["values"] ? undefined : C["values"]
   values: undefined extends C["values"] ? undefined : IComputedReturnValues<C>
+  active: IStateNode<C>[] = []
   root: IStateNode<C>
-  subscribers = new Set<Subscriber<C>>([])
+  subscribers = new Set<Subscriber<C, StateDesigner<C>>>([])
 
   constructor(options = {} as C) {
     const {
       data,
+      initial,
+      states = {},
       on = {},
       onEvent,
       values,
@@ -191,7 +210,18 @@ class StateDesigner<C extends StateDesignerConfig> {
       conditions,
       results
     }
-    this.root = new IStateNode({ machine: this, on, onEvent })
+
+    this.root = new IStateNode({
+      machine: this,
+      on,
+      onEvent,
+      states,
+      initial,
+      name: "root",
+      active: true
+    })
+
+    this.active = this.root.getActive()
   }
 
   private getUpdatedValues = (
@@ -217,44 +247,160 @@ class StateDesigner<C extends StateDesignerConfig> {
       )
     }
 
-    this.subscribers.forEach(subscriber => subscriber(this.data, this.values))
+    this.subscribers.forEach(subscriber =>
+      subscriber(this.active, this.data, this.values)
+    )
   }
 
-  subscribe = (onChange: Subscriber<C>) => {
+  subscribe = (onChange: Subscriber<C, StateDesigner<C>>) => {
     this.subscribers.add(onChange)
     return () => this.unsubscribe(onChange)
   }
 
-  unsubscribe = (onChange: Subscriber<C>) => {
+  unsubscribe = (onChange: Subscriber<C, StateDesigner<C>>) => {
     this.subscribers.delete(onChange)
   }
 
   send = (event: string, payload?: any) => {
-    this.data = produce(this.data, draft =>
-      this.root.handleEvent(event, draft, payload, {})
-    )
+    const reversedActiveStates = [...this.active].reverse()
+
+    let result = {}
+
+    this.data = produce(this.data, draft => {
+      for (let state of reversedActiveStates) {
+        // Move this to the state eventually
+        let eventHandlers = state.events[event]
+        if (eventHandlers === undefined) continue
+
+        for (let eventHandler of eventHandlers) {
+          for (let handler of eventHandler) {
+            state.handleEventHandler(handler, draft, payload, result)
+
+            let previous = false
+            let restore = false
+
+            let { to: transition } = handler
+
+            if (transition !== undefined) {
+              if (transition.endsWith(".previous")) {
+                previous = true
+                transition = transition.substring(0, transition.length - 9)
+              } else if (transition.endsWith(".restore")) {
+                previous = true
+                restore = true
+                transition = transition.substring(0, transition.length - 8)
+              }
+
+              const target = state.getTargetFromTransition(transition, state)
+              if (target !== undefined) {
+                target.activate(previous, restore)
+                break
+              }
+            }
+          }
+        }
+
+        const { onEvent } = state.autoEvents
+
+        if (onEvent !== undefined) {
+          for (let eventHandler of onEvent) {
+            for (let handler of eventHandler) {
+              state.handleEventHandler(handler, draft, payload, result)
+
+              let previous = false
+              let restore = false
+
+              let { to: transition } = handler
+
+              if (transition !== undefined) {
+                if (transition.endsWith(".previous")) {
+                  previous = true
+                  transition = transition.substring(0, transition.length - 9)
+                } else if (transition.endsWith(".restore")) {
+                  previous = true
+                  restore = true
+                  transition = transition.substring(0, transition.length - 8)
+                }
+
+                const target = state.getTargetFromTransition(transition, state)
+                if (target !== undefined) {
+                  target.activate(previous, restore)
+                  break
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+    this.active = this.root.getActive()
     this.notifySubscribers()
   }
 
   can = (event: string, payload?: any): boolean => {
-    return produce(this.data, draft =>
-      this.root.canHandleEvent(event, draft, payload, {})
-    )
+    const reversedActiveStates = [...this.active].reverse()
+    let result: any
+
+    return produce(this.data, draft => {
+      for (let state of reversedActiveStates) {
+        let eventHandlers = state.events[event]
+        if (eventHandlers !== undefined) {
+          for (let eventHandler of eventHandlers) {
+            for (let handler of eventHandler) {
+              for (let resolver of handler.get) {
+                result = resolver(draft, payload, result)
+              }
+
+              if (state.canEventHandlerRun(handler, draft, payload, result)) {
+                return true
+              }
+            }
+          }
+        }
+      }
+
+      return false
+    })
+  }
+
+  isIn = (name: string) => {
+    return this.active.find(v => v.path.endsWith(name))
+  }
+
+  get state() {
+    return this.root
   }
 }
 
 /* ------------------- State Node ------------------- */
 
+enum StateType {
+  Leaf = "leaf",
+  Branch = "branch",
+  Parallel = "parallel"
+}
+
 interface IStateNodeConfig<C extends StateDesignerConfig> {
+  name: string
+  parent?: IStateNode<C>
+  active: boolean
   on?: IEventsConfig<C["data"], C["actions"], C["conditions"], C["results"]>
   onEvent?: IEventConfig<C["data"], C["actions"], C["conditions"], C["results"]>
   machine: StateDesigner<C>
+  states?: IStatesConfig<C["data"], C["actions"], C["conditions"], C["results"]>
+  initial?: string
 }
 
 class IStateNode<C extends StateDesignerConfig> {
+  name: string
+  path: string
   active = false
+  previous?: IStateNode<C>
   machine: StateDesigner<C>
   parent?: IStateNode<C>
+  type: StateType
+  initial?: string
   children: IStateNode<C>[] = []
   events: IEvents<C> = {}
   autoEvents: {
@@ -262,9 +408,63 @@ class IStateNode<C extends StateDesignerConfig> {
   }
 
   constructor(options = {} as IStateNodeConfig<C>) {
-    const { machine, on = {}, onEvent } = options
+    const {
+      machine,
+      parent,
+      on = {},
+      name,
+      initial,
+      states = {},
+      onEvent,
+      active
+    } = options
 
     this.machine = machine
+
+    this.parent = parent
+
+    this.active = active
+
+    this.name = name
+
+    this.path = this.parent ? this.parent.path + "." + name : this.name
+
+    // CHILDREN
+
+    this.initial = initial
+
+    this.children = Object.keys(states).reduce<IStateNode<C>[]>((acc, cur) => {
+      const state = states[cur]
+
+      acc.push(
+        new IStateNode({
+          name: cur,
+          machine: this.machine,
+          parent: this,
+          active: this.initial === undefined ? true : cur === this.initial,
+          initial: state.initial,
+          states: state.states,
+          onEvent: state.onEvent,
+          on: state.on
+        })
+      )
+      return acc
+    }, [])
+
+    if (this.initial !== undefined) {
+      this.previous = this.children.find(v => v.name === this.initial)
+    }
+
+    // TYPE
+
+    this.type =
+      this.children.length === 0
+        ? StateType.Leaf
+        : this.initial === undefined
+        ? StateType.Parallel
+        : StateType.Branch
+
+    // EVENTS
 
     const { namedFunctions } = this.machine
 
@@ -316,7 +516,8 @@ class IStateNode<C extends StateDesignerConfig> {
           if: [],
           unless: [],
           ifAny: [],
-          do: []
+          do: [],
+          to: undefined
         }
 
         // We need to return a "full" event handler object, but the
@@ -364,6 +565,8 @@ class IStateNode<C extends StateDesignerConfig> {
             },
             []
           )
+
+          result.to = v.to
         }
 
         return result
@@ -391,78 +594,88 @@ class IStateNode<C extends StateDesignerConfig> {
     }, {})
   }
 
-  public handleEvent = (
-    event: string,
-    draft: Draft<C["data"]>,
-    payload: any,
-    result: any
-  ): Draft<C["data"]> => {
-    let eventHandlers = this.events[event]
-    if (eventHandlers === undefined) return draft
+  getTargetFromTransition = (
+    transition: string,
+    state: IStateNode<C>
+  ): IStateNode<C> | undefined => {
+    // handle transition (rough draft)
+    const target = state.children.find(v => v.name === transition)
+    if (target !== undefined) {
+      // transition to target
+      return target
+    } else if (state.parent !== undefined) {
+      // crawl up tree
+      return this.getTargetFromTransition(transition, state.parent)
+    }
 
-    for (let eventHandler of eventHandlers) {
-      for (let handler of eventHandler) {
-        // TODO - Wait
-        this.handleEventHandler(handler, draft, payload, result)
+    return
+  }
+
+  activateDown = (previous = false, restore = false) => {
+    this.active = true
+
+    if (this.type === "branch") {
+      const activeChild = previous
+        ? this.children.find(
+            v => v.name === (this.previous ? this.previous.name : this.initial)
+          )
+        : this.children.find(v => v.name === this.initial)
+
+      if (activeChild !== undefined) {
+        this.previous = activeChild
+        activeChild.activateDown(restore, restore)
       }
     }
 
-    const { onEvent } = this.autoEvents
-
-    if (onEvent !== undefined) {
-      for (let eventHandler of onEvent) {
-        for (let handler of eventHandler) {
-          // TODO - Wait
-          this.handleEventHandler(handler, draft, payload, result)
-        }
+    if (this.type === "parallel") {
+      for (let child of this.children) {
+        child.activateDown(restore, restore)
       }
-    }
-
-    if (this.parent !== undefined) {
-      // If this state has a parent, then send the event
-      // up the state tree.  When at the top of the tree,
-      // if the previous events caused any actions to run,
-      // then report the change back to the mothership.
-      return this.parent.handleEvent(event, draft, payload, result)
-    } else {
-      return draft
     }
   }
 
-  canHandleEvent = (
-    event: string,
-    draft: Draft<C["data"]>,
-    payload: any,
-    result: any
-  ): boolean => {
-    let eventHandlers = this.events[event]
-    if (eventHandlers !== undefined) {
-      for (let eventHandler of eventHandlers) {
-        for (let handler of eventHandler) {
-          if (handler.wait !== undefined) {
-            // All async actions should return can true
-            return true
-          } else {
-            for (let resolver of handler.get) {
-              result = resolver(draft, payload, result)
-            }
+  activateUp = () => {
+    if (this.parent) {
+      this.parent.active = true
 
-            if (this.canEventHandlerRun(handler, draft, payload, result)) {
-              return true
-            }
+      if (this.parent.type === "branch") {
+        this.parent.previous = this
+        // Deactivate siblings
+        for (let sib of this.parent.children) {
+          if (sib === this) continue
+          if (sib.active) {
+            sib.deactivate()
           }
         }
       }
-    }
 
-    if (this.parent === undefined) {
-      return false
-    } else {
-      return this.parent.canHandleEvent(event, draft, payload, result)
+      // Activate inactive parallel siblings
+      if (this.parent.type === "parallel") {
+        for (let sib of this.parent.children) {
+          if (sib === this) continue
+          if (!sib.active) {
+            sib.activateDown()
+          }
+        }
+      }
+
+      this.parent.activateUp()
     }
   }
 
-  private canEventHandlerRun = (
+  activate = (previous = false, restore = false) => {
+    this.activateDown(previous, restore)
+    this.activateUp()
+  }
+
+  deactivate = () => {
+    this.active = false
+    for (let state of this.children) {
+      state.deactivate()
+    }
+  }
+
+  canEventHandlerRun = (
     handler: IEventHandler<C>,
     draft: C["data"] | Draft<C["data"]>,
     payload: any,
@@ -494,7 +707,7 @@ class IStateNode<C extends StateDesignerConfig> {
     return true
   }
 
-  private handleEventHandler = (
+  handleEventHandler = (
     handler: IEventHandler<C>,
     draft: Draft<C["data"]>,
     payload: any,
@@ -515,9 +728,21 @@ class IStateNode<C extends StateDesignerConfig> {
       action(draft, payload, result)
     }
 
-    // --- Transition - TODO
-
     return draft
+  }
+
+  public getActive = (): IStateNode<C>[] => {
+    if (!this.active) {
+      return []
+    }
+
+    return [
+      this,
+      ...this.children.reduce<IStateNode<C>[]>((acc, child) => {
+        acc.push(...child.getActive())
+        return acc
+      }, [])
+    ]
   }
 }
 

@@ -1,13 +1,8 @@
 import React from "react"
-import { Button } from "./Inputs"
-import { Box, Heading } from "rebass"
-import { List } from "./List"
-import { TitleRow } from "./TitleRow"
 import { Event } from "./Event"
 import { Item } from "./item/Item"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import { EventsListConfig } from "./machines/eventsList"
-import { AnimatePresence, motion } from "framer-motion"
 
 export interface Props {
   state: StateDesigner<EventsListConfig>

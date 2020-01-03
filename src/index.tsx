@@ -12,7 +12,7 @@ import StateDesigner, {
 
 export type Exports<C extends StateDesignerConfig> = Pick<
   StateDesigner<C>,
-  "data" | "send" | "can" | "values"
+  "data" | "send" | "can" | "values" | "active" | "isIn" | "state"
 >
 
 type OnChange<T> = (state: T) => void
@@ -71,7 +71,10 @@ export function useStateDesigner<C extends StateDesignerConfig>(
     data: machine.current.data,
     send: machine.current.send,
     can: machine.current.can,
-    values: machine.current.values
+    isIn: machine.current.isIn,
+    active: machine.current.active,
+    values: machine.current.values,
+    state: machine.current.root
   })
 
   React.useEffect(() => {
@@ -82,7 +85,10 @@ export function useStateDesigner<C extends StateDesignerConfig>(
         data: machine.current.data,
         send: machine.current.send,
         can: machine.current.can,
-        values: machine.current.values
+        isIn: machine.current.isIn,
+        active: machine.current.active,
+        values: machine.current.values,
+        state: machine.current.root
       })
     }
 
@@ -90,12 +96,17 @@ export function useStateDesigner<C extends StateDesignerConfig>(
     // When the machine's data changes, update this hook's
     // state with the new data.
     return machine.current.subscribe(
-      (data: State["data"], values: State["values"]) => {
+      (
+        active: State["active"],
+        data: State["data"],
+        values: State["values"]
+      ) => {
         setState(state => {
           return {
             ...state,
             data,
-            values
+            values,
+            active
           }
         })
       }
