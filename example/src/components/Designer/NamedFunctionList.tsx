@@ -23,7 +23,7 @@ export const NamedFunctionList: React.FC<{
   )
 
   return (
-    <Item title={name + "s"} onCreate={() => send("CREATE_ITEM")}>
+    <Item title={name + "s"} titleSize={3} onCreate={() => send("CREATE_ITEM")}>
       <DragDropContext
         onDragEnd={result =>
           send("MOVE_ITEM", {

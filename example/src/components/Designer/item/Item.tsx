@@ -1,6 +1,6 @@
 import React from "react"
 import { Box, Text } from "rebass"
-import { Code, Check, MoreHorizontal, X, Plus } from "react-feather"
+import { Code, Check, MoreHorizontal, X, Plus, RefreshCw } from "react-feather"
 import { Draggable } from "react-beautiful-dnd"
 
 export interface Props {
@@ -13,6 +13,7 @@ export interface Props {
   draggableIndex?: number
   options?: string[]
   error?: string
+  onReset?: () => void
   onSave?: () => void
   onCancel?: () => void
   onMoreSelect?: (value: string) => void
@@ -29,6 +30,7 @@ export const Item: React.FC<Props> = ({
   onCreate,
   onSave,
   onCancel,
+  onReset,
   onMoreSelect = v => {
     console.log(v)
   },
@@ -58,6 +60,17 @@ export const Item: React.FC<Props> = ({
               onClick={onCreate}
             >
               <Plus size={20} />
+            </Box>
+          )}
+          {onReset && (
+            <Box
+              sx={{
+                zIndex: 2,
+                backgroundColor: "background"
+              }}
+              onClick={onReset}
+            >
+              <RefreshCw size={20} />
             </Box>
           )}
           {options.length > 0 && (

@@ -42,7 +42,7 @@ export const EventHandlerItemList: React.FC<Props> = ({
             {items.map((item, index) => {
               return (
                 <EventHandlerItem
-                  title={name}
+                  title={""}
                   draggable={items.length > 1}
                   draggableId={item.id}
                   draggableIndex={index}

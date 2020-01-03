@@ -1,7 +1,8 @@
 import React from "react"
 import { Button } from "./Inputs"
-import { Box, Heading } from "rebass"
+import { Flex, Box, Heading } from "rebass"
 import { EventConfig } from "./machines/event"
+import { Send } from "react-feather"
 import { StateDesigner, useStateDesigner } from "state-designer"
 import { TitleRow } from "./TitleRow"
 import { List } from "./List"
@@ -14,6 +15,7 @@ import { AnimatePresence } from "framer-motion"
 import { EventHandler } from "./EventHandler"
 import { EventHandlerItemList } from "./EventHandlerItemList"
 import { Item } from "./item/Item"
+import { FlatList } from "./FlatList"
 import { DraggableItem } from "./item/DraggableItem"
 import { Title } from "./item/Title"
 import { DragDropContext, Droppable } from "react-beautiful-dnd"
@@ -29,6 +31,8 @@ export interface Props {
   onRemove: () => void
   canMoveDown: boolean
   canMoveUp: boolean
+  canEventFire: boolean
+  onEventFire: (name: string) => void
 }
 
 // TODO:
@@ -43,7 +47,9 @@ export const Event: React.FC<Props> = ({
   actions,
   conditions,
   onChange,
-  onRemove
+  onRemove,
+  canEventFire,
+  onEventFire
 }) => {
   const { data, can, send } = useStateDesigner(event, onChange)
   const { id, editing, dirty } = data
@@ -56,12 +62,24 @@ export const Event: React.FC<Props> = ({
       onSave={() => send("SAVE_EVENT_EDIT")}
       dirty={editing}
       editing={editing}
+      options={["Delete"]}
+      onMoreSelect={option => option === "Delete" && onRemove()}
     >
-      <CodeEditor
-        value={name}
-        onChange={code => send("UPDATE_NAME", { name: code.toUpperCase() })}
-        onFocus={() => send("EDIT_EVENT")}
-      />
+      <FlatList>
+        <CodeEditor
+          value={name}
+          onChange={code => send("UPDATE_NAME", { name: code.toUpperCase() })}
+          onFocus={() => send("EDIT_EVENT")}
+        />
+        {editing || (
+          <Button
+            onClick={() => onEventFire(data.clean.name)}
+            disabled={!canEventFire}
+          >
+            <Send size={15} />
+          </Button>
+        )}
+      </FlatList>
       {editing && (
         <>
           <Title onCreate={() => send("CREATE_EVENT_HANDLER")}>

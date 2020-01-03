@@ -113,6 +113,7 @@ export interface StateDesignerConfig<
 > {
   data: D
   on?: IEventsConfig<D, A, C, R>
+  onEvent?: IEventConfig<D, A, C, R>
   actions?: A
   conditions?: C
   results?: R
@@ -155,7 +156,15 @@ class StateDesigner<C extends StateDesignerConfig> {
   subscribers = new Set<Subscriber<C>>([])
 
   constructor(options = {} as C) {
-    const { data, on = {}, values, actions, conditions, results } = options
+    const {
+      data,
+      on = {},
+      onEvent,
+      values,
+      actions,
+      conditions,
+      results
+    } = options
 
     this.data = data
 
@@ -182,7 +191,7 @@ class StateDesigner<C extends StateDesignerConfig> {
       conditions,
       results
     }
-    this.root = new IStateNode({ machine: this, on })
+    this.root = new IStateNode({ machine: this, on, onEvent })
   }
 
   private getUpdatedValues = (
@@ -238,6 +247,7 @@ class StateDesigner<C extends StateDesignerConfig> {
 
 interface IStateNodeConfig<C extends StateDesignerConfig> {
   on?: IEventsConfig<C["data"], C["actions"], C["conditions"], C["results"]>
+  onEvent?: IEventConfig<C["data"], C["actions"], C["conditions"], C["results"]>
   machine: StateDesigner<C>
 }
 
@@ -247,110 +257,136 @@ class IStateNode<C extends StateDesignerConfig> {
   parent?: IStateNode<C>
   children: IStateNode<C>[] = []
   events: IEvents<C> = {}
+  autoEvents: {
+    onEvent?: IEvent<C>[]
+  }
 
   constructor(options = {} as IStateNodeConfig<C>) {
-    const { machine, on = {} } = options
+    const { machine, on = {}, onEvent } = options
 
     this.machine = machine
 
-    this.events = Object.keys(on).reduce<IEvents<C>>((acc, key) => {
-      const { namedFunctions } = this.machine
+    const { namedFunctions } = this.machine
 
-      // A helpers for this tricky (one-off) operation
-      function getFunction<
-        L extends "actions" | "conditions" | "results",
-        P extends "actions" extends L
-          ? IAction<C["data"]>
-          : "conditions" extends L
-          ? ICondition<C["data"]>
-          : IResult<C["data"]>
-      >(group: L, item: keyof C[L] | P): P | undefined {
-        if (typeof item === "string") {
-          // Item is a string (key of one of the named function groups)
-          const items = namedFunctions[group]
+    // A helpers for this tricky (one-off) operation
+    function getFunction<
+      L extends "actions" | "conditions" | "results",
+      P extends "actions" extends L
+        ? IAction<C["data"]>
+        : "conditions" extends L
+        ? ICondition<C["data"]>
+        : IResult<C["data"]>
+    >(group: L, item: keyof C[L] | P): P | undefined {
+      if (typeof item === "string") {
+        // Item is a string (key of one of the named function groups)
+        const items = namedFunctions[group]
 
-          if (items === undefined) {
-            console.error(Errors.noNamedFunction(item, group.slice(-1)))
-            return
-          }
-
-          const result = items[item]
-
-          if (result === undefined) {
-            console.error(Errors.noMatchingNamedFunction(item, group.slice(-1)))
-            return
-          }
-
-          return result
-        } else {
-          // Item is an anonymous function (of a ype depending on the group)
-          return item as P
+        if (items === undefined) {
+          console.error(Errors.noNamedFunction(item, group.slice(-1)))
+          return
         }
+
+        const result = items[item]
+
+        if (result === undefined) {
+          console.error(Errors.noMatchingNamedFunction(item, group.slice(-1)))
+          return
+        }
+
+        return result
+      } else {
+        // Item is an anonymous function (of a ype depending on the group)
+        return item as P
       }
+    }
 
-      acc[key] = castArray(on[key]).map<IEvent<C["data"]>>(eventHandler => {
-        const handlers = castArray(eventHandler)
+    const getProcessedEventHandler = (
+      eventHandler: IEventConfig<
+        C["data"],
+        C["actions"],
+        C["conditions"],
+        C["results"]
+      >
+    ) => {
+      const handlers = castArray(eventHandler)
 
-        return handlers.map<IEventHandler<C>>(v => {
-          let result: IEventHandler<C> = {
-            get: [],
-            if: [],
-            unless: [],
-            ifAny: [],
-            do: []
-          }
+      return handlers.map<IEventHandler<C>>(v => {
+        let result: IEventHandler<C> = {
+          get: [],
+          if: [],
+          unless: [],
+          ifAny: [],
+          do: []
+        }
 
-          // We need to return a "full" event handler object, but the
-          // config value may either be an anonymous action function,
-          // a named action function, or a partial event handler object.
+        // We need to return a "full" event handler object, but the
+        // config value may either be an anonymous action function,
+        // a named action function, or a partial event handler object.
 
-          if (typeof v === "string" || typeof v === "function") {
-            const item = getFunction("actions", v)
-            if (item !== undefined) result.do = [item]
-          } else if (typeof v === "object") {
-            result.get = castArray(v.get || []).reduce<IResult<C["data"]>[]>(
-              (acc, a) => {
-                const item = getFunction("results", a)
-                return item === undefined ? acc : [...acc, item]
-              },
-              []
-            )
+        if (typeof v === "string" || typeof v === "function") {
+          const item = getFunction("actions", v)
+          if (item !== undefined) result.do = [item]
+        } else if (typeof v === "object") {
+          result.get = castArray(v.get || []).reduce<IResult<C["data"]>[]>(
+            (acc, a) => {
+              const item = getFunction("results", a)
+              return item === undefined ? acc : [...acc, item]
+            },
+            []
+          )
 
-            result.if = castArray(v.if || []).reduce<ICondition<C["data"]>[]>(
-              (acc, a) => {
-                const item = getFunction("conditions", a)
-                return item === undefined ? acc : [...acc, item]
-              },
-              []
-            )
-
-            result.unless = castArray(v.unless || []).reduce<
-              ICondition<C["data"]>[]
-            >((acc, a) => {
+          result.if = castArray(v.if || []).reduce<ICondition<C["data"]>[]>(
+            (acc, a) => {
               const item = getFunction("conditions", a)
               return item === undefined ? acc : [...acc, item]
-            }, [])
+            },
+            []
+          )
 
-            result.ifAny = castArray(v.ifAny || []).reduce<
-              ICondition<C["data"]>[]
-            >((acc, a) => {
-              const item = getFunction("conditions", a)
+          result.unless = castArray(v.unless || []).reduce<
+            ICondition<C["data"]>[]
+          >((acc, a) => {
+            const item = getFunction("conditions", a)
+            return item === undefined ? acc : [...acc, item]
+          }, [])
+
+          result.ifAny = castArray(v.ifAny || []).reduce<
+            ICondition<C["data"]>[]
+          >((acc, a) => {
+            const item = getFunction("conditions", a)
+            return item === undefined ? acc : [...acc, item]
+          }, [])
+
+          result.do = castArray(v.do || []).reduce<IAction<C["data"]>[]>(
+            (acc, a) => {
+              const item = getFunction("actions", a)
               return item === undefined ? acc : [...acc, item]
-            }, [])
+            },
+            []
+          )
+        }
 
-            result.do = castArray(v.do || []).reduce<IAction<C["data"]>[]>(
-              (acc, a) => {
-                const item = getFunction("actions", a)
-                return item === undefined ? acc : [...acc, item]
-              },
-              []
-            )
-          }
-
-          return result
-        })
+        return result
       })
+    }
 
+    const getProcessedEvent = (
+      event: IEventConfig<
+        C["data"],
+        C["actions"],
+        C["conditions"],
+        C["results"]
+      >
+    ) => {
+      return castArray(event).map<IEvent<C["data"]>>(getProcessedEventHandler)
+    }
+
+    this.autoEvents = {
+      onEvent: onEvent ? getProcessedEvent(onEvent) : undefined
+    }
+
+    this.events = Object.keys(on).reduce<IEvents<C>>((acc, key) => {
+      acc[key] = getProcessedEvent(on[key])
       return acc
     }, {})
   }
@@ -366,11 +402,19 @@ class IStateNode<C extends StateDesignerConfig> {
 
     for (let eventHandler of eventHandlers) {
       for (let handler of eventHandler) {
-        // if (handler.wait !== undefined) {
-        //   setTimeout(() => beginHandlingEvent(handler), handler.wait * 1000)
-        // } else {
+        // TODO - Wait
         this.handleEventHandler(handler, draft, payload, result)
-        // }
+      }
+    }
+
+    const { onEvent } = this.autoEvents
+
+    if (onEvent !== undefined) {
+      for (let eventHandler of onEvent) {
+        for (let handler of eventHandler) {
+          // TODO - Wait
+          this.handleEventHandler(handler, draft, payload, result)
+        }
       }
     }
 
@@ -472,6 +516,7 @@ class IStateNode<C extends StateDesignerConfig> {
     }
 
     // --- Transition - TODO
+
     return draft
   }
 }

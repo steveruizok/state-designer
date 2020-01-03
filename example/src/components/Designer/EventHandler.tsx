@@ -76,7 +76,7 @@ export const EventHandler: React.FC<Props> = ({
         options
       }}
       onMoreSelect={handleMoreSelect}
-      title="Event Handler"
+      title=""
 
       // onMoveDown={() =>
       //   send("MOVE_EVENT_HANDLER", { id: handler.id, delta: 1 })

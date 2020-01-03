@@ -17,7 +17,8 @@ export const Title: React.FC<Props> = ({ onCreate, children }) => {
         gridTemplateColumns: "auto 1fr auto",
         gridAutoFlow: "column",
         alignItems: "center",
-        lineHeight: 1
+        lineHeight: 1,
+        userSelect: "none"
       }}
     >
       <Box
