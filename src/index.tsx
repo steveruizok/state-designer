@@ -1,18 +1,22 @@
 import * as React from "react"
 import StateDesigner, {
   createStateDesignerConfig,
-  createStateDesignerData,
   createStateDesigner,
   StateDesignerConfig,
-  IAction,
-  ICondition,
-  IResult,
-  IComputedValuesConfig
+  StateDesignerWithConfig,
+  IActionConfig,
+  IConditionConfig,
+  IResultConfig
 } from "./StateDesigner"
 
-export type Exports<C extends StateDesignerConfig> = Pick<
-  StateDesigner<C>,
-  "data" | "send" | "can" | "values" | "active" | "isIn" | "state"
+export type Exports<
+  D extends { [key: string]: any },
+  A extends Record<string, IActionConfig<D>>,
+  C extends Record<string, IConditionConfig<D>>,
+  R extends Record<string, IResultConfig<D>>
+> = Pick<
+  StateDesigner<D, A, C, R>,
+  "data" | "send" | "can" | "active" | "isIn" | "state"
 >
 
 type OnChange<T> = (state: T) => void
@@ -21,48 +25,56 @@ type Effect<T> = (state: T) => void | (() => void)
 const defaultDependencies: any[] = []
 
 // Call useStateDesigner with a pre-existing StateDesigner instance
-export function useStateDesigner<C extends StateDesignerConfig>(
-  options: StateDesigner<C>,
-  onChange?: OnChange<Exports<C>>,
-  effect?: Effect<Exports<C>>,
+export function useStateDesigner<
+  D extends { [key: string]: any },
+  A extends Record<string, IActionConfig<D>>,
+  C extends Record<string, IConditionConfig<D>>,
+  R extends Record<string, IResultConfig<D>>
+>(
+  options: StateDesigner<D, A, C, R>,
+  onChange?: OnChange<Exports<D, A, C, R>>,
+  effect?: Effect<Exports<D, A, C, R>>,
   dependencies?: any[]
-): Exports<C>
+): Exports<D, A, C, R>
 // Call useStateDesigner with configuration for a new StateDesigner instance
 export function useStateDesigner<
   D extends { [key: string]: any },
-  C extends StateDesignerConfig<
-    D,
-    Record<string, IAction<D>>,
-    Record<string, ICondition<D>>,
-    Record<string, IResult<D>>,
-    IComputedValuesConfig<D>
-  >
+  A extends Record<string, IActionConfig<D>>,
+  C extends Record<string, IConditionConfig<D>>,
+  R extends Record<string, IResultConfig<D>>
 >(
-  options: C,
-  onChange?: OnChange<Exports<C>>,
-  effect?: Effect<Exports<C>>,
+  options: StateDesignerConfig<D, A, C, R>,
+  onChange?: OnChange<Exports<D, A, C, R>>,
+  effect?: Effect<Exports<D, A, C, R>>,
   dependencies?: any[]
-): Exports<C>
+): Exports<D, A, C, R>
 /**
  *
  * @param options The configuration object for a new machine, or else an existing machine
  * @param onChange An function to run each time the machine's state changes
  * @param dependencies An array of unrelated values that, when the hook updates, may cause the hook to re-subscribe to its machine, clean up its effect and run the effect again.
  */
-export function useStateDesigner<C extends StateDesignerConfig>(
-  options: StateDesigner<C> | C,
-  onChange?: OnChange<Exports<C>>,
-  effect?: Effect<Exports<C>>,
+export function useStateDesigner<
+  D extends { [key: string]: any },
+  A extends Record<string, IActionConfig<D>>,
+  C extends Record<string, IConditionConfig<D>>,
+  R extends Record<string, IResultConfig<D>>
+>(
+  options: StateDesigner<D, A, C, R> | StateDesignerConfig<D, A, C, R>,
+  onChange?: OnChange<Exports<D, A, C, R>>,
+  effect?: Effect<Exports<D, A, C, R>>,
   dependencies: any[] = defaultDependencies
-): Exports<C> {
+): Exports<D, A, C, R> {
   // Quick alias
-  type State = Exports<C>
+  type State = Exports<D, A, C, R>
 
   // The hook can accept either a pre-existing machine (so that
   // multiple hooks can share the same data) or the configuration
   // for a new machine (unique to the component calling this hook).
   const machine = React.useRef(
-    options instanceof StateDesigner ? options : new StateDesigner<C>(options)
+    options instanceof StateDesigner
+      ? options
+      : new StateDesigner<D, A, C, R>(options)
   )
 
   // Either way, we now have a machine. We'll keep a few of its
@@ -73,7 +85,6 @@ export function useStateDesigner<C extends StateDesignerConfig>(
     can: machine.current.can,
     isIn: machine.current.isIn,
     active: machine.current.active,
-    values: machine.current.values,
     state: machine.current.root
   })
 
@@ -87,7 +98,6 @@ export function useStateDesigner<C extends StateDesignerConfig>(
         can: machine.current.can,
         isIn: machine.current.isIn,
         active: machine.current.active,
-        values: machine.current.values,
         state: machine.current.root
       })
     }
@@ -96,16 +106,11 @@ export function useStateDesigner<C extends StateDesignerConfig>(
     // When the machine's data changes, update this hook's
     // state with the new data.
     return machine.current.subscribe(
-      (
-        active: State["active"],
-        data: State["data"],
-        values: State["values"]
-      ) => {
+      (active: State["active"], data: State["data"]) => {
         setState(state => {
           return {
             ...state,
             data,
-            values,
             active
           }
         })
@@ -130,8 +135,8 @@ export function useStateDesigner<C extends StateDesignerConfig>(
 
 export {
   StateDesigner,
-  createStateDesigner,
   StateDesignerConfig,
+  createStateDesigner,
   createStateDesignerConfig,
-  createStateDesignerData
+  StateDesignerWithConfig
 }

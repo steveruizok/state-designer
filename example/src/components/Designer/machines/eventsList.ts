@@ -1,11 +1,15 @@
 import { uniqueId } from "lodash-es"
-import { StateDesigner, createStateDesignerConfig } from "state-designer"
+import {
+  StateDesigner,
+  StateDesignerWithConfig,
+  createStateDesignerConfig
+} from "state-designer"
 import { emptyEventConfig, defaultEventConfig, EventConfig } from "./event"
 
 export interface EventsListData {
   items: {
     id: string
-    item: StateDesigner<EventConfig>
+    item: StateDesignerWithConfig<EventConfig>
   }[]
 }
 

@@ -2,8 +2,7 @@ import { uniqueId, cloneDeep } from "lodash-es"
 import {
   StateDesigner,
   createStateDesigner,
-  createStateDesignerConfig,
-  createStateDesignerData
+  createStateDesignerConfig
 } from "state-designer"
 
 import * as DS from "../types"

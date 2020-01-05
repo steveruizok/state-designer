@@ -18,6 +18,7 @@ import {
   eventsListConfig,
   EventsListConfig
 } from "./machines/eventsList"
+import { StateConfig } from "./machines/state"
 import { createEventConfig } from "./machines/event"
 import { CaptiveData } from "./machines/captiveData"
 import { NamedFunctionList } from "./NamedFunctionList"
@@ -28,6 +29,7 @@ import * as DS from "./types"
 import { Select } from "@rebass/forms"
 import { Item } from "./item/Item"
 import { Title } from "./item/Title"
+import { State } from "./States/State"
 
 export interface Props {}
 
@@ -228,6 +230,8 @@ const Designer: React.FC<Props> = ({ children }) => {
     [data]
   )
 
+  // const [states, setStates] = React.useState([createStateConfig()])
+
   React.useEffect(() => {
     localStorage.setItem("state_designer_data", JSON.stringify(data))
   }, [data])
@@ -246,6 +250,16 @@ const Designer: React.FC<Props> = ({ children }) => {
           gridAutoFlow: "row dense"
         }}
       >
+        {/* {states.map((state, index) => (
+          <State
+            state={state}
+            actions={data.namedActions}
+            conditions={data.namedConditions}
+            onChange={() => {}}
+            onEventFire={(name: string) => captiveMachine.send(name)}
+            canEventFire={(name: string) => captiveMachine.can(name)}
+          />
+        ))} */}
         <Preview
           code={data.captiveData}
           onCodeChange={code => send("UPDATE_DATA", code)}
