@@ -5,7 +5,9 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "type-check": "tsc"
+    "type-check": "tsc",
+    "export": "next export",
+    "deploy": "npm run build && npm run export"
   },
   "dependencies": {
     "@rebass/forms": "^4.0.6",
