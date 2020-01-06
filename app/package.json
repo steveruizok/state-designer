@@ -1,40 +1,54 @@
 {
-  "name": "with-typescript",
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "next",
-    "build": "next build",
-    "start": "next start",
-    "type-check": "tsc",
-    "export": "next export",
-    "deploy": "npm run build && npm run export"
-  },
+  "name": "my-app",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
     "@rebass/forms": "^4.0.6",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
     "@theme-ui/prism": "^0.2.50",
+    "@types/jest": "^24.0.0",
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^12.0.0",
     "@types/prismjs": "^1.16.0",
+    "@types/react": "^16.9.0",
     "@types/react-beautiful-dnd": "^11.0.4",
+    "@types/react-dom": "^16.9.0",
     "@types/rebass": "^4.0.3",
     "@types/rebass__forms": "^4.0.0",
-    "@zeit/next-css": "^1.0.1",
     "emotion-theming": "^10.0.27",
-    "isomorphic-unfetch": "3.0.0",
     "lodash": "^4.17.15",
-    "next": "latest",
-    "prismjs": "^1.18.0",
+    "lodash-es": "^4.17.15",
     "react": "^16.12.0",
     "react-beautiful-dnd": "^12.2.0",
     "react-dom": "^16.12.0",
     "react-feather": "^2.0.3",
+    "react-scripts": "3.3.0",
     "react-simple-code-editor": "^0.10.0",
     "rebass": "^4.0.7",
-    "state-designer": "^1.0.6"
+    "state-designer": "^1.0.6",
+    "typescript": "~3.7.2"
   },
-  "devDependencies": {
-    "@types/node": "^12.12.21",
-    "@types/react": "^16.9.16",
-    "@types/react-dom": "^16.9.4",
-    "typescript": "3.7.3"
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
-  "license": "ISC"
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }
