@@ -29,7 +29,7 @@ type IConditionsConfig<D, A> = NamedOrInSeries<IConditionConfig<D>, A>
 
 // Results
 
-export type IResult<D> = (data: D | Draft<D>, payload: any, result: any) => void
+export type IResult<D> = (data: D | Draft<D>, payload: any, result: any) => any
 
 export type IResultConfig<D> = (
   data: D | Draft<D>,
@@ -211,8 +211,6 @@ class StateDesigner<
   send = (event: string, payload?: any) => {
     const reversedActiveStates = [...this.active].reverse()
 
-    let result = {}
-
     this.data = produce(this.data, draft => {
       for (let state of reversedActiveStates) {
         // Move this to the state eventually
@@ -221,7 +219,27 @@ class StateDesigner<
 
         for (let eventHandler of eventHandlers) {
           for (let handler of eventHandler) {
-            state.handleEventHandler(handler, draft, payload, result)
+            let result = {}
+
+            // --- Results
+
+            for (let resolver of handler.get) {
+              result = resolver(draft, payload, result)
+            }
+
+            // --- Conditions
+
+            if (!state.canEventHandlerRun(handler, draft, payload, result)) {
+              continue
+            }
+
+            // --- Actions
+
+            for (let action of handler.do) {
+              action(draft, payload, result)
+            }
+
+            // --- Transition
 
             let previous = false
             let restore = false
@@ -252,7 +270,24 @@ class StateDesigner<
         if (onEvent !== undefined) {
           for (let eventHandler of onEvent) {
             for (let handler of eventHandler) {
-              state.handleEventHandler(handler, draft, payload, result)
+              let result = {}
+
+              // --- Results
+              for (let resolver of handler.get) {
+                result = resolver(draft, payload, result)
+              }
+
+              // --- Conditions
+              if (!state.canEventHandlerRun(handler, draft, payload, result)) {
+                continue
+              }
+
+              // --- Actions
+              for (let action of handler.do) {
+                action(draft, payload, result)
+              }
+
+              // --- Transition
 
               let previous = false
               let restore = false
@@ -312,7 +347,7 @@ class StateDesigner<
   }
 
   isIn = (name: string) => {
-    return this.active.find(v => v.path.endsWith(name))
+    return this.active.find(v => v.path.endsWith(name)) ? true : false
   }
 
   get state() {
@@ -677,29 +712,29 @@ class IStateNode<
     return true
   }
 
-  handleEventHandler = (
-    handler: IEventHandler<D>,
-    draft: Draft<D>,
-    payload: any,
-    result: any
-  ) => {
-    // --- Resolvers
+  // handleEventHandler = (
+  //   handler: IEventHandler<D>,
+  //   draft: Draft<D>,
+  //   payload: any,
+  //   result: any
+  // ) => {
+  //   // --- Resolvers
 
-    for (let resolver of handler.get) {
-      result = resolver(draft, payload, result)
-    }
+  //   for (let resolver of handler.get) {
+  //     result = resolver(draft, payload, result)
+  //   }
 
-    // --- Conditions
+  //   // --- Conditions
 
-    if (!this.canEventHandlerRun(handler, draft, payload, result)) return draft
+  //   if (!this.canEventHandlerRun(handler, draft, payload, result)) return draft
 
-    // --- Actions
-    for (let action of handler.do) {
-      action(draft, payload, result)
-    }
+  //   // --- Actions
+  //   for (let action of handler.do) {
+  //     action(draft, payload, result)
+  //   }
 
-    return draft
-  }
+  //   return draft
+  // }
 
   public getActive = (): IStateNode<D, A, C, R>[] => {
     if (!this.active) {
@@ -739,30 +774,3 @@ export type StateDesignerWithConfig<
 // })
 
 // type ToggleMachine = StateDesignerWithConfig<typeof tConfig>
-
-// const test = createStateDesigner({
-//   data: {
-//     count: 0,
-//     toggles: [] as ToggleMachine[],
-//     toggle: new StateDesigner({
-//       data: {},
-//       states: {
-//         active: {},
-//         inactive: {}
-//       }
-//     })
-//   },
-//   on: {
-//     INCREMENT: {
-//       do: "increment"
-//     }
-//   },
-//   actions: {
-//     increment: data => data.count++
-//   },
-//   conditions: {
-//     aboveMin: data => data.count > 0
-//   },
-//   results: {},
-//   states: {}
-// })
