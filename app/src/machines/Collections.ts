@@ -1,4 +1,4 @@
-import uniqueId from "lodash/uniqueId"
+import { uniqueId } from "../Utils"
 import * as DS from "../interfaces/index"
 
 import { createCollection } from "./Collection"
@@ -13,7 +13,7 @@ export const Collections = {
   states: createStateCollection((id: string = uniqueId()) => ({
     index: 0,
     id,
-    name: "newState",
+    name: "newState" + uniqueId(),
     events: [],
     states: []
   })),
@@ -45,20 +45,18 @@ export const Collections = {
     returnType: "string",
     handlers: []
   })),
-  actions: createActionCollection(
-    (id: string = uniqueId(), custom = false) => ({
-      index: 0,
-      id,
-      custom,
-      type: DS.NamedFunctions.Action,
-      name: custom ? "Custom" : "newAction",
-      code: "",
-      mustReturn: false,
-      handlers: []
-    })
-  ),
+  actions: createActionCollection((id: string = uniqueId(), custom = true) => ({
+    index: 0,
+    id,
+    custom,
+    type: DS.NamedFunctions.Action,
+    name: custom ? "Custom" : "initial",
+    code: "data.count++",
+    mustReturn: false,
+    handlers: []
+  })),
   conditions: createConditionCollection(
-    (id: string = uniqueId(), custom = false) => ({
+    (id: string = uniqueId(), custom = true) => ({
       index: 0,
       id,
       custom,
@@ -70,18 +68,16 @@ export const Collections = {
       handlers: []
     })
   ),
-  results: createResultCollection(
-    (id: string = uniqueId(), custom = false) => ({
-      index: 0,
-      id,
-      custom,
-      type: DS.NamedFunctions.Result,
-      name: custom ? "Custom" : "newResult",
-      code: "",
-      mustReturn: true,
-      handlers: []
-    })
-  ),
+  results: createResultCollection((id: string = uniqueId(), custom = true) => ({
+    index: 0,
+    id,
+    custom,
+    type: DS.NamedFunctions.Result,
+    name: custom ? "Custom" : "newResult",
+    code: "",
+    mustReturn: true,
+    handlers: []
+  })),
   asyncs: createCollection<DS.AsyncEventHandlerCallback>(
     (id: string = uniqueId()) => ({
       index: 0,

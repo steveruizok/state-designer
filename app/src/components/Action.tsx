@@ -109,11 +109,12 @@ export const Action: React.FC<Props> = ({
       <CodeEditor
         value={action.code}
         readOnly={!action.custom}
-        startWith={Fences.FunctionArgs + Fences.Start}
+        startWith={Fences.FunctionArgs}
         endWith={Fences.End}
         onChange={code =>
           send("EDIT", { actionId: action.id, changes: { code } })
         }
+        error={action.error}
       />
     </DraggableItem>
   )

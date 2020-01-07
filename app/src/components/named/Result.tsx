@@ -49,7 +49,7 @@ export const Result: React.FC<Props> = ({ result, index, children }) => {
       draggable={data.size > 1}
       draggableId={result.id}
       draggableIndex={index + 1}
-      title={`${result.id}`}
+      // title={`${result.id}`}
       options={options}
     >
       <CodeEditor
@@ -64,7 +64,7 @@ export const Result: React.FC<Props> = ({ result, index, children }) => {
       />
       <CodeEditor
         value={result.code}
-        startWith={Fences.FunctionArgs + Fences.Start}
+        startWith={Fences.FunctionArgs}
         endWith={Fences.End}
         onChange={(code: string) =>
           send("EDIT", { resultId: result.id, changes: { code } })

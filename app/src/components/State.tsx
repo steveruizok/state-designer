@@ -1,4 +1,5 @@
 import React from "react"
+import { CodeEditor, Fences } from "./CodeEditor"
 import { Collections } from "../machines/Collections"
 import { StateEvents } from "./StateEvents"
 import { useStateDesigner } from "state-designer"
@@ -73,15 +74,26 @@ export const State: React.FC<Props> = ({ state, index, children }) => {
       draggableId={state.id}
       draggableIndex={index + 1}
       // title={`${state.id} - ${state.name}`}
-      title={state.name}
+      title={editing ? "" : state.name}
       options={options}
       canCancel={editing}
       canSave={editing}
+      onSave={() => send("CLOSE")}
       onCancel={() => send("CLOSE")}
       onEdit={editing ? undefined : () => send("EDIT")}
     >
       {isIn("editing") ? (
         <>
+          <Title>Name</Title>
+          <CodeEditor
+            value={state.name}
+            onChange={code =>
+              Collections.states.send("EDIT", {
+                id: state.id,
+                changes: { name: code }
+              })
+            }
+          />
           <Title onCreate={() => states.send("CREATE_EVENT", { id: state.id })}>
             On
           </Title>
@@ -147,6 +159,14 @@ export const State: React.FC<Props> = ({ state, index, children }) => {
 
                                     return <li key={index}>{action.name}</li>
                                   })}
+                                </ul>
+                              </div>
+                            )}
+                            {handler.to && (
+                              <div>
+                                To:
+                                <ul>
+                                  <li>{handler.to}</li>
                                 </ul>
                               </div>
                             )}

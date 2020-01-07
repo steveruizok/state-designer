@@ -1,7 +1,8 @@
 import { StateDesigner } from "state-designer"
-import uniqueId from "lodash/uniqueId"
+import { uniqueId, getLocalSavedData } from "../Utils"
 import sortBy from "lodash/sortBy"
 import * as DS from "../interfaces/index"
+import * as safeEval from "safe-eval"
 
 export function createConditionCollection(
   getNewCondition: (id: string, custom?: boolean) => DS.Condition
@@ -10,8 +11,12 @@ export function createConditionCollection(
   initial.index = 0
   initial.handlers = ["initial"]
 
-  return new StateDesigner({
-    data: new Map([[initial.id, initial]]) as Map<string, DS.Condition>,
+  let storedData = getLocalSavedData("DS_Conditions", [])
+
+  let data: Map<string, DS.Condition> = new Map(storedData)
+
+  const designer = new StateDesigner({
+    data,
     on: {
       CREATE_CUSTOM: {
         get: "newCustomCondition",
@@ -30,7 +35,7 @@ export function createConditionCollection(
       },
       EDIT: {
         get: "condition",
-        do: "editCondition"
+        do: ["editCondition", "updateError"]
       },
       MOVE: {
         get: "condition",
@@ -67,6 +72,16 @@ export function createConditionCollection(
       editCondition(_, { changes }, condition: DS.Condition) {
         Object.assign(condition, changes)
       },
+      updateError(_, payload, action) {
+        let err: string = ""
+        try {
+          safeEval(`${action.code}`, { data: {}, payload: {}, result: {} })
+        } catch (e) {
+          err = e.message
+        }
+
+        action.error = err
+      },
       moveCondition(data, { target }, condition: DS.Condition) {
         if (target === condition.index) return
 
@@ -91,4 +106,11 @@ export function createConditionCollection(
     },
     conditions: {}
   })
+
+  designer.subscribe((active, data) => {
+    const items = JSON.stringify(Array.from(data.entries()), null, 2)
+    localStorage.setItem("DS_Conditions", items)
+  })
+
+  return designer
 }

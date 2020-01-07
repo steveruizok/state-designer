@@ -132,17 +132,13 @@ export const Item: React.FC<Props> = ({
         <ItemFooter>
           <>
             {canCancel && (
-              <BottomButton>
-                <X size={16} onClick={onCancel} />
+              <BottomButton onClick={onCancel}>
+                <X size={16} />
               </BottomButton>
             )}
             {canSave && (
-              <BottomButton>
-                <Check
-                  size={16}
-                  onClick={error ? undefined : onSave}
-                  opacity={error ? 0.5 : 1}
-                />
+              <BottomButton onClick={error ? undefined : onSave}>
+                <Check size={16} opacity={error ? 0.5 : 1} />
               </BottomButton>
             )}
           </>
@@ -171,7 +167,7 @@ const ItemHeader: React.FC<{
         position: "absolute",
         left: 0,
         top: -19,
-        height: 40,
+        height: 48,
         userSelect: "none"
       }}
       onDoubleClick={onDoubleClick}

@@ -20,6 +20,8 @@
     "emotion-theming": "^10.0.27",
     "lodash": "^4.17.15",
     "lodash-es": "^4.17.15",
+    "netlify-cli": "^2.25.0",
+    "prismjs": "^1.18.0",
     "react": "^16.12.0",
     "react-beautiful-dnd": "^12.2.0",
     "react-dom": "^16.12.0",
@@ -27,6 +29,7 @@
     "react-scripts": "3.3.0",
     "react-simple-code-editor": "^0.10.0",
     "rebass": "^4.0.7",
+    "safe-eval": "^0.4.1",
     "state-designer": "^1.0.6",
     "typescript": "~3.7.2"
   },

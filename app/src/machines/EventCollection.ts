@@ -1,5 +1,5 @@
 import { StateDesigner } from "state-designer"
-import uniqueId from "lodash/uniqueId"
+import { uniqueId, getLocalSavedData } from "../Utils"
 import sortBy from "lodash/sortBy"
 import * as DS from "../interfaces/index"
 import { Collections } from "./Collections"
@@ -9,8 +9,12 @@ export function createEventCollection(getNewEvent: (id: string) => DS.Event) {
   initial.index = 0
   initial.handlers = ["initial"]
 
-  return new StateDesigner({
-    data: new Map([[initial.id, initial]]) as Map<string, DS.Event>,
+  let storedData = getLocalSavedData("DS_Events", [])
+
+  let data: Map<string, DS.Event> = new Map(storedData)
+
+  const designer = new StateDesigner({
+    data,
     on: {
       CREATE: {
         get: "newEvent",
@@ -115,12 +119,19 @@ export function createEventCollection(getNewEvent: (id: string) => DS.Event) {
         dupe.index = Collections.handlers.data.size
         event.handlers.push(id)
       },
-      removeHandler(data, { eventId }, event: DS.Event) {
-        const index = event.handlers.indexOf(eventId)
-        Collections.handlers.send("REMOVE", { id: eventId })
+      removeHandler(data, { handlerId }, event: DS.Event) {
+        const index = event.handlers.indexOf(handlerId)
+        Collections.handlers.send("REMOVE", { id: handlerId })
         event.handlers.splice(index, 1)
       }
     },
     conditions: {}
   })
+
+  designer.subscribe((active, data) => {
+    const items = JSON.stringify(Array.from(data.entries()), null, 2)
+    localStorage.setItem("DS_Events", items)
+  })
+
+  return designer
 }

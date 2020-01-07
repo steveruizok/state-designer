@@ -6,12 +6,14 @@ import "prismjs/components/prism-clike"
 import "prismjs/components/prism-javascript"
 
 export enum Fences {
-  ResultArgs = `(data) => `,
-  FunctionArgs = `(data, payload, result) => `,
-  Start = `{
+  FunctionArgs = `(data, payload, result) => {
   `,
+  ConditionStart = `(data, payload, result) => {
+  return `,
   End = `
-}`
+}`,
+  Start = `{
+  `
 }
 
 export interface Props {
@@ -31,9 +33,9 @@ export interface Props {
 export const CodeEditor: React.FC<Props> = ({
   value = "",
   error,
-  startWith,
+  startWith = "",
   highlight: shouldHighlight = true,
-  endWith,
+  endWith = "",
   style = {},
   onFocus,
   onBlur,
@@ -42,31 +44,15 @@ export const CodeEditor: React.FC<Props> = ({
   readOnly = false
 }) => {
   function textIn(text: string) {
-    let t = text
-
-    if (startWith !== undefined) {
-      t = startWith + t
-    }
-
-    if (endWith !== undefined) {
-      t = t + endWith
-    }
-    return t
+    return startWith + text + endWith
   }
 
   function textOut(text: string) {
-    if (text.length === 0) return value
-
-    let t = text
-
-    if (startWith !== undefined) {
-      t = t.split(startWith)[1]
+    if (text.length === 0) return ""
+    if (!text.startsWith(startWith)) {
+      return value
     }
-
-    if (endWith !== undefined) {
-      t = t.split(endWith)[0]
-    }
-    return t
+    return text.substring(startWith.length, text.length - endWith.length)
   }
 
   return (
@@ -96,7 +82,8 @@ export const CodeEditor: React.FC<Props> = ({
           backgroundColor: "#f7f8fa",
           fontWeight: 500,
           fontFamily: '"Fira code", "Fira Mono", monospace',
-          fontSize: 14
+          fontSize: 14,
+          lineHeight: 1.8
         }}
         minLength={30}
       />
@@ -110,7 +97,9 @@ export const CodeEditor: React.FC<Props> = ({
             left: 0,
             height: 32,
             width: "100%",
-            background: "#ff5087"
+            background: "#ff5087",
+            fontSize: 13,
+            fontWeight: 500
           }}
         >
           <Text>{error}</Text>

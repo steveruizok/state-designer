@@ -1,7 +1,8 @@
 import { StateDesigner } from "state-designer"
-import uniqueId from "lodash/uniqueId"
+import { uniqueId, getLocalSavedData } from "../Utils"
 import sortBy from "lodash/sortBy"
 import * as DS from "../interfaces/index"
+import * as safeEval from "safe-eval"
 
 export function createResultCollection(
   getNewResult: (id: string, custom?: boolean) => DS.Result
@@ -10,8 +11,12 @@ export function createResultCollection(
   initial.index = 0
   initial.handlers = ["initial"]
 
-  return new StateDesigner({
-    data: new Map([[initial.id, initial]]) as Map<string, DS.Result>,
+  let storedData = getLocalSavedData("DS_Results", [])
+
+  let data: Map<string, DS.Result> = new Map(storedData)
+
+  const designer = new StateDesigner({
+    data,
     on: {
       CREATE_CUSTOM: {
         get: "newCustomResult",
@@ -30,7 +35,7 @@ export function createResultCollection(
       },
       EDIT: {
         get: "result",
-        do: "editResult"
+        do: ["editResult", "updateError"]
       },
       MOVE: {
         get: "result",
@@ -67,6 +72,16 @@ export function createResultCollection(
       editResult(_, { changes }, result: DS.Result) {
         Object.assign(result, changes)
       },
+      updateError(_, payload, action) {
+        let err: string = ""
+        try {
+          safeEval(`${action.code}`, { data: {}, payload: {}, result: {} })
+        } catch (e) {
+          err = e.message
+        }
+
+        action.error = err
+      },
       moveResult(data, { target }, result: DS.Result) {
         if (target === result.index) return
 
@@ -91,4 +106,11 @@ export function createResultCollection(
     },
     conditions: {}
   })
+
+  designer.subscribe((active, data) => {
+    const items = JSON.stringify(Array.from(data.entries()), null, 2)
+    localStorage.setItem("DS_Results", items)
+  })
+
+  return designer
 }

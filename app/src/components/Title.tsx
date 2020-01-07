@@ -1,12 +1,12 @@
 import React from "react"
-import { Box, Text } from "rebass"
+import { Box, BoxProps, Text } from "rebass"
 import { Plus } from "react-feather"
 
-export interface Props {
+export interface Props extends BoxProps {
   onCreate?: () => void
 }
 
-export const Title: React.FC<Props> = ({ onCreate, children }) => {
+export const Title: React.FC<Props> = ({ onCreate, children, ...rest }) => {
   return (
     <Box
       sx={{
@@ -20,13 +20,13 @@ export const Title: React.FC<Props> = ({ onCreate, children }) => {
         lineHeight: 1,
         userSelect: "none"
       }}
+      {...rest}
     >
       <Box
         sx={{
           position: "absolute",
           borderBottom: "1px dotted #777",
-          left: -32,
-          width: "calc(100% + 64px)",
+          width: "calc(100%)",
           top: 10,
           zIndex: 1
         }}

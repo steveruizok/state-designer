@@ -1,5 +1,5 @@
 import { StateDesigner } from "state-designer"
-import uniqueId from "lodash/uniqueId"
+import { uniqueId } from "../Utils"
 import sortBy from "lodash/sortBy"
 
 export function createCollection<T extends { id: string; index: number }>(
@@ -8,8 +8,8 @@ export function createCollection<T extends { id: string; index: number }>(
   const item = getNewItem("initial")
   item.index = 0
 
-  return new StateDesigner({
-    data: new Map([[item.id, item]]) as Map<string, T>,
+  const designer = new StateDesigner({
+    data: new Map([]) as Map<string, T>,
     on: {
       CREATE: {
         get: "newItem",
@@ -70,4 +70,11 @@ export function createCollection<T extends { id: string; index: number }>(
     },
     conditions: {}
   })
+
+  designer.subscribe((active, data) => {
+    const items = JSON.stringify(Array.from(data.entries()), null, 2)
+    localStorage.setItem("DS_Handlers", items)
+  })
+
+  return designer
 }

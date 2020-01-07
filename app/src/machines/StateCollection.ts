@@ -1,17 +1,21 @@
 import { StateDesigner } from "state-designer"
-import uniqueId from "lodash/uniqueId"
+import { uniqueId, getLocalSavedData } from "../Utils"
 import sortBy from "lodash/sortBy"
 import * as DS from "../interfaces/index"
 
 import { Collections } from "./Collections"
 
 export function createStateCollection(getNewState: (id: string) => DS.State) {
-  const state = getNewState("initial")
-  state.events = ["initial"]
-  state.index = 0
+  const initial = getNewState("initial")
+  initial.events = ["initial"]
+  initial.index = 0
 
-  return new StateDesigner({
-    data: new Map([[state.id, state]]) as Map<string, DS.State>,
+  let storedData = getLocalSavedData("DS_States", [])
+
+  let data: Map<string, DS.State> = new Map(storedData)
+
+  const designer = new StateDesigner({
+    data,
     on: {
       CREATE: {
         get: "newState",
@@ -124,4 +128,11 @@ export function createStateCollection(getNewState: (id: string) => DS.State) {
     },
     conditions: {}
   })
+
+  designer.subscribe((active, data) => {
+    const items = JSON.stringify(Array.from(data.entries()), null, 2)
+    localStorage.setItem("DS_States", items)
+  })
+
+  return designer
 }

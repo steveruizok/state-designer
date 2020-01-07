@@ -1,7 +1,9 @@
 import React from "react"
 import { Collections } from "../machines/Collections"
+import { CodeEditor } from "./CodeEditor"
 import { DragList } from "./DragList"
 import { Title } from "./Title"
+import { Item } from "./Item"
 import { useStateDesigner } from "state-designer"
 import { DraggableItem } from "./DraggableItem"
 import { Condition } from "./Condition"
@@ -27,13 +29,13 @@ export const Handler: React.FC<Props> = ({
 
   const options: { [key: string]: () => void } = {
     remove() {
-      Collections.events.send("REMOVE_EVENT_HANDLER", {
+      Collections.events.send("REMOVE_HANDLER", {
         eventId: event.id,
         handlerId: handler.id
       })
     },
     duplicate() {
-      Collections.events.send("DUPLICATE_EVENT_HANDLER", {
+      Collections.events.send("DUPLICATE_HANDLER", {
         eventId: event.id,
         handlerId: handler.id
       })
@@ -42,7 +44,7 @@ export const Handler: React.FC<Props> = ({
 
   if (index > 0) {
     options["move down"] = () =>
-      Collections.events.send("MOVE_EVENT_HANDLER", {
+      Collections.events.send("MOVE_HANDLER", {
         eventId: event.id,
         handlerId: handler.id,
         target: index - 1
@@ -51,7 +53,7 @@ export const Handler: React.FC<Props> = ({
 
   if (index < event.handlers.length - 1) {
     options["move up"] = () =>
-      Collections.events.send("MOVE_EVENT_HANDLER", {
+      Collections.events.send("MOVE_HANDLER", {
         eventId: event.id,
         handlerId: handler.id,
         target: index + 1
@@ -64,7 +66,7 @@ export const Handler: React.FC<Props> = ({
       draggable={event.handlers.length > 1}
       draggableId={handler.id}
       draggableIndex={index + 1}
-      title={`${handler.id}`}
+      // title={`${handler.id}`}
       options={options}
     >
       <Title
@@ -175,6 +177,16 @@ export const Handler: React.FC<Props> = ({
           )
         })}
       </DragList>
+      <Title>To</Title>
+      <CodeEditor
+        value={handler.to}
+        onChange={code =>
+          Collections.handlers.send("EDIT_HANDLER_TRANSITION", {
+            code,
+            handlerId: handler.id
+          })
+        }
+      />
     </DraggableItem>
   )
 }

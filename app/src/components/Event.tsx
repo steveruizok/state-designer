@@ -2,9 +2,12 @@ import React from "react"
 import sortBy from "lodash/sortBy"
 import compact from "lodash/compact"
 import { Collections } from "../machines/Collections"
+import { CodeEditor, Fences } from "./CodeEditor"
 import { DragList } from "./DragList"
 import { Handler } from "./Handler"
 import { useStateDesigner } from "state-designer"
+import { Item } from "./Item"
+import { Title } from "./Title"
 import { DraggableItem } from "../components/DraggableItem"
 import * as DS from "../interfaces"
 
@@ -15,7 +18,7 @@ export interface Props {
 }
 
 export const Event: React.FC<Props> = ({ event, state, index, children }) => {
-  const { data } = useStateDesigner(Collections.handlers)
+  const { data, send } = useStateDesigner(Collections.handlers)
 
   const handlers = event.handlers.map(id => data.get(id))
 
@@ -59,12 +62,29 @@ export const Event: React.FC<Props> = ({ event, state, index, children }) => {
       draggableId={event.id}
       draggableIndex={index + 1}
       // title={`${event.id} - ${event.name}`}
-      title={event.name}
-      onCreate={() =>
-        Collections.events.send("CREATE_HANDLER", { eventId: event.id })
-      }
+      // title={event.name}
+      // onCreate={() =>
+      //   Collections.events.send("CREATE_HANDLER", { eventId: event.id })
+      // }
       options={options}
     >
+      <Title>Name</Title>
+      <CodeEditor
+        value={event.name}
+        onChange={code =>
+          Collections.events.send("EDIT", {
+            eventId: event.id,
+            changes: { name: code }
+          })
+        }
+      />
+      <Title
+        onCreate={() =>
+          Collections.events.send("CREATE_HANDLER", { eventId: event.id })
+        }
+      >
+        Handlers
+      </Title>
       <DragList
         id="handlers"
         onDragEnd={result => {

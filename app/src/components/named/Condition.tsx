@@ -49,7 +49,7 @@ export const Condition: React.FC<Props> = ({ condition, index, children }) => {
       draggable={data.size > 1}
       draggableId={condition.id}
       draggableIndex={index + 1}
-      title={`${condition.id}`}
+      // title={`${condition.id}`}
       options={options}
     >
       <CodeEditor
@@ -64,7 +64,7 @@ export const Condition: React.FC<Props> = ({ condition, index, children }) => {
       />
       <CodeEditor
         value={condition.code}
-        startWith={Fences.FunctionArgs + Fences.Start}
+        startWith={Fences.ConditionStart}
         endWith={Fences.End}
         onChange={(code: string) =>
           send("EDIT", { conditionId: condition.id, changes: { code } })

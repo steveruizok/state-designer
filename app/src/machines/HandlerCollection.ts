@@ -1,5 +1,5 @@
 import { StateDesigner } from "state-designer"
-import uniqueId from "lodash/uniqueId"
+import { uniqueId, getLocalSavedData } from "../Utils"
 import sortBy from "lodash/sortBy"
 import { Collections } from "./Collections"
 import * as DS from "../interfaces/index"
@@ -10,8 +10,12 @@ export function createHandlerCollection(
   const initial = getNewItem("initial")
   initial.index = 0
 
-  return new StateDesigner({
-    data: new Map([[initial.id, initial]]) as Map<string, DS.EventHandler>,
+  let storedData = getLocalSavedData("DS_Handlers", [])
+
+  let data: Map<string, DS.EventHandler> = new Map(storedData)
+
+  const designer = new StateDesigner({
+    data,
     on: {
       CREATE: {
         get: "newHandler",
@@ -27,6 +31,10 @@ export function createHandlerCollection(
       MOVE: {
         get: "handler",
         do: "moveHandler"
+      },
+      EDIT_HANDLER_TRANSITION: {
+        get: "handler",
+        do: "editTransition"
       },
       CREATE_HANDLER_RESULT: {
         get: "handler",
@@ -134,6 +142,10 @@ export function createHandlerCollection(
       }
     },
     actions: {
+      // Transitions
+      editTransition(data, { code }, handler: DS.EventHandler) {
+        handler.to = code
+      },
       // Results
       createResult(data, _, handler: DS.EventHandler) {
         const id = uniqueId()
@@ -302,4 +314,11 @@ export function createHandlerCollection(
       }
     }
   })
+
+  designer.subscribe((active, data) => {
+    const items = JSON.stringify(Array.from(data.entries()), null, 2)
+    localStorage.setItem("DS_Handlers", items)
+  })
+
+  return designer
 }

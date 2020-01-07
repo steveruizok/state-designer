@@ -103,7 +103,7 @@ export const Result: React.FC<Props> = ({ handler, result, dragId, index }) => {
       <CodeEditor
         value={result.code}
         readOnly={!result.custom}
-        startWith={Fences.FunctionArgs + Fences.Start}
+        startWith={Fences.FunctionArgs}
         endWith={Fences.End}
         onChange={code =>
           send("EDIT", { resultId: result.id, changes: { code } })

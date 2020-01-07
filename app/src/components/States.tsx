@@ -5,6 +5,8 @@ import { Collections } from "../machines/Collections"
 import { useStateDesigner } from "state-designer"
 import { DragList } from "./DragList"
 import { State } from "./State"
+import { CodeEditor } from "./CodeEditor"
+import { Title } from "./Title"
 
 export interface Props {}
 
@@ -12,7 +14,7 @@ export const States: React.FC<Props> = ({ children }) => {
   const { data, send } = useStateDesigner(Collections.states)
 
   return (
-    <Box sx={{ position: "relative" }}>
+    <Box sx={{ position: "relative", minWidth: 500 }}>
       <DragList
         id="states"
         onDragEnd={result =>
