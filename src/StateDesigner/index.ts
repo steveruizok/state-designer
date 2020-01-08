@@ -216,7 +216,6 @@ class StateDesigner<
   }
 
   send = (event: string, payload?: any) => {
-    let nextState: IStateNode<D, A, C, R>
     let didRunAction = false
     let didTransition = false
 
@@ -280,7 +279,12 @@ class StateDesigner<
             // Make the transition and cancel the rest
             // of this event chain
             target.activate(previous, restore)
-            nextState = target
+
+            const { onEnter } = target.autoEvents
+            if (onEnter !== undefined) {
+              handleEventHandlers(state, onEnter)
+            }
+
             didTransition = true
             return
           }
@@ -300,13 +304,6 @@ class StateDesigner<
 
         if (onEvent !== undefined) {
           handleEventHandlers(state, onEvent)
-        }
-
-        if (didTransition) {
-          const { onEnter } = nextState.autoEvents
-          if (onEnter !== undefined) {
-            handleEventHandlers(state, onEnter)
-          }
         }
       }
     })
@@ -359,6 +356,23 @@ enum StateType {
   Parallel = "parallel"
 }
 
+type StateConfig<
+  D,
+  A extends Record<string, IActionConfig<D>>,
+  C extends Record<string, IConditionConfig<D>>,
+  R extends Record<string, IResultConfig<D>>
+> = {
+  name: string
+  parent?: IStateNode<D, A, C, R>
+  machine: StateDesigner<D, A, C, R>
+  onEnter?: IEventConfig<D, A, C, R>
+  onEvent?: IEventConfig<D, A, C, R>
+  on?: IEventsConfig<D, A, C, R>
+  active: boolean
+  initial?: string
+  states?: IStatesConfig<D, A, C, R>
+}
+
 class IStateNode<
   D,
   A extends Record<string, IActionConfig<D>>,
@@ -380,18 +394,7 @@ class IStateNode<
     onEnter?: IEvent<D>[]
   }
 
-  constructor(
-    options = {} as {
-      name: string
-      parent?: IStateNode<D, A, C, R>
-      active: boolean
-      on?: IEventsConfig<D, A, C, R>
-      onEvent?: IEventConfig<D, A, C, R>
-      machine: StateDesigner<D, A, C, R>
-      states?: IStatesConfig<D, A, C, R>
-      initial?: string
-    }
-  ) {
+  constructor(options = {} as StateConfig<D, A, C, R>) {
     const {
       machine,
       parent,
@@ -400,6 +403,7 @@ class IStateNode<
       initial,
       states = {},
       onEvent,
+      onEnter,
       active
     } = options
 
@@ -429,6 +433,7 @@ class IStateNode<
             active: this.initial === undefined ? true : cur === this.initial,
             initial: state.initial,
             states: state.states,
+            onEnter: state.onEnter,
             onEvent: state.onEvent,
             on: state.on
           })
@@ -437,6 +442,8 @@ class IStateNode<
       },
       []
     )
+
+    // INITIAL STATE
 
     if (this.initial !== undefined) {
       const initialState = this.children.find(v => v.name === this.initial)
@@ -591,8 +598,11 @@ class IStateNode<
       return castArray(event).map<IEvent<D>>(getProcessedEventHandler)
     }
 
+    // AUTO EVENTS
+
     this.autoEvents = {
-      onEvent: onEvent ? getProcessedEvent(onEvent) : undefined
+      onEvent: onEvent ? getProcessedEvent(onEvent) : undefined,
+      onEnter: onEnter ? getProcessedEvent(onEnter) : undefined
     }
 
     this.events = Object.keys(on).reduce<IEvents<D>>((acc, key) => {
