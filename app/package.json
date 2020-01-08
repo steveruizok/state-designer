@@ -30,7 +30,7 @@
     "react-simple-code-editor": "^0.10.0",
     "rebass": "^4.0.7",
     "safe-eval": "^0.4.1",
-    "state-designer": "^1.0.6",
+    "state-designer": "^1.0.7",
     "typescript": "~3.7.2"
   },
   "scripts": {

@@ -1,37 +1,69 @@
 import React from "react"
+import { Input } from "@rebass/forms"
 import { useStateDesigner } from "state-designer"
-import { Box, Button } from "rebass"
+import { Flex, Box, Text, Button } from "rebass"
 
 export interface Props {}
 
 const App: React.FC<Props> = ({ children }) => {
-  const { data, send } = useStateDesigner({
+  const { data, send, isIn, can } = useStateDesigner({
     data: {
-      count: 0
-    },
-    on: {
-      INCREMENT: {
-        do: "increment",
-        unless: "atMax"
-      }
+      text: ""
     },
     actions: {
-      increment: data => data.count++
+      clearText: data => (data.text = ""),
+      updateText: (data, text) => (data.text = text)
     },
     conditions: {
-      atMax: data => data.count === 10,
-      belowMax: data => data.count < 10,
-      aboveMin: data => data.count > 0
+      textIsEmpty: data => data.text.length === 0,
+      textIsValid: data => data.text.includes(" ")
     },
     results: {},
-    states: {}
+    on: {
+      CHANGED_TEXT: [
+        { do: "updateText" },
+        { if: "textIsValid", to: "valid" },
+        { if: "textIsEmpty", to: "empty" },
+        { unless: "textIsValid", to: "invalid" }
+      ]
+    },
+    initial: "empty",
+    states: {
+      empty: {},
+      invalid: {},
+      valid: {
+        on: {
+          SUBMIT: { do: "clearText", to: "empty" }
+        }
+      }
+    }
   })
 
   return (
     <Box p={3}>
-      <h2>Count: {data.count}</h2>
-      <button onClick={() => send("INCREMENT")}>Increment</button>
-      <button onClick={() => send("DECREMENT")}>Decrement</button>
+      <Flex>
+        <Input
+          value={data.text}
+          onChange={e => {
+            send("CHANGED_TEXT", e.target.value)
+          }}
+          mr={2}
+        />
+        <Button
+          backgroundColor="blue"
+          onClick={() => send("SUBMIT")}
+          opacity={can("SUBMIT") ? 1 : 0.5}
+        >
+          Submit
+        </Button>
+      </Flex>
+      <Text>
+        {isIn("empty")
+          ? "Enter your message"
+          : isIn("invalid")
+          ? "Your message must include a space"
+          : ""}
+      </Text>
     </Box>
   )
 }

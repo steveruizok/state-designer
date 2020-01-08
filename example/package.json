@@ -17,6 +17,7 @@
     "@types/react-beautiful-dnd": "^11.0.4",
     "@types/react-dom": "^16.9.4",
     "@types/rebass": "^4.0.3",
+    "@types/rebass__forms": "^4.0.0",
     "@types/styled-system": "^5.1.4",
     "array-move": "^2.2.1",
     "deep-freeze": "^0.0.1",

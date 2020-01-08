@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.7
+
+- Start state event analysis at the top-level state, rather than the bottom
+- Cleans up event handling code
+- Fixes bug in `can` for results
+
 ## 1.0.2
 
 - Simplifies typing in `useStateDesigner` and `StateDesigner`.

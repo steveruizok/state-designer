@@ -209,16 +209,19 @@ class StateDesigner<
   }
 
   send = (event: string, payload?: any) => {
-    const reversedActiveStates = [...this.active].reverse()
+    let didRunAction = false
+    let didTransition = false
 
-    this.data = produce(this.data, draft => {
-      for (let state of reversedActiveStates) {
-        // Move this to the state eventually
-        let eventHandlers = state.events[event]
-        if (eventHandlers === undefined) continue
+    const dataResult = produce(this.data, draft => {
+      function handleEventHandlers(
+        state: IStateNode<D, A, C, R>,
+        events: IEvent<D>[]
+      ) {
+        if (didTransition) return
+        if (events === undefined) return
 
-        for (let eventHandler of eventHandlers) {
-          for (let handler of eventHandler) {
+        for (let event of events) {
+          for (let handler of event) {
             let result = {}
 
             // --- Results
@@ -229,107 +232,81 @@ class StateDesigner<
 
             // --- Conditions
 
-            if (!state.canEventHandlerRun(handler, draft, payload, result)) {
+            if (!state.canEventHandlerRun(handler, draft, payload, result))
               continue
-            }
 
             // --- Actions
 
             for (let action of handler.do) {
+              didRunAction = true
               action(draft, payload, result)
             }
 
             // --- Transition
 
+            let { to: transition } = handler
+
+            if (transition === undefined) continue
+
             let previous = false
             let restore = false
 
-            let { to: transition } = handler
-
-            if (transition !== undefined) {
-              if (transition.endsWith(".previous")) {
-                previous = true
-                transition = transition.substring(0, transition.length - 9)
-              } else if (transition.endsWith(".restore")) {
-                previous = true
-                restore = true
-                transition = transition.substring(0, transition.length - 8)
-              }
-
-              const target = state.getTargetFromTransition(transition, state)
-              if (target !== undefined) {
-                target.activate(previous, restore)
-                break
-              }
+            if (transition.endsWith(".previous")) {
+              previous = true
+              transition = transition.substring(0, transition.length - 9)
+            } else if (transition.endsWith(".restore")) {
+              previous = true
+              restore = true
+              transition = transition.substring(0, transition.length - 8)
             }
+
+            const target = state.getTargetFromTransition(transition, state)
+
+            // No target found in the active tree!
+            // This is a bug in the user's configuration
+            if (target === undefined) continue
+
+            // Make the transition and cancel the rest
+            // of this event chain
+            target.activate(previous, restore)
+            didTransition = true
+            return
           }
         }
+      }
+
+      // Loop through each state, starting from the
+      // root and moving doward, handling the event
+      // at each level. Note that any transition will
+      // cause all future handlers to bail immediately.
+      for (let state of this.active) {
+        let eventHandlers = state.events[event]
+
+        handleEventHandlers(state, eventHandlers)
 
         const { onEvent } = state.autoEvents
 
         if (onEvent !== undefined) {
-          for (let eventHandler of onEvent) {
-            for (let handler of eventHandler) {
-              let result = {}
-
-              // --- Results
-              for (let resolver of handler.get) {
-                result = resolver(draft, payload, result)
-              }
-
-              // --- Conditions
-              if (!state.canEventHandlerRun(handler, draft, payload, result)) {
-                continue
-              }
-
-              // --- Actions
-              for (let action of handler.do) {
-                action(draft, payload, result)
-              }
-
-              // --- Transition
-
-              let previous = false
-              let restore = false
-
-              let { to: transition } = handler
-
-              if (transition !== undefined) {
-                if (transition.endsWith(".previous")) {
-                  previous = true
-                  transition = transition.substring(0, transition.length - 9)
-                } else if (transition.endsWith(".restore")) {
-                  previous = true
-                  restore = true
-                  transition = transition.substring(0, transition.length - 8)
-                }
-
-                const target = state.getTargetFromTransition(transition, state)
-                if (target !== undefined) {
-                  target.activate(previous, restore)
-                  break
-                }
-              }
-            }
-          }
+          handleEventHandlers(state, onEvent)
         }
       }
     })
 
-    this.active = this.root.getActive()
-    this.notifySubscribers()
+    if (didTransition || didRunAction) {
+      this.data = dataResult
+      this.active = this.root.getActive()
+      this.notifySubscribers()
+    }
   }
 
   can = (event: string, payload?: any): boolean => {
-    const reversedActiveStates = [...this.active].reverse()
-    let result: any
-
     return produce(this.data, draft => {
-      for (let state of reversedActiveStates) {
-        let eventHandlers = state.events[event]
-        if (eventHandlers !== undefined) {
-          for (let eventHandler of eventHandlers) {
-            for (let handler of eventHandler) {
+      for (let state of this.active) {
+        let events = state.events[event]
+        if (events !== undefined) {
+          for (let event of events) {
+            let result: any
+            for (let handler of event) {
               for (let resolver of handler.get) {
                 result = resolver(draft, payload, result)
               }
