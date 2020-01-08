@@ -15,14 +15,14 @@ export const Collections = {
     id,
     name: "newState" + uniqueId(),
     events: [],
-    states: []
+    states: [],
   })),
   events: createEventCollection((id: string = uniqueId()) => ({
     index: 0,
     id,
     name: "NEW_EVENT",
     payload: "",
-    handlers: []
+    handlers: [],
   })),
   handlers: createHandlerCollection((id: string = uniqueId()) => ({
     index: 0,
@@ -32,7 +32,7 @@ export const Collections = {
     unless: [],
     ifAny: [],
     get: [],
-    await: []
+    await: [],
   })),
   transitions: createCollection<DS.Transition>((id: string = uniqueId()) => ({
     index: 0,
@@ -43,7 +43,7 @@ export const Collections = {
     code: "",
     mustReturn: true,
     returnType: "string",
-    handlers: []
+    handlers: [],
   })),
   actions: createActionCollection((id: string = uniqueId(), custom = true) => ({
     index: 0,
@@ -53,7 +53,7 @@ export const Collections = {
     name: custom ? "Custom" : "initial",
     code: "data.count++",
     mustReturn: false,
-    handlers: []
+    handlers: [],
   })),
   conditions: createConditionCollection(
     (id: string = uniqueId(), custom = true) => ({
@@ -65,7 +65,7 @@ export const Collections = {
       code: "",
       mustReturn: true,
       returnType: "boolean",
-      handlers: []
+      handlers: [],
     })
   ),
   results: createResultCollection((id: string = uniqueId(), custom = true) => ({
@@ -76,7 +76,7 @@ export const Collections = {
     name: custom ? "Custom" : "newResult",
     code: "",
     mustReturn: true,
-    handlers: []
+    handlers: [],
   })),
   asyncs: createCollection<DS.AsyncEventHandlerCallback>(
     (id: string = uniqueId()) => ({
@@ -86,7 +86,7 @@ export const Collections = {
       type: DS.NamedFunctions.Async,
       get: async function() {},
       then: [],
-      catch: []
+      catch: [],
     })
-  )
+  ),
 }

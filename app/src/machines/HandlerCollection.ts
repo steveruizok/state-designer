@@ -19,107 +19,107 @@ export function createHandlerCollection(
     on: {
       CREATE: {
         get: "newHandler",
-        do: "createHandler"
+        do: "createHandler",
       },
       REMOVE: {
-        do: "removeHandler"
+        do: "removeHandler",
       },
       EDIT: {
         get: "handler",
-        do: "editHandler"
+        do: "editHandler",
       },
       MOVE: {
         get: "handler",
-        do: "moveHandler"
+        do: "moveHandler",
       },
       EDIT_HANDLER_TRANSITION: {
         get: "handler",
-        do: "editTransition"
+        do: "editTransition",
       },
       CREATE_HANDLER_RESULT: {
         get: "handler",
-        do: "createResult"
+        do: "createResult",
       },
       CHANGE_HANDLER_RESULT: [
         {
           get: ["handler", "selectedResult"],
           unless: "resultIsCustom",
-          do: "replaceResult"
+          do: "replaceResult",
         },
         {
           get: "handler",
           if: "resultIsCustom",
-          do: "replaceCustomResult"
-        }
+          do: "replaceCustomResult",
+        },
       ],
       MOVE_HANDLER_RESULT: {
         get: "handler",
-        do: "moveResult"
+        do: "moveResult",
       },
       EDIT_HANDLER_RESULT: {
         get: "handler",
-        do: "editResult"
+        do: "editResult",
       },
       REMOVE_HANDLER_RESULT: {
         get: "handler",
-        do: "removeResult"
+        do: "removeResult",
       },
       CREATE_HANDLER_IF_CONDITION: {
         get: "handler",
-        do: "createIfCondition"
+        do: "createIfCondition",
       },
       CHANGE_HANDLER_IF_CONDITION: [
         {
           get: ["handler", "selectedCondition"],
           unless: "conditionIsCustom",
-          do: "replaceIfCondition"
+          do: "replaceIfCondition",
         },
         {
           get: "handler",
           if: "conditionIsCustom",
-          do: "replaceCustomIfCondition"
-        }
+          do: "replaceCustomIfCondition",
+        },
       ],
       MOVE_HANDLER_IF_CONDITION: {
         get: "handler",
-        do: "moveIfCondition"
+        do: "moveIfCondition",
       },
       EDIT_HANDLER_IF_CONDITION: {
         get: "handler",
-        do: "editIfCondition"
+        do: "editIfCondition",
       },
       REMOVE_HANDLER_IF_CONDITION: {
         get: "handler",
-        do: "removeIfCondition"
+        do: "removeIfCondition",
       },
       CREATE_HANDLER_ACTION: {
         get: "handler",
-        do: "addAction"
+        do: "addAction",
       },
       CHANGE_HANDLER_ACTION: [
         {
           get: ["handler", "selectedAction"],
           unless: "actionIsCustom",
-          do: "replaceAction"
+          do: "replaceAction",
         },
         {
           get: "handler",
           if: "actionIsCustom",
-          do: "replaceCustomAction"
-        }
+          do: "replaceCustomAction",
+        },
       ],
       MOVE_HANDLER_ACTION: {
         get: "handler",
-        do: "moveAction"
+        do: "moveAction",
       },
       EDIT_HANDLER_ACTION: {
         get: "handler",
-        do: "editAction"
+        do: "editAction",
       },
       REMOVE_HANDLER_ACTION: {
         get: "handler",
-        do: "removeAction"
-      }
+        do: "removeAction",
+      },
     },
     results: {
       handler: (data, { handlerId }) => {
@@ -139,7 +139,7 @@ export function createHandlerCollection(
       },
       selectedAction: (data, { actionId }, handler) => {
         return { handler, id: actionId }
-      }
+      },
     },
     actions: {
       // Transitions
@@ -300,7 +300,7 @@ export function createHandlerCollection(
         }
 
         handler.index = target
-      }
+      },
     },
     conditions: {
       resultIsCustom: (data, { resultId, index }, handler) => {
@@ -311,8 +311,8 @@ export function createHandlerCollection(
       },
       actionIsCustom: (data, { actionId, index }, handler) => {
         return actionId === "custom"
-      }
-    }
+      },
+    },
   })
 
   designer.subscribe((active, data) => {

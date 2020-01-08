@@ -13,7 +13,7 @@ export enum Fences {
   End = `
 }`,
   Start = `{
-  `
+  `,
 }
 
 export interface Props {
@@ -41,7 +41,7 @@ export const CodeEditor: React.FC<Props> = ({
   onBlur,
   ignoreTab = false,
   onChange = () => {},
-  readOnly = false
+  readOnly = false,
 }) => {
   function textIn(text: string) {
     return startWith + text + endWith
@@ -62,7 +62,7 @@ export const CodeEditor: React.FC<Props> = ({
         border: "1px solid #ccc",
         borderRadius: 4,
         overflow: "hidden",
-        ...style
+        ...style,
       }}
     >
       <Editor
@@ -83,7 +83,7 @@ export const CodeEditor: React.FC<Props> = ({
           fontWeight: 500,
           fontFamily: '"Fira code", "Fira Mono", monospace',
           fontSize: 14,
-          lineHeight: 1.8
+          lineHeight: 1.8,
         }}
         minLength={30}
       />
@@ -99,7 +99,7 @@ export const CodeEditor: React.FC<Props> = ({
             width: "100%",
             background: "#ff5087",
             fontSize: 13,
-            fontWeight: 500
+            fontWeight: 500,
           }}
         >
           <Text>{error}</Text>

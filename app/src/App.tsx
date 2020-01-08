@@ -14,6 +14,7 @@ import { States } from "./components/States"
 import { Preview } from "./components/Preview"
 import { useStateDesigner } from "state-designer"
 import { Collections } from "./machines/Collections"
+import { Editor } from "./components/Editor/Editor"
 
 const CLEAR_LOCAL = false
 
@@ -131,6 +132,7 @@ const App: React.FC = () => {
           </Box>
         </Flex>
       </Box>
+      <Editor />
     </ThemeProvider>
   )
 }

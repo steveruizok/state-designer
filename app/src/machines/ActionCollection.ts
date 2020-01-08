@@ -21,29 +21,29 @@ export function createActionCollection(
     on: {
       CREATE_CUSTOM: {
         get: "newCustomAction",
-        do: "addAction"
+        do: "addAction",
       },
       SAVE_CUSTOM: {
         get: "action",
-        do: "saveCustom"
+        do: "saveCustom",
       },
       CREATE: {
         get: "newAction",
-        do: "addAction"
+        do: "addAction",
       },
       REMOVE: {
-        do: "removeAction"
+        do: "removeAction",
       },
       EDIT: [
         {
           get: "action",
-          do: ["editAction", "updateError"]
-        }
+          do: ["editAction", "updateError"],
+        },
       ],
       MOVE: {
         get: "action",
-        do: "moveAction"
-      }
+        do: "moveAction",
+      },
     },
     results: {
       newCustomAction: (data, payload = {}) => {
@@ -60,7 +60,7 @@ export function createActionCollection(
 
         return action
       },
-      action: (data, { actionId }) => data.get(actionId)
+      action: (data, { actionId }) => data.get(actionId),
     },
     actions: {
       addAction(data, _, action: DS.Action) {
@@ -105,9 +105,9 @@ export function createActionCollection(
         }
 
         action.index = target
-      }
+      },
     },
-    conditions: {}
+    conditions: {},
   })
 
   designer.subscribe((active, data) => {

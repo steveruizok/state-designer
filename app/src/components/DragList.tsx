@@ -2,7 +2,7 @@ import React from "react"
 import {
   DragDropContext,
   Droppable,
-  OnDragEndResponder
+  OnDragEndResponder,
 } from "react-beautiful-dnd"
 
 export interface Props {

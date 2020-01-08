@@ -20,15 +20,15 @@ export const Result: React.FC<Props> = ({ handler, result, dragId, index }) => {
     remove() {
       Collections.handlers.send("REMOVE_HANDLER_RESULT", {
         handlerId: handler.id,
-        resultId: result.id
+        resultId: result.id,
       })
     },
     duplicate() {
       Collections.handlers.send("DUPLICATE_HANDLER_RESULT", {
         handlerId: handler.id,
-        resultId: result.id
+        resultId: result.id,
       })
-    }
+    },
   }
 
   if (index > 0) {
@@ -36,7 +36,7 @@ export const Result: React.FC<Props> = ({ handler, result, dragId, index }) => {
       Collections.handlers.send("MOVE_HANDLER_RESULT", {
         handlerId: handler.id,
         resultId: result.id,
-        target: index - 1
+        target: index - 1,
       })
   }
 
@@ -45,7 +45,7 @@ export const Result: React.FC<Props> = ({ handler, result, dragId, index }) => {
       Collections.handlers.send("MOVE_HANDLER_RESULT", {
         handlerId: handler.id,
         resultId: result.id,
-        target: index + 1
+        target: index + 1,
       })
   }
 
@@ -67,7 +67,7 @@ export const Result: React.FC<Props> = ({ handler, result, dragId, index }) => {
               if (!namedFunction) return
               namedFunction.scrollIntoView({
                 behavior: "smooth",
-                block: "start"
+                block: "start",
               })
               namedFunction.focus()
             }
@@ -84,7 +84,7 @@ export const Result: React.FC<Props> = ({ handler, result, dragId, index }) => {
           Collections.handlers.send("CHANGE_HANDLER_RESULT", {
             handlerId: handler.id,
             resultId: id,
-            index
+            index,
           })
         }}
         source={data}
@@ -95,7 +95,7 @@ export const Result: React.FC<Props> = ({ handler, result, dragId, index }) => {
           onChange={code =>
             send("EDIT", {
               resultId: result.id,
-              changes: { name: code }
+              changes: { name: code },
             })
           }
         />

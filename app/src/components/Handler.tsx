@@ -21,7 +21,7 @@ export const Handler: React.FC<Props> = ({
   event,
   handler,
   index,
-  children
+  children,
 }) => {
   const results = useStateDesigner(Collections.results)
   const conditions = useStateDesigner(Collections.conditions)
@@ -31,15 +31,15 @@ export const Handler: React.FC<Props> = ({
     remove() {
       Collections.events.send("REMOVE_HANDLER", {
         eventId: event.id,
-        handlerId: handler.id
+        handlerId: handler.id,
       })
     },
     duplicate() {
       Collections.events.send("DUPLICATE_HANDLER", {
         eventId: event.id,
-        handlerId: handler.id
+        handlerId: handler.id,
       })
-    }
+    },
   }
 
   if (index > 0) {
@@ -47,7 +47,7 @@ export const Handler: React.FC<Props> = ({
       Collections.events.send("MOVE_HANDLER", {
         eventId: event.id,
         handlerId: handler.id,
-        target: index - 1
+        target: index - 1,
       })
   }
 
@@ -56,7 +56,7 @@ export const Handler: React.FC<Props> = ({
       Collections.events.send("MOVE_HANDLER", {
         eventId: event.id,
         handlerId: handler.id,
-        target: index + 1
+        target: index + 1,
       })
   }
 
@@ -72,7 +72,7 @@ export const Handler: React.FC<Props> = ({
       <Title
         onCreate={() =>
           Collections.handlers.send("CREATE_HANDLER_RESULT", {
-            handlerId: handler.id
+            handlerId: handler.id,
           })
         }
       >
@@ -86,7 +86,7 @@ export const Handler: React.FC<Props> = ({
           Collections.handlers.send("MOVE_HANDLER_RESULT", {
             handlerId: handler.id,
             resultRef: result.draggableId,
-            target: result.destination.index - 1
+            target: result.destination.index - 1,
           })
         }
       >
@@ -109,7 +109,7 @@ export const Handler: React.FC<Props> = ({
       <Title
         onCreate={() =>
           Collections.handlers.send("CREATE_HANDLER_IF_CONDITION", {
-            handlerId: handler.id
+            handlerId: handler.id,
           })
         }
       >
@@ -122,7 +122,7 @@ export const Handler: React.FC<Props> = ({
           Collections.handlers.send("MOVE_HANDLER_IF_CONDITION", {
             handlerId: handler.id,
             conditionRef: result.draggableId,
-            target: result.destination.index - 1
+            target: result.destination.index - 1,
           })
         }
       >
@@ -145,7 +145,7 @@ export const Handler: React.FC<Props> = ({
       <Title
         onCreate={() =>
           Collections.handlers.send("CREATE_HANDLER_ACTION", {
-            handlerId: handler.id
+            handlerId: handler.id,
           })
         }
       >
@@ -158,7 +158,7 @@ export const Handler: React.FC<Props> = ({
             Collections.handlers.send("MOVE_HANDLER_ACTION", {
               handlerId: handler.id,
               actionRef: result.draggableId,
-              target: result.destination.index - 1
+              target: result.destination.index - 1,
             })
         }}
       >
@@ -183,7 +183,7 @@ export const Handler: React.FC<Props> = ({
         onChange={code =>
           Collections.handlers.send("EDIT_HANDLER_TRANSITION", {
             code,
-            handlerId: handler.id
+            handlerId: handler.id,
           })
         }
       />

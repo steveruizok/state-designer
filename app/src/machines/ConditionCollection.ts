@@ -20,27 +20,27 @@ export function createConditionCollection(
     on: {
       CREATE_CUSTOM: {
         get: "newCustomCondition",
-        do: "addCondition"
+        do: "addCondition",
       },
       SAVE_CUSTOM: {
         get: "condition",
-        do: "saveCustom"
+        do: "saveCustom",
       },
       CREATE: {
         get: "newCondition",
-        do: "addCondition"
+        do: "addCondition",
       },
       REMOVE: {
-        do: "removeCondition"
+        do: "removeCondition",
       },
       EDIT: {
         get: "condition",
-        do: ["editCondition", "updateError"]
+        do: ["editCondition", "updateError"],
       },
       MOVE: {
         get: "condition",
-        do: "moveCondition"
-      }
+        do: "moveCondition",
+      },
     },
     results: {
       newCustomCondition: (data, payload = {}) => {
@@ -57,7 +57,7 @@ export function createConditionCollection(
 
         return condition
       },
-      condition: (data, { conditionId }) => data.get(conditionId)
+      condition: (data, { conditionId }) => data.get(conditionId),
     },
     actions: {
       saveCustom(_, payload, condition: DS.Condition) {
@@ -102,9 +102,9 @@ export function createConditionCollection(
         }
 
         condition.index = target
-      }
+      },
     },
-    conditions: {}
+    conditions: {},
   })
 
   designer.subscribe((active, data) => {

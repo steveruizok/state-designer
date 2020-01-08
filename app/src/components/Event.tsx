@@ -26,15 +26,15 @@ export const Event: React.FC<Props> = ({ event, state, index, children }) => {
     remove() {
       Collections.states.send("REMOVE_EVENT", {
         id: state.id,
-        eventId: event.id
+        eventId: event.id,
       })
     },
     duplicate() {
       Collections.states.send("DUPLICATE_EVENT", {
         id: state.id,
-        eventId: event.id
+        eventId: event.id,
       })
-    }
+    },
   }
 
   if (index > 0) {
@@ -42,7 +42,7 @@ export const Event: React.FC<Props> = ({ event, state, index, children }) => {
       Collections.states.send("MOVE_EVENT", {
         id: state.id,
         eventId: event.id,
-        target: index - 1
+        target: index - 1,
       })
   }
 
@@ -51,7 +51,7 @@ export const Event: React.FC<Props> = ({ event, state, index, children }) => {
       Collections.states.send("MOVE_EVENT", {
         id: state.id,
         eventId: event.id,
-        target: index + 1
+        target: index + 1,
       })
   }
 
@@ -74,7 +74,7 @@ export const Event: React.FC<Props> = ({ event, state, index, children }) => {
         onChange={code =>
           Collections.events.send("EDIT", {
             eventId: event.id,
-            changes: { name: code }
+            changes: { name: code },
           })
         }
       />
@@ -92,7 +92,7 @@ export const Event: React.FC<Props> = ({ event, state, index, children }) => {
             Collections.events.send("MOVE_HANDLER", {
               eventId: event.id,
               handlerId: result.draggableId,
-              target: result.destination.index - 1
+              target: result.destination.index - 1,
             })
         }}
       >

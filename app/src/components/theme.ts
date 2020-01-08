@@ -6,8 +6,8 @@ const heading = {
   lineHeight: "heading",
   a: {
     color: "inherit",
-    textDecoration: "none"
-  }
+    textDecoration: "none",
+  },
 }
 
 export default {
@@ -22,30 +22,30 @@ export default {
     primary: "#3333ff",
     secondary: "#8855ff",
     highlight: "#03d8ff",
-    gray: "#d8dde3"
+    gray: "#d8dde3",
   },
   fonts: {
     body: "system-ui, sans-serif",
     heading: "system-ui, sans-serif",
-    monospace: "Fira Code, Menlo, monospace"
+    monospace: "Fira Code, Menlo, monospace",
   },
   fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72],
   fontWeights: {
     body: "400",
-    heading: "700"
+    heading: "700",
   },
   lineHeights: {
     body: 1.5,
-    heading: 1.25
+    heading: 1.25,
   },
   disabled: {
-    opacity: 0.5
+    opacity: 0.5,
   },
   buttonStyles: {
     primary: {
       p: 3,
       bg: "primary",
-      color: "background"
+      color: "background",
     },
     list: {
       p: 2,
@@ -53,59 +53,59 @@ export default {
       color: "text",
       borderStyle: "solid",
       borderWidth: 1,
-      borderColor: "gray"
-    }
+      borderColor: "gray",
+    },
   },
   textStyles: {
     heading,
     display: {
       variant: "textStyles.heading",
       fontSize: [5, 6, 7],
-      mt: 3
-    }
+      mt: 3,
+    },
   },
   borderStyles: {
-    quote: "1px solid secondary"
+    quote: "1px solid secondary",
   },
   styles: {
     Container: {
       p: 3,
-      maxWidth: 1024
+      maxWidth: 1024,
     },
     root: {
       fontFamily: "body",
       lineHeight: "body",
-      fontWeight: "body"
+      fontWeight: "body",
     },
     h1: {
-      variant: "textStyles.display"
+      variant: "textStyles.display",
     },
     h2: {
       variant: "textStyles.heading",
-      fontSize: 5
+      fontSize: 5,
     },
     h3: {
       variant: "textStyles.heading",
-      fontSize: 4
+      fontSize: 4,
     },
     h4: {
       variant: "textStyles.heading",
-      fontSize: 3
+      fontSize: 3,
     },
     h5: {
       variant: "textStyles.heading",
-      fontSize: 2
+      fontSize: 2,
     },
     h6: {
       variant: "textStyles.heading",
-      fontSize: 1
+      fontSize: 1,
     },
     a: {
       color: "primary",
       textDecoration: "none",
       "&:hover": {
-        textDecoration: "underline"
-      }
+        textDecoration: "underline",
+      },
     },
     blockquote: {
       m: 0,
@@ -113,7 +113,7 @@ export default {
       pl: 4,
       pr: 2,
       py: 2,
-      fontStyle: "italic"
+      fontStyle: "italic",
     },
     pre: {
       ...prismTheme,
@@ -131,8 +131,8 @@ export default {
         bg: "inherit",
         border: "none",
         px: 0,
-        borderRadius: 0
-      }
+        borderRadius: 0,
+      },
     },
     code: {
       fontFamily: "monospace",
@@ -142,7 +142,7 @@ export default {
       fontSize: 1,
       // border: '1px solid #efefef',
       px: 1,
-      borderRadius: 4
+      borderRadius: 4,
     },
     table: {
       width: "100%",
@@ -155,7 +155,7 @@ export default {
         pr: "4px",
         pl: 0,
         borderColor: "muted",
-        borderBottomStyle: "solid"
+        borderBottomStyle: "solid",
       },
       td: {
         textAlign: "left",
@@ -163,37 +163,37 @@ export default {
         pr: "4px",
         pl: 0,
         borderColor: "muted",
-        borderBottomStyle: "solid"
+        borderBottomStyle: "solid",
       },
       code: {
-        mx: -1
-      }
+        mx: -1,
+      },
     },
     th: {
       verticalAlign: "bottom",
-      borderBottomWidth: "2px"
+      borderBottomWidth: "2px",
     },
     td: {
       verticalAlign: "top",
-      borderBottomWidth: "1px"
+      borderBottomWidth: "1px",
     },
     hr: {
       border: 0,
       borderBottom: (theme: any) => `1px solid ${theme.colors.gray}`,
       mx: "auto",
-      my: 4
+      my: 4,
     },
     ul: {
-      my: 2
+      my: 2,
     },
     ol: {
-      my: 4
+      my: 4,
     },
     li: {
-      mb: 2
+      mb: 2,
     },
     p: {
-      mb: 3
-    }
-  }
+      mb: 3,
+    },
+  },
 }

@@ -18,7 +18,7 @@ export const Action: React.FC<Props> = ({
   action,
   dragId,
   index,
-  children
+  children,
 }) => {
   const { data, send } = useStateDesigner(Collections.actions)
 
@@ -26,15 +26,15 @@ export const Action: React.FC<Props> = ({
     remove() {
       Collections.handlers.send("REMOVE_HANDLER_ACTION", {
         handlerId: handler.id,
-        actionId: action.id
+        actionId: action.id,
       })
     },
     duplicate() {
       Collections.handlers.send("DUPLICATE_HANDLER_ACTION", {
         handlerId: handler.id,
-        actionId: action.id
+        actionId: action.id,
       })
-    }
+    },
   }
 
   if (index > 0) {
@@ -42,7 +42,7 @@ export const Action: React.FC<Props> = ({
       Collections.handlers.send("MOVE_HANDLER_ACTION", {
         handlerId: handler.id,
         actionId: action.id,
-        target: index - 1
+        target: index - 1,
       })
   }
 
@@ -51,7 +51,7 @@ export const Action: React.FC<Props> = ({
       Collections.handlers.send("MOVE_HANDLER_ACTION", {
         handlerId: handler.id,
         actionId: action.id,
-        target: index + 1
+        target: index + 1,
       })
   }
 
@@ -73,7 +73,7 @@ export const Action: React.FC<Props> = ({
               if (!namedFunction) return
               namedFunction.scrollIntoView({
                 behavior: "smooth",
-                block: "start"
+                block: "start",
               })
               namedFunction.focus()
             }
@@ -90,7 +90,7 @@ export const Action: React.FC<Props> = ({
           Collections.handlers.send("CHANGE_HANDLER_ACTION", {
             handlerId: handler.id,
             actionId: id,
-            index
+            index,
           })
         }}
         source={data}
@@ -101,7 +101,7 @@ export const Action: React.FC<Props> = ({
           onChange={code =>
             send("EDIT", {
               actionId: action.id,
-              changes: { name: code }
+              changes: { name: code },
             })
           }
         />

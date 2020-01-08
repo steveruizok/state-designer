@@ -37,7 +37,7 @@ export const DraggableItem: React.FC<DraggableProps> = ({
                 alignItems: "center",
                 border: "1px solid #bbb",
                 borderRadius: "100%",
-                pointerEvents: draggable ? "all" : "none"
+                pointerEvents: draggable ? "all" : "none",
               }}
               {...provided.dragHandleProps}
             >
@@ -47,7 +47,7 @@ export const DraggableItem: React.FC<DraggableProps> = ({
                   left: "-4px",
                   pointerEvents: "none",
                   zIndex: 1,
-                  paddingTop: "3px"
+                  paddingTop: "3px",
                 }}
               >
                 <Code size={14} style={{ transform: "rotate(90deg)" }} />
@@ -61,7 +61,7 @@ export const DraggableItem: React.FC<DraggableProps> = ({
                   position: "absolute",
                   top: "-2px",
                   left: "12px",
-                  zIndex: 0
+                  zIndex: 0,
                 }}
               />
             </div>

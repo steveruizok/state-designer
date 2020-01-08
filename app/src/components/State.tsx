@@ -22,38 +22,38 @@ export const State: React.FC<Props> = ({ state, index, children }) => {
       editing: {
         on: {
           CLOSE: {
-            to: "closed"
-          }
-        }
+            to: "closed",
+          },
+        },
       },
       closed: {
         on: {
           EDIT: {
-            to: "editing"
-          }
-        }
-      }
-    }
+            to: "editing",
+          },
+        },
+      },
+    },
   })
 
   const options: { [key: string]: () => void } = {
     remove() {
       states.send("REMOVE", {
-        id: state.id
+        id: state.id,
       })
     },
     duplicate() {
       states.send("DUPLICATE", {
-        id: state.id
+        id: state.id,
       })
-    }
+    },
   }
 
   if (index > 0) {
     options["move down"] = () =>
       states.send("MOVE", {
         id: state.id,
-        target: index - 1
+        target: index - 1,
       })
   }
 
@@ -61,7 +61,7 @@ export const State: React.FC<Props> = ({ state, index, children }) => {
     options["move up"] = () =>
       states.send("MOVE", {
         id: state.id,
-        target: index + 1
+        target: index + 1,
       })
   }
 
@@ -90,7 +90,7 @@ export const State: React.FC<Props> = ({ state, index, children }) => {
             onChange={code =>
               Collections.states.send("EDIT", {
                 id: state.id,
-                changes: { name: code }
+                changes: { name: code },
               })
             }
           />

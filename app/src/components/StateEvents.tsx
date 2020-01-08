@@ -20,7 +20,7 @@ export const StateEvents: React.FC<Props> = ({ state }) => {
           Collections.states.send("MOVE_EVENT", {
             id: state.id,
             eventId: result.draggableId,
-            target: result.destination.index - 1
+            target: result.destination.index - 1,
           })
       }}
     >

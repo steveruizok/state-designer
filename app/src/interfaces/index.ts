@@ -10,7 +10,7 @@
 
 export enum HandlerItems {
   Custom = "custom",
-  Named = "named"
+  Named = "named",
 }
 
 export enum NamedFunctions {
@@ -19,7 +19,7 @@ export enum NamedFunctions {
   Action = "action",
   Condition = "condition",
   Result = "result",
-  Value = "value"
+  Value = "value",
 }
 
 // Generic

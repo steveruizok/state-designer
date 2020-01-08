@@ -19,40 +19,40 @@ export function createStateCollection(getNewState: (id: string) => DS.State) {
     on: {
       CREATE: {
         get: "newState",
-        do: "addState"
+        do: "addState",
       },
       EDIT: {
         get: "state",
-        do: "editState"
+        do: "editState",
       },
       MOVE: {
         get: "state",
-        do: "moveState"
+        do: "moveState",
       },
       REMOVE: {
-        do: "removeState"
+        do: "removeState",
       },
       // Events
       CREATE_EVENT: {
         get: "state",
-        do: "createEvent"
+        do: "createEvent",
       },
       EDIT_EVENT: {
         get: "state",
-        do: "editEvent"
+        do: "editEvent",
       },
       MOVE_EVENT: {
         get: "state",
-        do: "moveEvent"
+        do: "moveEvent",
       },
       DUPLICATE_EVENT: {
         get: "state",
-        do: "duplicateEvent"
+        do: "duplicateEvent",
       },
       REMOVE_EVENT: {
         get: "state",
-        do: "removeEvent"
-      }
+        do: "removeEvent",
+      },
     },
     results: {
       newState: (data, id = uniqueId()) => {
@@ -60,7 +60,7 @@ export function createStateCollection(getNewState: (id: string) => DS.State) {
         state.index = data.size
         return state
       },
-      state: (data, { id }) => data.get(id)
+      state: (data, { id }) => data.get(id),
     },
     actions: {
       // Event
@@ -124,9 +124,9 @@ export function createStateCollection(getNewState: (id: string) => DS.State) {
         }
 
         state.index = target
-      }
+      },
     },
-    conditions: {}
+    conditions: {},
   })
 
   designer.subscribe((active, data) => {

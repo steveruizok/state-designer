@@ -18,7 +18,7 @@ export const Condition: React.FC<Props> = ({
   condition,
   dragId,
   index,
-  children
+  children,
 }) => {
   const { data, send } = useStateDesigner(Collections.conditions)
 
@@ -26,15 +26,15 @@ export const Condition: React.FC<Props> = ({
     remove() {
       Collections.handlers.send("REMOVE_HANDLER_IF_CONDITION", {
         handlerId: handler.id,
-        conditionId: condition.id
+        conditionId: condition.id,
       })
     },
     duplicate() {
       Collections.handlers.send("DUPLICATE_HANDLER_IF_CONDITION", {
         handlerId: handler.id,
-        conditionId: condition.id
+        conditionId: condition.id,
       })
-    }
+    },
   }
 
   if (index > 0) {
@@ -42,7 +42,7 @@ export const Condition: React.FC<Props> = ({
       Collections.handlers.send("MOVE_HANDLER_IF_CONDITION", {
         handlerId: handler.id,
         conditionId: condition.id,
-        target: index - 1
+        target: index - 1,
       })
   }
 
@@ -51,7 +51,7 @@ export const Condition: React.FC<Props> = ({
       Collections.handlers.send("MOVE_HANDLER_IF_CONDITION", {
         handlerId: handler.id,
         conditionId: condition.id,
-        target: index + 1
+        target: index + 1,
       })
   }
 
@@ -73,7 +73,7 @@ export const Condition: React.FC<Props> = ({
               if (!namedFunction) return
               namedFunction.scrollIntoView({
                 behavior: "smooth",
-                block: "start"
+                block: "start",
               })
               namedFunction.focus()
             }
@@ -91,7 +91,7 @@ export const Condition: React.FC<Props> = ({
           Collections.handlers.send("CHANGE_HANDLER_IF_CONDITION", {
             handlerId: handler.id,
             conditionId: id,
-            index
+            index,
           })
         }}
         source={data}
@@ -102,7 +102,7 @@ export const Condition: React.FC<Props> = ({
           onChange={code =>
             send("EDIT", {
               conditionId: condition.id,
-              changes: { name: code }
+              changes: { name: code },
             })
           }
         />

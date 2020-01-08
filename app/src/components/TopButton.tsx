@@ -18,7 +18,7 @@ export const TopButton: React.FC<Props> = ({ children, ...rest }) => {
         borderRadius: "100%",
         position: "relative",
         zIndex: 2,
-        cursor: "pointer"
+        cursor: "pointer",
       }}
       {...rest}
     >
@@ -30,7 +30,7 @@ export const TopButton: React.FC<Props> = ({ children, ...rest }) => {
           position: "absolute",
           top: 10,
           left: -1,
-          zIndes: 0
+          zIndes: 0,
         }}
       ></Box>
       <Box sx={{ zIndex: 1 }}>{children}</Box>

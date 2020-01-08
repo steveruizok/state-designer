@@ -13,19 +13,19 @@ export function createCollection<T extends { id: string; index: number }>(
     on: {
       CREATE: {
         get: "newItem",
-        do: "addItem"
+        do: "addItem",
       },
       REMOVE: {
-        do: "removeItem"
+        do: "removeItem",
       },
       EDIT: {
         get: "item",
-        do: "editItem"
+        do: "editItem",
       },
       MOVE: {
         get: "item",
-        do: "moveItem"
-      }
+        do: "moveItem",
+      },
     },
     results: {
       newItem: (data, payload = {}) => {
@@ -34,7 +34,7 @@ export function createCollection<T extends { id: string; index: number }>(
         item.index = data.size
         return item
       },
-      item: (data, { id }) => data.get(id)
+      item: (data, { id }) => data.get(id),
     },
     actions: {
       addItem(data, _, item: T) {
@@ -66,9 +66,9 @@ export function createCollection<T extends { id: string; index: number }>(
         }
 
         item.index = target
-      }
+      },
     },
-    conditions: {}
+    conditions: {},
   })
 
   designer.subscribe((active, data) => {

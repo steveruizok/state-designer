@@ -21,7 +21,7 @@ export const States: React.FC<Props> = ({ children }) => {
           result.destination &&
           send("MOVE", {
             id: result.draggableId,
-            target: result.destination.index - 1
+            target: result.destination.index - 1,
           })
         }
       >

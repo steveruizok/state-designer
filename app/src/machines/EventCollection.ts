@@ -18,40 +18,40 @@ export function createEventCollection(getNewEvent: (id: string) => DS.Event) {
     on: {
       CREATE: {
         get: "newEvent",
-        do: "addEvent"
+        do: "addEvent",
       },
       REMOVE: {
-        do: "removeEvent"
+        do: "removeEvent",
       },
       EDIT: {
         get: "event",
-        do: "editEvent"
+        do: "editEvent",
       },
       MOVE: {
         get: "event",
-        do: "moveEvent"
+        do: "moveEvent",
       },
       // Handlers
       CREATE_HANDLER: {
         get: "event",
-        do: "createHandler"
+        do: "createHandler",
       },
       EDIT_HANDLER: {
         get: "event",
-        do: "editHandler"
+        do: "editHandler",
       },
       MOVE_HANDLER: {
         get: "event",
-        do: "moveHandler"
+        do: "moveHandler",
       },
       DUPLICATE_HANDLER: {
         get: "event",
-        do: "duplicateHandler"
+        do: "duplicateHandler",
       },
       REMOVE_HANDLER: {
         get: "event",
-        do: "removeHandler"
-      }
+        do: "removeHandler",
+      },
     },
     results: {
       newEvent: (data, payload = {}) => {
@@ -61,7 +61,7 @@ export function createEventCollection(getNewEvent: (id: string) => DS.Event) {
 
         return item
       },
-      event: (data, { eventId }) => data.get(eventId)
+      event: (data, { eventId }) => data.get(eventId),
     },
     actions: {
       addEvent(data, _, event: DS.Event) {
@@ -123,9 +123,9 @@ export function createEventCollection(getNewEvent: (id: string) => DS.Event) {
         const index = event.handlers.indexOf(handlerId)
         Collections.handlers.send("REMOVE", { id: handlerId })
         event.handlers.splice(index, 1)
-      }
+      },
     },
-    conditions: {}
+    conditions: {},
   })
 
   designer.subscribe((active, data) => {

@@ -37,7 +37,7 @@ export const Item: React.FC<Props> = ({
   onCancel,
   onReset,
   onEdit,
-  children
+  children,
 }) => {
   const [hovered, setHovered] = React.useState(false)
 
@@ -58,7 +58,7 @@ export const Item: React.FC<Props> = ({
           position: "relative",
           border: `1px solid ${hovered || canCancel ? "#333" : "#bbb"}`,
           borderRadius: 4,
-          minHeight: 60
+          minHeight: 60,
         }}
       >
         {/*Header*/}
@@ -81,7 +81,7 @@ export const Item: React.FC<Props> = ({
             <TopButton
               sx={{
                 zIndex: 2,
-                backgroundColor: "background"
+                backgroundColor: "background",
               }}
               onClick={onReset}
             >
@@ -100,7 +100,7 @@ export const Item: React.FC<Props> = ({
                   position: "absolute",
                   top: 0,
                   left: 0,
-                  opacity: 0
+                  opacity: 0,
                 }}
               >
                 <option value=""> </option>
@@ -123,7 +123,7 @@ export const Item: React.FC<Props> = ({
             gap: 2,
             overflow: "hidden",
             position: "relative",
-            zIndex: 2
+            zIndex: 2,
           }}
         >
           {children}
@@ -168,7 +168,7 @@ const ItemHeader: React.FC<{
         left: 0,
         top: -19,
         height: 48,
-        userSelect: "none"
+        userSelect: "none",
       }}
       onDoubleClick={onDoubleClick}
     >
@@ -185,7 +185,7 @@ const ItemHeader: React.FC<{
           borderRadius: 4,
           fontSize: titleSize === 2 ? 14 : titleSize === 3 ? 16 : 12,
           fontWeight: titleSize === 2 ? 600 : 800,
-          border: title ? "1px solid #aaa" : "none"
+          border: title ? "1px solid #aaa" : "none",
         }}
       >
         <Box
@@ -197,7 +197,7 @@ const ItemHeader: React.FC<{
             left: "-2px",
             backgroundColor: "background",
             border: "1px solid rgb(250, 250, 250)",
-            zIndex: 1
+            zIndex: 1,
           }}
         />
         <span style={{ zIndex: 2, position: "relative" }}>{title}</span>
@@ -209,7 +209,7 @@ const ItemHeader: React.FC<{
           gridAutoFlow: "column",
           alignItems: "center",
           gridRow: 0,
-          gap: 1
+          gap: 1,
         }}
       >
         {children}
@@ -234,7 +234,7 @@ const ItemFooter: React.FC<{}> = ({ children }) => {
         lineHeight: 1,
         bottom: -10,
         height: 36,
-        userSelect: "none"
+        userSelect: "none",
       }}
     >
       <Box />
@@ -246,7 +246,7 @@ const ItemFooter: React.FC<{}> = ({ children }) => {
           columnGap: 2,
           gridRow: 0,
           fontSize: 14,
-          fontWeight: 400
+          fontWeight: 400,
         }}
       >
         {children}

@@ -112,13 +112,13 @@ export const Preview: React.FC<Props> = ({ children }) => {
 
                   return action.name
                 }),
-                to: handler.to && handler.to
+                to: handler.to && handler.to,
               }
             })
             return acc
           },
           {}
-        )
+        ),
       }
       return acc
     }, {} as any),
@@ -142,7 +142,7 @@ export const Preview: React.FC<Props> = ({ children }) => {
         ? () => {}
         : Function("data", "payload", "result", "return " + result.code)
       return acc
-    }, {})
+    }, {}),
   })
 
   const { data, send, can, active } = useStateDesigner(
@@ -157,7 +157,7 @@ export const Preview: React.FC<Props> = ({ children }) => {
       results.data,
       handlers.data,
       safeData,
-      initialState
+      initialState,
     ]
   )
 

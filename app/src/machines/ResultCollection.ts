@@ -20,27 +20,27 @@ export function createResultCollection(
     on: {
       CREATE_CUSTOM: {
         get: "newCustomResult",
-        do: "addResult"
+        do: "addResult",
       },
       SAVE_CUSTOM: {
         get: "result",
-        do: "saveCustom"
+        do: "saveCustom",
       },
       CREATE: {
         get: "newResult",
-        do: "addResult"
+        do: "addResult",
       },
       REMOVE: {
-        do: "removeResult"
+        do: "removeResult",
       },
       EDIT: {
         get: "result",
-        do: ["editResult", "updateError"]
+        do: ["editResult", "updateError"],
       },
       MOVE: {
         get: "result",
-        do: "moveResult"
-      }
+        do: "moveResult",
+      },
     },
     results: {
       newCustomResult: (data, payload = {}) => {
@@ -57,7 +57,7 @@ export function createResultCollection(
 
         return result
       },
-      result: (data, { resultId }) => data.get(resultId)
+      result: (data, { resultId }) => data.get(resultId),
     },
     actions: {
       saveCustom(_, payload, result: DS.Result) {
@@ -102,9 +102,9 @@ export function createResultCollection(
         }
 
         result.index = target
-      }
+      },
     },
-    conditions: {}
+    conditions: {},
   })
 
   designer.subscribe((active, data) => {

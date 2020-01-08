@@ -18,7 +18,7 @@ export const Title: React.FC<Props> = ({ onCreate, children, ...rest }) => {
         gridAutoFlow: "column",
         alignItems: "center",
         lineHeight: 1,
-        userSelect: "none"
+        userSelect: "none",
       }}
       {...rest}
     >
@@ -28,7 +28,7 @@ export const Title: React.FC<Props> = ({ onCreate, children, ...rest }) => {
           borderBottom: "1px dotted #777",
           width: "calc(100%)",
           top: 10,
-          zIndex: 1
+          zIndex: 1,
         }}
       />
       <Text
@@ -43,7 +43,7 @@ export const Title: React.FC<Props> = ({ onCreate, children, ...rest }) => {
           zIndex: 2,
           fontWeight: 600,
           fontSize: 12,
-          color: "#333"
+          color: "#333",
         }}
       >
         {children}
@@ -54,7 +54,7 @@ export const Title: React.FC<Props> = ({ onCreate, children, ...rest }) => {
           px={2}
           sx={{
             zIndex: 2,
-            backgroundColor: "background"
+            backgroundColor: "background",
           }}
           onClick={onCreate}
         >
