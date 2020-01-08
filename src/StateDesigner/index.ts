@@ -109,7 +109,7 @@ type Subscriber<
   A extends Record<string, IActionConfig<D>>,
   C extends Record<string, IConditionConfig<D>>,
   R extends Record<string, IResultConfig<D>>
-> = (active: IStateNode<D, A, C, R>[], data: D) => void
+> = (active: string[], data: D, state: IStateNode<D, A, C, R>) => void
 
 // Machine configuration
 
@@ -158,7 +158,7 @@ class StateDesigner<
   id = uniqueId()
   data: D
   namedFunctions: NamedFunctions<A, C, R>
-  active: IStateNode<D, A, C, R>[] = []
+  _active: IStateNode<D, A, C, R>[] = []
   root: IStateNode<D, A, C, R>
   subscribers = new Set<Subscriber<D, A, C, R>>([])
 
@@ -192,11 +192,17 @@ class StateDesigner<
       active: true
     })
 
-    this.active = this.root.getActive()
+    this._active = this.root.getActive()
+  }
+
+  get active() {
+    return this._active.map(s => s.name).slice(1)
   }
 
   private notifySubscribers = () => {
-    this.subscribers.forEach(subscriber => subscriber(this.active, this.data))
+    this.subscribers.forEach(subscriber =>
+      subscriber(this.active, this.data, this.root)
+    )
   }
 
   subscribe = (onChange: Subscriber<D, A, C, R>) => {
@@ -266,6 +272,9 @@ class StateDesigner<
             // This is a bug in the user's configuration
             if (target === undefined) continue
 
+            // Ignore transitions to an already-active state
+            if (target.active) continue
+
             // Make the transition and cancel the rest
             // of this event chain
             target.activate(previous, restore)
@@ -279,7 +288,7 @@ class StateDesigner<
       // root and moving doward, handling the event
       // at each level. Note that any transition will
       // cause all future handlers to bail immediately.
-      for (let state of this.active) {
+      for (let state of this._active) {
         let eventHandlers = state.events[event]
 
         handleEventHandlers(state, eventHandlers)
@@ -294,14 +303,14 @@ class StateDesigner<
 
     if (didTransition || didRunAction) {
       this.data = dataResult
-      this.active = this.root.getActive()
+      this._active = this.root.getActive()
       this.notifySubscribers()
     }
   }
 
   can = (event: string, payload?: any): boolean => {
     return produce(this.data, draft => {
-      for (let state of this.active) {
+      for (let state of this._active) {
         let events = state.events[event]
         if (events !== undefined) {
           for (let event of events) {
@@ -324,7 +333,7 @@ class StateDesigner<
   }
 
   isIn = (name: string) => {
-    return this.active.find(v => v.path.endsWith(name)) ? true : false
+    return this._active.find(v => v.path.endsWith(name)) ? true : false
   }
 
   get state() {
@@ -349,11 +358,11 @@ class IStateNode<
   name: string
   path: string
   active = false
-  previous?: IStateNode<D, A, C, R>
   machine: StateDesigner<D, A, C, R>
   parent?: IStateNode<D, A, C, R>
   type: StateType
   initial?: string
+  previous?: string
   children: IStateNode<D, A, C, R>[] = []
   events: IEvents<D> = {}
   autoEvents: {
@@ -419,7 +428,12 @@ class IStateNode<
     )
 
     if (this.initial !== undefined) {
-      this.previous = this.children.find(v => v.name === this.initial)
+      const initialState = this.children.find(v => v.name === this.initial)
+      if (!initialState) {
+        throw new Error("No initial state found!")
+      } else {
+        this.previous = initialState.name
+      }
     }
 
     // TYPE
@@ -594,34 +608,50 @@ class IStateNode<
   }
 
   activateDown = (previous = false, restore = false) => {
-    this.active = true
+    switch (this.type) {
+      case StateType.Branch: {
+        // Find the child to activate
+        const activeChild =
+          previous || restore
+            ? this.children.find(v => v.name === this.previous)
+            : this.children.find(v => v.name === this.initial)
 
-    if (this.type === "branch") {
-      const activeChild = previous
-        ? this.children.find(
-            v => v.name === (this.previous ? this.previous.name : this.initial)
-          )
-        : this.children.find(v => v.name === this.initial)
+        if (activeChild === undefined) {
+          throw new Error("Active child does not exist!")
+        }
 
-      if (activeChild !== undefined) {
-        this.previous = activeChild
-        activeChild.activateDown(restore, restore)
+        for (let state of this.children) {
+          // Activate active child and de-activate others
+          if (state === activeChild) {
+            this.previous = activeChild.name
+            activeChild.activateDown(restore, restore)
+          } else if (state.active) {
+            state.deactivate()
+          }
+        }
+        break
       }
-    }
-
-    if (this.type === "parallel") {
-      for (let child of this.children) {
-        child.activateDown(restore, restore)
+      case StateType.Parallel: {
+        // Activate children
+        for (let child of this.children) {
+          child.activateDown(restore, restore)
+        }
+        break
+      }
+      default: {
+        break
       }
     }
   }
 
   activateUp = () => {
-    if (this.parent) {
-      this.parent.active = true
+    if (this.parent === undefined) return
 
-      if (this.parent.type === "branch") {
-        this.parent.previous = this
+    this.parent.active = true
+
+    switch (this.parent.type) {
+      case StateType.Branch: {
+        this.parent.previous = this.name
         // Deactivate siblings
         for (let sib of this.parent.children) {
           if (sib === this) continue
@@ -629,23 +659,31 @@ class IStateNode<
             sib.deactivate()
           }
         }
+        break
       }
-
-      // Activate inactive parallel siblings
-      if (this.parent.type === "parallel") {
+      case StateType.Parallel: {
         for (let sib of this.parent.children) {
+          // Activate siblings
           if (sib === this) continue
           if (!sib.active) {
             sib.activateDown()
           }
         }
       }
-
-      this.parent.activateUp()
+      default: {
+        break
+      }
     }
+
+    this.parent.activateUp()
   }
 
   activate = (previous = false, restore = false) => {
+    if (this.active) {
+      throw new Error("Tried to activate an active state!")
+    }
+
+    this.active = true
     this.activateDown(previous, restore)
     this.activateUp()
   }

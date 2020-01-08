@@ -16,7 +16,7 @@ export type Exports<
   R extends Record<string, IResultConfig<D>>
 > = Pick<
   StateDesigner<D, A, C, R>,
-  "data" | "send" | "can" | "active" | "isIn" | "state"
+  "data" | "send" | "active" | "can" | "isIn" | "state"
 >
 
 type OnChange<T> = (state: T) => void
@@ -105,17 +105,16 @@ export function useStateDesigner<
     // Subscribe (or re-subscribe) to the current machine.
     // When the machine's data changes, update this hook's
     // state with the new data.
-    return machine.current.subscribe(
-      (active: State["active"], data: State["data"]) => {
-        setState(state => {
-          return {
-            ...state,
-            data,
-            active
-          }
-        })
-      }
-    )
+    return machine.current.subscribe((active, data, root) => {
+      setState(state => {
+        return {
+          ...state,
+          data,
+          active,
+          state: root
+        }
+      })
+    })
   }, dependencies)
 
   // Run effect when dependencies change

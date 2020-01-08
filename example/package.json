@@ -7,6 +7,7 @@
   "dependencies": {
     "@emotion/core": "^10.0.27",
     "@emotion/styled": "^10.0.27",
+    "@rebass/forms": "^4.0.6",
     "@rebass/preset": "^4.0.5",
     "@theme-ui/prism": "^0.2.50",
     "@types/jest": "^24.0.24",

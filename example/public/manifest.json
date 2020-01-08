@@ -1,6 +1,6 @@
 {
-  "short_name": "react-use-ashland",
-  "name": "react-use-ashland",
+  "short_name": "State Designer",
+  "name": "State Designer",
   "start_url": "./index.html",
   "display": "standalone",
   "theme_color": "#000000",
