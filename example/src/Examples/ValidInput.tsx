@@ -31,6 +31,7 @@ const ValidInput: React.FC<Props> = ({ children }) => {
       empty: {},
       invalid: {},
       valid: {
+        onEnter: { do: () => console.log("hi!") },
         on: {
           SUBMIT: { do: "clearText", to: "empty" }
         }

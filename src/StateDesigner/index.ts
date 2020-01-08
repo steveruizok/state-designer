@@ -91,6 +91,7 @@ type NamedFunctions<A, C, R> = {
 
 interface IStateConfig<D, A, C, R> {
   on?: IEventsConfig<D, A, C, R>
+  onEnter?: IEventConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
   states?: IStatesConfig<D, A, C, R>
   initial?: string
@@ -215,6 +216,7 @@ class StateDesigner<
   }
 
   send = (event: string, payload?: any) => {
+    let nextState: IStateNode<D, A, C, R>
     let didRunAction = false
     let didTransition = false
 
@@ -278,6 +280,7 @@ class StateDesigner<
             // Make the transition and cancel the rest
             // of this event chain
             target.activate(previous, restore)
+            nextState = target
             didTransition = true
             return
           }
@@ -297,6 +300,13 @@ class StateDesigner<
 
         if (onEvent !== undefined) {
           handleEventHandlers(state, onEvent)
+        }
+
+        if (didTransition) {
+          const { onEnter } = nextState.autoEvents
+          if (onEnter !== undefined) {
+            handleEventHandlers(state, onEnter)
+          }
         }
       }
     })
@@ -367,6 +377,7 @@ class IStateNode<
   events: IEvents<D> = {}
   autoEvents: {
     onEvent?: IEvent<D>[]
+    onEnter?: IEvent<D>[]
   }
 
   constructor(
