@@ -9,7 +9,7 @@ export interface Props {
 }
 
 const RadioButtons: React.FC<Props> = ({ value, options, children }) => {
-  const { data, send } = useStateDesigner(
+  const [data, send] = useStateDesigner(
     {
       data: {
         value

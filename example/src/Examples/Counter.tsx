@@ -1,12 +1,13 @@
 import React from "react"
-import { Input } from "@rebass/forms"
-import { useStateDesigner } from "state-designer"
-import { Flex, Heading, Box, Button } from "rebass"
+import { Card } from "./components/Card"
+import { Visualizer } from "./components/Visualizer"
+import { Input, Flex, Text, Box, Button } from "@theme-ui/components"
+import { createStateDesigner, useStateDesigner } from "state-designer"
 
 export interface Props {}
 
 const Counter: React.FC<Props> = ({ children }) => {
-  const { data, send, isIn, can, active } = useStateDesigner({
+  const designer = createStateDesigner({
     data: {
       inputValue: 0,
       count: 0,
@@ -16,13 +17,14 @@ const Counter: React.FC<Props> = ({ children }) => {
     actions: {
       incrementCount: data => data.count++,
       decrementCount: data => data.count--,
-      setCount: (data, value) => (data.count = value),
+      setCount: (data, value) => (data.count = data.inputValue),
       updateInputValue: (data, value) => (data.inputValue = value)
     },
     conditions: {
       countIsMin: data => data.count === data.min,
       countIsMax: data => data.count === data.max,
-      valueIsValid: (data, value) => !(value < data.min || value > data.max)
+      valueIsValid: data =>
+        !(data.inputValue < data.min || data.inputValue > data.max)
     },
     on: {
       CLICK_INCREMENT: {
@@ -43,41 +45,44 @@ const Counter: React.FC<Props> = ({ children }) => {
     }
   })
 
+  const [data, send, { can }] = useStateDesigner(designer)
+
   return (
-    <Box p={3}>
-      <Heading>Count: {data.count}</Heading>
-      <Flex>
-        <Button
-          backgroundColor="blue"
-          opacity={can("CLICK_INCREMENT") ? 1 : 0.5}
-          onClick={() => send("CLICK_INCREMENT")}
-        >
-          Increment
-        </Button>
-        <Button
-          ml={2}
-          backgroundColor="blue"
-          opacity={can("CLICK_DECREMENT") ? 1 : 0.5}
-          onClick={() => send("CLICK_DECREMENT")}
-        >
-          Decrement
-        </Button>
-      </Flex>
-      <Flex>
-        <Input
-          mr={2}
-          type="number"
-          onChange={e => send("CHANGE_INPUT_VALUE", e.target.value)}
-        />
-        <Button
-          type="submit"
-          backgroundColor="blue"
-          opacity={can("SUBMIT_INPUT_VALUE") ? 1 : 0.5}
-          onClick={() => send("SUBMIT_INPUT_VALUE")}
-        >
-          Submit
-        </Button>
-      </Flex>
+    <Box mb={5}>
+      <Visualizer title="Counter" designer={designer} />
+      <Card p={3}>
+        <Card active={false} p={2} sx={{ width: "fit-content" }}>
+          <Flex sx={{ alignItems: "center" }}>
+            <Button onClick={() => send("CLICK_DECREMENT")}>-</Button>
+            <Text px={3} mr={2} sx={{ textAlign: "center" }}>
+              {data.count}
+            </Text>
+            <Button mr={0} onClick={() => send("CLICK_INCREMENT")}>
+              +
+            </Button>
+          </Flex>
+        </Card>
+        <Card active={false} p={2} sx={{}}>
+          <Flex sx={{ alignItems: "center" }}>
+            <Input
+              type="number"
+              value={data.inputValue}
+              mr={2}
+              onChange={e => {
+                console.log(e.target.value)
+                send("CHANGE_INPUT_VALUE", e.target.value)
+              }}
+            />
+            <Button
+              mr={0}
+              disabled={!can("SUBMIT_INPUT_VALUE")}
+              onClick={() => send("SUBMIT_INPUT_VALUE")}
+            >
+              ✉️
+            </Button>
+          </Flex>
+        </Card>
+      </Card>
     </Box>
   )
 }

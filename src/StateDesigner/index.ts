@@ -53,13 +53,16 @@ interface IEventHandlerConfig<D, A, C, R> {
   wait?: number
 }
 
-type IEventHandlersConfig<D, A, C, R> =
-  | IEventHandlerConfig<D, A, C, R>
-  | IEventHandlerConfig<D, A, C, R>[]
+// type IEventHandlersConfig<D, A, C, R> = (
+//   | IActionsConfig<D, A>
+//   | IEventHandlerConfig<D, A, C, R>
+// )[]
 
 type IEventConfig<D, A, C, R> =
-  | IActionsConfig<D, A>
-  | IEventHandlersConfig<D, A, C, R>
+  | keyof A
+  | IActionConfig<D>
+  | IEventHandlerConfig<D, A, C, R>
+  | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
 
 type IEventsConfig<D, A, C, R> = Record<string, IEventConfig<D, A, C, R>>
 
@@ -77,7 +80,7 @@ interface IEventHandler<D> {
 
 type IEvent<D> = IEventHandler<D>[]
 
-type IEvents<D> = Record<string, IEvent<D>[]>
+type IEvents<D> = Record<string, IEvent<D>>
 
 // Named functions
 
@@ -99,6 +102,16 @@ interface IStateConfig<D, A, C, R> {
 
 type IStatesConfig<D, A, C, R> = Record<string, IStateConfig<D, A, C, R>>
 
+// Graph
+
+export interface GraphNode {
+  name: string
+  active: boolean
+  initial: boolean
+  events: string[]
+  states?: GraphNode[]
+}
+
 /* -------------------------------------------------- */
 /*                       Classes                      */
 /* -------------------------------------------------- */
@@ -110,7 +123,12 @@ type Subscriber<
   A extends Record<string, IActionConfig<D>>,
   C extends Record<string, IConditionConfig<D>>,
   R extends Record<string, IResultConfig<D>>
-> = (active: string[], data: D, state: IStateNode<D, A, C, R>) => void
+> = (
+  active: string[],
+  data: D,
+  graph: GraphNode,
+  state: IStateNode<D, A, C, R>
+) => void
 
 // Machine configuration
 
@@ -157,8 +175,11 @@ class StateDesigner<
   R extends Record<string, IResultConfig<D>>
 > {
   id = uniqueId()
+  private _initialData: D
   data: D
   namedFunctions: NamedFunctions<A, C, R>
+  _rootOptions: any
+  _initialGraph: GraphNode
   _active: IStateNode<D, A, C, R>[] = []
   root: IStateNode<D, A, C, R>
   subscribers = new Set<Subscriber<D, A, C, R>>([])
@@ -193,122 +214,255 @@ class StateDesigner<
       active: true
     })
 
+    this._initialData = data
+    this._rootOptions = {
+      machine: this,
+      on,
+      onEvent,
+      states,
+      initial,
+      name: "root",
+      active: true
+    }
+
+    this.root = new IStateNode(this._rootOptions)
     this._active = this.root.getActive()
+    this._initialGraph = this.getGraphNode(this.root)
   }
 
   get active() {
     return this._active.map(s => s.name).slice(1)
   }
 
-  private notifySubscribers = () => {
-    this.subscribers.forEach(subscriber =>
-      subscriber(this.active, this.data, this.root)
-    )
+  private getGraphNode(state: IStateNode<D, A, C, R>): GraphNode {
+    return {
+      name: state.name,
+      active: state.active,
+      initial: state.parent
+        ? state.parent.type === "branch" && state.parent.initial === state.name
+        : true,
+      events: Object.keys(state.events),
+      states:
+        state.type === "leaf"
+          ? undefined
+          : state.children.map((child: any) => this.getGraphNode(child))
+    }
   }
 
+  get graph() {
+    return this.getGraphNode(this.root)
+  }
+
+  /**
+   * ## Reset
+   * Resets the machine to its initial state.
+   */
+  reset = () => {
+    // Restore data
+    this.data = this._initialData
+
+    // Rebuild state tree
+    this.root = new IStateNode(this._rootOptions)
+
+    // Notify subscribers
+    this.notifySubscribers()
+  }
+
+  /**
+   * ## Subscribe
+   * Adds an `onChange` callback to the machine's subscribers. This `onChange` callback will be called whenever the machine changes its data or graph. Returns a second callback to unsubscribe that callback. (This is makes out hook pretty.)
+   */
   subscribe = (onChange: Subscriber<D, A, C, R>) => {
     this.subscribers.add(onChange)
     return () => this.unsubscribe(onChange)
   }
 
+  /**
+   * ## Unsubscribe
+   * Remove an `onChange` callback from the machine's subscribers.
+   */
   unsubscribe = (onChange: Subscriber<D, A, C, R>) => {
     this.subscribers.delete(onChange)
   }
 
-  send = (event: string, payload?: any) => {
-    let didRunAction = false
-    let didTransition = false
+  /**
+   * ## Notify Subscribers
+   * Share certain information with each of the machine's subscribers.
+   */
+  private notifySubscribers = () => {
+    this.subscribers.forEach(subscriber =>
+      subscriber(this.active, this.data, this.graph, this.root)
+    )
+  }
 
-    const dataResult = produce(this.data, draft => {
-      function handleEventHandlers(
-        state: IStateNode<D, A, C, R>,
-        events: IEvent<D>[]
-      ) {
-        if (didTransition) return
-        if (events === undefined) return
+  /**
+   * ## Handle Event
+   * Run through all of the event handlers associated with an event. An event has an array of event handlers, each with many event handler items. This function is where we figure out what those events are going to do.   * @param state The state that the event handlers belong to.
+   * @param data The current data draft.
+   * @param payload The current payload.
+   * @param events All of the events to attempt.
+   */
+  private handleEvent(
+    state: IStateNode<D, A, C, R>,
+    data: Draft<D>,
+    payload: any,
+    event: IEvent<D>
+  ) {
+    const record: EventRecord = {
+      action: false
+    }
 
-        for (let event of events) {
-          for (let handler of event) {
-            let result = {}
+    if (event === undefined) {
+      // No events, no problem
+      return record
+    }
 
-            // --- Results
+    for (let handler of event) {
+      let result = {}
 
-            for (let resolver of handler.get) {
-              result = resolver(draft, payload, result)
-            }
+      // --- Results
 
-            // --- Conditions
-
-            if (!state.canEventHandlerRun(handler, draft, payload, result))
-              continue
-
-            // --- Actions
-
-            for (let action of handler.do) {
-              didRunAction = true
-              action(draft, payload, result)
-            }
-
-            // --- Transition
-
-            let { to: transition } = handler
-
-            if (transition === undefined) continue
-
-            let previous = false
-            let restore = false
-
-            if (transition.endsWith(".previous")) {
-              previous = true
-              transition = transition.substring(0, transition.length - 9)
-            } else if (transition.endsWith(".restore")) {
-              previous = true
-              restore = true
-              transition = transition.substring(0, transition.length - 8)
-            }
-
-            const target = state.getTargetFromTransition(transition, state)
-
-            // No target found in the active tree!
-            // This is a bug in the user's configuration
-            if (target === undefined) continue
-
-            // Ignore transitions to an already-active state
-            if (target.active) continue
-
-            // Make the transition and cancel the rest
-            // of this event chain
-            target.activate(previous, restore)
-
-            const { onEnter } = target.autoEvents
-            if (onEnter !== undefined) {
-              handleEventHandlers(state, onEnter)
-            }
-
-            didTransition = true
-            return
-          }
-        }
+      for (let resolver of handler.get) {
+        result = resolver(data, payload, result)
       }
 
+      // --- Conditions
+
+      if (!state.canEventHandlerRun(handler, data, payload, result)) continue
+
+      // --- Actions
+
+      for (let action of handler.do) {
+        record.action = true
+        action(data, payload, result)
+      }
+
+      // --- Transition
+
+      let { to: transition } = handler
+
+      if (transition === undefined) continue
+
+      let previous = false
+      let restore = false
+
+      // Strip off the modifiers (previous or restore) and
+      // set those boolean flags
+      if (transition.endsWith(".previous")) {
+        previous = true
+        transition = transition.substring(0, transition.length - 9)
+      } else if (transition.endsWith(".restore")) {
+        previous = true
+        restore = true
+        transition = transition.substring(0, transition.length - 8)
+      }
+
+      const target = state.getTargetFromTransition(transition, state)
+
+      // No target found in the active tree!
+      // This is probably a bug in the user's configuration: either
+      // they have a name wrong or the state they're reaching for
+      // requires a "deep link", e.g. "myState.myOtherState"
+      if (target === undefined) continue
+
+      // Update the record
+      record.transition = {
+        previous,
+        restore,
+        target
+      }
+
+      // Return the record. A transition stops the event chain.
+      // Any events left after here will get ignored.
+      return record
+    }
+
+    // This code will only run if there hasn't been any transitions
+    // in the event chain. In that case, we just return the record!
+    return record
+  }
+
+  send = (eventName: string, payload?: any) => {
+    let record: EventRecord = {
+      action: false
+    }
+
+    function mergeRecord(next: EventRecord | undefined) {
+      if (!next) return
+      if (next.action) record.action = true
+      if (next.transition !== undefined) record.transition = next.transition
+    }
+
+    const dataResult = produce(this.data, draft => {
       // Loop through each state, starting from the
       // root and moving doward, handling the event
       // at each level. Note that any transition will
       // cause all future handlers to bail immediately.
       for (let state of this._active) {
-        let eventHandlers = state.events[event]
+        let event = state.events[eventName]
 
-        handleEventHandlers(state, eventHandlers)
+        mergeRecord(this.handleEvent(state, draft, payload, event))
 
-        const { onEvent } = state.autoEvents
+        if (record.transition !== undefined) {
+          let next: TransitionRecord | undefined = record.transition
 
-        if (onEvent !== undefined) {
-          handleEventHandlers(state, onEvent)
+          // We're going to start handling transitions, and each of these
+          // may have an auto event (onEnter, onEvent) that causes a further
+          // transition. There's a risk of ping-ponging infinitely between
+          // states.
+
+          let i = 0
+
+          while (next !== undefined) {
+            i++
+            if (i > 10000) {
+              console.error(
+                "Error! You're either caught in a transition loop or are doing something too creative for this program."
+              )
+            }
+
+            const { target, previous, restore } = next
+
+            // One of our event handlers produced a transition
+            target.activate(previous, restore)
+
+            // Reset next transition
+            next = undefined
+
+            // Handle the transition events (this might produce a new next)
+            const { onEnter } = target.autoEvents
+            if (onEnter !== undefined) {
+              const newRecord = this.handleEvent(
+                target,
+                draft,
+                payload,
+                onEnter
+              )
+
+              if (newRecord.transition) {
+                next = newRecord.transition
+              }
+
+              mergeRecord(newRecord)
+            }
+          }
+
+          // A transition will halt our iterating through active states.
+          // Any states below the transition won't be analyzed -- their
+          // events with this name, if any exist, will get ignored. Be
+          // careful about sharing event names if one or more involve
+          // transitions!
+          break
+        } else {
+          const { onEvent } = state.autoEvents
+          if (onEvent !== undefined) {
+            mergeRecord(this.handleEvent(state, draft, payload, onEvent))
+          }
         }
       }
     })
 
-    if (didTransition || didRunAction) {
+    if (record.transition || record.action) {
       this.data = dataResult
       this._active = this.root.getActive()
       this.notifySubscribers()
@@ -318,18 +472,16 @@ class StateDesigner<
   can = (event: string, payload?: any): boolean => {
     return produce(this.data, draft => {
       for (let state of this._active) {
-        let events = state.events[event]
-        if (events !== undefined) {
-          for (let event of events) {
+        let eventHandlers = state.events[event]
+        if (eventHandlers !== undefined) {
+          for (let handler of eventHandlers) {
             let result: any
-            for (let handler of event) {
-              for (let resolver of handler.get) {
-                result = resolver(draft, payload, result)
-              }
+            for (let resolver of handler.get) {
+              result = resolver(draft, payload, result)
+            }
 
-              if (state.canEventHandlerRun(handler, draft, payload, result)) {
-                return true
-              }
+            if (state.canEventHandlerRun(handler, draft, payload, result)) {
+              return true
             }
           }
         }
@@ -390,8 +542,8 @@ class IStateNode<
   children: IStateNode<D, A, C, R>[] = []
   events: IEvents<D> = {}
   autoEvents: {
-    onEvent?: IEvent<D>[]
-    onEnter?: IEvent<D>[]
+    onEvent?: IEvent<D>
+    onEnter?: IEvent<D>
   }
 
   constructor(options = {} as StateConfig<D, A, C, R>) {
@@ -430,7 +582,11 @@ class IStateNode<
             name: cur,
             machine: this.machine,
             parent: this,
-            active: this.initial === undefined ? true : cur === this.initial,
+            active: this.active
+              ? this.initial === undefined
+                ? true
+                : cur === this.initial
+              : false,
             initial: state.initial,
             states: state.states,
             onEnter: state.onEnter,
@@ -563,10 +719,8 @@ class IStateNode<
 
     // End giant typescript mess
 
-    const getProcessedEventHandler = (
-      eventHandler: IEventConfig<D, A, C, R>
-    ) => {
-      const handlers = castArray(eventHandler)
+    const getProcessedEventHandler = (event: IEventConfig<D, A, C, R>) => {
+      const handlers = castArray(event)
 
       return handlers.map<IEventHandler<D>>(v => {
         let result: IEventHandler<D> = {
@@ -595,7 +749,7 @@ class IStateNode<
     }
 
     const getProcessedEvent = (event: IEventConfig<D, A, C, R>) => {
-      return castArray(event).map<IEvent<D>>(getProcessedEventHandler)
+      return getProcessedEventHandler(event)
     }
 
     // AUTO EVENTS
@@ -615,8 +769,31 @@ class IStateNode<
     transition: string,
     state: IStateNode<D, A, C, R>
   ): IStateNode<D, A, C, R> | undefined => {
-    // handle transition (rough draft)
-    const target = state.children.find(v => v.name === transition)
+    let target: IStateNode<D, A, C, R> | undefined = undefined
+
+    if (transition.includes(".")) {
+      let source = state
+      let path = transition.split(".")
+      for (let step of path) {
+        const next = source.children.find(v => v.name === step)
+        if (next === undefined) {
+          // console.warn("Could not find that state:", step)
+          break
+        } else {
+          source = next
+        }
+      }
+      target = source
+    } else {
+      target = undefined
+      const next = state.children.find(v => v.name === transition)
+      if (next === undefined) {
+        // console.warn("Could not find that state:", transition)
+      } else {
+        target = next
+      }
+    }
+
     if (target !== undefined) {
       // transition to target
       return target
@@ -638,7 +815,8 @@ class IStateNode<
             : this.children.find(v => v.name === this.initial)
 
         if (activeChild === undefined) {
-          throw new Error("Active child does not exist!")
+          // console.log("Active child does not exist!")
+          return
         }
 
         for (let state of this.children) {
@@ -700,10 +878,6 @@ class IStateNode<
   }
 
   activate = (previous = false, restore = false) => {
-    if (this.active) {
-      throw new Error("Tried to activate an active state!")
-    }
-
     this.active = true
     this.activateDown(previous, restore)
     this.activateUp()
@@ -810,3 +984,14 @@ export type StateDesignerWithConfig<
 // })
 
 // type ToggleMachine = StateDesignerWithConfig<typeof tConfig>
+
+type EventRecord = {
+  action: boolean
+  transition?: TransitionRecord
+}
+
+type TransitionRecord = {
+  target: IStateNode<any, any, any, any>
+  previous: boolean
+  restore: boolean
+}

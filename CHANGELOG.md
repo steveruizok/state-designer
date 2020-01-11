@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.9
+
+- Allows for deep transitioning.
+
 ## 1.0.7
 
 - Start state event analysis at the top-level state, rather than the bottom
