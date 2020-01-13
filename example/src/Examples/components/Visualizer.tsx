@@ -3,11 +3,7 @@ import { Styled } from "theme-ui"
 import { CodeEditor } from "./CodeEditor"
 import { Graph } from "./Graph"
 import { Card } from "./Card"
-import {
-  StateDesigner,
-  useStateDesigner,
-  Graph as GraphNode
-} from "state-designer"
+import { StateDesigner, useStateDesigner } from "state-designer"
 import { Box, Flex, Button } from "@theme-ui/components"
 
 export interface Props {

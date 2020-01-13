@@ -4,22 +4,25 @@ import StateDesigner, {
   createStateDesigner,
   StateDesignerConfig,
   StateDesignerWithConfig,
+  IEventHandler,
+  IEventsConfig,
+  IEventConfig,
+  IStateConfig,
+  IStatesConfig,
   IActionConfig,
   IConditionConfig,
   IResultConfig,
+  CAs,
+  CRs,
+  CCs,
   GraphNode
 } from "./StateDesigner"
 
-export type Condition<D = any> = IConditionConfig<D>
-export type Action<D = any> = IActionConfig<D>
-export type Result<D = any> = IResultConfig<D>
-export type Graph = GraphNode
-
 export type Exports<
-  D extends { [key: string]: any },
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 > = Pick<
   StateDesigner<D, A, C, R>,
   "data" | "send" | "active" | "can" | "isIn" | "state" | "graph" | "reset"
@@ -30,7 +33,7 @@ type Effect<T> = (state: T) => void | (() => void)
 
 const defaultDependencies: any[] = []
 
-type StateDesignerInfo<D extends { [key: string]: any }> = [
+type StateDesignerInfo<D> = [
   D,
   (eventName: string, payload?: any) => void,
   {
@@ -43,10 +46,10 @@ type StateDesignerInfo<D extends { [key: string]: any }> = [
 
 // Call useStateDesigner with a pre-existing StateDesigner instance
 export function useStateDesigner<
-  D extends { [key: string]: any },
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 >(
   options: StateDesigner<D, A, C, R>,
   onChange?: OnChange<Exports<D, A, C, R>>,
@@ -55,10 +58,10 @@ export function useStateDesigner<
 ): StateDesignerInfo<D>
 // Call useStateDesigner with configuration for a new StateDesigner instance
 export function useStateDesigner<
-  D extends { [key: string]: any },
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 >(
   options: StateDesignerConfig<D, A, C, R>,
   onChange?: OnChange<Exports<D, A, C, R>>,
@@ -72,10 +75,10 @@ export function useStateDesigner<
  * @param dependencies An array of unrelated values that, when the hook updates, may cause the hook to re-subscribe to its machine, clean up its effect and run the effect again.
  */
 export function useStateDesigner<
-  D extends { [key: string]: any },
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 >(
   options: StateDesigner<D, A, C, R> | StateDesignerConfig<D, A, C, R>,
   onChange?: OnChange<any>,
@@ -158,3 +161,62 @@ export {
   createStateDesignerConfig,
   StateDesignerWithConfig
 }
+
+// Simplified types for export (Are these needed? Maybe for custom machine configuration types?)
+
+export type State<
+  D,
+  A extends Actions<D>,
+  C extends Conditions<D>,
+  R extends Results<D>
+> = IStateConfig<D, A, C, R>
+
+export type States<
+  D,
+  A extends Actions<D>,
+  C extends Conditions<D>,
+  R extends Results<D>
+> = IStatesConfig<D, A, C, R>
+
+export type Event<
+  D,
+  A extends Actions<D>,
+  C extends Conditions<D>,
+  R extends Results<D>
+> = IEventConfig<D, A, C, R>
+
+export type Events<
+  D,
+  A extends Actions<D>,
+  C extends Conditions<D>,
+  R extends Results<D>
+> = IEventsConfig<D, A, C, R>
+
+export type EventHandler<D> = IEventHandler<D>
+
+export type Condition<D> = IConditionConfig<D>
+export type Conditions<D> = Record<string, Condition<D>>
+
+export type Action<D> = IActionConfig<D>
+export type Actions<D> = Record<string, Action<D>>
+
+export type Result<D> = IResultConfig<D>
+export type Results<D> = Record<string, Result<D>>
+
+export type Config<
+  D,
+  A extends Actions<D>,
+  C extends Conditions<D>,
+  R extends Results<D>
+> = {
+  data: D
+  on?: Events<D, A, C, R>
+  onEvent?: Event<D, A, C, R>
+  initial?: string
+  states?: States<D, A, C, R>
+  actions?: A
+  conditions?: C
+  results?: R
+}
+
+export type Graph = GraphNode

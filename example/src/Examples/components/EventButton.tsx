@@ -1,7 +1,6 @@
 import React from "react"
 import * as safeEval from "safe-eval"
-import { Text, Box, Button, Input } from "@theme-ui/components"
-import { CodeEditor } from "./CodeEditor"
+import { Box, Button, Input } from "@theme-ui/components"
 import { useStateDesigner } from "state-designer"
 
 export interface Props {

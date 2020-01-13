@@ -3,7 +3,7 @@ import { Styled } from "theme-ui"
 import { Card } from "./Card"
 import { EventButton } from "./EventButton"
 import { Graph as GraphNode } from "state-designer"
-import { Flex, Box, Text, Button, Radio } from "@theme-ui/components"
+import { Flex, Box, Text, Radio } from "@theme-ui/components"
 
 export interface Props {
   send: any

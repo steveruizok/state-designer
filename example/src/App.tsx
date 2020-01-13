@@ -4,6 +4,7 @@ import ValidInput from "./Examples/ValidInput"
 import RadioButtons from "./Examples/RadioButtons"
 import Counter from "./Examples/Counter"
 import { TransitionOnEnter } from "./Examples/TransitionOnEnter"
+import { OnEvent } from "./Examples/OnEvent"
 import { OnEnter } from "./Examples/OnEnter"
 import { ThemeProvider, Styled } from "theme-ui"
 import theme from "./theme"
@@ -19,6 +20,11 @@ const App: React.FC<Props> = ({ children }) => {
       <RadioButtons value={"red"} options={["red", "green", "blue"]} />
       <Counter /> */}
         {/* <OnEnter />4 */}
+        <hr />
+        <OnEvent />
+        <hr />
+        <OnEnter />
+        <hr />
         <TransitionOnEnter />
         <hr />
         <Counter />

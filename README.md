@@ -2,6 +2,8 @@
 
 State Designer is a state and event management tool designed to make state make sense.
 
+**Work in progress! Don't use this guy yet.**
+
 ## Install
 
 ```bash

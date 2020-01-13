@@ -1,15 +1,15 @@
-import { castArray, uniqueId } from "lodash-es"
+import castArray from "lodash/castArray"
+import uniqueId from "lodash/uniqueId"
 import produce, { Draft } from "immer"
 
-type NamedOrInSeries<T, K> = keyof K | T | (keyof K | T)[]
+// type WithoutNamed<T> = T | T[]
+// type NamedOrInSeries<T, U> = keyof U | T | (keyof U | T)[]
 
 // Actions
 
 export type IAction<D> = (data: Draft<D>, payload: any, result: any) => any
 
 export type IActionConfig<D> = (data: D, payload: any, result: any) => any
-
-export type IActionsConfig<D, A> = NamedOrInSeries<IActionConfig<D>, A>
 
 // Conditions
 
@@ -25,8 +25,6 @@ export type IConditionConfig<D> = (
   result: any
 ) => boolean
 
-type IConditionsConfig<D, A> = NamedOrInSeries<IConditionConfig<D>, A>
-
 // Results
 
 export type IResult<D> = (data: D | Draft<D>, payload: any, result: any) => any
@@ -37,13 +35,36 @@ export type IResultConfig<D> = (
   result: any
 ) => void
 
-type IResultsConfig<D, R> = NamedOrInSeries<IResultConfig<D>, R>
+// Config records for named functions
+export type CA<D> = Record<string, IActionConfig<D>>
+export type CAs<D> = CA<D> | undefined
+export type CC<D> = Record<string, IConditionConfig<D>>
+export type CCs<D> = CC<D> | undefined
+export type CR<D> = Record<string, IResultConfig<D>>
+export type CRs<D> = CR<D> | undefined
 
-// Computed values
+// Handler configurations
+
+export type IActionsConfig<D, A> = A extends undefined
+  ? IActionConfig<D> | IActionConfig<D>[]
+  : keyof A | IActionConfig<D> | (keyof A | IActionConfig<D>)[]
+
+export type IConditionsConfig<D, C> = C extends undefined
+  ? IConditionConfig<D> | IConditionConfig<D>[]
+  : keyof C | IConditionConfig<D> | (keyof C | IConditionConfig<D>)[]
+
+export type IResultsConfig<D, R> = R extends undefined
+  ? IResultConfig<D> | IResultConfig<D>[]
+  : keyof R | IResultConfig<D> | (keyof R | IResultConfig<D>)[]
 
 // Event Handlers (Config)
 
-interface IEventHandlerConfig<D, A, C, R> {
+interface IEventHandlerConfig<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
+> {
   do?: IActionsConfig<D, A>
   if?: IConditionsConfig<D, C>
   ifAny?: IConditionsConfig<D, C>
@@ -53,22 +74,57 @@ interface IEventHandlerConfig<D, A, C, R> {
   wait?: number
 }
 
-// type IEventHandlersConfig<D, A, C, R> = (
-//   | IActionsConfig<D, A>
-//   | IEventHandlerConfig<D, A, C, R>
-// )[]
+//undefined extends A
+// ? IActionConfig<D> | IActionConfig<D>[]
+// : keyof A | IActionConfig<D> | (keyof A | IActionConfig<D>)[]
 
-type IEventConfig<D, A, C, R> =
-  | keyof A
-  | IActionConfig<D>
-  | IEventHandlerConfig<D, A, C, R>
+export type IEventWithoutActions<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
+> =
+  | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
+  | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
+
+export type IEventWithActions<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
+> =
+  | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
   | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
 
-type IEventsConfig<D, A, C, R> = Record<string, IEventConfig<D, A, C, R>>
+export type IEventConfig<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
+> = A extends CA<D>
+  ?
+      | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
+      | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
+  :
+      | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
+      | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
+
+// :
+//     | K
+//     | IActionConfig<D>
+//     | IEventHandlerConfig<D, A, C, R>
+//     | (K | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
+
+export type IEventsConfig<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
+> = Record<string, IEventConfig<D, A, C, R>>
 
 // Event Handlers (final)
 
-interface IEventHandler<D> {
+export interface IEventHandler<D> {
   do: IAction<D>[]
   if: ICondition<D>[]
   ifAny: ICondition<D>[]
@@ -84,7 +140,7 @@ type IEvents<D> = Record<string, IEvent<D>>
 
 // Named functions
 
-type NamedFunctions<A, C, R> = {
+type NamedFunctions<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> = {
   actions?: A
   conditions?: C
   results?: R
@@ -92,7 +148,12 @@ type NamedFunctions<A, C, R> = {
 
 // States
 
-interface IStateConfig<D, A, C, R> {
+export interface IStateConfig<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
+> {
   on?: IEventsConfig<D, A, C, R>
   onEnter?: IEventConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
@@ -100,7 +161,12 @@ interface IStateConfig<D, A, C, R> {
   initial?: string
 }
 
-type IStatesConfig<D, A, C, R> = Record<string, IStateConfig<D, A, C, R>>
+export type IStatesConfig<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
+> = Record<string, IStateConfig<D, A, C, R>>
 
 // Graph
 
@@ -112,17 +178,13 @@ export interface GraphNode {
   states?: GraphNode[]
 }
 
-/* -------------------------------------------------- */
-/*                       Classes                      */
-/* -------------------------------------------------- */
-
 // Machine subscriber
 
-type Subscriber<
-  D extends any,
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+export type Subscriber<
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 > = (
   active: string[],
   data: D,
@@ -130,15 +192,15 @@ type Subscriber<
   state: IStateNode<D, A, C, R>
 ) => void
 
-// Machine configuration
+// State Designer Config
 
 export interface StateDesignerConfig<
-  D extends any,
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 > {
-  data: D
+  data?: D
   on?: IEventsConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
   initial?: string
@@ -148,36 +210,35 @@ export interface StateDesignerConfig<
   results?: R
 }
 
+/* -------------------------------------------------- */
+/*                       Classes                      */
+/* -------------------------------------------------- */
+
 export function createStateDesignerConfig<
-  D extends any,
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 >(options: StateDesignerConfig<D, A, C, R>) {
   return options
 }
 
 export function createStateDesigner<
-  D extends any,
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
+  D,
+  A extends CAs<D>,
+  C extends CCs<D>,
+  R extends CRs<D>
 >(options: StateDesignerConfig<D, A, C, R>) {
   return new StateDesigner(options)
 }
 
 /* --------------------- Machine -------------------- */
 
-class StateDesigner<
-  D extends any,
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
-> {
+class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
   id = uniqueId()
   private _initialData: D
   data: D
-  namedFunctions: NamedFunctions<A, C, R>
+  namedFunctions: NamedFunctions<D, A, C, R>
   _rootOptions: any
   _initialGraph: GraphNode
   _active: IStateNode<D, A, C, R>[] = []
@@ -196,7 +257,11 @@ class StateDesigner<
       results
     } = options
 
-    this.data = data
+    if (data === undefined) {
+      this.data = data as D
+    } else {
+      this.data = data as D
+    }
 
     this.namedFunctions = {
       actions,
@@ -214,7 +279,7 @@ class StateDesigner<
       active: true
     })
 
-    this._initialData = data
+    this._initialData = this.data
     this._rootOptions = {
       machine: this,
       on,
@@ -508,12 +573,7 @@ enum StateType {
   Parallel = "parallel"
 }
 
-type StateConfig<
-  D,
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
-> = {
+type StateConfig<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> = {
   name: string
   parent?: IStateNode<D, A, C, R>
   machine: StateDesigner<D, A, C, R>
@@ -525,12 +585,7 @@ type StateConfig<
   states?: IStatesConfig<D, A, C, R>
 }
 
-class IStateNode<
-  D,
-  A extends Record<string, IActionConfig<D>>,
-  C extends Record<string, IConditionConfig<D>>,
-  R extends Record<string, IResultConfig<D>>
-> {
+class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
   name: string
   path: string
   active = false
@@ -720,7 +775,7 @@ class IStateNode<
     // End giant typescript mess
 
     const getProcessedEventHandler = (event: IEventConfig<D, A, C, R>) => {
-      const handlers = castArray(event)
+      const handlers = castArray(event as any)
 
       return handlers.map<IEventHandler<D>>(v => {
         let result: IEventHandler<D> = {
@@ -748,19 +803,15 @@ class IStateNode<
       })
     }
 
-    const getProcessedEvent = (event: IEventConfig<D, A, C, R>) => {
-      return getProcessedEventHandler(event)
-    }
-
     // AUTO EVENTS
 
     this.autoEvents = {
-      onEvent: onEvent ? getProcessedEvent(onEvent) : undefined,
-      onEnter: onEnter ? getProcessedEvent(onEnter) : undefined
+      onEvent: onEvent ? getProcessedEventHandler(onEvent) : undefined,
+      onEnter: onEnter ? getProcessedEventHandler(onEnter) : undefined
     }
 
     this.events = Object.keys(on).reduce<IEvents<D>>((acc, key) => {
-      acc[key] = getProcessedEvent(on[key])
+      acc[key] = getProcessedEventHandler(on[key])
       return acc
     }, {})
   }
@@ -974,17 +1025,6 @@ export type StateDesignerWithConfig<
   C extends StateDesignerConfig<any, any, any, any>
 > = StateDesigner<C["data"], C["actions"], C["conditions"], C["results"]>
 
-// use create statedesignerconfig
-// get typeof result
-
-// const tConfig = createStateDesignerConfig({
-//   data: {
-//     toggled: false
-//   }
-// })
-
-// type ToggleMachine = StateDesignerWithConfig<typeof tConfig>
-
 type EventRecord = {
   action: boolean
   transition?: TransitionRecord
@@ -995,3 +1035,25 @@ type TransitionRecord = {
   previous: boolean
   restore: boolean
 }
+
+/* ------------------ Type Sandbox ------------------ */
+
+interface Group<
+  A extends Record<string, number> | undefined,
+  B extends keyof A
+> {
+  items?: A
+  selected: undefined extends A ? number : B
+}
+
+function createGroup<
+  A extends Record<string, number> | undefined,
+  B extends keyof A
+>(group: Group<A, B>) {
+  return group
+}
+
+createGroup({
+  items: { cat: 0 },
+  selected: "cat"
+})

@@ -15,23 +15,8 @@ import {
 
 export interface Props {}
 
-export const OnEvent: React.FC<Props> = ({ children }) => {
-  const designer = createStateDesigner({
-    data: {
-      clicks: 0,
-      count: 0
-    },
-    onEvent: "incrementClicks",
-    actions: {
-      incrementClicks: data => data.clicks++,
-      incrementCount: data => data.count++,
-      decrementCount: data => data.count--
-    },
-    on: {
-      CLICKED_MINUS: "decrementCount",
-      CLICKED_PLUS: "incrementCount"
-    }
-  })
+export const Template: React.FC<Props> = ({ children }) => {
+  const designer = createStateDesigner({})
 
   const [data, send, { can, isIn }] = useStateDesigner(designer)
 

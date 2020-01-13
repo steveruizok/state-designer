@@ -1,4 +1,5 @@
 import React from "react"
+import { SendInput } from "./components/SendInput"
 import { Card } from "./components/Card"
 import { Visualizer } from "./components/Visualizer"
 import { Input, Flex, Text, Box, Button } from "@theme-ui/components"
@@ -13,7 +14,7 @@ const ValidInput: React.FC<Props> = ({ children }) => {
     },
     actions: {
       clearText: data => (data.text = ""),
-      updateText: (data, text) => (data.text = text)
+      updateText: (data, text = "") => (data.text = text)
     },
     conditions: {
       textIsEmpty: data => data.text.length === 0,
@@ -32,7 +33,6 @@ const ValidInput: React.FC<Props> = ({ children }) => {
       empty: {},
       invalid: {},
       valid: {
-        onEnter: { do: () => console.log("hi!") },
         on: {
           SUBMIT: { do: "clearText", to: "empty" }
         }
@@ -46,28 +46,21 @@ const ValidInput: React.FC<Props> = ({ children }) => {
     <Box mb={5}>
       <Visualizer title="Counter" designer={designer} />
       <Card p={3}>
-        <Flex>
-          <Input
-            value={data.text}
-            onChange={e => {
-              send("CHANGED_TEXT", e.target.value)
-            }}
-          />
-          <Button
-            ml={2}
-            onClick={() => send("SUBMIT")}
-            disabled={!can("SUBMIT")}
-          >
-            ✉️
-          </Button>
-        </Flex>
-        <Text variant="label">
-          {isIn("empty")
-            ? "Enter your message"
-            : isIn("invalid")
-            ? "Your message must include a space"
-            : "Looks good!"}
-        </Text>
+        <SendInput
+          value={data.text}
+          onChange={e => {
+            send("CHANGED_TEXT", e.target.value)
+          }}
+          onClick={() => send("SUBMIT")}
+          disabled={!can("SUBMIT")}
+          message={
+            isIn("empty")
+              ? "Enter your message"
+              : isIn("invalid")
+              ? "Your message must include a space"
+              : "Looks good!"
+          }
+        />
       </Card>
     </Box>
   )

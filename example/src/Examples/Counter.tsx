@@ -1,7 +1,16 @@
 import React from "react"
+import { SendInput } from "./components/SendInput"
+import { SendButton } from "./components/SendButton"
 import { Card } from "./components/Card"
 import { Visualizer } from "./components/Visualizer"
-import { Input, Flex, Text, Box, Button } from "@theme-ui/components"
+import {
+  Input,
+  Flex,
+  Text,
+  Box,
+  Button,
+  IconButton
+} from "@theme-ui/components"
 import { createStateDesigner, useStateDesigner } from "state-designer"
 
 export interface Props {}
@@ -26,6 +35,7 @@ const Counter: React.FC<Props> = ({ children }) => {
       valueIsValid: data =>
         !(data.inputValue < data.min || data.inputValue > data.max)
     },
+    onEvent: "incrementCount",
     on: {
       CLICK_INCREMENT: {
         unless: "countIsMax",
@@ -63,24 +73,16 @@ const Counter: React.FC<Props> = ({ children }) => {
           </Flex>
         </Card>
         <Card active={false} p={2} sx={{}}>
-          <Flex sx={{ alignItems: "center" }}>
-            <Input
-              type="number"
-              value={data.inputValue}
-              mr={2}
-              onChange={e => {
-                console.log(e.target.value)
-                send("CHANGE_INPUT_VALUE", e.target.value)
-              }}
-            />
-            <Button
-              mr={0}
-              disabled={!can("SUBMIT_INPUT_VALUE")}
-              onClick={() => send("SUBMIT_INPUT_VALUE")}
-            >
-              ✉️
-            </Button>
-          </Flex>
+          <SendInput
+            type="number"
+            value={data.inputValue}
+            onChange={e => {
+              console.log(e.target.value)
+              send("CHANGE_INPUT_VALUE", e.target.value)
+            }}
+            disabled={!can("SUBMIT_INPUT_VALUE")}
+            onClick={() => send("SUBMIT_INPUT_VALUE")}
+          />
         </Card>
       </Card>
     </Box>
