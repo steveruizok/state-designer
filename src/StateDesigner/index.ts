@@ -174,6 +174,7 @@ export interface GraphNode {
   name: string
   active: boolean
   initial: boolean
+  autoEvents: string[]
   events: string[]
   states?: GraphNode[]
 }
@@ -306,6 +307,9 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       initial: state.parent
         ? state.parent.type === "branch" && state.parent.initial === state.name
         : true,
+      autoEvents: Object.keys(state.autoEvents).filter(
+        k => state.autoEvents[k] !== undefined
+      ),
       events: Object.keys(state.events),
       states:
         state.type === "leaf"
