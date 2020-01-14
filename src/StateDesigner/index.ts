@@ -561,7 +561,7 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
   }
 
   isIn = (name: string) => {
-    return this._active.find(v => v.path.endsWith(name)) ? true : false
+    return this._active.find(v => v.path.endsWith("." + name)) ? true : false
   }
 
   get state() {
