@@ -4,7 +4,7 @@ import { state } from "./state"
 
 export interface Props {}
 
-const Counter: React.FC<Props> = ({ children }) => {
+const Switch: React.FC<Props> = ({ children }) => {
   const [data, send, helpers] = useStateDesigner(state)
 
   return (
@@ -29,7 +29,7 @@ const Counter: React.FC<Props> = ({ children }) => {
               height: 36,
               width: 36,
               border: "1px solid #000",
-              left: helpers.isIn("root.active") ? 42 : 0,
+              left: helpers.isIn("active") ? 42 : 0,
               transition: "all .2s"
             }}
           ></div>
@@ -39,4 +39,4 @@ const Counter: React.FC<Props> = ({ children }) => {
   )
 }
 
-export default Counter
+export default Switch

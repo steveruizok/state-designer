@@ -456,6 +456,8 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       action: false
     }
 
+    let transitions = 0
+
     function mergeRecord(next: EventRecord | undefined) {
       if (!next) return
       if (next.action) record.action = true
@@ -467,71 +469,106 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       // root and moving doward, handling the event
       // at each level. Note that any transition will
       // cause all future handlers to bail immediately.
+
+      // We're going to start handling transitions, and each of these
+      // may have an auto event (onEnter, onEvent) that causes a further
+      // transition.
+
+      const handleTransition = (next: TransitionRecord) => {
+        transitions++
+
+        if (transitions > 100) {
+          console.error(
+            "Either you have a transition loop or you're trying to do something too clever!"
+          )
+          return
+        }
+
+        const { target, previous, restore } = next
+
+        // Activate the new state
+        // target.activate(previous, restore)
+        target.active = true
+
+        const handleChanges = (
+          results: IStateNode<D, A, C, R>[][],
+          andUp: boolean
+        ) => {
+          const [activateDowns, deactivates] = results
+
+          for (let state of deactivates) {
+            state.deactivate()
+          }
+
+          for (let state of activateDowns) {
+            state.active = true
+            const { onEnter } = state.autoEvents
+
+            if (onEnter !== undefined) {
+              mergeRecord(this.handleEvent(target, draft, payload, onEnter))
+              if (record.transition !== undefined) {
+                handleTransition(record.transition)
+              }
+            }
+
+            handleChanges(state.activateDown(previous, restore), andUp)
+
+            if (andUp && state.parent !== undefined) {
+              if (!state.parent.active) {
+                state.parent.active = true
+                handleChanges(state.activateUp(), true)
+              }
+            }
+          }
+        }
+
+        handleChanges(target.activateDown(previous, restore), false)
+        handleChanges(target.activateUp(), true)
+
+        record.transition = undefined
+
+        // TODO: Activate up the tree here (so that we can run auto events)
+        // TODO: Activate down the tree here (so that we can run auto events)
+
+        // Handle the transition events (this might produce a new next)
+        const { onEnter } = target.autoEvents
+
+        // There's a risk of ping-ponging infinitely between states.
+        if (onEnter !== undefined) {
+          mergeRecord(this.handleEvent(target, draft, payload, onEnter))
+          if (record.transition !== undefined) {
+            handleTransition(record.transition)
+          }
+        }
+      }
+
       for (let state of this._active) {
         let event = state.events[eventName]
 
         mergeRecord(this.handleEvent(state, draft, payload, event))
 
+        // A transition will halt our iterating through active states.
+        // Any states below the transition won't be analyzed -- their
+        // events with this name, if any exist, will get ignored. Be
+        // careful about sharing event names if one or more involve
+        // transitions!
         if (record.transition !== undefined) {
-          let next: TransitionRecord | undefined = record.transition
-
-          // We're going to start handling transitions, and each of these
-          // may have an auto event (onEnter, onEvent) that causes a further
-          // transition. There's a risk of ping-ponging infinitely between
-          // states.
-
-          let i = 0
-
-          while (next !== undefined) {
-            i++
-            if (i > 10000) {
-              console.error(
-                "Error! You're either caught in a transition loop or are doing something too creative for this program."
-              )
-            }
-
-            const { target, previous, restore } = next
-
-            // One of our event handlers produced a transition
-            target.activate(previous, restore)
-
-            // Reset next transition
-            next = undefined
-
-            // Handle the transition events (this might produce a new next)
-            const { onEnter } = target.autoEvents
-            if (onEnter !== undefined) {
-              const newRecord = this.handleEvent(
-                target,
-                draft,
-                payload,
-                onEnter
-              )
-
-              if (newRecord.transition) {
-                next = newRecord.transition
-              }
-
-              mergeRecord(newRecord)
-            }
-          }
-
-          // A transition will halt our iterating through active states.
-          // Any states below the transition won't be analyzed -- their
-          // events with this name, if any exist, will get ignored. Be
-          // careful about sharing event names if one or more involve
-          // transitions!
+          handleTransition(record.transition)
           break
         } else {
           const { onEvent } = state.autoEvents
           if (onEvent !== undefined) {
             mergeRecord(this.handleEvent(state, draft, payload, onEvent))
+            if (record.transition !== undefined) {
+              handleTransition(record.transition)
+              break
+            }
           }
         }
       }
     })
 
-    if (record.transition || record.action) {
+    if (transitions > 0 || record.action) {
       this.data = dataResult
       this._active = this.root.getActive()
       this.notifySubscribers()
@@ -861,6 +898,9 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
   }
 
   activateDown = (previous = false, restore = false) => {
+    const activateDowns: IStateNode<D, A, C, R>[] = []
+    const deactivates: IStateNode<D, A, C, R>[] = []
+
     switch (this.type) {
       case StateType.Branch: {
         // Find the child to activate
@@ -870,57 +910,66 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
             : this.children.find(v => v.name === this.initial)
 
         if (activeChild === undefined) {
-          // console.log("Active child does not exist!")
-          return
+          // Active child does not exist!
+          break
         }
 
         for (let state of this.children) {
           // Activate active child and de-activate others
           if (state === activeChild) {
             this.previous = activeChild.name
-            activeChild.activateDown(restore, restore)
+            // activeChild.activateDown(restore, restore)
+            activateDowns.push(activeChild)
           } else if (state.active) {
-            state.deactivate()
+            deactivates.push(state)
+            // state.deactivate()
           }
         }
         break
       }
       case StateType.Parallel: {
         // Activate children
-        for (let child of this.children) {
-          child.activateDown(restore, restore)
-        }
+        activateDowns.push(...this.children)
+        // for (let child of this.children) {
+        //   child.activateDown(restore, restore)
+        // }
         break
       }
       default: {
         break
       }
     }
+
+    return [activateDowns, deactivates]
   }
 
   activateUp = () => {
-    if (this.parent === undefined) return
+    const activateDowns: IStateNode<D, A, C, R>[] = []
+    const deactivates: IStateNode<D, A, C, R>[] = []
 
-    this.parent.active = true
+    // this.parent.active = true
+    const parent = this.parent as IStateNode<D, A, C, R>
 
-    switch (this.parent.type) {
+    switch (parent.type) {
       case StateType.Branch: {
-        this.parent.previous = this.name
+        parent.previous = this.name
         // Deactivate siblings
-        for (let sib of this.parent.children) {
+        for (let sib of parent.children) {
           if (sib === this) continue
           if (sib.active) {
-            sib.deactivate()
+            deactivates.push(sib)
+            // sib.deactivate()
           }
         }
         break
       }
       case StateType.Parallel: {
-        for (let sib of this.parent.children) {
+        for (let sib of parent.children) {
           // Activate siblings
           if (sib === this) continue
           if (!sib.active) {
-            sib.activateDown()
+            activateDowns.push(sib)
+            // sib.activateDown()
           }
         }
       }
@@ -929,14 +978,15 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       }
     }
 
-    this.parent.activateUp()
+    return [activateDowns, deactivates]
+    // this.parent.activateUp()
   }
 
-  activate = (previous = false, restore = false) => {
-    this.active = true
-    this.activateDown(previous, restore)
-    this.activateUp()
-  }
+  // activate = (previous = false, restore = false) => {
+  //   this.active = true
+  //   this.activateDown(previous, restore)
+  //   this.activateUp()
+  // }
 
   deactivate = () => {
     this.active = false
