@@ -229,8 +229,16 @@ export function createStateDesigner<
   A extends CAs<D>,
   C extends CCs<D>,
   R extends CRs<D>
->(options: StateDesignerConfig<D, A, C, R>) {
-  return new StateDesigner(options)
+>(options: StateDesignerConfig<D, A, C, R>, id = "0") {
+  const statedesigner = new StateDesigner(options)
+
+  if (!(globalThis as any).statedesigners) {
+    ;(globalThis as any).statedesigners = {}
+  }
+
+  ;(globalThis as any).statedesigners[id] = statedesigner
+
+  return statedesigner
 }
 
 /* --------------------- Machine -------------------- */
@@ -378,11 +386,13 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
     event: IEvent<D>
   ) {
     const record: EventRecord = {
-      action: false
+      action: false,
+      transition: undefined
     }
 
+    // This shouldn't happen, but...
     if (event === undefined) {
-      // No events, no problem
+      console.error("A wild event appeared!")
       return record
     }
 
@@ -452,115 +462,171 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
   }
 
   send = (eventName: string, payload?: any) => {
-    let record: EventRecord = {
-      action: false
-    }
+    // This function uses lots of closures.
+    // Move this stuff to the class itself and reset
+    // the values when a `send` starts.
 
+    // TODO: Move to class property.
+    // How many transitions have we had?
     let transitions = 0
 
+    // TODO: Move to class property.
+    // What's happened so far? Have we had an action?
+    // Have we had a transition? If so, what was it?
+    let record: EventRecord = {
+      action: false,
+      transition: undefined
+    }
+
+    // TODO: Move to class method.
     function mergeRecord(next: EventRecord | undefined) {
-      if (!next) return
-      if (next.action) record.action = true
+      if (next === undefined) return
+      if (next.action === true) record.action = true
       if (next.transition !== undefined) record.transition = next.transition
     }
 
-    const dataResult = produce(this.data, draft => {
-      // Loop through each state, starting from the
-      // root and moving doward, handling the event
-      // at each level. Note that any transition will
-      // cause all future handlers to bail immediately.
+    // TODO: Move to class method.
+    const handleTransition = (next: TransitionRecord, draft: Draft<D>) => {
+      transitions++
 
-      // We're going to start handling transitions, and each of these
-      // may have an auto event (onEnter, onEvent) that causes a further
-      // transition.
+      if (transitions > 100) {
+        console.error(
+          "Either you have a transition loop or you're trying to do something too clever!"
+        )
+        return
+      }
 
-      const handleTransition = (next: TransitionRecord) => {
-        transitions++
+      const { target, previous, restore } = next
 
-        if (transitions > 100) {
-          console.error(
-            "Either you have a transition loop or you're trying to do something too clever!"
-          )
-          return
+      // Activate the new state
+      target.active = true
+
+      // TODO: This section needs to be re-written. Logic is currently
+      // distributed between this class and the state classes. It might be
+      // better to move everything here. (This may also make state nodes
+      // unecessary).
+
+      // Any time that we activate or de-activate a state, it may require
+      // certain other work. If we activate a branch state with children,
+      // we'll also need to activate the correct child - either the state's
+      // initial child or, if we're restoring state, its previously active
+      // child. And we need to repeat this for each of those children, too.
+
+      // Whenever we activate a state, we may also need to fire its onEnter
+      // event. This may produce its own transitions. If it will do so, then
+      // we need to stop the current event chain. (I'm yet to work this out,
+      // but it may require some conditions on when a state can fire its
+      // onEnter events).
+
+      // If the state has a parent, then we will need to activate "up" the
+      // state tree. Usually the state's parents will already be active,
+      // however "deep links" may cause transitions to different branches of
+      // the state tree, in which case we'll need to move up the tree,
+      // beginning at the new state, and ensure that the tree is correct in
+      // that direction. (For example, by turning off the branch siblings
+      // of the activated state).
+
+      // TODO: Move to a class method.
+      const handleChanges = (
+        results: IStateNode<D, A, C, R>[][],
+        andUp: boolean
+      ) => {
+        const [activateDowns, deactivates] = results
+
+        for (let state of deactivates) {
+          state.deactivate()
         }
 
-        const { target, previous, restore } = next
+        for (let state of activateDowns) {
+          // Activate the state
+          state.active = true
+          const { onEnter } = state.autoEvents
 
-        // Activate the new state
-        // target.activate(previous, restore)
-        target.active = true
-
-        const handleChanges = (
-          results: IStateNode<D, A, C, R>[][],
-          andUp: boolean
-        ) => {
-          const [activateDowns, deactivates] = results
-
-          for (let state of deactivates) {
-            state.deactivate()
-          }
-
-          for (let state of activateDowns) {
-            state.active = true
-            const { onEnter } = state.autoEvents
-
-            if (onEnter !== undefined) {
-              mergeRecord(this.handleEvent(target, draft, payload, onEnter))
-              if (record.transition !== undefined) {
-                handleTransition(record.transition)
-              }
-            }
-
-            handleChanges(state.activateDown(previous, restore), andUp)
-
-            if (andUp && state.parent !== undefined) {
-              if (!state.parent.active) {
-                state.parent.active = true
-                handleChanges(state.activateUp(), true)
-              }
+          if (onEnter !== undefined) {
+            mergeRecord(this.handleEvent(target, draft, payload, onEnter))
+            if (record.transition !== undefined) {
+              handleTransition(record.transition, draft)
             }
           }
-        }
 
-        handleChanges(target.activateDown(previous, restore), false)
-        handleChanges(target.activateUp(), true)
+          handleChanges(state.activateDown(previous, restore), andUp)
 
-        record.transition = undefined
-
-        // TODO: Activate up the tree here (so that we can run auto events)
-        // TODO: Activate down the tree here (so that we can run auto events)
-
-        // Handle the transition events (this might produce a new next)
-        const { onEnter } = target.autoEvents
-
-        // There's a risk of ping-ponging infinitely between states.
-        if (onEnter !== undefined) {
-          mergeRecord(this.handleEvent(target, draft, payload, onEnter))
-          if (record.transition !== undefined) {
-            handleTransition(record.transition)
+          if (andUp && state.parent !== undefined) {
+            if (!state.parent.active) {
+              // Activate the parent state
+              state.parent.active = true
+              handleChanges(state.activateUp(), true)
+            }
           }
         }
       }
 
-      for (let state of this._active) {
-        let event = state.events[eventName]
+      handleChanges(target.activateDown(previous, restore), false)
+      handleChanges(target.activateUp(), true)
 
-        mergeRecord(this.handleEvent(state, draft, payload, event))
+      // Clear the transition (we're safe to make another transition)
+      record.transition = undefined
 
-        // A transition will halt our iterating through active states.
-        // Any states below the transition won't be analyzed -- their
-        // events with this name, if any exist, will get ignored. Be
-        // careful about sharing event names if one or more involve
-        // transitions!
+      // Handle the target's auto event enter event
+      const { onEnter } = target.autoEvents
+      if (onEnter !== undefined) {
+        mergeRecord(this.handleEvent(target, draft, payload, onEnter))
         if (record.transition !== undefined) {
-          handleTransition(record.transition)
+          handleTransition(record.transition, draft)
+        }
+      }
+    }
+
+    // Ok, that's how we'll handle stuff...
+    // now let's get started!
+
+    // We'll loop through each active state, starting from
+    // the root and moving downward, and handle the event
+    // at each level.
+
+    // Any transition in an event chain should cause
+    // all further handlers on a given event chain
+    // to bail immediately. Any states below the transition
+    // won't be processed -- their events with this name, if
+    // any exist, will get ignored. Be careful about sharing
+    // event names if one or more involve transitions!
+    const dataResult = produce(this.data, draft => {
+      for (let state of this._active) {
+        // Just double-checking. This shouldn't happen.
+        if (record.transition !== undefined) {
+          console.error("A wild transition appeared!")
+          break
+        }
+
+        // Get the event handlers for this state. If the state
+        // doesn't handle this event, then keep going.
+        let event = state.events[eventName]
+        if (event === undefined) continue
+
+        // Handle the event and get the result of what happened.
+        const result = this.handleEvent(state, draft, payload, event)
+
+        // This may add an action or transition to the record object.
+        mergeRecord(result)
+
+        // If it added a transition...
+        if (record.transition !== undefined) {
+          handleTransition(record.transition, draft)
           break
         } else {
+          // If the event didn't create a transition, then it's
+          // safe to try and run the state's `onEvent` auto event
           const { onEvent } = state.autoEvents
           if (onEvent !== undefined) {
-            mergeRecord(this.handleEvent(state, draft, payload, onEvent))
+            // Again, handle this event and get the result of what happened.
+            const result = this.handleEvent(state, draft, payload, onEvent)
+
+            // This may add an action or transition to the record object.
+            mergeRecord(result)
+
+            // If the `onEvent` added a transition...
             if (record.transition !== undefined) {
-              handleTransition(record.transition)
+              handleTransition(record.transition, draft)
               break
             }
           }
