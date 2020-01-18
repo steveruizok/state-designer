@@ -52,8 +52,8 @@ export function useStateDesigner<
   R extends CRs<D>
 >(
   options: StateDesigner<D, A, C, R>,
-  onChange?: OnChange<Exports<D, A, C, R>>,
-  effect?: Effect<Exports<D, A, C, R>>,
+  onChange?: OnChange<StateDesignerInfo<D>>,
+  effect?: Effect<StateDesignerInfo<D>>,
   dependencies?: any[]
 ): StateDesignerInfo<D>
 // Call useStateDesigner with configuration for a new StateDesigner instance
@@ -64,8 +64,8 @@ export function useStateDesigner<
   R extends CRs<D>
 >(
   options: StateDesignerConfig<D, A, C, R>,
-  onChange?: OnChange<Exports<D, A, C, R>>,
-  effect?: Effect<Exports<D, A, C, R>>,
+  onChange?: OnChange<StateDesignerInfo<D>>,
+  effect?: Effect<StateDesignerInfo<D>>,
   dependencies?: any[]
 ): StateDesignerInfo<D>
 /**
@@ -81,8 +81,8 @@ export function useStateDesigner<
   R extends CRs<D>
 >(
   options: StateDesigner<D, A, C, R> | StateDesignerConfig<D, A, C, R>,
-  onChange?: OnChange<any>,
-  effect?: Effect<any>,
+  onChange?: OnChange<StateDesignerInfo<D>>,
+  effect?: Effect<StateDesignerInfo<D>>,
   dependencies: any[] = defaultDependencies
 ): StateDesignerInfo<D> {
   // The hook can accept either a pre-existing machine (so that
@@ -142,13 +142,13 @@ export function useStateDesigner<
   // Run effect when dependencies change
   React.useEffect(() => {
     if (effect !== undefined) {
-      return effect([state.data, helpers])
+      return effect([state.data, send, helpers])
     }
   }, dependencies)
 
   // Run onChange callback when data changes
   React.useEffect(() => {
-    onChange && onChange([state.data, helpers])
+    onChange && onChange([state.data, send, helpers])
   }, [state])
 
   return [state.data, send, helpers]
