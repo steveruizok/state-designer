@@ -174,8 +174,16 @@ export interface GraphNode {
   name: string
   active: boolean
   initial: boolean
-  autoEvents: string[]
-  events: string[]
+  autoEvents: {
+    [key: string]: {
+      [key: string]: string | { name: string; code: string }[]
+    }[]
+  }
+  events: {
+    [key: string]: {
+      [key: string]: string | { name: string; code: string }[]
+    }[]
+  }
   states?: GraphNode[]
 }
 
@@ -315,10 +323,54 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       initial: state.parent
         ? state.parent.type === "branch" && state.parent.initial === state.name
         : true,
-      autoEvents: Object.keys(state.autoEvents).filter(
-        k => state.autoEvents[k] !== undefined
-      ),
-      events: Object.keys(state.events),
+      autoEvents: Object.keys(state.autoEvents).reduce<{
+        [key: string]: {
+          [key: string]: string | { name: string; code: string }[]
+        }[]
+      }>((acc, key: any) => {
+        let event = state.autoEvents[key] as IEvent<D>
+        if (event !== undefined) {
+          acc[key] = event.map(handler =>
+            Object.keys(handler).reduce<{
+              [key: string]: string | { name: string; code: string }[]
+            }>((acc, cur) => {
+              const item = handler[cur]
+              acc[cur] = Array.isArray(item)
+                ? item.map((thing: Function) => ({
+                    name: thing.name,
+                    code: thing.toString()
+                  }))
+                : item
+              return acc
+            }, {})
+          )
+        }
+        return acc
+      }, {}),
+      events: Object.keys(state.events).reduce<{
+        [key: string]: {
+          [key: string]: string | { name: string; code: string }[]
+        }[]
+      }>((acc, key: any) => {
+        let event = state.events[key] as IEvent<D>
+        if (event !== undefined) {
+          acc[key] = event.map(handler =>
+            Object.keys(handler).reduce<{
+              [key: string]: string | { name: string; code: string }[]
+            }>((acc, cur) => {
+              const item = handler[cur]
+              acc[cur] = Array.isArray(item)
+                ? item.map((thing: any) => ({
+                    name: thing.name,
+                    code: thing.toString()
+                  }))
+                : item
+              return acc
+            }, {})
+          )
+        }
+        return acc
+      }, {}),
       states:
         state.type === "leaf"
           ? undefined

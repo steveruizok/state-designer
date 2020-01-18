@@ -28,6 +28,7 @@ const Counter: React.FC<Props> = ({ children }) => {
           </div>
         </div>
       </div>
+      <pre>{JSON.stringify(helpers.getGraph(), null, 2)}</pre>
     </div>
   )
 }
