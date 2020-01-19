@@ -15,8 +15,10 @@ import StateDesigner, {
   CAs,
   CRs,
   CCs,
-  GraphNode
+  Graph
 } from "./StateDesigner"
+
+export { Graph }
 
 export type Exports<
   D,
@@ -36,7 +38,7 @@ type StateDesignerInfo<D> = [
   D,
   (eventName: string, payload?: any) => void,
   {
-    getGraph(): GraphNode
+    getGraph(): Graph.Node
     isIn(state: string): boolean
     can(event: string, payload?: any): boolean
     reset(): void
@@ -209,5 +211,3 @@ export type Config<
   conditions?: C
   results?: R
 }
-
-export type Graph = GraphNode

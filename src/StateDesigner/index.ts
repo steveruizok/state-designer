@@ -171,29 +171,31 @@ export type IStatesConfig<
 
 // Graph
 
-type GraphEventHandlerFunction = { name: string; code: string }
+export namespace Graph {
+  export type EventHandlerFunction = { name: string; code: string }
 
-type GraphEventHandler = {
-  do?: GraphEventHandlerFunction[]
-  get?: GraphEventHandlerFunction[]
-  if?: GraphEventHandlerFunction[]
-  ifAny?: GraphEventHandlerFunction[]
-  to?: string
-}
+  export type EventHandler = {
+    do?: EventHandlerFunction[]
+    get?: EventHandlerFunction[]
+    if?: EventHandlerFunction[]
+    ifAny?: EventHandlerFunction[]
+    to?: string
+  }
 
-type GraphEvent = GraphEventHandler[]
+  export type Event = EventHandler[]
 
-type GraphEvents = Record<string, GraphEvent>
+  export type Events = Record<string, Event>
 
-type GraphAutoEvents = Record<"onEnter" | "onEvent", GraphEvent>
+  export type AutoEvents = Record<"onEnter" | "onEvent", Event>
 
-export interface GraphNode {
-  name: string
-  active: boolean
-  initial: boolean
-  autoEvents: GraphAutoEvents
-  events: GraphEvents
-  states?: GraphNode[]
+  export interface Node {
+    name: string
+    active: boolean
+    initial: boolean
+    autoEvents: AutoEvents
+    events: Events
+    states?: Node[]
+  }
 }
 
 // Machine subscriber
@@ -206,7 +208,7 @@ export type Subscriber<
 > = (
   data: D,
   active: string[],
-  graph: GraphNode,
+  graph: Graph.Node,
   state: IStateNode<D, A, C, R>
 ) => void
 
@@ -266,7 +268,7 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
   data: D
   namedFunctions: NamedFunctions<D, A, C, R>
   _rootOptions: any
-  _initialGraph: GraphNode
+  _initialGraph: Graph.Node
   _active: IStateNode<D, A, C, R>[] = []
   root: IStateNode<D, A, C, R>
   subscribers = new Set<Subscriber<D, A, C, R>>([])
@@ -326,7 +328,7 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
     return this._active.map(s => s.name).slice(1)
   }
 
-  private getGraphNode(state: IStateNode<D, A, C, R>): GraphNode {
+  private getGraphNode(state: IStateNode<D, A, C, R>): Graph.Node {
     return {
       name: state.name,
       active: state.active,
@@ -334,7 +336,7 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
         ? state.parent.type === "branch" && state.parent.initial === state.name
         : true,
       autoEvents: getGraphAutoEvents(state),
-      events: getGraphEvents(state),
+      events: getEvents(state),
       states:
         state.type === "leaf"
           ? undefined
@@ -1206,9 +1208,9 @@ function getGraphHandlerItem<D>(item: ValuesType<IEventHandler<unknown>>) {
   }
 }
 
-function getGraphEvent(event: IEvent<unknown>): GraphEvent {
+function getEvent(event: IEvent<unknown>): Graph.Event {
   return event.map(eventHandler => {
-    const graphHandler = {} as GraphEventHandler
+    const graphHandler = {} as Graph.EventHandler
 
     for (let key in eventHandler) {
       const item = eventHandler[key]
@@ -1220,25 +1222,25 @@ function getGraphEvent(event: IEvent<unknown>): GraphEvent {
 }
 
 function getGraphAutoEvents(state: IStateNode<any, any, any, any>) {
-  const autoEvents = {} as GraphAutoEvents
+  const autoEvents = {} as Graph.AutoEvents
 
   for (let eventName of ["onEnter", "onEvent"]) {
     let event = state.autoEvents[eventName] as IEvent<unknown> | undefined
 
     if (event !== undefined) {
-      autoEvents.onEnter = getGraphEvent(event)
+      autoEvents.onEnter = getEvent(event)
     }
   }
 
   return autoEvents
 }
 
-function getGraphEvents(state: IStateNode<any, any, any, any>) {
-  const events = {} as GraphNode["events"]
+function getEvents(state: IStateNode<any, any, any, any>) {
+  const events = {} as Graph.Events
 
   for (let eventName in state.events) {
     const event = state.events[eventName]
-    events[eventName] = getGraphEvent(event)
+    events[eventName] = getEvent(event)
   }
 
   return events
