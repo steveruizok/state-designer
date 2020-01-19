@@ -1,3 +1,4 @@
+import { ValuesType } from "utility-types"
 import castArray from "lodash/castArray"
 import uniqueId from "lodash/uniqueId"
 import produce, { Draft } from "immer"
@@ -170,20 +171,28 @@ export type IStatesConfig<
 
 // Graph
 
+type GraphEventHandlerFunction = { name: string; code: string }
+
+type GraphEventHandler = {
+  do?: GraphEventHandlerFunction[]
+  get?: GraphEventHandlerFunction[]
+  if?: GraphEventHandlerFunction[]
+  ifAny?: GraphEventHandlerFunction[]
+  to?: string
+}
+
+type GraphEvent = GraphEventHandler[]
+
+type GraphEvents = Record<string, GraphEvent>
+
+type GraphAutoEvents = Record<"onEnter" | "onEvent", GraphEvent>
+
 export interface GraphNode {
   name: string
   active: boolean
   initial: boolean
-  autoEvents: {
-    [key: string]: {
-      [key: string]: string | { name: string; code: string }[]
-    }[]
-  }
-  events: {
-    [key: string]: {
-      [key: string]: string | { name: string; code: string }[]
-    }[]
-  }
+  autoEvents: GraphAutoEvents
+  events: GraphEvents
   states?: GraphNode[]
 }
 
@@ -195,8 +204,8 @@ export type Subscriber<
   C extends CCs<D>,
   R extends CRs<D>
 > = (
-  active: string[],
   data: D,
+  active: string[],
   graph: GraphNode,
   state: IStateNode<D, A, C, R>
 ) => void
@@ -297,6 +306,7 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
     })
 
     this._initialData = this.data
+
     this._rootOptions = {
       machine: this,
       on,
@@ -323,54 +333,8 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       initial: state.parent
         ? state.parent.type === "branch" && state.parent.initial === state.name
         : true,
-      autoEvents: Object.keys(state.autoEvents).reduce<{
-        [key: string]: {
-          [key: string]: string | { name: string; code: string }[]
-        }[]
-      }>((acc, key: any) => {
-        let event = state.autoEvents[key] as IEvent<D>
-        if (event !== undefined) {
-          acc[key] = event.map(handler =>
-            Object.keys(handler).reduce<{
-              [key: string]: string | { name: string; code: string }[]
-            }>((acc, cur) => {
-              const item = handler[cur]
-              acc[cur] = Array.isArray(item)
-                ? item.map((thing: Function) => ({
-                    name: thing.name,
-                    code: thing.toString()
-                  }))
-                : item
-              return acc
-            }, {})
-          )
-        }
-        return acc
-      }, {}),
-      events: Object.keys(state.events).reduce<{
-        [key: string]: {
-          [key: string]: string | { name: string; code: string }[]
-        }[]
-      }>((acc, key: any) => {
-        let event = state.events[key] as IEvent<D>
-        if (event !== undefined) {
-          acc[key] = event.map(handler =>
-            Object.keys(handler).reduce<{
-              [key: string]: string | { name: string; code: string }[]
-            }>((acc, cur) => {
-              const item = handler[cur]
-              acc[cur] = Array.isArray(item)
-                ? item.map((thing: any) => ({
-                    name: thing.name,
-                    code: thing.toString()
-                  }))
-                : item
-              return acc
-            }, {})
-          )
-        }
-        return acc
-      }, {}),
+      autoEvents: getGraphAutoEvents(state),
+      events: getGraphEvents(state),
       states:
         state.type === "leaf"
           ? undefined
@@ -420,7 +384,7 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
    */
   private notifySubscribers = () => {
     this.subscribers.forEach(subscriber =>
-      subscriber(this.active, this.data, this.graph, this.root)
+      subscriber(this.data, this.active, this.graph, this.root)
     )
   }
 
@@ -845,7 +809,14 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
 
     function getAction(item: keyof A | IActionConfig<D>) {
       if (typeof item === "function") {
-        return item as IAction<D>
+        const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
+
+        if (parts === null) return item
+
+        return Function(
+          `return function custom(${parts[1]}) {
+${parts[2]}}`
+        )() as IAction<D>
       } else if (typeof item === "string") {
         const items = namedFunctions.actions
 
@@ -874,7 +845,14 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
 
     function getCondition(item: keyof C | IConditionConfig<D>) {
       if (typeof item === "function") {
-        return item as ICondition<D>
+        const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
+
+        if (parts === null) return item
+
+        return Function(
+          `return function custom(${parts[1]}) {
+${parts[2]}}`
+        )() as ICondition<D>
       } else if (typeof item === "string") {
         const items = namedFunctions.conditions
 
@@ -904,7 +882,14 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
 
     function getResult(item: keyof R | IResultConfig<D>) {
       if (typeof item === "function") {
-        return item as IResult<D>
+        const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
+
+        if (parts === null) return item
+
+        return Function(
+          `return function custom(${parts[1]}) {
+${parts[2]}}`
+        )() as IResult<D>
       } else if (typeof item === "string") {
         const items = namedFunctions.results
 
@@ -1036,11 +1021,9 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
           // Activate active child and de-activate others
           if (state === activeChild) {
             this.previous = activeChild.name
-            // activeChild.activateDown(restore, restore)
             activateDowns.push(activeChild)
           } else if (state.active) {
             deactivates.push(state)
-            // state.deactivate()
           }
         }
         break
@@ -1048,9 +1031,6 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       case StateType.Parallel: {
         // Activate children
         activateDowns.push(...this.children)
-        // for (let child of this.children) {
-        //   child.activateDown(restore, restore)
-        // }
         break
       }
       default: {
@@ -1065,7 +1045,6 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
     const activateDowns: IStateNode<D, A, C, R>[] = []
     const deactivates: IStateNode<D, A, C, R>[] = []
 
-    // this.parent.active = true
     const parent = this.parent as IStateNode<D, A, C, R>
 
     switch (parent.type) {
@@ -1076,7 +1055,6 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
           if (sib === this) continue
           if (sib.active) {
             deactivates.push(sib)
-            // sib.deactivate()
           }
         }
         break
@@ -1087,7 +1065,6 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
           if (sib === this) continue
           if (!sib.active) {
             activateDowns.push(sib)
-            // sib.activateDown()
           }
         }
       }
@@ -1097,14 +1074,7 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
     }
 
     return [activateDowns, deactivates]
-    // this.parent.activateUp()
   }
-
-  // activate = (previous = false, restore = false) => {
-  //   this.active = true
-  //   this.activateDown(previous, restore)
-  //   this.activateUp()
-  // }
 
   deactivate = () => {
     this.active = false
@@ -1144,30 +1114,6 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
 
     return true
   }
-
-  // handleEventHandler = (
-  //   handler: IEventHandler<D>,
-  //   draft: Draft<D>,
-  //   payload: any,
-  //   result: any
-  // ) => {
-  //   // --- Resolvers
-
-  //   for (let resolver of handler.get) {
-  //     result = resolver(draft, payload, result)
-  //   }
-
-  //   // --- Conditions
-
-  //   if (!this.canEventHandlerRun(handler, draft, payload, result)) return draft
-
-  //   // --- Actions
-  //   for (let action of handler.do) {
-  //     action(draft, payload, result)
-  //   }
-
-  //   return draft
-  // }
 
   public getActive = (): IStateNode<D, A, C, R>[] => {
     if (!this.active) {
@@ -1229,3 +1175,71 @@ createGroup({
   items: { cat: 0 },
   selected: "cat"
 })
+
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
+
+// function transformObject<
+//   T extends { [key: string]: any },
+//   K extends keyof T,
+//   U extends any
+// >(source: T, callbackFn: (value: T[K], index: number) => U): { K: U } {
+//   return Object.fromEntries(
+//     Object.entries(source).map((value, index) => [
+//       value[0],
+//       callbackFn(value[1], index)
+//     ])
+//   ) as { K: U }
+// }
+
+function getGraphHandlerItem<D>(item: ValuesType<IEventHandler<unknown>>) {
+  if (Array.isArray(item)) {
+    return (item as any).map(
+      (thing: IAction<unknown> | ICondition<unknown> | IResult<unknown>) => ({
+        name: thing.name,
+        code: thing.toString()
+      })
+    )
+  } else {
+    return item
+  }
+}
+
+function getGraphEvent(event: IEvent<unknown>): GraphEvent {
+  return event.map(eventHandler => {
+    const graphHandler = {} as GraphEventHandler
+
+    for (let key in eventHandler) {
+      const item = eventHandler[key]
+      graphHandler[key] = getGraphHandlerItem(item)
+    }
+
+    return graphHandler
+  })
+}
+
+function getGraphAutoEvents(state: IStateNode<any, any, any, any>) {
+  const autoEvents = {} as GraphAutoEvents
+
+  for (let eventName of ["onEnter", "onEvent"]) {
+    let event = state.autoEvents[eventName] as IEvent<unknown> | undefined
+
+    if (event !== undefined) {
+      autoEvents.onEnter = getGraphEvent(event)
+    }
+  }
+
+  return autoEvents
+}
+
+function getGraphEvents(state: IStateNode<any, any, any, any>) {
+  const events = {} as GraphNode["events"]
+
+  for (let eventName in state.events) {
+    const event = state.events[eventName]
+    events[eventName] = getGraphEvent(event)
+  }
+
+  return events
+}

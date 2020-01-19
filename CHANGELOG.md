@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.21
+
+- Removes effect
+- Arranges order of hook parameters
+- Improves Graph information
+
 ## 1.0.9
 
 - Allows for deep transitioning.

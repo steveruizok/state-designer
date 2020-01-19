@@ -7,6 +7,8 @@ export interface Props {}
 const Switch: React.FC<Props> = ({ children }) => {
   const [data, send, helpers] = useStateDesigner(state)
 
+  React.useEffect(() => console.log("changed"), [data])
+
   return (
     <div className="example">
       <h2>Switch</h2>

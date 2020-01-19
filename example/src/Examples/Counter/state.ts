@@ -23,6 +23,7 @@ export const counter = createStateDesigner({
     }
   ],
   on: {
+    TEST: data => console.log("hello world"),
     CHANGED_INPUT_VALUE: "setInputValue",
     CLICKED_MINUS: {
       unless: "atMin",
@@ -39,11 +40,15 @@ export const counter = createStateDesigner({
     }
   },
   results: {
-    inputValue: data => data.inputValue,
+    inputValue(data) {
+      return data.inputValue
+    },
     nextValue: (data, payload, result) => data.count + result
   },
   actions: {
-    incrementCount: data => data.count++,
+    incrementCount(data) {
+      data.count++
+    },
     decrementCount: data => data.count--,
     setInputValue: (data, payload) => (data.inputValue = payload),
     setValue: (data, payload, result) => (data.count = result),

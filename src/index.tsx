@@ -29,7 +29,6 @@ export type Exports<
 >
 
 type OnChange<T> = (state: T) => void
-type Effect<T> = (state: T) => void | (() => void)
 
 const defaultDependencies: any[] = []
 
@@ -52,9 +51,7 @@ export function useStateDesigner<
   R extends CRs<D>
 >(
   options: StateDesigner<D, A, C, R>,
-  onChange?: OnChange<StateDesignerInfo<D>>,
-  effect?: Effect<StateDesignerInfo<D>>,
-  dependencies?: any[]
+  onChange?: OnChange<StateDesignerInfo<D>>
 ): StateDesignerInfo<D>
 // Call useStateDesigner with configuration for a new StateDesigner instance
 export function useStateDesigner<
@@ -65,7 +62,6 @@ export function useStateDesigner<
 >(
   options: StateDesignerConfig<D, A, C, R>,
   onChange?: OnChange<StateDesignerInfo<D>>,
-  effect?: Effect<StateDesignerInfo<D>>,
   dependencies?: any[]
 ): StateDesignerInfo<D>
 /**
@@ -82,7 +78,6 @@ export function useStateDesigner<
 >(
   options: StateDesigner<D, A, C, R> | StateDesignerConfig<D, A, C, R>,
   onChange?: OnChange<StateDesignerInfo<D>>,
-  effect?: Effect<StateDesignerInfo<D>>,
   dependencies: any[] = defaultDependencies
 ): StateDesignerInfo<D> {
   // The hook can accept either a pre-existing machine (so that
@@ -96,7 +91,7 @@ export function useStateDesigner<
 
   const [state, setState] = React.useState({
     data: machine.current.data,
-    graph: machine.current.graph
+    active: machine.current.active
   })
 
   const send = React.useCallback(function send(event: string, payload?: any) {
@@ -105,6 +100,9 @@ export function useStateDesigner<
 
   const helpers = React.useMemo(
     () => ({
+      getActive() {
+        return machine.current.active
+      },
       getGraph() {
         return machine.current.graph
       },
@@ -126,24 +124,17 @@ export function useStateDesigner<
       machine.current = new StateDesigner(options)
 
       setState({
-        graph: machine.current.graph,
-        data: machine.current.data
+        data: machine.current.data,
+        active: machine.current.active
       })
     }
 
-    return machine.current.subscribe((active, data, graph, root) => {
+    return machine.current.subscribe((data, active) => {
       setState({
         data,
-        graph
+        active
       })
     })
-  }, dependencies)
-
-  // Run effect when dependencies change
-  React.useEffect(() => {
-    if (effect !== undefined) {
-      return effect([state.data, send, helpers])
-    }
   }, dependencies)
 
   // Run onChange callback when data changes
