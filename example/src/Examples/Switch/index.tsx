@@ -5,7 +5,7 @@ import { state } from "./state"
 export interface Props {}
 
 const Switch: React.FC<Props> = ({ children }) => {
-  const [data, send, helpers] = useStateDesigner(state)
+  const { data, send, isIn } = useStateDesigner(state)
 
   React.useEffect(() => console.log("changed"), [data])
 
@@ -31,7 +31,7 @@ const Switch: React.FC<Props> = ({ children }) => {
               height: 36,
               width: 36,
               border: "1px solid #000",
-              left: helpers.isIn("active") ? 42 : 0,
+              left: isIn("active") ? 42 : 0,
               transition: "all .2s"
             }}
           ></div>

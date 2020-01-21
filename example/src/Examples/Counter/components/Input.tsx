@@ -9,7 +9,7 @@ type Props = {
 }
 
 const Input: React.FC<Props> = ({ value, onChange, type = "text" }) => {
-  const [data, send, { can }] = useStateDesigner(counter)
+  const { data, send, can } = useStateDesigner(counter)
 
   return (
     <input

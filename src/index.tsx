@@ -34,16 +34,14 @@ type OnChange<T> = (state: T) => void
 
 const defaultDependencies: any[] = []
 
-type StateDesignerInfo<D> = [
-  D,
-  (eventName: string, payload?: any) => void,
-  {
-    getGraph(): Graph.Node
-    isIn(state: string): boolean
-    can(event: string, payload?: any): boolean
-    reset(): void
-  }
-]
+type StateDesignerInfo<D> = {
+  data: D
+  send: (eventName: string, payload?: any) => void
+  getGraph(): Graph.Node
+  isIn(state: string): boolean
+  can(event: string, payload?: any): boolean
+  reset(): void
+}
 
 // Call useStateDesigner with a pre-existing StateDesigner instance
 export function useStateDesigner<
@@ -96,12 +94,11 @@ export function useStateDesigner<
     active: machine.current.active
   })
 
-  const send = React.useCallback(function send(event: string, payload?: any) {
-    return machine.current.send(event, payload)
-  }, [])
-
   const helpers = React.useMemo(
     () => ({
+      send(event: string, payload?: any) {
+        return machine.current.send(event, payload)
+      },
       getActive() {
         return machine.current.active
       },
@@ -141,10 +138,10 @@ export function useStateDesigner<
 
   // Run onChange callback when data changes
   React.useEffect(() => {
-    onChange && onChange([state.data, send, helpers])
+    onChange && onChange({ ...state, ...helpers })
   }, [state])
 
-  return [state.data, send, helpers]
+  return { ...state, ...helpers }
 }
 
 export {

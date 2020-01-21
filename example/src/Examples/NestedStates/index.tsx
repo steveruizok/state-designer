@@ -7,18 +7,15 @@ import Button from "./components/Button"
 export interface Props {}
 
 const NestedState: React.FC<Props> = ({ children }) => {
-  const [data, send, helpers] = useStateDesigner(state)
+  const { data, isIn } = useStateDesigner(state)
 
   return (
     <div className="example">
       <h2>Nested States</h2>
-      {helpers.isIn("inactive") ? (
+      {isIn("inactive") ? (
         <p>The machine is off.</p>
       ) : (
-        <p>
-          The machine is on. The count is {helpers.isIn("odd") ? "odd" : "even"}
-          .
-        </p>
+        <p>The machine is on. The count is {isIn("odd") ? "odd" : "even"}.</p>
       )}
       <div>
         <div className="button-group">

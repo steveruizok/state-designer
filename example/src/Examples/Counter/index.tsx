@@ -7,12 +7,12 @@ import Input from "./components/Input"
 export interface Props {}
 
 const Counter: React.FC<Props> = ({ children }) => {
-  const [data, send, helpers] = useStateDesigner(counter)
+  const { data, isIn, getGraph } = useStateDesigner(counter)
 
   return (
     <div className="example">
       <h2>Counter</h2>
-      <p>The count is {helpers.isIn("odd") ? "odd" : "even"}.</p>
+      <p>The count is {isIn("odd") ? "odd" : "even"}.</p>
       <div>
         <div className="button-group">
           <Button event="CLICKED_MINUS">-</Button>
@@ -28,7 +28,7 @@ const Counter: React.FC<Props> = ({ children }) => {
           </div>
         </div>
       </div>
-      <pre>{JSON.stringify(helpers.getGraph(), null, 2)}</pre>
+      <pre>{JSON.stringify(getGraph(), null, 2)}</pre>
     </div>
   )
 }

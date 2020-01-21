@@ -8,7 +8,7 @@ type Props = {
 }
 
 const Graph: React.FC<Props> = ({ event, payload, children }) => {
-  const [data, send, { getGraph }] = useStateDesigner(state)
+  const { getGraph } = useStateDesigner(state)
 
   return (
     <pre>

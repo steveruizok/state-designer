@@ -8,7 +8,7 @@ type Props = {
 }
 
 const Button: React.FC<Props> = ({ event, payload, children }) => {
-  const [data, send, { can }] = useStateDesigner(counter)
+  const { can, send } = useStateDesigner(counter)
 
   return (
     <button
