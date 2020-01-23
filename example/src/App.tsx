@@ -3,6 +3,7 @@ import Counter from "./Examples/Counter"
 import Switch from "./Examples/Switch"
 import NestedStates from "./Examples/NestedStates"
 import ASync from "./Examples/ASync"
+import Chain from "./Examples/Chain"
 
 export interface Props {}
 
@@ -15,6 +16,7 @@ const App: React.FC<Props> = ({ children }) => {
       <Switch />
       <NestedStates />
       <ASync />
+      <Chain />
     </div>
   )
 }

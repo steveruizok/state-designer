@@ -71,23 +71,10 @@ type IEventHandlerConfig<D, A, C, R> = {
   ifAny?: IConditionsConfig<D, C>
   unless?: IConditionsConfig<D, C>
   get?: IResultsConfig<D, R>
-} & (
-  | {
-      to?: string
-      send?: never
-      await?: never
-    }
-  | {
-      send?: string | [string, any]
-      to?: never
-      await?: never
-    }
-  | {
-      await?: <T = any>() => Promise<T>
-      to?: never
-      send?: never
-    }
-)
+  await?: (data: D, payload: any, result: any) => Promise<any>
+  to?: string
+  send?: string | [string, any]
+}
 
 export type IEventConfig<D, A, C, R> = MaybeArray<
   A extends Record<string, never>
@@ -110,7 +97,7 @@ export interface IEventHandler<D> {
   send?: string | [string, any]
 }
 
-type IEvent<D> = IEventHandler<D>[]
+export type IEvent<D> = IEventHandler<D>[]
 
 type IEvents<D> = Record<string, IEvent<D>>
 
@@ -278,6 +265,14 @@ class StateDesigner<
   _active: IStateNode<D, A, C, R>[] = []
   root: IStateNode<D, A, C, R>
   subscribers = new Set<Subscriber<D, A, C, R>>([])
+  pendingSend: [string, any][] = []
+
+  private record: EventRecord<D> = {
+    send: false,
+    action: false,
+    transition: undefined,
+    transitions: 0
+  }
 
   constructor(options = {} as StateDesignerConfig<D, A, C, R>) {
     const {
@@ -330,10 +325,6 @@ class StateDesigner<
     this._initialGraph = this.getGraphNode(this.root)
   }
 
-  get active() {
-    return this._active.map(s => s.name).slice(1)
-  }
-
   private getGraphNode(state: IStateNode<D, A, C, R>): Graph.Node {
     return {
       name: state.name,
@@ -350,12 +341,31 @@ class StateDesigner<
     }
   }
 
-  get graph() {
-    return this.getGraphNode(this.root)
+  /**
+   * Share certain information with each of the machine's subscribers.
+   */
+  private notifySubscribers = () => {
+    this.subscribers.forEach(subscriber =>
+      subscriber(this.data, this.active, this.graph, this.root)
+    )
   }
 
   /**
-   * ## Reset
+   * Adds an `onChange` callback to the machine's subscribers. This `onChange` callback will be called whenever the machine changes its data or graph. Returns a second callback to unsubscribe that callback. (This is makes out hook pretty.)
+   */
+  subscribe = (onChange: Subscriber<D, A, C, R>) => {
+    this.subscribers.add(onChange)
+    return () => this.unsubscribe(onChange)
+  }
+
+  /**
+   * Remove an `onChange` callback from the machine's subscribers.
+   */
+  unsubscribe = (onChange: Subscriber<D, A, C, R>) => {
+    this.subscribers.delete(onChange)
+  }
+
+  /**
    * Resets the machine to its initial state.
    */
   reset = () => {
@@ -370,363 +380,8 @@ class StateDesigner<
   }
 
   /**
-   * ## Subscribe
-   * Adds an `onChange` callback to the machine's subscribers. This `onChange` callback will be called whenever the machine changes its data or graph. Returns a second callback to unsubscribe that callback. (This is makes out hook pretty.)
+   * Can the machine respond to a given event?
    */
-  subscribe = (onChange: Subscriber<D, A, C, R>) => {
-    this.subscribers.add(onChange)
-    return () => this.unsubscribe(onChange)
-  }
-
-  /**
-   * ## Unsubscribe
-   * Remove an `onChange` callback from the machine's subscribers.
-   */
-  unsubscribe = (onChange: Subscriber<D, A, C, R>) => {
-    this.subscribers.delete(onChange)
-  }
-
-  /**
-   * ## Notify Subscribers
-   * Share certain information with each of the machine's subscribers.
-   */
-  private notifySubscribers = () => {
-    this.subscribers.forEach(subscriber =>
-      subscriber(this.data, this.active, this.graph, this.root)
-    )
-  }
-
-  private async handleAsyncAction(
-    state: IStateNode<D, A, C, R>,
-    action: <T = any>(data: Draft<D>, payload: any, result: any) => Promise<T>,
-    data: Draft<D>,
-    payload: any,
-    result: any
-  ) {
-    action(data, payload, result)
-      .then(resolved => {
-        if (state.active) {
-          if (state.autoEvents.onResolve) {
-            this.triggerAutoEvent(state, "onResolve", payload, resolved)
-          }
-        }
-      })
-      .catch(rejected => {
-        if (state.active) {
-          if (state.autoEvents.onReject) {
-            this.triggerAutoEvent(state, "onResolve", payload, rejected)
-          }
-        }
-      })
-  }
-
-  triggerAutoEvent(
-    state: IStateNode<D, A, C, R>,
-    event: "onResolve" | "onReject",
-    payload: any,
-    result: any
-  ) {}
-
-  /**
-   * ## Handle Event
-   * Run through all of the event handlers associated with an event. An event has an array of event handlers, each with many event handler items. This function is where we figure out what those events are going to do.   * @param state The state that the event handlers belong to.
-   * @param data The current data draft.
-   * @param payload The current payload.
-   * @param events All of the events to attempt.
-   */
-  private handleEvent(
-    state: IStateNode<D, A, C, R>,
-    data: Draft<D>,
-    payload: any,
-    event: IEvent<D>
-  ) {
-    const record: EventRecord = {
-      send: false,
-      action: false,
-      transition: undefined
-    }
-
-    // This shouldn't happen, but...
-    if (event === undefined) {
-      console.error("A wild event appeared!")
-      return record
-    }
-
-    for (let handler of event) {
-      let result = {}
-
-      // --- Results
-
-      for (let resolver of handler.get) {
-        result = resolver(data, payload, result)
-      }
-
-      // --- Conditions
-
-      if (!state.canEventHandlerRun(handler, data, payload, result)) continue
-
-      // --- Actions
-
-      for (let action of handler.do) {
-        record.action = true
-        action(data, payload, result)
-      }
-
-      // --- Await
-
-      const { await: asyncAction } = handler
-
-      if (asyncAction !== undefined) {
-        record.send = true
-
-        this.handleAsyncAction(state, asyncAction, data, payload, result)
-      }
-
-      // --- Transition
-
-      let { to: transition } = handler
-
-      if (transition !== undefined) {
-        let previous = false
-        let restore = false
-
-        // Strip off the modifiers (previous or restore) and
-        // set those boolean flags
-        if (transition.endsWith(".previous")) {
-          previous = true
-          transition = transition.substring(0, transition.length - 9)
-        } else if (transition.endsWith(".restore")) {
-          previous = true
-          restore = true
-          transition = transition.substring(0, transition.length - 8)
-        }
-
-        const target = state.getTargetFromTransition(transition, state)
-
-        // No target found in the active tree!
-        // This is probably a bug in the user's configuration: either
-        // they have a name wrong or the state they're reaching for
-        // requires a "deep link", e.g. "myState.myOtherState"
-        if (target !== undefined) {
-          // Update the record
-          record.transition = {
-            previous,
-            restore,
-            target
-          }
-
-          // Return the record. A transition stops the event chain.
-          // Any events left after here will get ignored.
-          return record
-        }
-      }
-
-      const { send } = handler
-
-      // Send the new event (gulp)
-      if (send !== undefined) {
-        record.send = true
-
-        if (Array.isArray(send)) {
-          this.send(send[0], send[1])
-        } else {
-          this.send(send)
-        }
-        return
-      }
-    }
-
-    // This code will only run if there hasn't been any transitions
-    // in the event chain. In that case, we just return the record!
-    return record
-  }
-
-  send = (eventName: string, payload?: any) => {
-    // This function uses lots of closures.
-    // Move this stuff to the class itself and reset
-    // the values when a `send` starts.
-
-    // TODO: Move to class property.
-    // How many transitions have we had?
-    let transitions = 0
-
-    // TODO: Move to class property.
-    // What's happened so far? Have we had an action?
-    // Have we had a transition? If so, what was it?
-    let record: EventRecord = {
-      send: false,
-      action: false,
-      transition: undefined
-    }
-
-    // TODO: Move to class method.
-    function mergeRecord(next: EventRecord | undefined) {
-      if (next === undefined) return
-      if (next.send === true) record.send = true
-      if (next.action === true) record.action = true
-      if (next.transition !== undefined) record.transition = next.transition
-    }
-
-    // TODO: Move to class method.
-    const handleTransition = (next: TransitionRecord, draft: Draft<D>) => {
-      transitions++
-
-      if (transitions > 100) {
-        console.error(
-          "Either you have a transition loop or you're trying to do something too clever!"
-        )
-        return
-      }
-
-      const { target, previous, restore } = next
-
-      // Activate the new state
-      target.active = true
-
-      // TODO: This section needs to be re-written. Logic is currently
-      // distributed between this class and the state classes. It might be
-      // better to move everything here. (This may also make state nodes
-      // unecessary).
-
-      // Any time that we activate or de-activate a state, it may require
-      // certain other work. If we activate a branch state with children,
-      // we'll also need to activate the correct child - either the state's
-      // initial child or, if we're restoring state, its previously active
-      // child. And we need to repeat this for each of those children, too.
-
-      // Whenever we activate a state, we may also need to fire its onEnter
-      // event. This may produce its own transitions. If it will do so, then
-      // we need to stop the current event chain. (I'm yet to work this out,
-      // but it may require some conditions on when a state can fire its
-      // onEnter events).
-
-      // If the state has a parent, then we will need to activate "up" the
-      // state tree. Usually the state's parents will already be active,
-      // however "deep links" may cause transitions to different branches of
-      // the state tree, in which case we'll need to move up the tree,
-      // beginning at the new state, and ensure that the tree is correct in
-      // that direction. (For example, by turning off the branch siblings
-      // of the activated state).
-
-      // TODO: Move to a class method.
-      const handleChanges = (
-        results: IStateNode<D, A, C, R>[][],
-        andUp: boolean
-      ) => {
-        const [activateDowns, deactivates] = results
-
-        for (let state of deactivates) {
-          state.deactivate()
-        }
-
-        for (let state of activateDowns) {
-          // Activate the state
-          state.active = true
-          const { onEnter } = state.autoEvents
-
-          if (onEnter !== undefined) {
-            mergeRecord(this.handleEvent(target, draft, payload, onEnter))
-            if (record.transition !== undefined) {
-              handleTransition(record.transition, draft)
-            }
-          }
-
-          handleChanges(state.activateDown(previous, restore), andUp)
-
-          if (andUp && state.parent !== undefined) {
-            if (!state.parent.active) {
-              // Activate the parent state
-              state.parent.active = true
-              handleChanges(state.activateUp(), true)
-            }
-          }
-        }
-      }
-
-      handleChanges(target.activateDown(previous, restore), false)
-      handleChanges(target.activateUp(), true)
-
-      // Clear the transition (we're safe to make another transition)
-      record.transition = undefined
-
-      // Handle the target's auto event enter event
-      const { onEnter } = target.autoEvents
-      if (onEnter !== undefined) {
-        mergeRecord(this.handleEvent(target, draft, payload, onEnter))
-        if (record.transition !== undefined) {
-          handleTransition(record.transition, draft)
-        }
-      }
-    }
-
-    // Ok, that's how we'll handle stuff...
-    // now let's get started!
-
-    // We'll loop through each active state, starting from
-    // the root and moving downward, and handle the event
-    // at each level.
-
-    // Any transition in an event chain should cause
-    // all further handlers on a given event chain
-    // to bail immediately. Any states below the transition
-    // won't be processed -- their events with this name, if
-    // any exist, will get ignored. Be careful about sharing
-    // event names if one or more involve transitions!
-    const dataResult = produce(this.data, draft => {
-      for (let state of this._active) {
-        // Sending a new event should stop event chains.
-        if (record.send !== false) {
-          break
-        }
-        // Just double-checking. This shouldn't happen.
-        if (record.transition !== undefined) {
-          console.error("A wild transition appeared!")
-          break
-        }
-
-        // Get the event handlers for this state. If the state
-        // doesn't handle this event, then keep going.
-        let event = state.events[eventName]
-        if (event === undefined) continue
-
-        // Handle the event and get the result of what happened.
-        const result = this.handleEvent(state, draft, payload, event)
-
-        // This may add an action or transition to the record object.
-        mergeRecord(result)
-
-        // If it added a transition...
-        if (record.transition !== undefined) {
-          handleTransition(record.transition, draft)
-          break
-        } else {
-          // If the event didn't create a transition, then it's
-          // safe to try and run the state's `onEvent` auto event
-          const { onEvent } = state.autoEvents
-          if (onEvent !== undefined) {
-            // Again, handle this event and get the result of what happened.
-            const result = this.handleEvent(state, draft, payload, onEvent)
-
-            // This may add an action or transition to the record object.
-            mergeRecord(result)
-
-            // If the `onEvent` added a transition...
-            if (record.transition !== undefined) {
-              handleTransition(record.transition, draft)
-              break
-            }
-          }
-        }
-      }
-    })
-
-    if (transitions > 0 || record.action) {
-      this.data = dataResult
-      this._active = this.root.getActive()
-      this.notifySubscribers()
-    }
-  }
-
   can = (event: string, payload?: any): boolean => {
     return produce(this.data, draft => {
       for (let state of this._active) {
@@ -749,6 +404,9 @@ class StateDesigner<
     })
   }
 
+  /**
+   * Is the machine in the given state name?
+   */
   isIn = (name: string) => {
     return this._active.find(v => v.path.endsWith("." + name)) ? true : false
   }
@@ -756,6 +414,324 @@ class StateDesigner<
   get state() {
     return this.root
   }
+
+  get graph() {
+    return this.getGraphNode(this.root)
+  }
+
+  get active() {
+    return this._active.map(s => s.name).slice(1)
+  }
+
+  // From here on, it's all event handling and state transition stuff
+
+  send = (eventName: string, payload: any) => {
+    this.resetRecord()
+
+    const dataResult = produce(this.data, draft => {
+      for (let state of this._active) {
+        if (this.record.send || this.record.transition) break
+
+        this.handleEvent(state, state.events[eventName], draft, payload)
+
+        if (this.record.transition !== undefined) {
+          while (this.record.transition !== undefined) {
+            this.enactTransition(this.record.transition, draft, payload)
+          }
+
+          break
+        }
+      }
+    })
+
+    if (this.record.transitions > 0 || this.record.action || this.record.send) {
+      this.resetRecord()
+      this.data = dataResult
+      this._active = this.root.getActive()
+
+      const next = this.pendingSend.shift()
+
+      if (next !== undefined) {
+        const [e, p] = next
+        this.send(e, p)
+        return
+      }
+
+      this.notifySubscribers()
+    }
+  }
+
+  resetRecord = () => {
+    this.record = {
+      send: false,
+      action: false,
+      transition: undefined,
+      transitions: 0
+    }
+  }
+
+  handleEvent = (
+    state: IStateNode<D, any, any, any>,
+    event: IEvent<D> | undefined,
+    draft: Draft<D>,
+    payload: any,
+    result?: any
+  ) => {
+    if (event === undefined) return
+    for (let handler of event) {
+      this.handleEventHandler(state, handler, draft, payload, result)
+    }
+  }
+
+  handleEventHandler(
+    state: IStateNode<D, any, any, any>,
+    handler: IEventHandler<D>,
+    draft: Draft<D>,
+    payload: any,
+    result?: any
+  ) {
+    const {
+      do: actions,
+      get: resolvers,
+      await: asyncItem,
+      to: transition,
+      send
+    } = handler
+
+    for (let resolver of resolvers) {
+      result = resolver(draft, payload, result)
+    }
+
+    if (!state.canEventHandlerRun(handler, draft, payload, result)) {
+      return
+    }
+
+    for (let action of actions) {
+      this.record.action = true
+      action(draft, payload, result)
+    }
+
+    if (asyncItem !== undefined) {
+      this.handleAsyncItem(state, asyncItem, draft, payload, result)
+      return
+    }
+
+    if (transition !== undefined) {
+      this.handleTransitionItem(state, transition)
+      return
+    }
+
+    if (send !== undefined) {
+      this.record.send = true
+      this.handleSendItem(send)
+      return
+    }
+  }
+
+  handleSendItem = (send: string | [string, any]) => {
+    if (Array.isArray(send)) {
+      this.pendingSend.push(send)
+    } else {
+      this.pendingSend.push([send, undefined])
+    }
+  }
+
+  handleTransitionItem(
+    state: IStateNode<D, any, any, any>,
+    transition: string
+  ) {
+    let previous = false
+    let restore = false
+
+    if (transition.endsWith(".previous")) {
+      previous = true
+      transition = transition.substring(0, transition.length - 9)
+    } else if (transition.endsWith(".restore")) {
+      previous = true
+      restore = true
+      transition = transition.substring(0, transition.length - 8)
+    }
+
+    const target = state.getTargetFromTransition(transition, state)
+
+    if (target !== undefined) {
+      this.record.transition = {
+        previous,
+        restore,
+        target
+      }
+    }
+  }
+
+  enactTransition(
+    transition: TransitionRecord<D>,
+    draft: Draft<D>,
+    payload: any
+  ) {
+    this.record.transitions++
+
+    if (this.record.transitions > 100) {
+      this.record.transition = undefined
+      return
+    }
+
+    const { target, previous, restore } = transition
+    const { onEnter } = target.autoEvents
+
+    target.active = true
+
+    const downChanges = target.activateDown(previous, restore)
+
+    this.handleChanges(
+      target,
+      downChanges,
+      false,
+      previous,
+      restore,
+      draft,
+      payload
+    )
+
+    const upChanges = target.activateUp()
+
+    this.handleChanges(
+      target,
+      upChanges,
+      true,
+      previous,
+      restore,
+      draft,
+      payload
+    )
+
+    this.record.transition = undefined
+
+    if (onEnter !== undefined) {
+      this.handleEvent(target, onEnter, draft, payload)
+    }
+  }
+
+  handleChanges(
+    target: IStateNode<D, any, any, any>,
+    results: IStateNode<D, any, any, any>[][],
+    andUp: boolean,
+    previous: boolean,
+    restore: boolean,
+    draft: Draft<D>,
+    payload: any
+  ) {
+    const [activateDowns, deactivates] = results
+
+    for (let state of deactivates) {
+      state.deactivate()
+    }
+
+    for (let state of activateDowns) {
+      state.active = true
+
+      const { onEnter } = state.autoEvents
+      if (onEnter !== undefined) {
+        this.handleEvent(target, onEnter, draft, payload)
+      }
+
+      if (this.record.transition !== undefined) {
+        this.enactTransition(this.record.transition, draft, payload)
+      }
+
+      const downChanges = state.activateDown(previous, restore)
+      this.handleChanges(
+        target,
+        downChanges,
+        false,
+        previous,
+        restore,
+        draft,
+        payload
+      )
+
+      if (andUp && state.parent !== undefined) {
+        if (!state.parent.active) {
+          // Activate the parent state
+          state.parent.active = true
+          this.handleChanges(
+            state,
+            state.activateUp(),
+            true,
+            previous,
+            restore,
+            draft,
+            payload
+          )
+        }
+      }
+    }
+  }
+
+  handleAsyncItem(
+    state: IStateNode<D, any, any, any>,
+    asyncItem: <T>(data: Draft<D>, payload: any, result: any) => Promise<T>,
+    draft: Draft<D>,
+    payload: any,
+    result: any
+  ) {
+    asyncItem(draft, payload, result)
+      .then(resolved => {
+        if (state.active) {
+          if (state.autoEvents.onResolve) {
+            this.triggerAutoEvent(state, "onResolve", payload, resolved)
+          }
+        }
+      })
+      .catch(rejected => {
+        if (state.active) {
+          if (state.autoEvents.onReject) {
+            this.triggerAutoEvent(state, "onReject", payload, rejected)
+          }
+        }
+      })
+  }
+
+  triggerAutoEvent(
+    state: IStateNode<D, any, any, any>,
+    eventName: string,
+    payload: any,
+    returned: any
+  ) {
+    this.resetRecord()
+    const dataResult = produce(this.data, draft => {
+      this.handleEvent(
+        state,
+        state.autoEvents[eventName],
+        draft,
+        payload,
+        returned
+      )
+
+      if (this.record.transition !== undefined) {
+        while (this.record.transition !== undefined) {
+          this.enactTransition(this.record.transition, draft, payload)
+        }
+      }
+    })
+
+    if (this.record.transitions > 0 || this.record.action || this.record.send) {
+      this.resetRecord()
+      this.data = dataResult
+      this._active = this.root.getActive()
+
+      const next = this.pendingSend.shift()
+
+      if (next !== undefined) {
+        const [e, p] = next
+        this.send(e, p)
+        return
+      }
+
+      this.notifySubscribers()
+    }
+  }
+
+  // End old stuff
 }
 
 /* ------------------- State Node ------------------- */
@@ -802,7 +778,7 @@ type StateConfig<
   states?: IStatesConfig<D, A, C, R>
 }
 
-class IStateNode<
+export class IStateNode<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
@@ -872,6 +848,8 @@ class IStateNode<
             states: state.states,
             onEnter: state.onEnter,
             onEvent: state.onEvent,
+            onResolve: state.onResolve,
+            onReject: state.onReject,
             on: state.on
           })
         )
@@ -1255,14 +1233,15 @@ export type StateDesignerWithConfig<
   C extends StateDesignerConfig<any, any, any, any>
 > = StateDesigner<C["data"], C["actions"], C["conditions"], C["results"]>
 
-type EventRecord = {
+export type EventRecord<D> = {
   send: boolean
   action: boolean
-  transition?: TransitionRecord
+  transition?: TransitionRecord<D>
+  transitions: number
 }
 
-type TransitionRecord = {
-  target: IStateNode<any, any, any, any>
+type TransitionRecord<D> = {
+  target: IStateNode<D, any, any, any>
   previous: boolean
   restore: boolean
 }
