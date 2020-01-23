@@ -83,13 +83,16 @@ export function useStateDesigner<
   // The hook can accept either a pre-existing machine (so that
   // multiple hooks can share the same data) or the configuration
   // for a new machine (unique to the component calling this hook).
-  const machine = React.useRef(
-    options instanceof StateDesigner
-      ? options
-      : new StateDesigner<D, A, C, R>(options)
-  )
+  const machine = React.useRef<StateDesigner<D, A, C, R>>(null as any)
 
-  const [state, setState] = React.useState({
+  if (machine.current === null) {
+    machine.current =
+      options instanceof StateDesigner ? options : new StateDesigner(options)
+  }
+
+  const [state, setState] = React.useState<
+    Pick<StateDesigner<D, A, C, R>, "data" | "active">
+  >({
     data: machine.current.data,
     active: machine.current.active
   })
@@ -138,10 +141,10 @@ export function useStateDesigner<
 
   // Run onChange callback when data changes
   React.useEffect(() => {
-    onChange && onChange({ ...state, ...helpers })
+    onChange && onChange({ ...(state as any), ...helpers })
   }, [state])
 
-  return { ...state, ...helpers }
+  return { ...(state as any), ...helpers }
 }
 
 export {

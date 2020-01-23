@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useStateDesigner } from "state-designer"
 
-function getFakeWait() {
+function getFakeFetch() {
   return new Promise((resolve, reject) =>
     setTimeout(() => {
       const v = Math.random()
@@ -23,7 +23,7 @@ function getFakeWait() {
 const Chain: React.FC<{}> = () => {
   const { data, send, getGraph } = useStateDesigner({
     data: {
-      status: "Click submit to get your result",
+      status: "",
       result: undefined as string | undefined
     },
     initial: "empty",
@@ -39,7 +39,7 @@ const Chain: React.FC<{}> = () => {
       loading: {
         onEnter: {
           do: data => (data.status = "Loading..."),
-          await: data => getFakeWait()
+          await: getFakeFetch
         },
         onResolve: {
           do: (data, payload, result) => (data.result = result),
@@ -51,7 +51,6 @@ const Chain: React.FC<{}> = () => {
         },
         on: {
           RESOLVED_DATA: {
-            do: data => console.log(data.status, data.result),
             to: "success"
           },
           REJECTED_DATA: {
