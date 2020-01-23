@@ -65,15 +65,29 @@ export type IResultsConfig<D, R> = MaybeArray<
 
 // Event Handlers (Config)
 
-interface IEventHandlerConfig<D, A, C, R> {
+type IEventHandlerConfig<D, A, C, R> = {
   do?: IActionsConfig<D, A>
   if?: IConditionsConfig<D, C>
   ifAny?: IConditionsConfig<D, C>
   unless?: IConditionsConfig<D, C>
   get?: IResultsConfig<D, R>
-  to?: string
-  wait?: number
-}
+} & (
+  | {
+      to?: string
+      send?: never
+      await?: never
+    }
+  | {
+      send?: string | [string, any]
+      to?: never
+      await?: never
+    }
+  | {
+      await?: <T = any>() => Promise<T>
+      to?: never
+      send?: never
+    }
+)
 
 export type IEventConfig<D, A, C, R> = MaybeArray<
   A extends Record<string, never>
@@ -92,7 +106,8 @@ export interface IEventHandler<D> {
   unless: ICondition<D>[]
   get: IResult<D>[]
   to?: string
-  wait?: number
+  await?: <T = any>() => Promise<T>
+  send?: string | [string, any]
 }
 
 type IEvent<D> = IEventHandler<D>[]
@@ -123,6 +138,8 @@ export interface IStateConfig<
   on?: IEventsConfig<D, A, C, R>
   onEnter?: IEventConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
+  onResolve?: IEventConfig<D, A, C, R>
+  onReject?: IEventConfig<D, A, C, R>
   states?: IStatesConfig<D, A, C, R>
   initial?: string
 }
@@ -143,6 +160,7 @@ export namespace Graph {
     do?: EventHandlerFunction[]
     get?: EventHandlerFunction[]
     if?: EventHandlerFunction[]
+    unless?: EventHandlerFunction[]
     ifAny?: EventHandlerFunction[]
     to?: string
   }
@@ -151,7 +169,10 @@ export namespace Graph {
 
   export type Events = Record<string, Event>
 
-  export type AutoEvents = Record<"onEnter" | "onEvent", Event>
+  export type AutoEvents = Record<
+    "onEnter" | "onEvent" | "onResolve" | "onReject",
+    Event
+  >
 
   export interface Node {
     name: string
@@ -375,6 +396,37 @@ class StateDesigner<
     )
   }
 
+  private async handleAsyncAction(
+    state: IStateNode<D, A, C, R>,
+    action: <T = any>(data: Draft<D>, payload: any, result: any) => Promise<T>,
+    data: Draft<D>,
+    payload: any,
+    result: any
+  ) {
+    action(data, payload, result)
+      .then(resolved => {
+        if (state.active) {
+          if (state.autoEvents.onResolve) {
+            this.triggerAutoEvent(state, "onResolve", payload, resolved)
+          }
+        }
+      })
+      .catch(rejected => {
+        if (state.active) {
+          if (state.autoEvents.onReject) {
+            this.triggerAutoEvent(state, "onResolve", payload, rejected)
+          }
+        }
+      })
+  }
+
+  triggerAutoEvent(
+    state: IStateNode<D, A, C, R>,
+    event: "onResolve" | "onReject",
+    payload: any,
+    result: any
+  ) {}
+
   /**
    * ## Handle Event
    * Run through all of the event handlers associated with an event. An event has an array of event handlers, each with many event handler items. This function is where we figure out what those events are going to do.   * @param state The state that the event handlers belong to.
@@ -389,6 +441,7 @@ class StateDesigner<
     event: IEvent<D>
   ) {
     const record: EventRecord = {
+      send: false,
       action: false,
       transition: undefined
     }
@@ -419,44 +472,68 @@ class StateDesigner<
         action(data, payload, result)
       }
 
+      // --- Await
+
+      const { await: asyncAction } = handler
+
+      if (asyncAction !== undefined) {
+        record.send = true
+
+        this.handleAsyncAction(state, asyncAction, data, payload, result)
+      }
+
       // --- Transition
 
       let { to: transition } = handler
 
-      if (transition === undefined) continue
+      if (transition !== undefined) {
+        let previous = false
+        let restore = false
 
-      let previous = false
-      let restore = false
+        // Strip off the modifiers (previous or restore) and
+        // set those boolean flags
+        if (transition.endsWith(".previous")) {
+          previous = true
+          transition = transition.substring(0, transition.length - 9)
+        } else if (transition.endsWith(".restore")) {
+          previous = true
+          restore = true
+          transition = transition.substring(0, transition.length - 8)
+        }
 
-      // Strip off the modifiers (previous or restore) and
-      // set those boolean flags
-      if (transition.endsWith(".previous")) {
-        previous = true
-        transition = transition.substring(0, transition.length - 9)
-      } else if (transition.endsWith(".restore")) {
-        previous = true
-        restore = true
-        transition = transition.substring(0, transition.length - 8)
+        const target = state.getTargetFromTransition(transition, state)
+
+        // No target found in the active tree!
+        // This is probably a bug in the user's configuration: either
+        // they have a name wrong or the state they're reaching for
+        // requires a "deep link", e.g. "myState.myOtherState"
+        if (target !== undefined) {
+          // Update the record
+          record.transition = {
+            previous,
+            restore,
+            target
+          }
+
+          // Return the record. A transition stops the event chain.
+          // Any events left after here will get ignored.
+          return record
+        }
       }
 
-      const target = state.getTargetFromTransition(transition, state)
+      const { send } = handler
 
-      // No target found in the active tree!
-      // This is probably a bug in the user's configuration: either
-      // they have a name wrong or the state they're reaching for
-      // requires a "deep link", e.g. "myState.myOtherState"
-      if (target === undefined) continue
+      // Send the new event (gulp)
+      if (send !== undefined) {
+        record.send = true
 
-      // Update the record
-      record.transition = {
-        previous,
-        restore,
-        target
+        if (Array.isArray(send)) {
+          this.send(send[0], send[1])
+        } else {
+          this.send(send)
+        }
+        return
       }
-
-      // Return the record. A transition stops the event chain.
-      // Any events left after here will get ignored.
-      return record
     }
 
     // This code will only run if there hasn't been any transitions
@@ -477,6 +554,7 @@ class StateDesigner<
     // What's happened so far? Have we had an action?
     // Have we had a transition? If so, what was it?
     let record: EventRecord = {
+      send: false,
       action: false,
       transition: undefined
     }
@@ -484,6 +562,7 @@ class StateDesigner<
     // TODO: Move to class method.
     function mergeRecord(next: EventRecord | undefined) {
       if (next === undefined) return
+      if (next.send === true) record.send = true
       if (next.action === true) record.action = true
       if (next.transition !== undefined) record.transition = next.transition
     }
@@ -595,6 +674,10 @@ class StateDesigner<
     // event names if one or more involve transitions!
     const dataResult = produce(this.data, draft => {
       for (let state of this._active) {
+        // Sending a new event should stop event chains.
+        if (record.send !== false) {
+          break
+        }
         // Just double-checking. This shouldn't happen.
         if (record.transition !== undefined) {
           console.error("A wild transition appeared!")
@@ -711,6 +794,8 @@ type StateConfig<
   machine: StateDesigner<D, A, C, R>
   onEnter?: IEventConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
+  onResolve?: IEventConfig<D, A, C, R>
+  onReject?: IEventConfig<D, A, C, R>
   on?: IEventsConfig<D, A, C, R>
   active: boolean
   initial?: string
@@ -736,6 +821,8 @@ class IStateNode<
   autoEvents: {
     onEvent?: IEvent<D>
     onEnter?: IEvent<D>
+    onResolve?: IEvent<D>
+    onReject?: IEvent<D>
   }
 
   constructor(options = {} as StateConfig<D, A, C, R>) {
@@ -748,6 +835,8 @@ class IStateNode<
       states = {},
       onEvent,
       onEnter,
+      onResolve,
+      onReject,
       active
     } = options
 
@@ -946,6 +1035,7 @@ ${parts[2]}}`
           unless: [],
           ifAny: [],
           do: [],
+          send: undefined,
           to: undefined
         }
 
@@ -958,6 +1048,8 @@ ${parts[2]}}`
           result.unless = getConditions(v.unless)
           result.ifAny = getConditions(v.ifAny)
           result.do = getActions(v.do)
+          result.await = v.await
+          result.send = v.send
           result.to = v.to
         }
 
@@ -969,7 +1061,9 @@ ${parts[2]}}`
 
     this.autoEvents = {
       onEvent: onEvent ? getProcessedEventHandler(onEvent) : undefined,
-      onEnter: onEnter ? getProcessedEventHandler(onEnter) : undefined
+      onEnter: onEnter ? getProcessedEventHandler(onEnter) : undefined,
+      onResolve: onResolve ? getProcessedEventHandler(onResolve) : undefined,
+      onReject: onReject ? getProcessedEventHandler(onReject) : undefined
     }
 
     this.events = Object.keys(on).reduce<IEvents<D>>((acc, key) => {
@@ -1162,6 +1256,7 @@ export type StateDesignerWithConfig<
 > = StateDesigner<C["data"], C["actions"], C["conditions"], C["results"]>
 
 type EventRecord = {
+  send: boolean
   action: boolean
   transition?: TransitionRecord
 }

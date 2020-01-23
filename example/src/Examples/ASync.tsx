@@ -40,14 +40,14 @@ const Async: React.FC<{}> = () => {
     },
     on: {
       SUBMIT_CLICKED: {
-        to: "waiting"
+        to: "loading"
       }
     },
     states: {
       empty: {
         onEnter: data => (data.status = "Click submit to get your result")
       },
-      waiting: {
+      loading: {
         onEnter: [data => (data.status = "Loading..."), "getData"],
         on: {
           RESOLVED_DATA: {
