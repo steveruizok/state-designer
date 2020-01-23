@@ -12,9 +12,9 @@ import StateDesigner, {
   IActionConfig,
   IConditionConfig,
   IResultConfig,
-  CAs,
-  CRs,
-  CCs,
+  ActionsCollection,
+  ResultsCollection,
+  ConditionsCollection,
   Graph
 } from "./StateDesigner"
 
@@ -22,9 +22,9 @@ export { Graph }
 
 export type Exports<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 > = Pick<
   StateDesigner<D, A, C, R>,
   "data" | "send" | "active" | "can" | "isIn" | "state" | "graph" | "reset"
@@ -46,9 +46,9 @@ type StateDesignerInfo<D> = {
 // Call useStateDesigner with a pre-existing StateDesigner instance
 export function useStateDesigner<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 >(
   options: StateDesigner<D, A, C, R>,
   onChange?: OnChange<StateDesignerInfo<D>>
@@ -56,9 +56,9 @@ export function useStateDesigner<
 // Call useStateDesigner with configuration for a new StateDesigner instance
 export function useStateDesigner<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 >(
   options: StateDesignerConfig<D, A, C, R>,
   onChange?: OnChange<StateDesignerInfo<D>>,
@@ -72,9 +72,9 @@ export function useStateDesigner<
  */
 export function useStateDesigner<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 >(
   options: StateDesigner<D, A, C, R> | StateDesignerConfig<D, A, C, R>,
   onChange?: OnChange<StateDesignerInfo<D>>,

@@ -8,6 +8,8 @@ import produce, { Draft } from "immer"
 
 // Actions
 
+export type MaybeArray<T> = T | T[]
+
 export type IAction<D> = (data: Draft<D>, payload: any, result: any) => any
 
 export type IActionConfig<D> = (data: D, payload: any, result: any) => any
@@ -37,35 +39,33 @@ export type IResultConfig<D> = (
 ) => void
 
 // Config records for named functions
-export type CA<D> = Record<string, IActionConfig<D>>
-export type CAs<D> = CA<D> | undefined
-export type CC<D> = Record<string, IConditionConfig<D>>
-export type CCs<D> = CC<D> | undefined
-export type CR<D> = Record<string, IResultConfig<D>>
-export type CRs<D> = CR<D> | undefined
+export type ActionsCollection<D> = Record<string, IActionConfig<D>>
+export type ConditionsCollection<D> = Record<string, IConditionConfig<D>>
+export type ResultsCollection<D> = Record<string, IResultConfig<D>>
 
 // Handler configurations
 
-export type IActionsConfig<D, A> = A extends undefined
-  ? IActionConfig<D> | IActionConfig<D>[]
-  : keyof A | IActionConfig<D> | (keyof A | IActionConfig<D>)[]
+export type IActionsConfig<D, A> = MaybeArray<
+  A extends Record<string, never>
+    ? IActionConfig<D>
+    : keyof A | IActionConfig<D>
+>
 
-export type IConditionsConfig<D, C> = C extends undefined
-  ? IConditionConfig<D> | IConditionConfig<D>[]
-  : keyof C | IConditionConfig<D> | (keyof C | IConditionConfig<D>)[]
+export type IConditionsConfig<D, C> = MaybeArray<
+  C extends Record<string, never>
+    ? IConditionConfig<D>
+    : keyof C | IConditionConfig<D>
+>
 
-export type IResultsConfig<D, R> = R extends undefined
-  ? IResultConfig<D> | IResultConfig<D>[]
-  : keyof R | IResultConfig<D> | (keyof R | IResultConfig<D>)[]
+export type IResultsConfig<D, R> = MaybeArray<
+  R extends Record<string, never>
+    ? IResultConfig<D>
+    : keyof R | IResultConfig<D>
+>
 
 // Event Handlers (Config)
 
-interface IEventHandlerConfig<
-  D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
-> {
+interface IEventHandlerConfig<D, A, C, R> {
   do?: IActionsConfig<D, A>
   if?: IConditionsConfig<D, C>
   ifAny?: IConditionsConfig<D, C>
@@ -75,53 +75,13 @@ interface IEventHandlerConfig<
   wait?: number
 }
 
-//undefined extends A
-// ? IActionConfig<D> | IActionConfig<D>[]
-// : keyof A | IActionConfig<D> | (keyof A | IActionConfig<D>)[]
+export type IEventConfig<D, A, C, R> = MaybeArray<
+  A extends Record<string, never>
+    ? IActionConfig<D> | IEventHandlerConfig<D, A, C, R>
+    : keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>
+>
 
-export type IEventWithoutActions<
-  D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
-> =
-  | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
-  | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
-
-export type IEventWithActions<
-  D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
-> =
-  | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
-  | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
-
-export type IEventConfig<
-  D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
-> = A extends CA<D>
-  ?
-      | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
-      | (keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
-  :
-      | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)
-      | (IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
-
-// :
-//     | K
-//     | IActionConfig<D>
-//     | IEventHandlerConfig<D, A, C, R>
-//     | (K | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>)[]
-
-export type IEventsConfig<
-  D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
-> = Record<string, IEventConfig<D, A, C, R>>
+export type IEventsConfig<D, A, C, R> = Record<string, IEventConfig<D, A, C, R>>
 
 // Event Handlers (final)
 
@@ -141,7 +101,12 @@ type IEvents<D> = Record<string, IEvent<D>>
 
 // Named functions
 
-type NamedFunctions<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> = {
+type NamedFunctions<
+  D,
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
+> = {
   actions?: A
   conditions?: C
   results?: R
@@ -151,9 +116,9 @@ type NamedFunctions<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> = {
 
 export interface IStateConfig<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 > {
   on?: IEventsConfig<D, A, C, R>
   onEnter?: IEventConfig<D, A, C, R>
@@ -164,9 +129,9 @@ export interface IStateConfig<
 
 export type IStatesConfig<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 > = Record<string, IStateConfig<D, A, C, R>>
 
 // Graph
@@ -202,9 +167,9 @@ export namespace Graph {
 
 export type Subscriber<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 > = (
   data: D,
   active: string[],
@@ -214,12 +179,12 @@ export type Subscriber<
 
 // State Designer Config
 
-export interface StateDesignerConfig<
+export type StateDesignerConfig<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
-> {
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
+> = {
   data?: D
   on?: IEventsConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
@@ -228,7 +193,7 @@ export interface StateDesignerConfig<
   actions?: A
   conditions?: C
   results?: R
-}
+} & ThisType<StateDesigner<D, A, C, R>>
 
 /* -------------------------------------------------- */
 /*                       Classes                      */
@@ -236,18 +201,18 @@ export interface StateDesignerConfig<
 
 export function createStateDesignerConfig<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 >(options: StateDesignerConfig<D, A, C, R>) {
   return options
 }
 
 export function createStateDesigner<
   D,
-  A extends CAs<D>,
-  C extends CCs<D>,
-  R extends CRs<D>
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
 >(options: StateDesignerConfig<D, A, C, R>, id = "0") {
   const statedesigner = new StateDesigner(options)
 
@@ -261,8 +226,28 @@ export function createStateDesigner<
 }
 
 /* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
+/* --------------------- Machine -------------------- */
 
-class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
+class StateDesigner<
+  D,
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
+> {
   id = uniqueId()
   private _initialData: D
   data: D
@@ -691,6 +676,23 @@ class StateDesigner<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
 }
 
 /* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
+/* ------------------- State Node ------------------- */
 
 enum StateType {
   Leaf = "leaf",
@@ -698,7 +700,12 @@ enum StateType {
   Parallel = "parallel"
 }
 
-type StateConfig<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> = {
+type StateConfig<
+  D,
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
+> = {
   name: string
   parent?: IStateNode<D, A, C, R>
   machine: StateDesigner<D, A, C, R>
@@ -710,7 +717,12 @@ type StateConfig<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> = {
   states?: IStatesConfig<D, A, C, R>
 }
 
-class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
+class IStateNode<
+  D,
+  A extends ActionsCollection<D> | undefined,
+  C extends ConditionsCollection<D> | undefined,
+  R extends ResultsCollection<D> | undefined
+> {
   name: string
   path: string
   active = false
@@ -801,6 +813,10 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
 
     // EVENTS
 
+    const bindToMachine = (func: Function) => {
+      return func.bind(this.machine)
+    }
+
     // We need to return a "full" event handler object, but the
     // config value may either be an anonymous action function,
     // a named action function, or a partial event handler object.
@@ -813,7 +829,7 @@ class IStateNode<D, A extends CAs<D>, C extends CCs<D>, R extends CRs<D>> {
       if (typeof item === "function") {
         const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
 
-        if (parts === null) return item
+        if (parts === null) return bindToMachine(item)
 
         return Function(
           `return function custom(${parts[1]}) {
@@ -833,7 +849,7 @@ ${parts[2]}}`
           return
         }
 
-        return callback
+        return bindToMachine(callback)
       }
       return
     }
@@ -849,7 +865,7 @@ ${parts[2]}}`
       if (typeof item === "function") {
         const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
 
-        if (parts === null) return item
+        if (parts === null) return bindToMachine(item)
 
         return Function(
           `return function custom(${parts[1]}) {
@@ -869,7 +885,7 @@ ${parts[2]}}`
           return
         }
 
-        return callback
+        return bindToMachine(callback)
       }
 
       return
@@ -886,7 +902,7 @@ ${parts[2]}}`
       if (typeof item === "function") {
         const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
 
-        if (parts === null) return item
+        if (parts === null) return bindToMachine(item)
 
         return Function(
           `return function custom(${parts[1]}) {
@@ -906,7 +922,7 @@ ${parts[2]}}`
           return
         }
 
-        return callback
+        return bindToMachine(callback)
       }
       return
     }
