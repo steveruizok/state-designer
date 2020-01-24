@@ -443,7 +443,7 @@ class StateDesigner<
 
   // From here on, it's all event handling and state transition stuff
 
-  send = (eventName: string, payload: any) => {
+  send = (eventName: string, payload?: any) => {
     this.resetRecord()
 
     const dataResult = produce(this.data, draft => {
