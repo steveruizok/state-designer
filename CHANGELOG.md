@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.24
+
+- Adds onRepeat, wait, repeatDelay
+- Refactors transition code
+
 ## 1.0.21
 
 - Removes effect

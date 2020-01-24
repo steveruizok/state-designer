@@ -12,7 +12,8 @@ const Chaser: React.FC<{}> = () => {
   const { data, send, getGraph } = useStateDesigner({
     data: {
       x: 0,
-      y: 0
+      y: 0,
+      fallDistance: 0
     },
     initial: "chasing",
     states: {
@@ -31,12 +32,16 @@ const Chaser: React.FC<{}> = () => {
         }
       },
       sinking: {
+        onEnter: data => (data.fallDistance = 100),
         on: {
           CLICKED: { to: "chasing" }
         },
         onRepeat: {
           do: data => {
-            data.y += 1
+            data.fallDistance--
+            if (data.fallDistance > 0) {
+              data.y += 1
+            }
           },
           repeatDelay: 0.016
         }
