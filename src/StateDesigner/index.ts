@@ -16,11 +16,7 @@ export type IActionConfig<D> = (data: D, payload: any, result: any) => any
 
 // Conditions
 
-export type ICondition<D> = (
-  data: Draft<D>,
-  payload: any,
-  result: any
-) => boolean
+export type ICondition<D> = (data: D, payload: any, result: any) => boolean
 
 export type IConditionConfig<D> = (
   data: D,
@@ -30,13 +26,9 @@ export type IConditionConfig<D> = (
 
 // Results
 
-export type IResult<D> = (data: D | Draft<D>, payload: any, result: any) => any
+export type IResult<D> = (data: D, payload: any, result: any) => any
 
-export type IResultConfig<D> = (
-  data: D | Draft<D>,
-  payload: any,
-  result: any
-) => void
+export type IResultConfig<D> = (data: D, payload: any, result: any) => void
 
 // Config records for named functions
 export type ActionsCollection<D> = Record<string, IActionConfig<D>>
@@ -46,21 +38,15 @@ export type ResultsCollection<D> = Record<string, IResultConfig<D>>
 // Handler configurations
 
 export type IActionsConfig<D, A> = MaybeArray<
-  A extends Record<string, never>
-    ? IActionConfig<D>
-    : keyof A | IActionConfig<D>
+  A extends undefined ? IActionConfig<D> : keyof A | IActionConfig<D>
 >
 
 export type IConditionsConfig<D, C> = MaybeArray<
-  C extends Record<string, never>
-    ? IConditionConfig<D>
-    : keyof C | IConditionConfig<D>
+  C extends undefined ? IConditionConfig<D> : keyof C | IConditionConfig<D>
 >
 
 export type IResultsConfig<D, R> = MaybeArray<
-  R extends Record<string, never>
-    ? IResultConfig<D>
-    : keyof R | IResultConfig<D>
+  R extends undefined ? IResultConfig<D> : keyof R | IResultConfig<D>
 >
 
 // Event Handlers (Config)
@@ -401,25 +387,23 @@ class StateDesigner<
    * Can the machine respond to a given event?
    */
   can = (event: string, payload?: any): boolean => {
-    return produce(this.data, draft => {
-      for (let state of this._active) {
-        let eventHandlers = state.events[event]
-        if (eventHandlers !== undefined) {
-          for (let handler of eventHandlers) {
-            let result: any
-            for (let resolver of handler.get) {
-              result = resolver(draft, payload, result)
-            }
+    for (let state of this._active) {
+      let eventHandlers = state.events[event]
+      if (eventHandlers !== undefined) {
+        for (let handler of eventHandlers) {
+          let result: any
+          for (let resolver of handler.get) {
+            result = resolver(this.data, payload, result)
+          }
 
-            if (state.canEventHandlerRun(handler, draft, payload, result)) {
-              return true
-            }
+          if (state.canEventHandlerRun(handler, this.data, payload, result)) {
+            return true
           }
         }
       }
+    }
 
-      return false
-    })
+    return false
   }
 
   /**
@@ -446,25 +430,19 @@ class StateDesigner<
   send = (eventName: string, payload?: any) => {
     this.resetRecord()
 
-    const dataResult = produce(this.data, draft => {
-      for (let state of this._active) {
-        if (this.record.send || this.record.transition) break
+    for (let state of this._active) {
+      if (this.record.send || this.record.transition) break
+      this.handleEvent(state, state.events[eventName], payload)
 
-        this.handleEvent(state, state.events[eventName], draft, payload)
-
-        if (this.record.transition !== undefined) {
-          while (this.record.transition !== undefined) {
-            this.enactTransition(this.record.transition, draft, payload)
-          }
-
-          break
+      if (this.record.transition !== undefined) {
+        while (this.record.transition !== undefined) {
+          this.enactTransition(this.record.transition, payload)
         }
       }
-    })
+    }
 
     if (this.record.transitions > 0 || this.record.action || this.record.send) {
       this.resetRecord()
-      this.data = dataResult
       this._active = this.root.getActive()
 
       const next = this.pendingSend.shift()
@@ -491,20 +469,18 @@ class StateDesigner<
   handleEvent = (
     state: IStateNode<D, any, any, any>,
     event: IEvent<D> | undefined,
-    draft: Draft<D>,
     payload: any,
     result?: any
   ) => {
     if (event === undefined) return
     for (let handler of event) {
-      this.handleEventHandler(state, handler, draft, payload, result)
+      this.handleEventHandler(state, handler, payload, result)
     }
   }
 
   handleEventHandler(
     state: IStateNode<D, any, any, any>,
     handler: IEventHandler<D>,
-    draft: Draft<D>,
     payload: any,
     result?: any
   ) {
@@ -517,20 +493,22 @@ class StateDesigner<
     } = handler
 
     for (let resolver of resolvers) {
-      result = resolver(draft, payload, result)
+      result = resolver(this.data, payload, result)
     }
 
-    if (!state.canEventHandlerRun(handler, draft, payload, result)) {
+    if (!state.canEventHandlerRun(handler, this.data, payload, result)) {
       return
     }
 
-    for (let action of actions) {
-      this.record.action = true
-      action(draft, payload, result)
-    }
+    this.data = produce(this.data, draft => {
+      for (let action of actions) {
+        this.record.action = true
+        action(draft, payload, result)
+      }
+    })
 
     if (asyncItem !== undefined) {
-      this.handleAsyncItem(state, asyncItem, draft, payload, result)
+      this.handleAsyncItem(state, asyncItem, this.data, payload, result)
       return
     }
 
@@ -581,15 +559,11 @@ class StateDesigner<
     }
   }
 
-  enactTransition(
-    transition: TransitionRecord<D>,
-    draft: Draft<D>,
-    payload: any
-  ) {
+  enactTransition(transition: TransitionRecord<D>, payload: any) {
     this.record.transitions++
+    this.record.transition = undefined
 
     if (this.record.transitions > 100) {
-      this.record.transition = undefined
       return
     }
 
@@ -600,29 +574,11 @@ class StateDesigner<
 
     const downChanges = target.activateDown(previous, restore)
 
-    this.handleChanges(
-      target,
-      downChanges,
-      false,
-      previous,
-      restore,
-      draft,
-      payload
-    )
+    this.handleChanges(target, downChanges, false, previous, restore, payload)
 
     const upChanges = target.activateUp()
 
-    this.handleChanges(
-      target,
-      upChanges,
-      true,
-      previous,
-      restore,
-      draft,
-      payload
-    )
-
-    this.record.transition = undefined
+    this.handleChanges(target, upChanges, true, previous, restore, payload)
 
     if (onEnter !== undefined) {
       this.triggerAutoEvent(target, "onEnter", payload, undefined)
@@ -639,7 +595,6 @@ class StateDesigner<
     andUp: boolean,
     previous: boolean,
     restore: boolean,
-    draft: Draft<D>,
     payload: any
   ) {
     const [activateDowns, deactivates] = results
@@ -653,55 +608,46 @@ class StateDesigner<
 
       const { onEnter } = state.autoEvents
       if (onEnter !== undefined) {
-        this.triggerAutoEvent(target, "onEnter", payload, undefined)
+        this.triggerAutoEvent(state, "onEnter", payload, undefined)
       }
 
       const { onRepeat } = state.autoEvents
       if (onRepeat !== undefined) {
-        this.triggerAutoEvent(target, "onRepeat", payload, undefined)
+        this.triggerAutoEvent(state, "onRepeat", payload, undefined)
       }
 
       if (this.record.transition !== undefined) {
-        this.enactTransition(this.record.transition, draft, payload)
+        this.enactTransition(this.record.transition, payload)
       }
 
       const downChanges = state.activateDown(previous, restore)
-      this.handleChanges(
-        target,
-        downChanges,
-        false,
-        previous,
-        restore,
-        draft,
-        payload
-      )
+      this.handleChanges(state, downChanges, false, previous, restore, payload)
+    }
 
-      if (andUp && state.parent !== undefined) {
-        if (!state.parent.active) {
-          // Activate the parent state
-          state.parent.active = true
-          this.handleChanges(
-            state,
-            state.activateUp(),
-            true,
-            previous,
-            restore,
-            draft,
-            payload
-          )
-        }
+    if (andUp && target.parent !== undefined) {
+      if (!target.parent.active) {
+        // Activate the parent state
+        target.parent.active = true
+        this.handleChanges(
+          target.parent,
+          target.parent.activateUp(),
+          true,
+          previous,
+          restore,
+          payload
+        )
       }
     }
   }
 
   handleAsyncItem(
     state: IStateNode<D, any, any, any>,
-    asyncItem: <T>(data: Draft<D>, payload: any, result: any) => Promise<T>,
-    draft: Draft<D>,
+    asyncItem: <T>(data: D, payload: any, result: any) => Promise<T>,
+    draft: D,
     payload: any,
     result: any
   ) {
-    asyncItem(draft, payload, result)
+    asyncItem(this.data, payload, result)
       .then(resolved => {
         if (state.active) {
           if (state.autoEvents.onResolve) {
@@ -735,19 +681,16 @@ class StateDesigner<
     }
 
     this.resetRecord()
-    const dataResult = produce(this.data, draft => {
-      this.handleEvent(state, event, draft, payload, returned)
+    this.handleEvent(state, event, payload, returned)
 
-      if (this.record.transition !== undefined) {
-        while (this.record.transition !== undefined) {
-          this.enactTransition(this.record.transition, draft, payload)
-        }
+    if (this.record.transition !== undefined) {
+      while (this.record.transition !== undefined) {
+        this.enactTransition(this.record.transition, payload)
       }
-    })
+    }
 
     if (this.record.transitions > 0 || this.record.action || this.record.send) {
       this.resetRecord()
-      this.data = dataResult
       this._active = this.root.getActive()
 
       const next = this.pendingSend.shift()
@@ -938,16 +881,7 @@ export class IStateNode<
 
     function getAction(item: keyof A | IActionConfig<D>) {
       if (typeof item === "function") {
-        const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
-
-        if (parts === null) return bindToMachine(item)
-
         return item as IAction<D>
-
-        //         return Function(
-        //           `return function custom(${parts[1]}) {
-        // ${parts[2]}}`
-        // )() as IAction<D>
       } else if (typeof item === "string") {
         const items = namedFunctions.actions
 
@@ -976,14 +910,7 @@ export class IStateNode<
 
     function getCondition(item: keyof C | IConditionConfig<D>) {
       if (typeof item === "function") {
-        const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
-
-        if (parts === null) return bindToMachine(item)
-
-        return Function(
-          `return function custom(${parts[1]}) {
-${parts[2]}}`
-        )() as ICondition<D>
+        return item as ICondition<D>
       } else if (typeof item === "string") {
         const items = namedFunctions.conditions
 
@@ -1013,14 +940,7 @@ ${parts[2]}}`
 
     function getResult(item: keyof R | IResultConfig<D>) {
       if (typeof item === "function") {
-        const parts = item.toString().match(/\((.*)\) {\n([^}]*)}/)
-
-        if (parts === null) return bindToMachine(item)
-
-        return Function(
-          `return function custom(${parts[1]}) {
-${parts[2]}}`
-        )() as IResult<D>
+        return item as IResult<D>
       } else if (typeof item === "string") {
         const items = namedFunctions.results
 
@@ -1196,6 +1116,7 @@ ${parts[2]}}`
             deactivates.push(sib)
           }
         }
+
         break
       }
       case StateType.Parallel: {
@@ -1224,7 +1145,7 @@ ${parts[2]}}`
 
   canEventHandlerRun = (
     handler: IEventHandler<D>,
-    draft: Draft<D>,
+    draft: D,
     payload: any,
     result: any
   ) => {

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.27
+
+- Fixed a bug that caused autoevents to receive old data.
+
+## 1.0.26
+
+- Fixed a bug that prevented a system from activating "up" a tree
+
 ## 1.0.24
 
 - Adds onRepeat, wait, repeatDelay
