@@ -4,6 +4,7 @@ import Switch from "./Examples/Switch"
 import NestedStates from "./Examples/NestedStates"
 import Chain from "./Examples/Chain"
 import DeepLink from "./Examples/DeepLink"
+import OnEvent from "./Examples/OnEvent"
 import Chaser from "./Examples/Chaser"
 
 export interface Props {}
@@ -18,6 +19,7 @@ const App: React.FC<Props> = ({ children }) => {
       <NestedStates />
       <Chain />
       <DeepLink />
+      <OnEvent />
       {/* <Chaser /> */}
     </div>
   )

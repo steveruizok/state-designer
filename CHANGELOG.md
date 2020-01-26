@@ -1,12 +1,16 @@
 # Changelog
 
+## 1.0.28
+
+- Fixes missing onEvent autoevent.
+
 ## 1.0.27
 
-- Fixed a bug that caused autoevents to receive old data.
+- Fixes a bug that caused autoevents to receive old data.
 
 ## 1.0.26
 
-- Fixed a bug that prevented a system from activating "up" a tree
+- Fixes a bug that prevented a system from activating "up" a tree
 
 ## 1.0.24
 

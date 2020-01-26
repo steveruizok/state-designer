@@ -118,9 +118,9 @@ const DeepLink: React.FC<{}> = () => {
           Save
         </button>
       </div>
-      <pre>
+      {/* <pre>
         <code>{JSON.stringify(getGraph(), null, 2)}</code>
-      </pre>
+      </pre> */}
     </div>
   )
 }

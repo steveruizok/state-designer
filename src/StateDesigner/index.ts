@@ -439,6 +439,10 @@ class StateDesigner<
           this.enactTransition(this.record.transition, payload)
         }
       }
+
+      if (state.autoEvents.onEvent !== undefined) {
+        this.triggerAutoEvent(state, "onEvent", payload, undefined)
+      }
     }
 
     if (this.record.transitions > 0 || this.record.action || this.record.send) {
