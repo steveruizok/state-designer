@@ -1,7 +1,9 @@
 import { ValuesType } from "utility-types"
 import castArray from "lodash/castArray"
 import uniqueId from "lodash/uniqueId"
-import produce, { Draft } from "immer"
+import produce, { Draft, setAutoFreeze } from "immer"
+
+setAutoFreeze(false)
 
 // type WithoutNamed<T> = T | T[]
 // type NamedOrInSeries<T, U> = keyof U | T | (keyof U | T)[]

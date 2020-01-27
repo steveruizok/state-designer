@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.29
+
+- Fixes bug with autofreeze.
+
 ## 1.0.28
 
 - Fixes missing onEvent autoevent.
