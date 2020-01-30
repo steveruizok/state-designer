@@ -1,12 +1,7 @@
 {
   "name": "State Designer",
   "version": 2,
-  "alias": [
-    "statedesigner.com",
-    "state-designer.com",
-    "statedesigner",
-    "state-designer"
-  ],
+  "alias": ["statedesigner.com", "state-designer"],
   "builds": [
     {
       "src": "docs",
