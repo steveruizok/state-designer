@@ -6,5 +6,6 @@
     "state-designer.com",
     "statedesigner",
     "state-designer"
-  ]
+  ],
+  "distDir": "public"
 }
