@@ -4,7 +4,7 @@
   "alias": ["statedesigner.com", "state-designer"],
   "builds": [
     {
-      "src": "docs",
+      "src": "docs/package.json",
       "use": "@now/static-build",
       "config": {
         "distDir": "public"
