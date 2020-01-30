@@ -23,7 +23,6 @@ export const counter = createStateDesigner({
     }
   ],
   on: {
-    TEST: data => console.log("hello world"),
     CHANGED_INPUT_VALUE: "setInputValue",
     CLICKED_MINUS: {
       unless: "atMin",

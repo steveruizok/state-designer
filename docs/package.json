@@ -1,0 +1,53 @@
+{
+	"private": false,
+	"name": "quick-docs",
+	"version": "0.0.1",
+	"main": "index.js",
+	"author": "Steve Ruiz <steveruizok@gmail.com>",
+	"repository": "https://github.com/steveruizok/quick-docs",
+	"keywords": [
+		"docs",
+		"documentation",
+		"gatsby"
+	],
+	"license": "MIT",
+	"scripts": {
+		"start": "gatsby develop",
+		"clean": "gatsby clean",
+		"build": "gatsby build"
+	},
+	"dependencies": {
+		"@emotion/core": "^10.0.14",
+		"@mdx-js/mdx": "^1.1.0",
+		"@mdx-js/react": "^1.0.27",
+		"@theme-ui/presets": "^0.2.15",
+		"@theme-ui/prism": "^0.2.21",
+		"@theme-ui/sidenav": "^0.2.13",
+		"@types/prismjs": "^1.16.0",
+		"@types/react": "^16.8.23",
+		"@types/react-dom": "^16.8.5",
+		"@types/react-helmet": "^5.0.8",
+		"@types/react-icons": "^3.0.0",
+		"gatsby-plugin-manifest": "^2.2.4",
+		"gatsby-plugin-mdx": "^1.0.16",
+		"gatsby-plugin-meta-redirect": "^1.1.1",
+		"gatsby-plugin-react-helmet": "^3.1.2",
+		"gatsby-plugin-redirects": "^1.0.0",
+		"gatsby-plugin-theme-ui": "^0.2.18",
+		"gatsby-plugin-webfonts": "^1.1.0",
+		"gatsby-remark-prismjs": "^3.3.3",
+		"gatsby-source-filesystem": "^2.1.5",
+		"is-absolute-url": "^3.0.0",
+		"prismjs": "^1.17.1",
+		"react-helmet": "^5.2.1",
+		"react-icons": "^3.7.0",
+		"remark-emoji": "^2.0.2",
+		"remark-slug": "^5.1.2",
+		"theme-ui": "^0.2.21"
+	},
+	"devDependencies": {
+		"gatsby": "^2.6.3",
+		"react": "^16.8.6",
+		"react-dom": "^16.8.6"
+	}
+}

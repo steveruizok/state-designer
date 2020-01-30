@@ -8,11 +8,11 @@ type Props = {
 }
 
 const Graph: React.FC<Props> = ({ event, payload, children }) => {
-  const { getGraph } = useStateDesigner(state)
+  const { graph } = useStateDesigner(state)
 
   return (
     <pre>
-      <code>{JSON.stringify(getGraph(), null, 2)}</code>
+      <code>{JSON.stringify(graph, null, 2)}</code>
     </pre>
   )
 }

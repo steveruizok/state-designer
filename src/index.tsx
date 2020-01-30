@@ -1,4 +1,6 @@
 import * as React from "react"
+import isPlainObject from "lodash-es/isPlainObject"
+import pick from "lodash-es/pick"
 import StateDesigner, {
   createStateDesignerConfig,
   createStateDesigner,
@@ -20,28 +22,20 @@ import StateDesigner, {
 
 export { Graph }
 
-export type Exports<
-  D,
-  A extends ActionsCollection<D> | undefined,
-  C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
-> = Pick<
-  StateDesigner<D, A, C, R>,
-  "data" | "send" | "active" | "can" | "isIn" | "state" | "graph" | "reset"
->
+export type OnChange<T> = (state: T) => void
 
-type OnChange<T> = (state: T) => void
-
-const defaultDependencies: any[] = []
-
-type StateDesignerInfo<D> = {
+export type StateDesignerInfo<D> = {
   data: D
   send: (eventName: string, payload?: any) => void
-  getGraph(): Graph.Node
-  isIn(state: string): boolean
+  graph: Graph.Node
+  active: string[]
+  isIn(states: string): boolean
+  whenIn(state: { [key: string]: any }): any
   can(event: string, payload?: any): boolean
   reset(): void
 }
+
+const defaultDependencies: any[] = []
 
 // Call useStateDesigner with a pre-existing StateDesigner instance
 export function useStateDesigner<
@@ -91,25 +85,41 @@ export function useStateDesigner<
   }
 
   const [state, setState] = React.useState<
-    Pick<StateDesigner<D, A, C, R>, "data" | "active">
-  >({
-    data: machine.current.data,
-    active: machine.current.active
-  })
+    Pick<StateDesigner<D, A, C, R>, "data" | "active" | "graph">
+  >(pick(machine.current, ["graph", "data", "active"]))
 
   const helpers = React.useMemo(
     () => ({
       send(event: string, payload?: any) {
         return machine.current.send(event, payload)
       },
-      getActive() {
-        return machine.current.active
-      },
-      getGraph() {
-        return machine.current.graph
-      },
       isIn(state: string) {
         return machine.current.isIn(state)
+      },
+      whenIn(states: { [key: string]: any }) {
+        const { active } = machine.current
+
+        let returnValue = states["default"]
+
+        function setValue(value: any) {
+          if (isPlainObject(returnValue)) {
+            Object.assign(returnValue, value)
+          } else {
+            returnValue = value
+          }
+        }
+
+        Object.entries(states).forEach(([key, value]) => {
+          if (key === "root") {
+            setValue(value)
+          } else {
+            if (active.find(v => v.endsWith("." + key))) {
+              setValue(value)
+            }
+          }
+        })
+
+        return returnValue
       },
       can(event: string, payload?: any) {
         return machine.current.can(event, payload)
@@ -124,18 +134,11 @@ export function useStateDesigner<
   React.useEffect(() => {
     if (!(options instanceof StateDesigner)) {
       machine.current = new StateDesigner(options)
-
-      setState({
-        data: machine.current.data,
-        active: machine.current.active
-      })
+      setState(pick(machine.current, ["graph", "data", "active"]))
     }
 
-    return machine.current.subscribe((data, active) => {
-      setState({
-        data,
-        active
-      })
+    return machine.current.subscribe((data, active, graph) => {
+      setState({ data, active, graph })
     })
   }, dependencies)
 

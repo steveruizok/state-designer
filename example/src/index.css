@@ -10,6 +10,7 @@ body {
 }
 
 input {
+  outline: 0;
   font-size: 1em;
   padding: 0.5em 0.8em;
   background: none;
@@ -20,6 +21,7 @@ input {
 }
 
 button {
+  outline: 0;
   font-size: 1em;
   padding: 0.5em 0.8em;
   background: none;

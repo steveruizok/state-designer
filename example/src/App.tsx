@@ -5,6 +5,7 @@ import NestedStates from "./Examples/NestedStates"
 import Chain from "./Examples/Chain"
 import DeepLink from "./Examples/DeepLink"
 import OnEvent from "./Examples/OnEvent"
+import Blended from "./Examples/Blended"
 import Chaser from "./Examples/Chaser"
 
 export interface Props {}
@@ -14,6 +15,7 @@ const App: React.FC<Props> = ({ children }) => {
     <div className="app">
       <h1>State Designer</h1>
       <hr />
+      <Blended />
       <Counter />
       <Switch />
       <NestedStates />

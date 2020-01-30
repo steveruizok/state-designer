@@ -21,7 +21,7 @@ function getFakeFetch() {
 // Add "await" and "onResolve"
 
 const DeepLink: React.FC<{}> = () => {
-  const { data, send, getGraph, isIn, can } = useStateDesigner({
+  const { data, send, graph, isIn, can } = useStateDesigner({
     data: {
       clean: {
         code: "count++",
@@ -37,7 +37,7 @@ const DeepLink: React.FC<{}> = () => {
     },
     on: {
       UPDATE: {
-        do: [d => console.log(d.dirty.payload), "updateDirty", "updateError"]
+        do: ["updateDirty", "updateError"]
       }
     },
     initial: "saved",
@@ -119,7 +119,7 @@ const DeepLink: React.FC<{}> = () => {
         </button>
       </div>
       {/* <pre>
-        <code>{JSON.stringify(getGraph(), null, 2)}</code>
+        <code>{JSON.stringify(graph, null, 2)}</code>
       </pre> */}
     </div>
   )

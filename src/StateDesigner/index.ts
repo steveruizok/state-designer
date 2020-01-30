@@ -259,6 +259,8 @@ class StateDesigner<
   _rootOptions: any
   _initialGraph: Graph.Node
   _active: IStateNode<D, A, C, R>[] = []
+  _activeNames: string[]
+  _graph: Graph.Node
   root: IStateNode<D, A, C, R>
   subscribers = new Set<Subscriber<D, A, C, R>>([])
   pendingSend: [string, any][] = []
@@ -317,8 +319,11 @@ class StateDesigner<
     }
 
     this.root = new IStateNode(this._rootOptions)
+
     this._active = this.root.getActive()
-    this._initialGraph = this.getGraphNode(this.root)
+    this._activeNames = this._active.flatMap(state => [state.name, state.path])
+    this._graph = this.graphNode(this.root)
+    this._initialGraph = this._graph
 
     for (let state of this._active) {
       if (state.autoEvents.onEnter !== undefined) {
@@ -331,19 +336,25 @@ class StateDesigner<
     }
   }
 
-  private getGraphNode(state: IStateNode<D, A, C, R>): Graph.Node {
+  private updatePublicData = () => {
+    this._active = this.root.getActive()
+    this._activeNames = this._active.flatMap(state => [state.name, state.path])
+    this._graph = this.graphNode(this.root)
+  }
+
+  private graphNode(state: IStateNode<D, A, C, R>): Graph.Node {
     return {
       name: state.name,
       active: state.active,
       initial: state.parent
         ? state.parent.type === "branch" && state.parent.initial === state.name
         : true,
-      autoEvents: getGraphAutoEvents(state),
+      autoEvents: graphAutoEvents(state),
       events: getEvents(state),
       states:
         state.type === "leaf"
           ? undefined
-          : state.children.map((child: any) => this.getGraphNode(child))
+          : state.children.map((child: any) => this.graphNode(child))
     }
   }
 
@@ -420,11 +431,11 @@ class StateDesigner<
   }
 
   get graph() {
-    return this.getGraphNode(this.root)
+    return this._graph
   }
 
   get active() {
-    return this._active.map(s => s.name).slice(1)
+    return this._activeNames
   }
 
   // From here on, it's all event handling and state transition stuff
@@ -449,7 +460,7 @@ class StateDesigner<
 
     if (this.record.transitions > 0 || this.record.action || this.record.send) {
       this.resetRecord()
-      this._active = this.root.getActive()
+      this.updatePublicData()
 
       const next = this.pendingSend.shift()
 
@@ -462,7 +473,6 @@ class StateDesigner<
       this.notifySubscribers()
     }
   }
-
   resetRecord = () => {
     this.record = {
       send: false,
@@ -481,6 +491,7 @@ class StateDesigner<
     if (event === undefined) return
     for (let handler of event) {
       this.handleEventHandler(state, handler, payload, result)
+      if (this.record.transition !== undefined) return
     }
   }
 
@@ -697,7 +708,7 @@ class StateDesigner<
 
     if (this.record.transitions > 0 || this.record.action || this.record.send) {
       this.resetRecord()
-      this._active = this.root.getActive()
+      this.updatePublicData()
 
       const next = this.pendingSend.shift()
 
@@ -1261,7 +1272,7 @@ createGroup({
 //   ) as { K: U }
 // }
 
-function getGraphHandlerItem<D>(item: ValuesType<IEventHandler<unknown>>) {
+function graphHandlerItem<D>(item: ValuesType<IEventHandler<unknown>>) {
   if (Array.isArray(item)) {
     return (item as any).map(
       (thing: IAction<unknown> | ICondition<unknown> | IResult<unknown>) => ({
@@ -1280,14 +1291,14 @@ function getEvent(event: IEvent<unknown>): Graph.Event {
 
     for (let key in eventHandler) {
       const item = eventHandler[key]
-      graphHandler[key] = getGraphHandlerItem(item)
+      graphHandler[key] = graphHandlerItem(item)
     }
 
     return graphHandler
   })
 }
 
-function getGraphAutoEvents(state: IStateNode<any, any, any, any>) {
+function graphAutoEvents(state: IStateNode<any, any, any, any>) {
   const autoEvents = {} as Graph.AutoEvents
 
   for (let eventName of [

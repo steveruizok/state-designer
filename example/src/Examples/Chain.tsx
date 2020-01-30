@@ -21,7 +21,7 @@ function getFakeFetch() {
 // Add "await" and "onResolve"
 
 const Chain: React.FC<{}> = () => {
-  const { data, send, getGraph } = useStateDesigner({
+  const { data, send, graph } = useStateDesigner({
     data: {
       status: "",
       result: undefined as string | undefined
@@ -86,7 +86,7 @@ const Chain: React.FC<{}> = () => {
         <button onClick={() => send("CANCEL_CLICKED")}>Cancel</button>
       </div>
       {/* <pre>
-        <code>{JSON.stringify(getGraph(), null, 2)}</code>
+        <code>{JSON.stringify(graph, null, 2)}</code>
       </pre> */}
     </div>
   )

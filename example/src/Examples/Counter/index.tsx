@@ -7,7 +7,7 @@ import Input from "./components/Input"
 export interface Props {}
 
 const Counter: React.FC<Props> = ({ children }) => {
-  const { data, isIn, getGraph } = useStateDesigner(counter)
+  const { data, isIn, graph } = useStateDesigner(counter)
 
   return (
     <div className="example">
@@ -28,7 +28,6 @@ const Counter: React.FC<Props> = ({ children }) => {
           </div>
         </div>
       </div>
-      {/* <pre>{JSON.stringify(getGraph(), null, 2)}</pre> */}
     </div>
   )
 }

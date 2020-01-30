@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.0.30
+
+- Changes hook returns:
+- `getGraph` is now `graph`
+- `getActive` is now `active`
+- Active includes paths (like `"root.active.bold"`) as well as names (like `bold`). These are unique values, so in a machine with two states, both with the name "bold", the active array will only include "bold" once.
+- Adds `whenIn`, a helper to reduce a value depending on the state. All values matching an active state name (or path) are merged into the returned object. When the values are primitives, rather than objects, these multiple active values will replace each other, rather than merge.
+
+```ts
+whenIn({
+  root: { border: "1px solid #000" },
+  active: { backgroundColor: "#fff" },
+  inactive: { backgroundColor: "#ccc" },
+  bold: { fontWeight: "bold" },
+  normal: { fontWeight: "normal" }
+})
+```
+
+In a graph where `root`, `active`, and `bold` were true, this function would return:
+
+```ts
+{
+  border: "1px solid #000",
+  backgroundColor: "#fff",
+  fontWeight: "bold"
+}
+```
+
+In a graph where `root` and `inactive` were true, this function would return:
+
+```ts
+{
+  border: "1px solid #000",
+  backgroundColor: "#ccc",
+}
+```
+
 ## 1.0.29
 
 - Fixes bug with autofreeze.

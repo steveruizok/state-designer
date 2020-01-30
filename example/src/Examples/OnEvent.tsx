@@ -2,7 +2,7 @@ import * as React from "react"
 import { useStateDesigner } from "state-designer"
 
 const DeepLink: React.FC<{}> = () => {
-  const { data, send, getGraph, isIn, can } = useStateDesigner({
+  const { data, send, graph, isIn, can } = useStateDesigner({
     data: {
       transitions: 0
     },
@@ -34,7 +34,7 @@ const DeepLink: React.FC<{}> = () => {
           <button onClick={() => send("TOGGLE")}>Toggle</button>
         </div>
       </div>
-      {/* <pre>{JSON.stringify(getGraph(), null, 2)}</pre> */}
+      {/* <pre>{JSON.stringify(graph, null, 2)}</pre> */}
     </div>
   )
 }

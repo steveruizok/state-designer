@@ -9,7 +9,7 @@ import { createStateDesigner, useStateDesigner } from "state-designer"
 const Chaser: React.FC<{}> = () => {
   const rMouse = React.useRef({ x: 0, y: 0 })
 
-  const { data, send, getGraph } = useStateDesigner({
+  const { data, send, graph } = useStateDesigner({
     data: {
       x: 0,
       y: 0,
@@ -84,7 +84,7 @@ const Chaser: React.FC<{}> = () => {
       />
 
       {/* <pre>
-        <code>{JSON.stringify(getGraph(), null, 2)}</code>
+        <code>{JSON.stringify(graph, null, 2)}</code>
       </pre> */}
     </div>
   )
