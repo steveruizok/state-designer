@@ -7,5 +7,5 @@
     "statedesigner",
     "state-designer"
   ],
-  "distDir": "public"
+  "distDir": "docs/public"
 }
