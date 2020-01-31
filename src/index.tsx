@@ -144,7 +144,7 @@ export function useStateDesigner<
 
   // Run onChange callback when data changes
   React.useEffect(() => {
-    onChange && onChange({ ...(state as any), ...helpers })
+    onChange && onChange({ ...state, ...helpers })
   }, [state])
 
   return { ...(state as any), ...helpers }
