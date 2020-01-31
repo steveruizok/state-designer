@@ -22,12 +22,13 @@ yarn add state-designer
 
 You can use State Designer with any JavaScript framework or environment. The library includes a [React hook](/docs/useStateDesigner). See the [StateDesigner](/docs/StateDesigner) page for more on using the library directly.
 
-State Designer introduces several new concepts:
+State Designer relies on several concepts.
 
 - [Data](/)
 - [Events](/)
 - [Event Handlers](/)
 - [States](/)
+- [Collections](/)
 
 See the links above to learn more about each of these concepts and how they apply in State Designer.
 
@@ -38,15 +39,25 @@ import React from "react"
 import { useStateDesigner } from "state-designer"
 
 function Counter() {
-  const { data, send } = createStateDesigner({
+  const { data, send, isIn } = createStateDesigner({
     data: {
       min: 0,
       max: 10
       count: 0
     },
-    on: {
-      PLUS_CLICKED: { unless: "atMax", do: "incrementCount" },
-      MINUS_CLICKED: { unless: "atMin", do: "decrementCount" }
+    states: {
+      inactive: {
+        on: {
+          "TOGGLED": { to: "active" }
+        }
+      },
+      active: {
+        on: {
+          "TOGGLED": { to: "inactive" },
+          "PLUS_CLICKED": { unless: "atMax", do: "incrementCount" },
+          "MINUS_CLICKED": { unless: "atMin", do: "decrementCount" }
+        },
+      },
     },
     conditions: {
       atMin(data) {
@@ -63,17 +74,15 @@ function Counter() {
       decrementCount(data) {
         data.count--
       },
-      adjustCount(data, payload) {
-        data.count += payload
-      },
     }
   })
 
   return (
     <div>
-      <p>{data.count}</p>
-      <button onClick={() => send("PLUS_CLICKED")}>+</button>
-      <button onClick={() => send("MINUS_CLICKED")}>-</button>
+      <h2>Count: {data.count}</h2>
+      <button onClick={() => send("TOGGLED")}>Toggle</button>
+      <button disabled={!isIn("active")} onClick={() => send("PLUS_CLICKED")}>+</button>
+      <button disabled={!isIn("active")} onClick={() => send("MINUS_CLICKED")}>-</button>
     </div>
   )
 }

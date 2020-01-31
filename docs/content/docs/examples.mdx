@@ -168,3 +168,50 @@ function Counter() {
   })
 }
 ```
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+function Counter() {
+  const { data, send } = createStateDesigner({
+    data: {
+      min: 0,
+      max: 10
+      count: 0
+    },
+    on: {
+      PLUS_CLICKED: { unless: "atMax", do: "incrementCount" },
+      MINUS_CLICKED: { unless: "atMin", do: "decrementCount" }
+    },
+    conditions: {
+      atMin(data) {
+        return data.count <= data.min
+      },
+      atMax(data) {
+        return data.count >= data.max
+      }
+    },
+    actions: {
+      incrementCount(data) {
+        data.count++
+      },
+      decrementCount(data) {
+        data.count--
+      },
+      adjustCount(data, payload) {
+        data.count += payload
+      },
+    }
+  })
+
+  return (
+    <div>
+      <p>{data.count}</p>
+      <button onClick={() => send("TOGGLE")}>+</button>
+      <button onClick={() => send("PLUS_CLICKED")}>+</button>
+      <button onClick={() => send("MINUS_CLICKED")}>-</button>
+    </div>
+  )
+}
+```
