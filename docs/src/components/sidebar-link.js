@@ -6,12 +6,15 @@ import isAbsoluteURL from "is-absolute-url"
 const styles = {
   display: "block",
   mx: 0,
-  color: "inherit",
+  color: "text",
   textDecoration: "none",
-  fontSize: 1,
+  fontSize: 2,
   fontFamily: "heading",
-  fontWeight: "bold",
+  fontWeight: 2,
   "&.active": {
+    color: "primary"
+  },
+  "&.visited": {
     color: "primary"
   },
   "&:hover": {

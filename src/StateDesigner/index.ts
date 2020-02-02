@@ -1,12 +1,8 @@
-import { ValuesType } from "utility-types"
 import castArray from "lodash/castArray"
 import uniqueId from "lodash/uniqueId"
 import produce, { Draft, setAutoFreeze } from "immer"
 
 setAutoFreeze(false)
-
-// type WithoutNamed<T> = T | T[]
-// type NamedOrInSeries<T, U> = keyof U | T | (keyof U | T)[]
 
 // Actions
 
@@ -134,36 +130,32 @@ export type IStatesConfig<
 // Graph
 
 export namespace Graph {
-  export type EventHandlerFunction = { name: string; code: string }
-
-  export type EventHandler = {
-    do?: EventHandlerFunction[]
-    get?: EventHandlerFunction[]
-    if?: EventHandlerFunction[]
-    unless?: EventHandlerFunction[]
-    ifAny?: EventHandlerFunction[]
-    to?: string
-    wait?: number
-    repeatDelay?: number
-    send: string
-  }
-
-  export type Event = EventHandler[]
-
-  export type Events = Record<string, Event>
-
-  export type AutoEvents = Record<
-    "onEnter" | "onEvent" | "onResolve" | "onReject",
-    Event
-  >
-
   export interface Node {
+    path: string
     name: string
     active: boolean
     initial: boolean
-    autoEvents: AutoEvents
-    events: Events
-    states?: Node[]
+    type: string
+    autoEvents: Event[]
+    events: Event[]
+    states: Node[]
+  }
+
+  export type Event = {
+    name: string
+    eventHandlers: EventHandler[]
+  }
+
+  export type EventHandler = {
+    get: string[]
+    if: string[]
+    ifAny: string[]
+    unless: string[]
+    do: string[]
+    to: string
+    wait: string
+    repeatDelay: string
+    send: string | { name: string; payload: string }
   }
 }
 
@@ -261,6 +253,11 @@ class StateDesigner<
   _active: IStateNode<D, A, C, R>[] = []
   _activeNames: string[]
   _graph: Graph.Node
+  _collections: {
+    actions?: A
+    conditions?: C
+    results?: R
+  }
   root: IStateNode<D, A, C, R>
   subscribers = new Set<Subscriber<D, A, C, R>>([])
   pendingSend: [string, any][] = []
@@ -318,11 +315,17 @@ class StateDesigner<
       active: true
     }
 
+    this._collections = {
+      actions,
+      conditions,
+      results
+    }
+
     this.root = new IStateNode(this._rootOptions)
 
     this._active = this.root.getActive()
     this._activeNames = this._active.flatMap(state => [state.name, state.path])
-    this._graph = this.graphNode(this.root)
+    this._graph = this.getGraph()
     this._initialGraph = this._graph
 
     for (let state of this._active) {
@@ -339,21 +342,47 @@ class StateDesigner<
   private updatePublicData = () => {
     this._active = this.root.getActive()
     this._activeNames = this._active.flatMap(state => [state.name, state.path])
-    this._graph = this.graphNode(this.root)
+    this._graph = this.getGraph()
+  }
+
+  private getGraph() {
+    const collections = Object.entries(this._collections).map(
+      ([key, value]) => {
+        return {
+          name: key,
+          items: value
+            ? Object.entries(value as Record<any, Function>).map(
+                ([key, value]) => ({
+                  name: key,
+                  value: value.toString()
+                })
+              )
+            : []
+        }
+      }
+    )
+
+    return {
+      data: this.data,
+      ...this.graphNode(this.root),
+      collections
+    }
   }
 
   private graphNode(state: IStateNode<D, A, C, R>): Graph.Node {
     return {
       name: state.name,
+      path: state.path,
       active: state.active,
       initial: state.parent
         ? state.parent.type === "branch" && state.parent.initial === state.name
         : true,
       autoEvents: graphAutoEvents(state),
       events: getEvents(state),
+      type: state.type,
       states:
         state.type === "leaf"
-          ? undefined
+          ? []
           : state.children.map((child: any) => this.graphNode(child))
     }
   }
@@ -1259,47 +1288,50 @@ createGroup({
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-// function transformObject<
-//   T extends { [key: string]: any },
-//   K extends keyof T,
-//   U extends any
-// >(source: T, callbackFn: (value: T[K], index: number) => U): { K: U } {
-//   return Object.fromEntries(
-//     Object.entries(source).map((value, index) => [
-//       value[0],
-//       callbackFn(value[1], index)
-//     ])
-//   ) as { K: U }
-// }
+function getGraphHandlerFunction<D>(
+  item: IAction<D> | ICondition<D> | IResult<D>,
+  eventName: string
+) {
+  return item.name === "anonymous"
+    ? item.toString()
+    : item.name === eventName
+    ? item.toString().replace(`function ${eventName}`, "function")
+    : item.name.replace("bound ", "")
+}
 
-function graphHandlerItem<D>(item: ValuesType<IEventHandler<unknown>>) {
-  if (Array.isArray(item)) {
-    return (item as any).map(
-      (thing: IAction<unknown> | ICondition<unknown> | IResult<unknown>) => ({
-        name: thing.name,
-        code: thing.toString()
-      })
-    )
-  } else {
-    return item
+function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
+  return {
+    name: eventName,
+    eventHandlers: event.map(eventHandler => ({
+      get: eventHandler.get.map(h => getGraphHandlerFunction(h, eventName)),
+      if: eventHandler.if.map(h => getGraphHandlerFunction(h, eventName)),
+      ifAny: eventHandler.ifAny.map(h => getGraphHandlerFunction(h, eventName)),
+      unless: eventHandler.unless.map(h =>
+        getGraphHandlerFunction(h, eventName)
+      ),
+      do: eventHandler.do.map(h => getGraphHandlerFunction(h, eventName)),
+      to: eventHandler.to || "",
+      wait: eventHandler.wait ? eventHandler.wait.toString() : "",
+      repeatDelay: eventHandler.repeatDelay
+        ? eventHandler.repeatDelay.toString()
+        : "",
+      send: eventHandler.send
+        ? Array.isArray(eventHandler.send)
+          ? {
+              name: eventHandler.send[0],
+              payload: JSON.stringify(eventHandler.send[1] || "")
+            }
+          : {
+              name: eventHandler.send,
+              payload: ""
+            }
+        : ""
+    }))
   }
 }
 
-function getEvent(event: IEvent<unknown>): Graph.Event {
-  return event.map(eventHandler => {
-    const graphHandler = {} as Graph.EventHandler
-
-    for (let key in eventHandler) {
-      const item = eventHandler[key]
-      graphHandler[key] = graphHandlerItem(item)
-    }
-
-    return graphHandler
-  })
-}
-
 function graphAutoEvents(state: IStateNode<any, any, any, any>) {
-  const autoEvents = {} as Graph.AutoEvents
+  const autoEvents = [] as Graph.Event[]
 
   for (let eventName of [
     "onEnter",
@@ -1311,19 +1343,19 @@ function graphAutoEvents(state: IStateNode<any, any, any, any>) {
     let event = state.autoEvents[eventName] as IEvent<unknown> | undefined
 
     if (event !== undefined) {
-      autoEvents[eventName] = getEvent(event)
+      autoEvents.push(getEvent(event, eventName))
     }
   }
 
   return autoEvents
 }
 
-function getEvents(state: IStateNode<any, any, any, any>) {
-  const events = {} as Graph.Events
+function getEvents(state: IStateNode<any, any, any, any>): Graph.Event[] {
+  const events = [] as Graph.Event[]
 
   for (let eventName in state.events) {
     const event = state.events[eventName]
-    events[eventName] = getEvent(event)
+    events.push(getEvent(event, eventName))
   }
 
   return events

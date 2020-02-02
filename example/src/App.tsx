@@ -6,7 +6,7 @@ import Chain from "./Examples/Chain"
 import DeepLink from "./Examples/DeepLink"
 import OnEvent from "./Examples/OnEvent"
 import Blended from "./Examples/Blended"
-import Chaser from "./Examples/Chaser"
+import Editor from "./Editor"
 
 export interface Props {}
 
@@ -15,14 +15,14 @@ const App: React.FC<Props> = ({ children }) => {
     <div className="app">
       <h1>State Designer</h1>
       <hr />
-      <Blended />
+      {/* <Blended />
       <Counter />
       <Switch />
       <NestedStates />
       <Chain />
       <DeepLink />
-      <OnEvent />
-      {/* <Chaser /> */}
+      <OnEvent /> */}
+      <Editor initialValue="Hello world" />
     </div>
   )
 }

@@ -24,23 +24,20 @@
     "deploy": "gh-pages -d example/build"
   },
   "dependencies": {
-    "@types/lodash-es": "^4.17.3",
     "immer": "^5.1.0",
-    "lodash-es": "^4.17.15",
-    "react-dom": "^16.12.0",
-    "utility-types": "^3.10.0"
+    "lodash-es": "^4.17.15"
   },
   "peerDependencies": {
-    "react": "^16.8.6"
+    "react": "^16.12.0"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",
     "@babel/runtime": "^7.3.1",
     "@types/jest": "^23.3.13",
+    "@types/lodash-es": "^4.17.3",
     "@types/react": "^16.7.22",
     "cross-env": "^5.2.0",
     "gh-pages": "^2.2.0",
-    "react": "^16.12.0",
     "react-scripts": "^3.0.1",
     "rollup": "^1.1.2",
     "rollup-plugin-babel": "^4.3.2",
@@ -49,6 +46,7 @@
     "rollup-plugin-peer-deps-external": "^2.2.0",
     "rollup-plugin-typescript2": "^0.19.2",
     "rollup-plugin-url": "^2.1.0",
-    "typescript": "^3.2.4"
+    "typescript": "^3.2.4",
+    "utility-types": "^3.10.0"
   }
 }

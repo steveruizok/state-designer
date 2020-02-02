@@ -1,0 +1,102 @@
+# Input
+
+[CodeSandbox demo](https://codesandbox.io/s/input-with-save-r0udv).
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+export default function Editor({
+  initialValue = '"In passing: two words, common but singular."'
+}) {
+  const { data, send, whenIn, can } = useStateDesigner({
+    data: {
+      private: initialValue,
+      public: initialValue
+    },
+    on: {
+      CHANGE: [
+        {
+          do: "updatePublic"
+        },
+        {
+          if: "publicIsValid",
+          to: "unsaved.valid"
+        },
+        {
+          unless: "publicIsValid",
+          to: "unsaved.invalid"
+        }
+      ]
+    },
+    initial: "saved",
+    states: {
+      saved: {},
+      unsaved: {
+        on: {
+          CANCEL: {
+            do: "resetPublic",
+            to: "saved"
+          }
+        },
+        initial: "invalid",
+        states: {
+          valid: {
+            on: {
+              SAVE: {
+                unless: "publicMatchesPrivate",
+                do: "savePublic",
+                to: "saved"
+              }
+            }
+          },
+          invalid: {}
+        }
+      }
+    },
+    conditions: {
+      publicIsValid(data) {
+        return data.public.length > 0
+      },
+      publicMatchesPrivate(data) {
+        return data.public === data.private
+      }
+    },
+    actions: {
+      savePublic(data) {
+        data.private = data.public
+      },
+      resetPublic(data) {
+        data.public = data.private
+      },
+      updatePublic(data, payload) {
+        data.public = payload
+      }
+    }
+  })
+
+  return (
+    <div>
+      <div className="button-group">
+        <input
+          value={data.public}
+          onChange={e => send("CHANGE", e.target.value)}
+          style={{ width: 360 }}
+        />
+        {whenIn({
+          unsaved: (
+            <>
+              <button disabled={!can("CANCEL")} onClick={() => send("CANCEL")}>
+                Cancel
+              </button>
+              <button disabled={!can("SAVE")} onClick={() => send("SAVE")}>
+                Save
+              </button>
+            </>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+```

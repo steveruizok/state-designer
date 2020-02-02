@@ -131,7 +131,7 @@ export function useStateDesigner<
     []
   )
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!(options instanceof StateDesigner)) {
       machine.current = new StateDesigner(options)
       setState(pick(machine.current, ["graph", "data", "active"]))

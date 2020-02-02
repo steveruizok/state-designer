@@ -34,30 +34,33 @@ See the links above to learn more about each of these concepts and how they appl
 
 ## Example
 
+View on [CodeSandbox](https://codesandbox.io/s/counter-with-states-cwvn3).
+
 ```jsx
 import React from "react"
 import { useStateDesigner } from "state-designer"
 
-function Counter() {
-  const { data, send, isIn } = createStateDesigner({
+export default function Counter() {
+  const { data, send, isIn } = useStateDesigner({
     data: {
       min: 0,
-      max: 10
+      max: 10,
       count: 0
     },
+    initial: "inactive",
     states: {
       inactive: {
         on: {
-          "TOGGLED": { to: "active" }
+          TOGGLED: { to: "active" }
         }
       },
       active: {
         on: {
-          "TOGGLED": { to: "inactive" },
-          "PLUS_CLICKED": { unless: "atMax", do: "incrementCount" },
-          "MINUS_CLICKED": { unless: "atMin", do: "decrementCount" }
-        },
-      },
+          TOGGLED: { to: "inactive" },
+          PLUS_CLICKED: { unless: "atMax", do: "incrementCount" },
+          MINUS_CLICKED: { unless: "atMin", do: "decrementCount" }
+        }
+      }
     },
     conditions: {
       atMin(data) {
@@ -73,7 +76,7 @@ function Counter() {
       },
       decrementCount(data) {
         data.count--
-      },
+      }
     }
   })
 
@@ -81,8 +84,12 @@ function Counter() {
     <div>
       <h2>Count: {data.count}</h2>
       <button onClick={() => send("TOGGLED")}>Toggle</button>
-      <button disabled={!isIn("active")} onClick={() => send("PLUS_CLICKED")}>+</button>
-      <button disabled={!isIn("active")} onClick={() => send("MINUS_CLICKED")}>-</button>
+      <button disabled={!isIn("active")} onClick={() => send("PLUS_CLICKED")}>
+        +
+      </button>
+      <button disabled={!isIn("active")} onClick={() => send("MINUS_CLICKED")}>
+        -
+      </button>
     </div>
   )
 }

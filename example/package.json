@@ -9,9 +9,11 @@
     "@types/node": "^12.12.21",
     "@types/react": "^16.9.17",
     "@types/react-dom": "^16.9.4",
+    "framer-motion": "^1.8.3",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
     "react-scripts": "^3.0.1",
-    "state-designer": "link:..",
-    "typescript": "^3.7.4"
+    "state-designer": "link:.."
   },
   "scripts": {
     "start": "react-scripts start",

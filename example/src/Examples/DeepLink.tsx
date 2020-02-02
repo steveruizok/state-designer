@@ -44,13 +44,12 @@ const DeepLink: React.FC<{}> = () => {
     states: {
       saved: {
         on: {
-          UPDATE: { do: d => console.log(d.dirty.code), to: "editing" }
+          UPDATE: { to: "editing" }
         }
       },
       editing: {
         initial: "invalid",
         onEnter: [
-          d => console.log(d.dirty.code),
           {
             if: "hasError",
             to: "invalid"
@@ -89,7 +88,6 @@ const DeepLink: React.FC<{}> = () => {
         Object.assign(data.clean, data.dirty)
       },
       updateDirty(data, changes) {
-        console.log(changes)
         Object.assign(data.dirty, changes)
       },
       updateError(data) {
@@ -118,9 +116,10 @@ const DeepLink: React.FC<{}> = () => {
           Save
         </button>
       </div>
-      {/* <pre>
+      <p>{data.error}</p>
+      <pre>
         <code>{JSON.stringify(graph, null, 2)}</code>
-      </pre> */}
+      </pre>
     </div>
   )
 }
