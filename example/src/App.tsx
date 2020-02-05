@@ -12,17 +12,17 @@ export interface Props {}
 
 const App: React.FC<Props> = ({ children }) => {
   return (
-    <div className="app">
-      <h1>State Designer</h1>
-      <hr />
-      <Blended />
+    <div>
+      {/* <h1>State Designer</h1>
+      <hr /> */}
+      {/* <Blended />
       <Counter />
       <Switch />
       <NestedStates />
       <Chain />
       <DeepLink />
-      <OnEvent />
-      <Editor initialValue="Hello world" />
+      <OnEvent /> */}
+      <Editor />
     </div>
   )
 }

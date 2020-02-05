@@ -1,51 +1,38 @@
 import * as React from "react"
 import { useStateDesigner, Graph } from "state-designer"
+import { EditorMachine } from "./machine"
 
 export type Props = {
   state: Graph.Node
-  transitionTarget?: string
-  onToMouseEnter: (name: string, ref: HTMLDivElement) => void
-  onToMouseLeave: () => void
-  reportStateRef: (name: string, ref: any) => void
-  reportTransitionRef: (name: string, ref: any) => void
-  onMouseEnter: (name: string) => void
-  onMouseLeave?: () => void
-  onItemMouseEnter: (name: string, type: string) => void
-  onItemMouseLeave: () => void
 }
 
-const EditorState: React.FC<Props> = ({
-  state,
-  onMouseEnter,
-  onMouseLeave,
-  transitionTarget,
-  onToMouseEnter,
-  onToMouseLeave,
-  onItemMouseEnter,
-  onItemMouseLeave,
-  reportStateRef,
-  reportTransitionRef,
-  ...rest
-}) => {
-  const highlight = state.path.endsWith("." + transitionTarget)
+const EditorState: React.FC<Props> = ({ state, ...rest }) => {
+  const { data, send } = useStateDesigner(EditorMachine)
+  const highlight = false
 
   const ref = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    reportStateRef(state.path, ref.current)
+    function reportPosition() {
+      send("REPORT_STATE_REF", { name: state.path, ref: ref.current })
+    }
+
+    reportPosition()
+    window.addEventListener("resize", reportPosition)
+    return () => window.removeEventListener("resize", reportPosition)
   }, [])
 
   return (
     <div
       ref={ref}
-      className={`state ${highlight ? "highlight" : ""}`}
+      className={`state`}
       onMouseOver={e => {
         e.stopPropagation()
-        onMouseEnter(state.path)
+        send("STATE_MOUSE_ENTER", state.path)
       }}
-      onMouseLeave={() => onMouseLeave && onMouseLeave()}
+      onMouseLeave={() => send("STATE_MOUSE_LEAVE")}
     >
-      <div className={`header`}>
+      <div className={`header ${state.active ? "highlight" : ""}`}>
         <span className="state-name">
           {state.initial && "✽ "}
           {state.name}
@@ -57,28 +44,13 @@ const EditorState: React.FC<Props> = ({
           {state.autoEvents.length > 0 && (
             <>
               <div className="list-header">Auto Events</div>
-              <EventsList
-                auto
-                events={state.autoEvents}
-                onToMouseEnter={onToMouseEnter}
-                onToMouseLeave={onToMouseLeave}
-                onItemMouseEnter={onItemMouseEnter}
-                onItemMouseLeave={onItemMouseLeave}
-                reportTransitionRef={reportTransitionRef}
-              />
+              <EventsList auto events={state.autoEvents} />
             </>
           )}
           {state.events.length > 0 && (
             <>
               <div className="list-header">Events</div>
-              <EventsList
-                events={state.events}
-                onToMouseEnter={onToMouseEnter}
-                onToMouseLeave={onToMouseLeave}
-                onItemMouseEnter={onItemMouseEnter}
-                onItemMouseLeave={onItemMouseLeave}
-                reportTransitionRef={reportTransitionRef}
-              />
+              <EventsList events={state.events} />
             </>
           )}
         </div>
@@ -87,18 +59,7 @@ const EditorState: React.FC<Props> = ({
             <div className="list-header">States</div>
             <div className="list padded">
               {state.states.map((state, index) => (
-                <EditorState
-                  key={index}
-                  state={state}
-                  transitionTarget={transitionTarget}
-                  onToMouseEnter={onToMouseEnter}
-                  onToMouseLeave={onToMouseLeave}
-                  onItemMouseEnter={onItemMouseEnter}
-                  onItemMouseLeave={onItemMouseLeave}
-                  reportStateRef={reportStateRef}
-                  reportTransitionRef={reportTransitionRef}
-                  onMouseEnter={onMouseEnter}
-                />
+                <EditorState key={index} state={state} />
               ))}
             </div>
           </div>
@@ -113,33 +74,11 @@ export default EditorState
 const EventsList: React.FC<{
   auto?: boolean
   events: Graph.Event[]
-  reportTransitionRef: (name: string, ref: any) => void
-  onToMouseEnter: (name: string, ref: HTMLDivElement) => void
-  onToMouseLeave: () => void
-  onItemMouseEnter: (name: string, type: string) => void
-  onItemMouseLeave: () => void
-}> = ({
-  events,
-  onToMouseEnter,
-  onToMouseLeave,
-  onItemMouseEnter,
-  onItemMouseLeave,
-  reportTransitionRef,
-  auto = false
-}) => {
+}> = ({ events, auto = false }) => {
   return (
     <div className="list">
       {events.map((event, index) => (
-        <Event
-          auto={auto}
-          key={index}
-          event={event}
-          onToMouseEnter={onToMouseEnter}
-          onToMouseLeave={onToMouseLeave}
-          onItemMouseEnter={onItemMouseEnter}
-          onItemMouseLeave={onItemMouseLeave}
-          reportTransitionRef={reportTransitionRef}
-        />
+        <Event auto={auto} key={index} event={event} />
       ))}
     </div>
   )
@@ -147,65 +86,25 @@ const EventsList: React.FC<{
 
 const Event: React.FC<{
   event: Graph.Event
-  reportTransitionRef: (name: string, ref: any) => void
-  onToMouseEnter: (name: string, ref: HTMLDivElement) => void
-  onToMouseLeave: () => void
-  onItemMouseEnter: (name: string, type: string) => void
-  onItemMouseLeave: () => void
   auto?: boolean
-}> = ({
-  event,
-  onToMouseEnter,
-  onToMouseLeave,
-  reportTransitionRef,
-  onItemMouseEnter,
-  onItemMouseLeave,
-  auto
-}) => {
+}> = ({ event, auto }) => {
   return (
     <div className="event">
       <div className="event-name">
         {event.name} {auto && <div className="chip">auto</div>}
       </div>
-      <EventHandlersList
-        eventHandlers={event.eventHandlers}
-        onToMouseEnter={onToMouseEnter}
-        onToMouseLeave={onToMouseLeave}
-        onItemMouseEnter={onItemMouseEnter}
-        onItemMouseLeave={onItemMouseLeave}
-        reportTransitionRef={reportTransitionRef}
-      />
+      <EventHandlersList eventHandlers={event.eventHandlers} />
     </div>
   )
 }
 
 const EventHandlersList: React.FC<{
   eventHandlers: Graph.EventHandler[]
-  reportTransitionRef: (name: string, ref: any) => void
-  onToMouseEnter: (name: string, ref: HTMLDivElement) => void
-  onToMouseLeave: () => void
-  onItemMouseEnter: (name: string, type: string) => void
-  onItemMouseLeave: () => void
-}> = ({
-  eventHandlers,
-  onToMouseEnter,
-  onToMouseLeave,
-  onItemMouseEnter,
-  onItemMouseLeave,
-  reportTransitionRef
-}) => {
+}> = ({ eventHandlers }) => {
   return (
     <div>
       {eventHandlers.map((eventHandler, index) => (
-        <EventHandler
-          key={index}
-          eventHandler={eventHandler}
-          onToMouseEnter={onToMouseEnter}
-          onToMouseLeave={onToMouseLeave}
-          onItemMouseEnter={onItemMouseEnter}
-          onItemMouseLeave={onItemMouseLeave}
-          reportTransitionRef={reportTransitionRef}
-        />
+        <EventHandler key={index} eventHandler={eventHandler} />
       ))}
     </div>
   )
@@ -213,19 +112,7 @@ const EventHandlersList: React.FC<{
 
 const EventHandler: React.FC<{
   eventHandler: Graph.EventHandler
-  reportTransitionRef: (name: string, ref: any) => void
-  onToMouseEnter: (name: string, ref: HTMLDivElement) => void
-  onToMouseLeave: () => void
-  onItemMouseEnter: (name: string, type: string) => void
-  onItemMouseLeave: () => void
-}> = ({
-  eventHandler,
-  onToMouseEnter,
-  onToMouseLeave,
-  onItemMouseEnter,
-  onItemMouseLeave,
-  reportTransitionRef
-}) => {
+}> = ({ eventHandler }) => {
   return (
     <div className={"event-handler"}>
       {Object.entries(eventHandler)
@@ -233,16 +120,7 @@ const EventHandler: React.FC<{
           Array.isArray(value) ? value.length > 0 : value !== ""
         )
         .map(([key, value], index) => (
-          <EventHandlerItem
-            key={index}
-            name={key}
-            item={value}
-            onToMouseEnter={onToMouseEnter}
-            onToMouseLeave={onToMouseLeave}
-            onItemMouseEnter={onItemMouseEnter}
-            onItemMouseLeave={onItemMouseLeave}
-            reportTransitionRef={reportTransitionRef}
-          />
+          <EventHandlerItem key={index} name={key} item={value} />
         ))}
     </div>
   )
@@ -251,20 +129,9 @@ const EventHandler: React.FC<{
 const EventHandlerItem: React.FC<{
   name: string
   item: { name: string; payload: string } | string | string[]
-  reportTransitionRef: (name: string, ref: any) => void
-  onToMouseEnter: (name: string, ref: HTMLDivElement) => void
-  onToMouseLeave: () => void
-  onItemMouseEnter: (name: string, type: string) => void
-  onItemMouseLeave: () => void
-}> = ({
-  name,
-  item,
-  onToMouseEnter,
-  onToMouseLeave,
-  onItemMouseEnter,
-  onItemMouseLeave,
-  reportTransitionRef
-}) => {
+}> = ({ name, item }) => {
+  const { data, send } = useStateDesigner(EditorMachine)
+
   let v: (string | number)[] = []
 
   switch (typeof item) {
@@ -287,9 +154,17 @@ const EventHandlerItem: React.FC<{
   const ref = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    if (name === "to") {
-      reportTransitionRef(v[0] as string, ref.current)
+    function reportPosition() {
+      if (name === "to") {
+        send("REPORT_TRANSITION_REF", {
+          name: v[0] as string,
+          ref: ref.current
+        })
+      }
     }
+    reportPosition()
+    window.addEventListener("resize", reportPosition)
+    return () => window.removeEventListener("resize", reportPosition)
   }, [])
 
   return (
@@ -298,8 +173,11 @@ const EventHandlerItem: React.FC<{
       className="event-handler-item"
       {...(name === "to" && {
         onMouseEnter: () =>
-          onToMouseEnter(v[0] as string, ref.current as HTMLDivElement),
-        onMouseLeave: () => onToMouseLeave()
+          send("TO_ITEM_MOUSE_ENTER", {
+            name: v[0] as string,
+            ref: ref.current
+          }),
+        onMouseLeave: () => send("TO_ITEM_MOUSE_LEAVE")
       })}
     >
       <div className="event-handler-key">{name}</div>
@@ -310,8 +188,12 @@ const EventHandlerItem: React.FC<{
             key={index}
             className={`event-handler-value ${isItem ? "context" : ""}`}
             {...(isItem && {
-              onMouseEnter: () => onItemMouseEnter(handlerItem as string, name),
-              onMouseLeave: () => onItemMouseLeave()
+              onMouseEnter: () =>
+                send("ITEM_MOUSE_ENTER", {
+                  type: name,
+                  name: handlerItem as string
+                }),
+              onMouseLeave: () => send("ITEM_MOUSE_LEAVE")
             })}
           >
             {handlerItem}

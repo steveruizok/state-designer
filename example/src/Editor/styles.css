@@ -1,21 +1,80 @@
-.status-bar {
+.layout {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: 1fr 400px;
+  grid-template-rows: min-content auto 1fr 200px;
+  border: 1px solid #000;
+}
+
+.status-bar {
+  grid-column: span 2;
   background-color: #fff;
   border-bottom: 1px solid #000;
   font-size: 14px;
   padding: 8px 16px;
+  background-color: #fafafa;
 }
+
+.sidebar {
+  grid-row: 2;
+  grid-row: span 3;
+  grid-column: 2;
+  overflow: scroll;
+  height: 100%;
+  border-left: 1px solid #000;
+  z-index: 999;
+  background-color: #fff;
+  background-color: #fafafa;
+}
+
+.content {
+  grid-row: 3;
+  grid-column: 1;
+  overflow: scroll;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafafa;
+}
+
+.component-preview {
+  grid-row: 2;
+  grid-column: 1;
+  padding: 2em;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.graph {
+  position: relative;
+}
+
+.data {
+  border-top: 1px solid #ccc;
+  grid-column: 1;
+  grid-row: 4;
+  display: flex;
+  overflow: scroll;
+  z-index: 999;
+}
+
+/* ----- */
 
 .state {
   border: 1px solid #000;
   border-radius: 4px;
-  overflow: scroll;
   width: fit-content;
   height: fit-content;
   box-shadow: 2px 3px 0px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
 }
 
 .event {
@@ -89,6 +148,7 @@
 }
 
 .list-header {
+  background-color: #fff;
   font-size: 12px;
   padding: 8px 16px;
   display: grid;
@@ -97,16 +157,19 @@
   border-bottom: 1px solid #ccc;
 }
 
-.scroll-x {
+.scroll {
   overflow: scroll;
 }
 
 .hug {
   width: fit-content;
 }
+
 .container {
   border: 1px solid #000;
+  background-color: #fff;
   border-radius: 4px;
+  overflow: hidden;
 }
 
 .list {
@@ -146,7 +209,6 @@
 
 .collections {
   width: 400px;
-  overflow: scroll;
   height: min-content;
 }
 
@@ -170,6 +232,10 @@
   padding: 16px;
 }
 
+.overflow-hidden {
+  overflow: hidden;
+}
+
 .body {
   display: flex;
 }
@@ -188,6 +254,6 @@
   margin-left: 16px;
 }
 
-.state .highlight {
-  border: 1px solid #000;
+.highlight {
+  background-color: rgba(0, 145, 255, 0.181);
 }

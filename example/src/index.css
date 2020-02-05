@@ -37,6 +37,7 @@ button:disabled {
 
 .app {
   padding: 1em;
+  padding-top: 4em;
 }
 
 .inline {
