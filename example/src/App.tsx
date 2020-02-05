@@ -15,13 +15,13 @@ const App: React.FC<Props> = ({ children }) => {
     <div className="app">
       <h1>State Designer</h1>
       <hr />
-      {/* <Blended />
+      <Blended />
       <Counter />
       <Switch />
       <NestedStates />
       <Chain />
       <DeepLink />
-      <OnEvent /> */}
+      <OnEvent />
       <Editor initialValue="Hello world" />
     </div>
   )

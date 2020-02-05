@@ -21,15 +21,15 @@ const Editor: React.FC<{ initialValue: string }> = ({
         initial: "invalid",
         states: {
           valid: {
-            on: { SAVE: { do: "savePublic", to: "saved" } }
+            on: { CHANGES_SAVED: { do: "savePublic", to: "saved" } }
           },
           invalid: {}
         },
-        on: { CANCEL: { do: "resetPublic", to: "saved" } }
+        on: { CHANGES_CANCELED: { do: "resetPublic", to: "saved" } }
       }
     },
     on: {
-      CHANGE: [
+      INPUT_VALUE_CHANGED: [
         "updatePublic",
         {
           if: ["publicIsValid", "publicIsNewValue"],
@@ -109,9 +109,11 @@ function getRect(div: HTMLDivElement) {
   }
 }
 
-const EditorGraph: React.FC<{ graph: Graph.Node }> = ({ graph }) => {
+const EditorGraph: React.FC<{ graph: Graph.Export<any> }> = ({ graph }) => {
   const { data, send } = useStateDesigner({
     data: {
+      hoveredItem: undefined as { name: string; value: string } | undefined,
+      hoveredState: undefined as string | undefined,
       transition: undefined as
         | { name: string; ref: HTMLDivElement }
         | undefined,
@@ -119,27 +121,70 @@ const EditorGraph: React.FC<{ graph: Graph.Node }> = ({ graph }) => {
       transitionTargets: new Map<HTMLDivElement, { name: string } & Rect>()
     },
     on: {
+      ITEM_MOUSE_ENTER: "setHoveredItem",
+      ITEM_MOUSE_LEAVE: "clearHoveredItem",
+      STATE_MOUSE_ENTER: { if: "hoveredStateIsNew", do: "setHoveredState" },
+      STATE_MOUSE_LEAVE: "clearHoveredState",
       TO_ITEM_MOUSE_ENTER: "setHoveredTransition",
       TO_ITEM_MOUSE_LEAVE: "clearHoveredTransition",
-      REPORT_STATE_REF: (data, { name, ref }) => {
+      REPORT_STATE_REF: "addStateRef",
+      REPORT_TRANSITION_REF: "addTransitionRef"
+    },
+    actions: {
+      addStateRef(data, { name, ref }) {
         data.stateTargets.push({
           name,
           ...getRect(ref)
         })
       },
-      REPORT_TRANSITION_REF: (data, { name, ref }) => {
+      addTransitionRef(data, { name, ref }) {
         data.transitionTargets.set(ref, {
           name,
           ...getRect(ref)
         })
-      }
-    },
-    actions: {
+      },
+      setHoveredItem(data, { type, name }) {
+        switch (type) {
+          case "do":
+            data.hoveredItem = graph.collections
+              .find(collection => collection.name === "actions")
+              ?.items.find(item => item.name === name)
+            break
+          case "get":
+            data.hoveredItem = graph.collections
+              .find(collection => collection.name === "results")
+              ?.items.find(item => item.name === name)
+            break
+          case "if":
+          case "ifAny":
+          case "unless":
+            data.hoveredItem = graph.collections
+              .find(collection => collection.name === "conditions")
+              ?.items.find(item => item.name === name)
+            break
+          default:
+            break
+        }
+      },
+      clearHoveredItem(data) {
+        data.hoveredItem = undefined
+      },
+      setHoveredState(data, name) {
+        data.hoveredState = name
+      },
+      clearHoveredState(data) {
+        data.hoveredState = undefined
+      },
       setHoveredTransition(data, { name, ref }) {
         data.transition = { name, ref }
       },
       clearHoveredTransition(data) {
         data.transition = undefined
+      }
+    },
+    conditions: {
+      hoveredStateIsNew(data, name) {
+        return data.hoveredState !== name
       }
     }
   })
@@ -150,10 +195,7 @@ const EditorGraph: React.FC<{ graph: Graph.Node }> = ({ graph }) => {
 
   React.useEffect(() => {
     const { current } = ref
-
-    if (current === null) {
-      return
-    }
+    if (current === null) return
 
     setSize({
       width: current.offsetWidth,
@@ -168,11 +210,44 @@ const EditorGraph: React.FC<{ graph: Graph.Node }> = ({ graph }) => {
     data.stateTargets.find(state => state.name.endsWith("." + transition.name))
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} className="list-horizontal" style={{ position: "relative" }}>
+      <div className="status-bar">Editor — {data.hoveredState}</div>
+      <div className="collections container">
+        {data.hoveredItem ? (
+          <div className="list">
+            <div className="list padded">
+              <div className="container">
+                <div className="list-header">{data.hoveredItem.name}</div>
+                <pre className="padded scroll-x">
+                  <code>{data.hoveredItem.value}</code>
+                </pre>
+              </div>
+            </div>
+          </div>
+        ) : (
+          graph.collections.map((collection, index) => (
+            <div className="list" key={index}>
+              <div className="list-header">{collection.name}</div>
+              <div className="list padded">
+                {collection.items.map((item, index) => (
+                  <div className="container" key={index}>
+                    <div className="list-header">{item.name}</div>
+                    <pre className="padded  scroll-x">
+                      <code>{item.value}</code>
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
       <EditorState
         state={graph}
         transitionTarget={transition?.name}
-        onToMouseEnter={(name: string, ref: HTMLDivElement) =>
+        onMouseEnter={name => send("STATE_MOUSE_ENTER", name)}
+        onMouseLeave={() => send("STATE_MOUSE_LEAVE")}
+        onToMouseEnter={(name, ref) =>
           send("TO_ITEM_MOUSE_ENTER", { name, ref })
         }
         onToMouseLeave={() => send("TO_ITEM_MOUSE_LEAVE")}
@@ -180,7 +255,12 @@ const EditorGraph: React.FC<{ graph: Graph.Node }> = ({ graph }) => {
         reportTransitionRef={(name, ref) =>
           send("REPORT_TRANSITION_REF", { name, ref })
         }
+        onItemMouseEnter={(name, type) =>
+          send("ITEM_MOUSE_ENTER", { name, type })
+        }
+        onItemMouseLeave={() => send("ITEM_MOUSE_LEAVE")}
       />
+
       <svg
         style={{
           position: "absolute",
@@ -192,7 +272,7 @@ const EditorGraph: React.FC<{ graph: Graph.Node }> = ({ graph }) => {
       >
         <defs>
           <marker
-            id="circle"
+            id="circle-dark"
             markerWidth="16"
             markerHeight="16"
             refX="4"
@@ -203,53 +283,71 @@ const EditorGraph: React.FC<{ graph: Graph.Node }> = ({ graph }) => {
             <circle cx={4} cy={4} r={4} fill="#000" />
           </marker>
           <marker
-            id="arrow"
-            markerWidth="8"
-            markerHeight="8"
+            id="circle"
+            markerWidth="16"
+            markerHeight="16"
             refX="4"
+            refY="4"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <circle cx={4} cy={4} r={4} fill="rgb(0, 0, 0, .1)" />
+          </marker>
+          <marker
+            id="arrow-dark"
+            markerWidth="12"
+            markerHeight="12"
+            refX="6"
             refY="4"
             orient="auto"
             markerUnits="strokeWidth"
           >
             <path d="M0,0 L0,7 L7,4 z" fill="#000" />
           </marker>
+          <marker
+            id="arrow"
+            markerWidth="12"
+            markerHeight="12"
+            refX="6"
+            refY="4"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M0,0 L0,7 L7,4 z" fill="rgb(0, 0, 0, .1)" />
+          </marker>
         </defs>
         {Array.from(data.transitionTargets.entries()).map(
-          ([div, from], index) => {
+          ([_, from], index) => {
             const to = data.stateTargets.find(state =>
               state.name.endsWith("." + from.name)
             )
 
-            return (
-              to && (
-                <line
-                  key={index}
-                  x1={from.maxX - 12}
-                  y1={from.midY}
-                  x2={to.midX + (to.x > from.maxX ? -40 : 40)}
-                  y2={to.y > from.maxY ? to.y + 12 : to.maxY - 4}
-                  stroke={"rgba(0,0,0,.1)"}
-                  strokeWidth={1}
-                  markerStart="url(#circle)"
-                  markerEnd="url(#arrow)"
-                />
-              )
-            )
+            return to && <ConnectingLine key={index} to={to} from={from} />
           }
         )}
         {transition && from && to && (
-          <line
-            x1={from.maxX - 12}
-            y1={from.midY}
-            x2={to.midX + (to.x > from.maxX ? -40 : 40)}
-            y2={to.y > from.maxY ? to.y + 12 : to.maxY - 4}
-            stroke="#000"
-            strokeWidth={1}
-            markerStart="url(#circle)"
-            markerEnd="url(#arrow)"
-          />
+          <ConnectingLine dark to={to} from={from} />
         )}
       </svg>
     </div>
+  )
+}
+
+const ConnectingLine: React.FC<{ to: Rect; from: Rect; dark?: boolean }> = ({
+  to,
+  from,
+  dark = false
+}) => {
+  return (
+    <line
+      x1={from.maxX - 12}
+      y1={from.midY}
+      x2={from.maxX < to.x ? to.x : from.x > to.maxX ? to.maxX : to.midX}
+      y2={from.maxY < to.y ? to.y : from.y > to.maxY ? to.maxY : to.midY}
+      stroke={dark ? "#000" : "rgb(0, 0, 0, .1)"}
+      strokeWidth={1}
+      markerStart={dark ? "url(#circle-dark)" : "url(#circle)"}
+      markerEnd={dark ? "url(#arrow-dark)" : "url(#arrow)"}
+    />
   )
 }

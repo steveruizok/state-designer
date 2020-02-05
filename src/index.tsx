@@ -27,7 +27,7 @@ export type OnChange<T> = (state: T) => void
 export type StateDesignerInfo<D> = {
   data: D
   send: (eventName: string, payload?: any) => void
-  graph: Graph.Node
+  graph: Graph.Export<D>
   active: string[]
   isIn(states: string): boolean
   whenIn(state: { [key: string]: any }): any

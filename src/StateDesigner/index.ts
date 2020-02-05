@@ -130,6 +130,19 @@ export type IStatesConfig<
 // Graph
 
 export namespace Graph {
+  export interface Export<D> extends Graph.Node {
+    collections: Graph.Collection[]
+    data: D
+  }
+
+  export interface Collection {
+    name: string
+    items: {
+      name: string
+      value: string
+    }[]
+  }
+
   export interface Node {
     path: string
     name: string
@@ -169,7 +182,7 @@ export type Subscriber<
 > = (
   data: D,
   active: string[],
-  graph: Graph.Node,
+  graph: Graph.Export<D>,
   state: IStateNode<D, A, C, R>
 ) => void
 
@@ -249,10 +262,10 @@ class StateDesigner<
   data: D
   namedFunctions: NamedFunctions<D, A, C, R>
   _rootOptions: any
-  _initialGraph: Graph.Node
+  _initialGraph: Graph.Export<D>
   _active: IStateNode<D, A, C, R>[] = []
   _activeNames: string[]
-  _graph: Graph.Node
+  _graph: Graph.Export<D>
   _collections: {
     actions?: A
     conditions?: C
@@ -346,21 +359,21 @@ class StateDesigner<
   }
 
   private getGraph() {
-    const collections = Object.entries(this._collections).map(
-      ([key, value]) => {
-        return {
-          name: key,
-          items: value
-            ? Object.entries(value as Record<any, Function>).map(
-                ([key, value]) => ({
-                  name: key,
-                  value: value.toString()
-                })
-              )
-            : []
-        }
+    const collections: Graph.Collection[] = Object.entries(
+      this._collections
+    ).map(([key, value]) => {
+      return {
+        name: key,
+        items: value
+          ? Object.entries(value as Record<any, Function>).map(
+              ([key, value]) => ({
+                name: key,
+                value: value.toString()
+              })
+            )
+          : []
       }
-    )
+    })
 
     return {
       data: this.data,
