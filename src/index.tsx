@@ -26,6 +26,7 @@ export type OnChange<T> = (state: T) => void
 
 export type StateDesignerInfo<D> = {
   data: D
+  thenSend: (eventName: string, payload?: any) => () => void
   send: (eventName: string, payload?: any) => void
   graph: Graph.Export<D>
   active: string[]
@@ -88,66 +89,78 @@ export function useStateDesigner<
     Pick<StateDesigner<D, A, C, R>, "data" | "active" | "graph">
   >(pick(machine.current, ["graph", "data", "active"]))
 
-  const helpers = React.useMemo(
-    () => ({
-      send(event: string, payload?: any) {
-        return machine.current.send(event, payload)
-      },
-      isIn(state: string) {
-        return machine.current.isIn(state)
-      },
-      whenIn(states: { [key: string]: any }) {
-        const { active } = machine.current
+  // Helpers
 
-        let returnValue = states["default"]
+  const send = React.useCallback((event: string, payload?: any) => {
+    machine.current.send(event, payload)
+  }, [])
 
-        function setValue(value: any) {
-          if (isPlainObject(returnValue)) {
-            Object.assign(returnValue, value)
-          } else {
-            returnValue = value
-          }
-        }
+  const thenSend = React.useCallback((event: string, payload?: any) => {
+    return function() {
+      machine.current.send(event, payload)
+    }
+  }, [])
 
-        Object.entries(states).forEach(([key, value]) => {
-          if (key === "root") {
-            setValue(value)
-          } else {
-            if (active.find(v => v.endsWith("." + key))) {
-              setValue(value)
-            }
-          }
-        })
+  const isIn = React.useCallback((state: string) => {
+    return machine.current.isIn(state)
+  }, [])
 
-        return returnValue
-      },
-      can(event: string, payload?: any) {
-        return machine.current.can(event, payload)
-      },
-      reset() {
-        return machine.current.reset()
+  const whenIn = React.useCallback((states: { [key: string]: any }) => {
+    const { active } = machine.current
+
+    let returnValue = states["default"]
+
+    function setValue(value: any) {
+      if (isPlainObject(returnValue)) {
+        Object.assign(returnValue, value)
+      } else {
+        returnValue = value
       }
-    }),
-    []
-  )
+    }
+
+    Object.entries(states).forEach(([key, value]) => {
+      if (key === "root") {
+        setValue(value)
+      } else {
+        if (active.find(v => v.endsWith("." + key))) {
+          setValue(value)
+        }
+      }
+    })
+
+    return returnValue
+  }, [])
+
+  const can = React.useCallback((event: string, payload?: any) => {
+    return machine.current.can(event, payload)
+  }, [])
+
+  const reset = React.useCallback(() => {
+    return machine.current.reset()
+  }, [])
+
+  // Effect
 
   React.useLayoutEffect(() => {
+    machine.current.destroy()
+
     if (!(options instanceof StateDesigner)) {
       machine.current = new StateDesigner(options)
       setState(pick(machine.current, ["graph", "data", "active"]))
     }
 
-    return machine.current.subscribe((data, active, graph) => {
+    return machine.current.subscribe(({ data, active, graph }) => {
       setState({ data, active, graph })
     })
   }, dependencies)
 
   // Run onChange callback when data changes
+
   React.useEffect(() => {
-    onChange && onChange({ ...state, ...helpers })
+    onChange && onChange({ ...state, send, thenSend, isIn, whenIn, can, reset })
   }, [state])
 
-  return { ...(state as any), ...helpers }
+  return { ...(state as any), send, thenSend, isIn, whenIn, can, reset }
 }
 
 export {

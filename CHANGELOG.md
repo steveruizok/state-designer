@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.35
+
+- Rewrites async events, repeat events.
+
+## 1.0.34
+
+- Wraps all static helpers in `useCallback`.
+
+## 1.0.33
+
+- Adds `thenSend`.
+
+## 1.0.32
+
+- Changes subscriber output to object, rather than list of separate arguments, in order to match hook exports.
+
 ## 1.0.30
 
 - Changes hook returns:

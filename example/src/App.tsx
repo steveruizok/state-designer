@@ -2,7 +2,9 @@ import React from "react"
 import Counter from "./Examples/Counter"
 import Switch from "./Examples/Switch"
 import NestedStates from "./Examples/NestedStates"
+import Delay from "./Examples/Delay"
 import Chain from "./Examples/Chain"
+import PlayPauseStop from "./Examples/PlayPauseStop"
 import DeepLink from "./Examples/DeepLink"
 import OnEvent from "./Examples/OnEvent"
 import Blended from "./Examples/Blended"
@@ -13,16 +15,18 @@ export interface Props {}
 const App: React.FC<Props> = ({ children }) => {
   return (
     <div>
-      {/* <h1>State Designer</h1>
-      <hr /> */}
-      {/* <Blended />
-      <Counter />
+      <h1>State Designer</h1>
+      <hr />
+      <Delay />
+      <Chain />
+      <PlayPauseStop />
+      {/* <Blended /> */}
+      {/* <Counter />
       <Switch />
       <NestedStates />
-      <Chain />
       <DeepLink />
       <OnEvent /> */}
-      <Editor />
+      {/* <Editor /> */}
     </div>
   )
 }

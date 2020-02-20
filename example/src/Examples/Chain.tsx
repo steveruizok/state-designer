@@ -37,17 +37,19 @@ const Chain: React.FC<{}> = () => {
         onEnter: data => (data.status = "Click submit to get your result")
       },
       loading: {
+        async: {
+          await: getFakeFetch,
+          onResolve: {
+            do: (data, payload, result) => (data.result = result),
+            send: "RESOLVED_DATA"
+          },
+          onReject: {
+            do: (data, payload, result) => (data.result = result),
+            send: "REJECTED_DATA"
+          }
+        },
         onEnter: {
-          do: data => (data.status = "Loading..."),
-          await: getFakeFetch
-        },
-        onResolve: {
-          do: (data, payload, result) => (data.result = result),
-          send: "RESOLVED_DATA"
-        },
-        onReject: {
-          do: (data, payload, result) => (data.result = result),
-          send: "REJECTED_DATA"
+          do: data => (data.status = "Loading...")
         },
         on: {
           RESOLVED_DATA: {

@@ -55,11 +55,9 @@ export interface IEventHandlerConfig<D, A, C, R> {
   ifAny?: IConditionsConfig<D, C>
   unless?: IConditionsConfig<D, C>
   get?: IResultsConfig<D, R>
-  await?: (data: D, payload: any, result: any) => Promise<any>
   to?: string
   send?: string | [string, any]
   wait?: number
-  repeatDelay?: number
 }
 
 export type IEventConfigValue<D, A, C, R> = A extends Record<string, never>
@@ -79,15 +77,40 @@ export interface IEventHandler<D> {
   unless: ICondition<D>[]
   get: IResult<D>[]
   to?: string
-  await?: <T = any>() => Promise<T>
   send?: string | [string, any]
   wait?: number
-  repeatDelay?: number
 }
 
 export type IEvent<D> = IEventHandler<D>[]
 
 type IEvents<D> = Record<string, IEvent<D>>
+
+// Repeat Event
+
+export interface IRepeatEventConfig<D, A, C, R> {
+  event: IEventConfig<D, A, C, R>
+  delay?: number
+}
+
+export interface IRepeatEvent<D> {
+  event: IEvent<D>
+  delay: number
+}
+// Async Event
+
+type AsyncResult<D, X> = (data: D, payload: any, result: any) => Promise<X>
+
+export interface IAsyncEventConfig<D, A, C, R, X extends any = unknown> {
+  await: MaybeArray<AsyncResult<D, X>>
+  onResolve: IEventConfig<D, A, C, R>
+  onReject: IEventConfig<D, A, C, R>
+}
+
+export interface IAsyncEvent<D, X extends any = unknown> {
+  asyncFns: AsyncResult<D, X>[]
+  onResolve: IEvent<D>
+  onReject: IEvent<D>
+}
 
 // Named functions
 
@@ -110,14 +133,14 @@ export interface IStateConfig<
   C extends ConditionsCollection<D> | undefined,
   R extends ResultsCollection<D> | undefined
 > {
-  on?: IEventsConfig<D, A, C, R>
-  onEnter?: IEventConfig<D, A, C, R>
-  onEvent?: IEventConfig<D, A, C, R>
-  onResolve?: IEventConfig<D, A, C, R>
-  onReject?: IEventConfig<D, A, C, R>
-  onRepeat?: IEventConfigValue<D, A, C, R>
-  states?: IStatesConfig<D, A, C, R>
   initial?: string
+  states?: IStatesConfig<D, A, C, R>
+  async?: IAsyncEventConfig<D, A, C, R>
+  onEnter?: IEventConfig<D, A, C, R>
+  onExit?: IEventConfig<D, A, C, R>
+  onEvent?: IEventConfig<D, A, C, R>
+  on?: IEventsConfig<D, A, C, R>
+  repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R>>
 }
 
 export type IStatesConfig<
@@ -167,7 +190,6 @@ export namespace Graph {
     do: string[]
     to: string
     wait: string
-    repeatDelay: string
     send: string | { name: string; payload: string }
   }
 }
@@ -179,12 +201,12 @@ export type Subscriber<
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
   R extends ResultsCollection<D> | undefined
-> = (
-  data: D,
-  active: string[],
-  graph: Graph.Export<D>,
+> = (snapshot: {
+  data: D
+  active: string[]
+  graph: Graph.Export<D>
   state: IStateNode<D, A, C, R>
-) => void
+}) => void
 
 // State Designer Config
 
@@ -342,12 +364,19 @@ class StateDesigner<
     this._initialGraph = this._graph
 
     for (let state of this._active) {
-      if (state.autoEvents.onEnter !== undefined) {
-        this.triggerAutoEvent(state, "onEnter", undefined, undefined)
+      const { onEnter } = state.autoEvents
+      if (onEnter !== undefined) {
+        this.triggerAutoEvent(state, onEnter, undefined, undefined)
       }
 
-      if (state.autoEvents.onRepeat !== undefined) {
-        this.triggerAutoEvent(state, "onRepeat", undefined, undefined)
+      if (state.asyncEvent !== undefined) {
+        this.handleAsyncEvent(state, state.asyncEvent)
+      }
+
+      if (state.repeatEvents.length > 0) {
+        for (let event of state.repeatEvents) {
+          this.handleRepeatEvent(state, event)
+        }
       }
     }
   }
@@ -405,7 +434,12 @@ class StateDesigner<
    */
   private notifySubscribers = () => {
     this.subscribers.forEach(subscriber =>
-      subscriber(this.data, this.active, this.graph, this.root)
+      subscriber({
+        data: this.data,
+        active: this.active,
+        graph: this.graph,
+        state: this.root
+      })
     )
   }
 
@@ -482,12 +516,12 @@ class StateDesigner<
 
   // From here on, it's all event handling and state transition stuff
 
-  send = (eventName: string, payload?: any) => {
+  send = async (eventName: string, payload?: any) => {
     this.resetRecord()
 
     for (let state of this._active) {
       if (this.record.send || this.record.transition) break
-      this.handleEvent(state, state.events[eventName], payload)
+      await this.handleEvent(state, state.events[eventName], payload)
 
       if (this.record.transition !== undefined) {
         while (this.record.transition !== undefined) {
@@ -496,7 +530,12 @@ class StateDesigner<
       }
 
       if (state.autoEvents.onEvent !== undefined) {
-        this.triggerAutoEvent(state, "onEvent", payload, undefined)
+        this.triggerAutoEvent(
+          state,
+          state.autoEvents.onEvent,
+          payload,
+          undefined
+        )
       }
     }
 
@@ -524,7 +563,7 @@ class StateDesigner<
     }
   }
 
-  handleEvent = (
+  handleEvent = async (
     state: IStateNode<D, any, any, any>,
     event: IEvent<D> | undefined,
     payload: any,
@@ -532,24 +571,22 @@ class StateDesigner<
   ) => {
     if (event === undefined) return
     for (let handler of event) {
-      this.handleEventHandler(state, handler, payload, result)
+      await this.handleEventHandler(state, handler, payload, result)
       if (this.record.transition !== undefined) return
     }
   }
 
-  handleEventHandler(
+  async handleEventHandler(
     state: IStateNode<D, any, any, any>,
     handler: IEventHandler<D>,
     payload: any,
     result?: any
   ) {
-    const {
-      do: actions,
-      get: resolvers,
-      await: asyncItem,
-      to: transition,
-      send
-    } = handler
+    const { wait, do: actions, get: resolvers, to: transition, send } = handler
+
+    if (wait !== undefined) {
+      await new Promise(resolve => setTimeout(resolve, wait * 1000))
+    }
 
     for (let resolver of resolvers) {
       result = resolver(this.data, payload, result)
@@ -565,11 +602,6 @@ class StateDesigner<
         action(draft, payload, result)
       }
     })
-
-    if (asyncItem !== undefined) {
-      this.handleAsyncItem(state, asyncItem, this.data, payload, result)
-      return
-    }
 
     if (transition !== undefined) {
       this.handleTransitionItem(state, transition)
@@ -627,7 +659,7 @@ class StateDesigner<
     }
 
     const { target, previous, restore } = transition
-    const { onEnter, onRepeat } = target.autoEvents
+    const { onEnter } = target.autoEvents
 
     target.active = true
 
@@ -640,11 +672,17 @@ class StateDesigner<
     this.handleChanges(target, upChanges, true, previous, restore, payload)
 
     if (onEnter !== undefined) {
-      this.triggerAutoEvent(target, "onEnter", payload, undefined)
+      this.triggerAutoEvent(target, onEnter, payload, undefined)
     }
 
-    if (onRepeat !== undefined) {
-      this.triggerAutoEvent(target, "onRepeat", payload, undefined)
+    if (target.asyncEvent !== undefined) {
+      this.handleAsyncEvent(target, target.asyncEvent)
+    }
+
+    if (target.repeatEvents.length > 0) {
+      for (let event of target.repeatEvents) {
+        this.handleRepeatEvent(target, event)
+      }
     }
   }
 
@@ -660,19 +698,25 @@ class StateDesigner<
 
     for (let state of deactivates) {
       state.deactivate()
+
+      if (state.autoEvents.onExit !== undefined) {
+        this.triggerAutoEvent(
+          state,
+          state.autoEvents.onExit,
+          payload,
+          undefined,
+          true
+        )
+      }
     }
 
     for (let state of activateDowns) {
       state.active = true
 
       const { onEnter } = state.autoEvents
-      if (onEnter !== undefined) {
-        this.triggerAutoEvent(state, "onEnter", payload, undefined)
-      }
 
-      const { onRepeat } = state.autoEvents
-      if (onRepeat !== undefined) {
-        this.triggerAutoEvent(state, "onRepeat", payload, undefined)
+      if (onEnter !== undefined) {
+        this.triggerAutoEvent(state, onEnter, payload, undefined)
       }
 
       if (this.record.transition !== undefined) {
@@ -699,45 +743,51 @@ class StateDesigner<
     }
   }
 
-  handleAsyncItem(
+  handleAsyncEvent(
     state: IStateNode<D, any, any, any>,
-    asyncItem: <T>(data: D, payload: any, result: any) => Promise<T>,
-    draft: D,
-    payload: any,
-    result: any
+    asyncEvent: IAsyncEvent<D>
   ) {
-    asyncItem(this.data, payload, result)
+    const { asyncFns, onResolve, onReject } = asyncEvent
+
+    const allPromises = asyncFns.map(fn => fn(this.data, undefined, undefined))
+
+    Promise.all(allPromises)
       .then(resolved => {
-        if (state.active) {
-          if (state.autoEvents.onResolve) {
-            this.triggerAutoEvent(state, "onResolve", payload, resolved)
-          }
+        if (state.active && onResolve !== undefined) {
+          this.triggerAutoEvent(state, onResolve, undefined, resolved)
         }
       })
       .catch(rejected => {
-        if (state.active) {
-          if (state.autoEvents.onReject) {
-            this.triggerAutoEvent(state, "onReject", payload, rejected)
-          }
+        if (state.active && onResolve !== undefined) {
+          this.triggerAutoEvent(state, onReject, undefined, rejected)
         }
       })
   }
 
+  handleRepeatEvent = async (
+    state: IStateNode<D, any, any, any>,
+    repeatEvent: IRepeatEvent<D>
+  ) => {
+    const { event, delay } = repeatEvent
+
+    this.triggerAutoEvent(state, event, undefined, undefined)
+
+    if (delay !== undefined) {
+      await new Promise(resolve => setTimeout(resolve, delay * 1000))
+      if (this.isIn(state.name)) {
+        this.handleRepeatEvent(state, repeatEvent)
+      }
+    }
+  }
+
   triggerAutoEvent = async (
     state: IStateNode<D, any, any, any>,
-    eventName: string,
+    event: IEvent<D>,
     payload: any,
-    returned: any
+    returned: any,
+    ignoreActive = false
   ) => {
-    const event = state.autoEvents[eventName]
-
-    if (event.length === 1 && event[0].wait > 0) {
-      await new Promise(resolve => setTimeout(resolve, event[0].wait * 1000))
-    }
-
-    if (!state.active) {
-      return
-    }
+    if (!state.active && !ignoreActive) return
 
     this.resetRecord()
     this.handleEvent(state, event, payload, returned)
@@ -762,18 +812,14 @@ class StateDesigner<
 
       this.notifySubscribers()
     }
-
-    if (eventName === "onRepeat") {
-      const delay = Math.max(event[0].repeatDelay, 0.016)
-      if (event.length === 1 && delay) {
-        await new Promise(resolve => setTimeout(resolve, delay * 1000))
-      }
-
-      this.triggerAutoEvent(state, "onRepeat", payload, undefined)
-    }
   }
 
-  // End old stuff
+  destroy() {
+    for (let state of this._active) {
+      state.active = false
+    }
+    this.updatePublicData()
+  }
 }
 
 /* ------------------- State Node ------------------- */
@@ -811,11 +857,11 @@ type StateConfig<
   parent?: IStateNode<D, A, C, R>
   machine: StateDesigner<D, A, C, R>
   onEnter?: IEventConfig<D, A, C, R>
+  onExit?: IEventConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
-  onResolve?: IEventConfig<D, A, C, R>
-  onReject?: IEventConfig<D, A, C, R>
-  onRepeat?: IEventConfig<D, A, C, R>
   on?: IEventsConfig<D, A, C, R>
+  async?: IAsyncEventConfig<D, A, C, R>
+  repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R>>
   active: boolean
   initial?: string
   states?: IStatesConfig<D, A, C, R>
@@ -837,12 +883,12 @@ export class IStateNode<
   previous?: string
   children: IStateNode<D, A, C, R>[] = []
   events: IEvents<D> = {}
+  asyncEvent?: IAsyncEvent<D>
+  repeatEvents: IRepeatEvent<D>[]
   autoEvents: {
     onEvent?: IEvent<D>
     onEnter?: IEvent<D>
-    onResolve?: IEvent<D>
-    onReject?: IEvent<D>
-    onRepeat?: IEvent<D>
+    onExit?: IEvent<D>
   }
 
   constructor(options = {} as StateConfig<D, A, C, R>) {
@@ -855,9 +901,7 @@ export class IStateNode<
       states = {},
       onEvent,
       onEnter,
-      onResolve,
-      onReject,
-      onRepeat,
+      onExit,
       active
     } = options
 
@@ -892,11 +936,11 @@ export class IStateNode<
             initial: state.initial,
             states: state.states,
             onEnter: state.onEnter,
+            onExit: state.onExit,
             onEvent: state.onEvent,
-            onResolve: state.onResolve,
-            onReject: state.onReject,
-            onRepeat: state.onRepeat,
-            on: state.on
+            on: state.on,
+            async: state.async,
+            repeat: state.repeat
           })
         )
         return acc
@@ -1028,7 +1072,7 @@ export class IStateNode<
 
     // End giant typescript mess
 
-    const getProcessedEventHandler = (event: IEventConfig<D, A, C, R>) => {
+    const getProcessedEvent = (event: IEventConfig<D, A, C, R>) => {
       const handlers = castArray(event as any)
 
       return handlers.map<IEventHandler<D>>(v => {
@@ -1039,7 +1083,8 @@ export class IStateNode<
           ifAny: [],
           do: [],
           send: undefined,
-          to: undefined
+          to: undefined,
+          wait: undefined
         }
 
         if (typeof v === "string" || typeof v === "function") {
@@ -1053,8 +1098,6 @@ export class IStateNode<
           result.do = getActions(v.do)
           result.to = v.to
           result.send = v.send
-          result.await = v.await
-          result.repeatDelay = v.repeatDelay
           result.wait = v.wait
         }
 
@@ -1062,18 +1105,39 @@ export class IStateNode<
       })
     }
 
+    function getProcessedRepeat(item: IRepeatEventConfig<D, A, C, R>) {
+      return {
+        event: getProcessedEvent(item.event),
+        delay: item.delay || 0.016
+      }
+    }
+
+    function getProcessedAsync(item: IAsyncEventConfig<D, A, C, R>) {
+      return {
+        asyncFns: castArray(item.await),
+        onReject: getProcessedEvent(item.onReject),
+        onResolve: getProcessedEvent(item.onResolve)
+      }
+    }
+
     // AUTO EVENTS
 
     this.autoEvents = {
-      onEvent: onEvent ? getProcessedEventHandler(onEvent) : undefined,
-      onEnter: onEnter ? getProcessedEventHandler(onEnter) : undefined,
-      onResolve: onResolve ? getProcessedEventHandler(onResolve) : undefined,
-      onReject: onReject ? getProcessedEventHandler(onReject) : undefined,
-      onRepeat: onRepeat ? getProcessedEventHandler(onRepeat) : undefined
+      onEvent: onEvent ? getProcessedEvent(onEvent) : undefined,
+      onEnter: onEnter ? getProcessedEvent(onEnter) : undefined,
+      onExit: onExit ? getProcessedEvent(onExit) : undefined
     }
 
+    this.repeatEvents = options.repeat
+      ? castArray(options.repeat).map(getProcessedRepeat)
+      : []
+
+    this.asyncEvent = options.async
+      ? getProcessedAsync(options.async)
+      : undefined
+
     this.events = Object.keys(on).reduce<IEvents<D>>((acc, key) => {
-      acc[key] = getProcessedEventHandler(on[key])
+      acc[key] = getProcessedEvent(on[key])
       return acc
     }, {})
   }
@@ -1325,9 +1389,7 @@ function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
       do: eventHandler.do.map(h => getGraphHandlerFunction(h, eventName)),
       to: eventHandler.to || "",
       wait: eventHandler.wait ? eventHandler.wait.toString() : "",
-      repeatDelay: eventHandler.repeatDelay
-        ? eventHandler.repeatDelay.toString()
-        : "",
+
       send: eventHandler.send
         ? Array.isArray(eventHandler.send)
           ? {
@@ -1346,13 +1408,7 @@ function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
 function graphAutoEvents(state: IStateNode<any, any, any, any>) {
   const autoEvents = [] as Graph.Event[]
 
-  for (let eventName of [
-    "onEnter",
-    "onEvent",
-    "onResolve",
-    "onReject",
-    "onRepeat"
-  ]) {
+  for (let eventName of ["onEnter", "onEvent", "onExit"]) {
     let event = state.autoEvents[eventName] as IEvent<unknown> | undefined
 
     if (event !== undefined) {

@@ -1,0 +1,143 @@
+# Data
+
+You can use State Designer to create and edit a value called **data**.
+
+In a State Designer's configuration object, define your initial data under the `data` property.
+
+```tsx
+createStateDesigner({
+  data: 0
+})
+```
+
+In the example above, we've created a state with an initial `data` property of zero.
+
+```tsx
+createStateDesigner({
+  data: {
+    count: 0
+  }
+})
+```
+
+In this example, we've created a state with an object `{ count: 0 }` as its initial `data` property.
+
+## Using Data
+
+Whenever a `StateDesigner` instance updates, it will notify its subscribers with a snapshot that includes the instance's current `data` property.
+
+**Note**: The following examples do not include any way to update their `StateDesigner` instances. See the next section for more complete examples.
+
+### JavaScript
+
+```tsx
+// index.js
+
+const state = createStateDesigner({
+  data: {
+    count: 0
+  }
+})
+
+state.subscribe(snapshot => {
+  console.log("Current data: ", snapshot.data)
+})
+```
+
+[![Edit using-data-vanilla](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/changing-data-vanilla-qvmfq?fontsize=14&hidenavigation=1&theme=dark)
+
+In the example above, any update to the `state` instance will cause the calllback to log the instance's current `data` property to the console.
+
+### React
+
+The `useStateDesigner` hook will return the `StateDesigner`'s snapshot.
+
+```jsx
+// App.jsx
+
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+export default function App() {
+  const { data } = useStateDesigner({
+    data: {
+      count: 0
+    }
+  })
+
+  return (
+    <div>
+      <h1>{data.count}</h1>
+    </div>
+  )
+}
+```
+
+[![Edit using-data-react](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/using-data-react-2wuqw?fontsize=14&hidenavigation=1&theme=dark)
+
+In the example above, any update to the component's local `StateDesigner` will cause the component to update and display the current `data.count` value.
+
+## Changing Data
+
+Use **Events** with **Actions** to make changes to a `StateDesigner`'s data.
+
+See the [Events](events) section for more on Events and Actions.
+
+### JavaScript
+
+```tsx
+// index.js
+
+import { createStateDesigner } from "state-designer"
+
+const state = createStateDesigner({
+  data: {
+    count: 0
+  },
+  on: {
+    PLUS_CLICKED: data => data.count++
+  }
+})
+
+const label = document.getElementById("count")
+const button = document.getElementById("button")
+
+label.textContent = state.data.count
+
+button.onclick = () => state.send("PLUS_CLICKED")
+
+state.subscribe(snapshot => {
+  label.textContent = snapshot.data.count
+})
+```
+
+[![Edit changing-data-vanilla](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/data-changing-data-vanilla-ilt3l?fontsize=14&hidenavigation=1&theme=dark)
+
+### React
+
+```jsx
+// App.jsx
+
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+export default function App() {
+  const { data, send } = useStateDesigner({
+    data: {
+      count: 0
+    },
+    on: {
+      PLUS_CLICKED: data => data.count++
+    }
+  })
+
+  return (
+    <div>
+      <h1>{data.count}</h1>
+      <button onClick={() => send("PLUS_CLICKED")}>+</button>
+    </div>
+  )
+}
+```
+
+[![Edit changing-data-react](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/using-data-react-exu45?fontsize=14&hidenavigation=1&theme=dark)

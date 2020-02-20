@@ -20,31 +20,31 @@ const Chaser: React.FC<{}> = () => {
       chasing: {
         on: {
           CLICKED: { to: "sinking" }
-        },
-        onRepeat: {
-          do: data => {
-            const deltaX = rMouse.current.x - data.x
-            const deltaY = rMouse.current.y - data.y
-            data.x += deltaX / 20
-            data.y += deltaY / 20
-          },
-          repeatDelay: 0.016
         }
+        // onRepeat: {
+        //   do: data => {
+        //     const deltaX = rMouse.current.x - data.x
+        //     const deltaY = rMouse.current.y - data.y
+        //     data.x += deltaX / 20
+        //     data.y += deltaY / 20
+        //   },
+        //   repeatDelay: 0.016
+        // }
       },
       sinking: {
         onEnter: data => (data.fallDistance = 100),
         on: {
           CLICKED: { to: "chasing" }
-        },
-        onRepeat: {
-          do: data => {
-            data.fallDistance--
-            if (data.fallDistance > 0) {
-              data.y += 1
-            }
-          },
-          repeatDelay: 0.016
         }
+        // onRepeat: {
+        //   do: data => {
+        //     data.fallDistance--
+        //     if (data.fallDistance > 0) {
+        //       data.y += 1
+        //     }
+        //   },
+        //   repeatDelay: 0.016
+        // }
       }
     }
   })

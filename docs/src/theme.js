@@ -1,4 +1,5 @@
 import prismTheme from "@theme-ui/prism/presets/github.json"
+import "./styles.css"
 
 const heading = {
   fontFamily: "heading",
@@ -25,18 +26,18 @@ export default {
     gray: "#d8dde3"
   },
   fonts: {
-    body: "system-ui, sans-serif",
+    body: "'Merriweather', 'Georgia', sans-serif",
     heading: "system-ui, sans-serif",
     monospace: "Fira Code, Menlo, monospace"
   },
-  fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 72],
+  fontSizes: [12, 14, 16, 18, 24, 32, 48, 64, 72],
   fontWeights: {
-    body: "400",
+    body: "500",
     heading: "700",
     bold: "800"
   },
   lineHeights: {
-    body: 1.5,
+    body: 1.8,
     heading: 1.25
   },
   textStyles: {
@@ -58,7 +59,8 @@ export default {
     root: {
       fontFamily: "body",
       lineHeight: "body",
-      fontWeight: "body"
+      fontWeight: "body",
+      fontSize: 3
     },
     h1: {
       variant: "textStyles.display"
@@ -122,7 +124,7 @@ export default {
       color: "code",
       bg: "codeBg",
       fontWeight: 500,
-      fontSize: 1,
+      // fontSize: 1,
       // border: '1px solid #efefef',
       px: 1,
       borderRadius: 4

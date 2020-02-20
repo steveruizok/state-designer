@@ -4,6 +4,7 @@ module.exports = {
     description: "Docs for the state-designer library."
   },
   plugins: [
+    `@pauliescanlon/gatsby-mdx-embed`,
     "gatsby-plugin-meta-redirect",
     "gatsby-plugin-theme-ui",
     "gatsby-plugin-react-helmet",
@@ -13,9 +14,11 @@ module.exports = {
       options: {
         extensions: [".md", ".mdx"],
         gatsbyRemarkPlugins: [
+          "gatsby-remark-smartypants",
           "gatsby-remark-prismjs",
           "remark-slug",
-          "remark-emoji"
+          "remark-emoji",
+          `gatsby-remark-embedder`
         ]
       }
     },
