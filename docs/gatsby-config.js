@@ -17,8 +17,7 @@ module.exports = {
           "gatsby-remark-smartypants",
           "gatsby-remark-prismjs",
           "remark-slug",
-          "remark-emoji",
-          `gatsby-remark-embedder`
+          "remark-emoji"
         ]
       }
     },
