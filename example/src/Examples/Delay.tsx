@@ -1,29 +1,31 @@
 import * as React from "react"
-import { useStateDesigner } from "state-designer"
+import { createStateDesigner, useStateDesigner } from "state-designer"
 
-const Delay: React.FC<{}> = () => {
-  const { data, send, graph } = useStateDesigner({
-    data: {
-      count: 0
-    },
-    initial: "inactive",
-    states: {
-      active: {
-        on: {
-          STOP_CLICKED: { to: "inactive" }
-        },
-        repeat: {
-          event: data => data.count++,
-          delay: 0.25
-        }
+const state = createStateDesigner({
+  data: {
+    count: 0
+  },
+  initial: "inactive",
+  states: {
+    active: {
+      on: {
+        STOP_CLICKED: { to: "inactive" }
       },
-      inactive: {
-        on: {
-          START_CLICKED: { to: "active" }
-        }
+      repeat: {
+        event: data => data.count++,
+        delay: 0.25
+      }
+    },
+    inactive: {
+      on: {
+        START_CLICKED: { to: "active" }
       }
     }
-  })
+  }
+})
+
+const Delay: React.FC<{}> = () => {
+  const { data, send, graph } = useStateDesigner(state)
 
   return (
     <div className="example">
@@ -31,6 +33,7 @@ const Delay: React.FC<{}> = () => {
       <p>Count: {data.count}</p>
       <button
         onClick={() => {
+          console.log(send)
           send("START_CLICKED")
         }}
       >

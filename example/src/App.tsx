@@ -18,8 +18,8 @@ const App: React.FC<Props> = ({ children }) => {
       <h1>State Designer</h1>
       <hr />
       <Delay />
-      <Chain />
-      <PlayPauseStop />
+      {/* <Chain />
+      <PlayPauseStop /> */}
       {/* <Blended /> */}
       {/* <Counter />
       <Switch />

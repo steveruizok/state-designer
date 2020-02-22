@@ -142,9 +142,8 @@ export function useStateDesigner<
   // Effect
 
   React.useLayoutEffect(() => {
-    machine.current.destroy()
-
     if (!(options instanceof StateDesigner)) {
+      machine.current.destroy()
       machine.current = new StateDesigner(options)
       setState(pick(machine.current, ["graph", "data", "active"]))
     }

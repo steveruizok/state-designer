@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.36
+
+- Fixed bug when re-creating machine.
+
 ## 1.0.35
 
 - Rewrites async events, repeat events.
