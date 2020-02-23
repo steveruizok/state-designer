@@ -9,6 +9,7 @@ import DeepLink from "./Examples/DeepLink"
 import OnEvent from "./Examples/OnEvent"
 import Blended from "./Examples/Blended"
 import Login from "./Examples/Login"
+import Player from "./Examples/Player"
 import Editor from "./Editor"
 
 export interface Props {}
@@ -18,7 +19,8 @@ const App: React.FC<Props> = ({ children }) => {
     <div>
       <h1>State Designer</h1>
       <hr />
-      <Login />
+      <Player />
+      {/* <Login /> */}
       {/* <Chain />
       <PlayPauseStop /> */}
       {/* <Blended /> */}

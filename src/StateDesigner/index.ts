@@ -527,6 +527,7 @@ class StateDesigner<
   // From here on, it's all event handling and state transition stuff
 
   send = async (eventName: string, payload?: any) => {
+    // if isBusy, add to queue?
     this.resetRecord()
 
     for (let state of this._active) {
@@ -762,13 +763,13 @@ class StateDesigner<
 
     target.active = true
 
-    const downChanges = target.activateDown(previous, restore)
-
-    this.handleChanges(target, downChanges, false, previous, restore, payload)
-
     const upChanges = target.activateUp()
 
     this.handleChanges(target, upChanges, true, previous, restore, payload)
+
+    const downChanges = target.activateDown(previous, restore)
+
+    this.handleChanges(target, downChanges, false, previous, restore, payload)
 
     if (onEnter !== undefined) {
       this.handleAutoEvent(target, onEnter, payload, undefined)
@@ -847,6 +848,7 @@ class StateDesigner<
       }
     }
   }
+
   destroy() {
     for (let state of this._active) {
       state.active = false
