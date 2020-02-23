@@ -167,8 +167,6 @@ export default function() {
     }
   })
 
-  console.log(active)
-
   return whenIn({
     default: <div>uh oh</div>,
     idle: (

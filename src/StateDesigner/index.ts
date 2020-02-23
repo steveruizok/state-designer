@@ -818,6 +818,12 @@ class StateDesigner<
         this.handleAutoEvent(state, onEnter, payload, undefined)
       }
 
+      if (state.repeatEvents.length > 0) {
+        for (let event of state.repeatEvents) {
+          this.handleRepeatEvent(state, event)
+        }
+      }
+
       if (this.record.transition !== undefined) {
         this.enactTransition(this.record.transition, payload)
       }

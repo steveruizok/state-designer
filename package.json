@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.0.36",
+  "version": "1.0.38",
   "description": "A state and event management tool.",
   "author": "steveruizok",
   "license": "MIT",
@@ -17,11 +17,7 @@
     "test:watch": "react-scripts test --env=jsdom",
     "now-build": "cd docs && yarn && yarn run build",
     "build": "rollup -c",
-    "start": "rollup -c -w",
-    "prepare": "yarn run build",
-    "predeploy": "cd example && yarn install && yarn run build",
-    "autodeploy": "yarn && cd example && yarn && yarn run build",
-    "deploy": "gh-pages -d example/build"
+    "start": "rollup -c -w"
   },
   "dependencies": {
     "immer": "^5.1.0",

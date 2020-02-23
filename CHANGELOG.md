@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.37
+
+- Fixed bug preventing repeat events.
+
 ## 1.0.36
 
 - Fixed bug when re-creating machine.
