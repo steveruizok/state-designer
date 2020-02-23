@@ -1,4 +1,5 @@
 import * as React from "react"
+import isFunction from "lodash-es/isFunction"
 import isPlainObject from "lodash-es/isPlainObject"
 import pick from "lodash-es/pick"
 import StateDesigner, {
@@ -110,11 +111,17 @@ export function useStateDesigner<
 
     let returnValue = states["default"]
 
+    if (isFunction(returnValue)) {
+      returnValue = returnValue()
+    }
+
     function setValue(value: any) {
+      let v = isFunction(value) ? value() : value
+
       if (isPlainObject(returnValue)) {
-        Object.assign(returnValue, value)
+        returnValue = { ...returnValue, ...v }
       } else {
-        returnValue = value
+        returnValue = v
       }
     }
 

@@ -10,23 +10,25 @@ export type MaybeArray<T> = T | T[]
 
 export type IAction<D> = (data: Draft<D>, payload: any, result: any) => any
 
-export type IActionConfig<D> = (data: D, payload: any, result: any) => any
+export interface IActionConfig<D> {
+  (data: D, payload: any, result: any): any
+}
 
 // Conditions
 
 export type ICondition<D> = (data: D, payload: any, result: any) => boolean
 
-export type IConditionConfig<D> = (
-  data: D,
-  payload: any,
-  result: any
-) => boolean
+export interface IConditionConfig<D> {
+  (data: D, payload: any, result: any): boolean
+}
 
 // Results
 
 export type IResult<D> = (data: D, payload: any, result: any) => any
 
-export type IResultConfig<D> = (data: D, payload: any, result: any) => void
+export interface IResultConfig<D> {
+  (data: D, payload: any, result: any): void
+}
 
 // Config records for named functions
 export type ActionsCollection<D> = Record<string, IActionConfig<D>>
@@ -139,6 +141,7 @@ export interface IStateConfig<
   onEnter?: IEventConfig<D, A, C, R>
   onExit?: IEventConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
+  onEventComplete?: IEventConfig<D, A, C, R>
   on?: IEventsConfig<D, A, C, R>
   repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R>>
 }
@@ -219,6 +222,7 @@ export type StateDesignerConfig<
   data?: D
   on?: IEventsConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
+  onEventComplete?: IEventConfig<D, A, C, R>
   initial?: string
   states?: IStatesConfig<D, A, C, R>
   actions?: A
@@ -279,30 +283,29 @@ class StateDesigner<
   C extends ConditionsCollection<D> | undefined,
   R extends ResultsCollection<D> | undefined
 > {
-  id = uniqueId()
   private _initialData: D
-  data: D
-  namedFunctions: NamedFunctions<D, A, C, R>
-  _rootOptions: any
-  _initialGraph: Graph.Export<D>
-  _active: IStateNode<D, A, C, R>[] = []
-  _activeNames: string[]
-  _graph: Graph.Export<D>
-  _collections: {
+  private _initialOptions: any
+  private _active: IStateNode<D, A, C, R>[] = []
+  private _activeNames: string[]
+  private _graph: Graph.Export<D>
+  private _collections: {
     actions?: A
     conditions?: C
     results?: R
   }
-  root: IStateNode<D, A, C, R>
-  subscribers = new Set<Subscriber<D, A, C, R>>([])
-  pendingSend: [string, any][] = []
-
+  private _subscribers = new Set<Subscriber<D, A, C, R>>([])
+  private _pendingSend: [string, any][] = []
+  private _root: IStateNode<D, A, C, R>
   private record: EventRecord<D> = {
     send: false,
     action: false,
     transition: undefined,
     transitions: 0
   }
+
+  id = uniqueId()
+  data: D
+  namedFunctions: NamedFunctions<D, A, C, R>
 
   constructor(options = {} as StateDesignerConfig<D, A, C, R>) {
     const {
@@ -311,6 +314,7 @@ class StateDesigner<
       states = {},
       on = {},
       onEvent,
+      onEventComplete,
       actions,
       conditions,
       results
@@ -328,10 +332,11 @@ class StateDesigner<
       results
     }
 
-    this.root = new IStateNode({
+    this._root = new IStateNode({
       machine: this,
       on,
       onEvent,
+      onEventComplete,
       states,
       initial,
       name: "root",
@@ -340,10 +345,11 @@ class StateDesigner<
 
     this._initialData = this.data
 
-    this._rootOptions = {
+    this._initialOptions = {
       machine: this,
       on,
       onEvent,
+      onEventComplete,
       states,
       initial,
       name: "root",
@@ -356,17 +362,16 @@ class StateDesigner<
       results
     }
 
-    this.root = new IStateNode(this._rootOptions)
+    this._root = new IStateNode(this._initialOptions)
 
-    this._active = this.root.getActive()
+    this._active = this._root.getActive()
     this._activeNames = this._active.flatMap(state => [state.name, state.path])
     this._graph = this.getGraph()
-    this._initialGraph = this._graph
 
     for (let state of this._active) {
       const { onEnter } = state.autoEvents
       if (onEnter !== undefined) {
-        this.triggerAutoEvent(state, onEnter, undefined, undefined)
+        this.handleAutoEvent(state, onEnter, undefined, undefined)
       }
 
       if (state.asyncEvent !== undefined) {
@@ -382,7 +387,7 @@ class StateDesigner<
   }
 
   private updatePublicData = () => {
-    this._active = this.root.getActive()
+    this._active = this._root.getActive()
     this._activeNames = this._active.flatMap(state => [state.name, state.path])
     this._graph = this.getGraph()
   }
@@ -406,7 +411,7 @@ class StateDesigner<
 
     return {
       data: this.data,
-      ...this.graphNode(this.root),
+      ...this.graphNode(this._root),
       collections
     }
   }
@@ -430,32 +435,32 @@ class StateDesigner<
   }
 
   /**
-   * Share certain information with each of the machine's subscribers.
+   * Share certain information with each of the machine's _subscribers.
    */
   private notifySubscribers = () => {
-    this.subscribers.forEach(subscriber =>
+    this._subscribers.forEach(subscriber =>
       subscriber({
         data: this.data,
         active: this.active,
         graph: this.graph,
-        state: this.root
+        state: this._root
       })
     )
   }
 
   /**
-   * Adds an `onChange` callback to the machine's subscribers. This `onChange` callback will be called whenever the machine changes its data or graph. Returns a second callback to unsubscribe that callback. (This is makes out hook pretty.)
+   * Adds an `onChange` callback to the machine's _subscribers. This `onChange` callback will be called whenever the machine changes its data or graph. Returns a second callback to unsubscribe that callback. (This is makes out hook pretty.)
    */
   subscribe = (onChange: Subscriber<D, A, C, R>) => {
-    this.subscribers.add(onChange)
+    this._subscribers.add(onChange)
     return () => this.unsubscribe(onChange)
   }
 
   /**
-   * Remove an `onChange` callback from the machine's subscribers.
+   * Remove an `onChange` callback from the machine's _subscribers.
    */
   unsubscribe = (onChange: Subscriber<D, A, C, R>) => {
-    this.subscribers.delete(onChange)
+    this._subscribers.delete(onChange)
   }
 
   /**
@@ -466,9 +471,12 @@ class StateDesigner<
     this.data = this._initialData
 
     // Rebuild state tree
-    this.root = new IStateNode(this._rootOptions)
+    this._root = new IStateNode(this._initialOptions)
 
-    // Notify subscribers
+    this.resetRecord()
+    this.updatePublicData()
+
+    // Notify _subscribers
     this.notifySubscribers()
   }
 
@@ -498,12 +506,14 @@ class StateDesigner<
   /**
    * Is the machine in the given state name?
    */
-  isIn = (name: string) => {
-    return this._active.find(v => v.path.endsWith("." + name)) ? true : false
+  isIn = (...states: string[]) => {
+    return states.every(s =>
+      this._active.find(v => v.path.endsWith("." + s)) ? true : false
+    )
   }
 
   get state() {
-    return this.root
+    return this._root
   }
 
   get graph() {
@@ -530,7 +540,7 @@ class StateDesigner<
       }
 
       if (state.autoEvents.onEvent !== undefined) {
-        this.triggerAutoEvent(
+        this.handleAutoEvent(
           state,
           state.autoEvents.onEvent,
           payload,
@@ -543,7 +553,7 @@ class StateDesigner<
       this.resetRecord()
       this.updatePublicData()
 
-      const next = this.pendingSend.shift()
+      const next = this._pendingSend.shift()
 
       if (next !== undefined) {
         const [e, p] = next
@@ -552,6 +562,17 @@ class StateDesigner<
       }
 
       this.notifySubscribers()
+    }
+
+    for (let state of [...this._active].reverse()) {
+      if (state.autoEvents.onEventComplete !== undefined) {
+        this.handleAutoEvent(
+          state,
+          state.autoEvents.onEventComplete,
+          undefined,
+          undefined
+        )
+      }
     }
   }
   resetRecord = () => {
@@ -570,23 +591,99 @@ class StateDesigner<
     result?: any
   ) => {
     if (event === undefined) return
+
     for (let handler of event) {
-      await this.handleEventHandler(state, handler, payload, result)
-      if (this.record.transition !== undefined) return
+      const { wait } = handler
+      if (wait !== undefined) {
+        await new Promise(resolve => setTimeout(resolve, wait * 1000))
+      }
+
+      this.handleEventHandler(state, handler, payload, result)
+      if (this.record.transition !== undefined) break
     }
   }
 
-  async handleEventHandler(
+  handleAsyncEvent(
+    state: IStateNode<D, any, any, any>,
+    asyncEvent: IAsyncEvent<D>
+  ) {
+    const { asyncFns, onResolve, onReject } = asyncEvent
+
+    const allPromises = asyncFns.map(fn => fn(this.data, undefined, undefined))
+
+    Promise.all(allPromises)
+      .then(resolved => {
+        if (state.active && onResolve !== undefined) {
+          this.handleAutoEvent(state, onResolve, undefined, resolved)
+        }
+      })
+      .catch(rejected => {
+        if (state.active && onResolve !== undefined) {
+          this.handleAutoEvent(state, onReject, undefined, rejected)
+        }
+      })
+  }
+
+  handleRepeatEvent = async (
+    state: IStateNode<D, any, any, any>,
+    repeatEvent: IRepeatEvent<D>
+  ) => {
+    const { event, delay } = repeatEvent
+
+    this.handleAutoEvent(state, event, undefined, undefined)
+
+    if (delay !== undefined) {
+      await new Promise(resolve => setTimeout(resolve, delay * 1000))
+      if (this.isIn(state.name)) {
+        this.handleRepeatEvent(state, repeatEvent)
+      }
+    }
+  }
+
+  handleAutoEvent = async (
+    state: IStateNode<D, any, any, any>,
+    event: IEvent<D>,
+    payload: any,
+    returned: any,
+    ignoreActive = false
+  ) => {
+    if (!state.active && !ignoreActive) return
+
+    this.resetRecord()
+
+    this.handleEvent(state, event, payload, returned)
+
+    if (this.record.transition !== undefined) {
+      while (this.record.transition !== undefined) {
+        this.enactTransition(this.record.transition, payload)
+      }
+    }
+
+    if (this.record.transitions > 0 || this.record.action || this.record.send) {
+      this.resetRecord()
+      this.updatePublicData()
+
+      const next = this._pendingSend.shift()
+
+      if (next !== undefined) {
+        const [e, p] = next
+        this.send(e, p)
+        return
+      }
+
+      this.notifySubscribers()
+    } else {
+      return
+    }
+  }
+
+  handleEventHandler = (
     state: IStateNode<D, any, any, any>,
     handler: IEventHandler<D>,
     payload: any,
     result?: any
-  ) {
-    const { wait, do: actions, get: resolvers, to: transition, send } = handler
-
-    if (wait !== undefined) {
-      await new Promise(resolve => setTimeout(resolve, wait * 1000))
-    }
+  ) => {
+    const { do: actions, get: resolvers, to: transition, send } = handler
 
     for (let resolver of resolvers) {
       result = resolver(this.data, payload, result)
@@ -617,16 +714,16 @@ class StateDesigner<
 
   handleSendItem = (send: string | [string, any]) => {
     if (Array.isArray(send)) {
-      this.pendingSend.push(send)
+      this._pendingSend.push(send)
     } else {
-      this.pendingSend.push([send, undefined])
+      this._pendingSend.push([send, undefined])
     }
   }
 
-  handleTransitionItem(
+  handleTransitionItem = (
     state: IStateNode<D, any, any, any>,
     transition: string
-  ) {
+  ) => {
     let previous = false
     let restore = false
 
@@ -648,9 +745,11 @@ class StateDesigner<
         target
       }
     }
+
+    return
   }
 
-  enactTransition(transition: TransitionRecord<D>, payload: any) {
+  enactTransition = (transition: TransitionRecord<D>, payload: any) => {
     this.record.transitions++
     this.record.transition = undefined
 
@@ -672,7 +771,7 @@ class StateDesigner<
     this.handleChanges(target, upChanges, true, previous, restore, payload)
 
     if (onEnter !== undefined) {
-      this.triggerAutoEvent(target, onEnter, payload, undefined)
+      this.handleAutoEvent(target, onEnter, payload, undefined)
     }
 
     if (target.asyncEvent !== undefined) {
@@ -700,7 +799,7 @@ class StateDesigner<
       state.deactivate()
 
       if (state.autoEvents.onExit !== undefined) {
-        this.triggerAutoEvent(
+        this.handleAutoEvent(
           state,
           state.autoEvents.onExit,
           payload,
@@ -716,7 +815,7 @@ class StateDesigner<
       const { onEnter } = state.autoEvents
 
       if (onEnter !== undefined) {
-        this.triggerAutoEvent(state, onEnter, payload, undefined)
+        this.handleAutoEvent(state, onEnter, payload, undefined)
       }
 
       if (this.record.transition !== undefined) {
@@ -742,78 +841,6 @@ class StateDesigner<
       }
     }
   }
-
-  handleAsyncEvent(
-    state: IStateNode<D, any, any, any>,
-    asyncEvent: IAsyncEvent<D>
-  ) {
-    const { asyncFns, onResolve, onReject } = asyncEvent
-
-    const allPromises = asyncFns.map(fn => fn(this.data, undefined, undefined))
-
-    Promise.all(allPromises)
-      .then(resolved => {
-        if (state.active && onResolve !== undefined) {
-          this.triggerAutoEvent(state, onResolve, undefined, resolved)
-        }
-      })
-      .catch(rejected => {
-        if (state.active && onResolve !== undefined) {
-          this.triggerAutoEvent(state, onReject, undefined, rejected)
-        }
-      })
-  }
-
-  handleRepeatEvent = async (
-    state: IStateNode<D, any, any, any>,
-    repeatEvent: IRepeatEvent<D>
-  ) => {
-    const { event, delay } = repeatEvent
-
-    this.triggerAutoEvent(state, event, undefined, undefined)
-
-    if (delay !== undefined) {
-      await new Promise(resolve => setTimeout(resolve, delay * 1000))
-      if (this.isIn(state.name)) {
-        this.handleRepeatEvent(state, repeatEvent)
-      }
-    }
-  }
-
-  triggerAutoEvent = async (
-    state: IStateNode<D, any, any, any>,
-    event: IEvent<D>,
-    payload: any,
-    returned: any,
-    ignoreActive = false
-  ) => {
-    if (!state.active && !ignoreActive) return
-
-    this.resetRecord()
-    this.handleEvent(state, event, payload, returned)
-
-    if (this.record.transition !== undefined) {
-      while (this.record.transition !== undefined) {
-        this.enactTransition(this.record.transition, payload)
-      }
-    }
-
-    if (this.record.transitions > 0 || this.record.action || this.record.send) {
-      this.resetRecord()
-      this.updatePublicData()
-
-      const next = this.pendingSend.shift()
-
-      if (next !== undefined) {
-        const [e, p] = next
-        this.send(e, p)
-        return
-      }
-
-      this.notifySubscribers()
-    }
-  }
-
   destroy() {
     for (let state of this._active) {
       state.active = false
@@ -859,6 +886,7 @@ type StateConfig<
   onEnter?: IEventConfig<D, A, C, R>
   onExit?: IEventConfig<D, A, C, R>
   onEvent?: IEventConfig<D, A, C, R>
+  onEventComplete?: IEventConfig<D, A, C, R>
   on?: IEventsConfig<D, A, C, R>
   async?: IAsyncEventConfig<D, A, C, R>
   repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R>>
@@ -887,6 +915,7 @@ export class IStateNode<
   repeatEvents: IRepeatEvent<D>[]
   autoEvents: {
     onEvent?: IEvent<D>
+    onEventComplete?: IEvent<D>
     onEnter?: IEvent<D>
     onExit?: IEvent<D>
   }
@@ -900,6 +929,7 @@ export class IStateNode<
       initial,
       states = {},
       onEvent,
+      onEventComplete,
       onEnter,
       onExit,
       active
@@ -938,6 +968,7 @@ export class IStateNode<
             onEnter: state.onEnter,
             onExit: state.onExit,
             onEvent: state.onEvent,
+            onEventComplete: state.onEventComplete,
             on: state.on,
             async: state.async,
             repeat: state.repeat
@@ -1123,6 +1154,9 @@ export class IStateNode<
     // AUTO EVENTS
 
     this.autoEvents = {
+      onEventComplete: onEventComplete
+        ? getProcessedEvent(onEventComplete)
+        : undefined,
       onEvent: onEvent ? getProcessedEvent(onEvent) : undefined,
       onEnter: onEnter ? getProcessedEvent(onEnter) : undefined,
       onExit: onExit ? getProcessedEvent(onExit) : undefined
@@ -1408,7 +1442,7 @@ function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
 function graphAutoEvents(state: IStateNode<any, any, any, any>) {
   const autoEvents = [] as Graph.Event[]
 
-  for (let eventName of ["onEnter", "onEvent", "onExit"]) {
+  for (let eventName of ["onEnter", "onEvent", "onEventComplete", "onExit"]) {
     let event = state.autoEvents[eventName] as IEvent<unknown> | undefined
 
     if (event !== undefined) {
