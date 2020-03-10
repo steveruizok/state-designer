@@ -26,14 +26,14 @@ export default {
     gray: "#d8dde3"
   },
   fonts: {
-    body: "'Merriweather', 'Georgia', sans-serif",
-    heading: "system-ui, sans-serif",
-    monospace: "Fira Code, Menlo, monospace"
+    body: "'IBM Plex Sans', serif",
+    heading: "'IBM Plex Serif', sans-serif",
+    monospace: "'IBM Plex Mono', monospace"
   },
-  fontSizes: [12, 14, 16, 18, 24, 32, 48, 64, 72],
+  fontSizes: [12, 15, 16, 18, 24, 32, 48, 64, 72],
   fontWeights: {
-    body: "500",
-    heading: "700",
+    body: "400",
+    heading: "800",
     bold: "800"
   },
   lineHeights: {
@@ -88,8 +88,11 @@ export default {
     a: {
       color: "primary",
       textDecoration: "none",
-      "&:hover": {
-        textDecoration: "underline"
+      "& > h1,h2,h3,h4,h5,h6": {
+        color: "text",
+        "&:hover": {
+          color: "code"
+        }
       }
     },
     blockquote: {
@@ -116,14 +119,16 @@ export default {
         bg: "inherit",
         border: "none",
         px: 0,
+        fontWeight: 500,
+        fontSize: 1,
         borderRadius: 0
       }
     },
     code: {
       fontFamily: "monospace",
-      color: "code",
+      fontSize: 3,
       bg: "codeBg",
-      fontWeight: 500,
+      fontWeight: 400,
       // fontSize: 1,
       // border: '1px solid #efefef',
       px: 1,
@@ -169,9 +174,7 @@ export default {
     li: {
       mb: 2
     },
-    p: {
-      mb: 3
-    }
+    p: {}
   },
   prism: {
     [[".gatsby-highlight-code-line"]]: {

@@ -13,11 +13,13 @@ import StateDesigner, {
   IStateConfig,
   IStatesConfig,
   IActionConfig,
+  IAsyncResult,
   IConditionConfig,
   IResultConfig,
   ActionsCollection,
   ResultsCollection,
   ConditionsCollection,
+  AsyncsCollection,
   Graph
 } from "./StateDesigner"
 
@@ -44,9 +46,10 @@ export function useStateDesigner<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 >(
-  options: StateDesigner<D, A, C, R>,
+  options: StateDesigner<D, A, C, R, Y>,
   onChange?: OnChange<StateDesignerInfo<D>>
 ): StateDesignerInfo<D>
 // Call useStateDesigner with configuration for a new StateDesigner instance
@@ -54,9 +57,10 @@ export function useStateDesigner<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 >(
-  options: StateDesignerConfig<D, A, C, R>,
+  options: StateDesignerConfig<D, A, C, R, Y>,
   onChange?: OnChange<StateDesignerInfo<D>>,
   dependencies?: any[]
 ): StateDesignerInfo<D>
@@ -70,16 +74,17 @@ export function useStateDesigner<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 >(
-  options: StateDesigner<D, A, C, R> | StateDesignerConfig<D, A, C, R>,
+  options: StateDesigner<D, A, C, R, Y> | StateDesignerConfig<D, A, C, R, Y>,
   onChange?: OnChange<StateDesignerInfo<D>>,
   dependencies: any[] = defaultDependencies
 ): StateDesignerInfo<D> {
   // The hook can accept either a pre-existing machine (so that
   // multiple hooks can share the same data) or the configuration
   // for a new machine (unique to the component calling this hook).
-  const machine = React.useRef<StateDesigner<D, A, C, R>>(null as any)
+  const machine = React.useRef<StateDesigner<D, A, C, R, Y>>(null as any)
 
   if (machine.current === null) {
     machine.current =
@@ -87,7 +92,7 @@ export function useStateDesigner<
   }
 
   const [state, setState] = React.useState<
-    Pick<StateDesigner<D, A, C, R>, "data" | "active" | "graph">
+    Pick<StateDesigner<D, A, C, R, Y>, "data" | "active" | "graph">
   >(pick(machine.current, ["graph", "data", "active"]))
 
   // Helpers
@@ -183,29 +188,33 @@ export type State<
   D,
   A extends Actions<D>,
   C extends Conditions<D>,
-  R extends Results<D>
-> = IStateConfig<D, A, C, R>
+  R extends Results<D>,
+  Y extends AsyncResults<D>
+> = IStateConfig<D, A, C, R, Y>
 
 export type States<
   D,
   A extends Actions<D>,
   C extends Conditions<D>,
-  R extends Results<D>
-> = IStatesConfig<D, A, C, R>
+  R extends Results<D>,
+  Y extends AsyncResults<D>
+> = IStatesConfig<D, A, C, R, Y>
 
 export type Event<
   D,
   A extends Actions<D>,
   C extends Conditions<D>,
-  R extends Results<D>
-> = IEventConfig<D, A, C, R>
+  R extends Results<D>,
+  Y extends AsyncResults<D>
+> = IEventConfig<D, A, C, R, Y>
 
 export type Events<
   D,
   A extends Actions<D>,
   C extends Conditions<D>,
-  R extends Results<D>
-> = IEventsConfig<D, A, C, R>
+  R extends Results<D>,
+  Y extends AsyncResults<D>
+> = IEventsConfig<D, A, C, R, Y>
 
 export type EventHandler<D> = IEventHandler<D>
 
@@ -218,17 +227,21 @@ export type Actions<D> = Record<string, Action<D>>
 export type Result<D> = IResultConfig<D>
 export type Results<D> = Record<string, Result<D>>
 
+export type AsyncResult<D> = IAsyncResult<D>
+export type AsyncResults<D> = Record<string, IAsyncResult<D>>
+
 export type Config<
   D,
   A extends Actions<D>,
   C extends Conditions<D>,
-  R extends Results<D>
+  R extends Results<D>,
+  Y extends AsyncResults<D>
 > = {
   data: D
-  on?: Events<D, A, C, R>
-  onEvent?: Event<D, A, C, R>
+  on?: Events<D, A, C, R, Y>
+  onEvent?: Event<D, A, C, R, Y>
   initial?: string
-  states?: States<D, A, C, R>
+  states?: States<D, A, C, R, Y>
   actions?: A
   conditions?: C
   results?: R

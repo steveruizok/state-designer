@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.40
+
+- Adds `asyncs` collection.
+- The `await` property of an AsyncResult can now point to a key of `asyncs`.
+- Is `asyncResults` better? I don't think so.
+
 ## 1.0.37
 
 - Fixed bug preventing repeat events.
@@ -10,7 +16,7 @@
 
 ## 1.0.35
 
-- Rewrites async events, repeat events.
+- Rewrites async events and repeat events.
 
 ## 1.0.34
 
@@ -19,6 +25,7 @@
 ## 1.0.33
 
 - Adds `thenSend`.
+- Maybe trim this one out later.
 
 ## 1.0.32
 

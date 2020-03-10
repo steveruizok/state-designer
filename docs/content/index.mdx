@@ -1,10 +1,6 @@
 ## Introduction
 
-**State Designer** is a tool for designing how a system works.
-
-The library includes the [useStateDesigner](/docs/useStateDesigner) hook for React.
-
-Check out the [visual designer](https://state-designer-designer.now.sh/).
+**State Designer** is a tool for designing how a user interface should work.
 
 ## Installation
 
@@ -12,7 +8,7 @@ Check out the [visual designer](https://state-designer-designer.now.sh/).
 npm install state-designer
 ```
 
-_or_
+or
 
 ```
 yarn add state-designer
@@ -20,9 +16,89 @@ yarn add state-designer
 
 ## Usage
 
-You can use State Designer with any JavaScript framework or environment. The library includes a [React hook](/docs/useStateDesigner). See the [StateDesigner](/docs/StateDesigner) page for more on using the library directly.
+Using **State Designer** involves three steps:
 
-State Designer relies on several concepts.
+1. **Create** a machine.
+2. **Subscribe** to its updates.
+3. **Send** events to the machine.
+
+### In React
+
+For React projects, you can use the provided [`useStateDesigner`](/docs/useStateDesigner) hook to both create the machine and subscribe to its updates. The hook returns several items, including a method that you can use to send events to the machine.
+
+```jsx
+// Counter.js
+
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+export function Counter() {
+  const { data, send } = useStateDesigner({
+    data: { count: 0 },
+    on: { PLUS_CLICKED: data => data.count++ }
+  })
+
+  return (
+    <div>
+      <h2>{data.count}</h2>
+      <button onClick={() => send("PLUS_CLICKED")}>+</button>
+    </div>
+  )
+}
+```
+
+You can also use the `createStateDesigner` function to create your machine separately, then subscribe to its changes using `useStateDesigner`. With this approach, you can subscribe _multiple_ components to the same machine.
+
+```jsx
+// Counter.js
+
+import React from "react"
+import { createStateDesigner } from "state-designer"
+
+const machine = createStateDesigner({
+  data: { count: 0 },
+  on: { PLUS_CLICKED: data => data.count++ }
+})
+
+export function Counter() {
+  const { data, send } = useStateDesigner(machine)
+
+  return (
+    <div>
+      <h2>{data.count}</h2>
+      <button onClick={() => send("PLUS_CLICKED")}>+</button>
+    </div>
+  )
+}
+```
+
+## In Vanilla JavaScript
+
+To use **State Designer** with regular JavaScript, you will need to "manually" subscribe to your machine's changes using its `subscribe` method.
+
+```js
+// index.js
+
+import { createStateDesigner } from "state-designer"
+
+const machine = createStateDesigner({
+  data: { count: 0 },
+  on: { PLUS_CLICKED: data => data.count++ }
+})
+
+const countH2 = document.getElementById("countH2")
+const button = document.getElementById("button")
+
+machine.subscribe(({ data }) => {
+  countH2.textContent = data.count
+})
+
+button.onclick = () => machine.send("PLUS_CLICKED")
+```
+
+## Concepts
+
+**State Designer** introduces several new concepts.
 
 - [Data](/)
 - [Events](/)
@@ -30,7 +106,7 @@ State Designer relies on several concepts.
 - [States](/)
 - [Collections](/)
 
-See the links above to learn more about each of these concepts and how they apply in State Designer.
+Follow the links above to learn more about each of these concepts and how they work in State Designer.
 
 ## Example
 

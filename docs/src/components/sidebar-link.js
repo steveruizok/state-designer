@@ -9,7 +9,7 @@ const styles = {
   color: "text",
   textDecoration: "none",
   fontSize: 2,
-  fontFamily: "heading",
+  fontFamily: "body",
   fontWeight: 2,
   "&.active": {
     color: "primary"

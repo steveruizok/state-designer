@@ -1,0 +1,217 @@
+# Glossary
+
+The **State Designer** library introduces several new words and terms. On this page, you'll find a list of each word and its meaning to State Designer.
+
+## Action
+
+A function that receives the machine's current `data`, `payload`, and `result`, and which may mutate the machine's [data](#data).
+
+Like other [collectable functions](#collection), you can define an action either in the machine's `actions` [collection](#collection) or inline. You can place an action in an [event handler](#event-handler) object under the `do` property, or else use an action in place of an event handler object.
+
+```jsx
+const machine = createStateDesigner({
+  data: { count: 0 },
+  on: {
+    MINUS_CLICKED: { do: "decrementCount" }
+    PLUS_CLICKED: "incrementCount",
+    CHANGE_CLICKED: (data, payload) => data.count += payload
+  },
+  actions: {
+    incrementCount(data, payload, result) {
+      data.count++
+    },
+    decrementCount(data, payload, result) {
+      data.count--
+    }
+  }
+})
+```
+
+In the example above, the machine has three actions: `incrementCount`, `decrementCount`, and an inline action.
+
+## Active
+
+When a [state](#state) is active, the machine [is in](#is-in) that state. A state may become active as the result of:
+
+- a direct [transition](#transition) to the state itself
+- a transition to one of the state's [descendants](#state-tree)
+- a transition to one of the state's [ancestors](#state-tree) (in certain circumstances)
+
+## Async
+
+## Auto Event
+
+## Branch State
+
+A branch state is a [state](#state) that has child states **and** an [initial state](#initial-state). While a branch state is active, one (and only one) of its child states will be active.
+
+```js
+const machine = createStateDesigner({
+  initial: "idle",
+  states: {
+    idle: {
+      on: { SELECT: { to: "selected" } }
+    },
+    // highlight-start
+    selected: {
+      initial: "waiting"
+      states: {
+        waiting: {
+          on: { DRAG_START: { to: "dragging" } }
+        },
+        dragging: {
+          on: { DRAG_END: { to: "waiting" } }
+        },
+      }
+    }
+    // highlight-end
+  }
+})
+```
+
+In the example above, the `selected` state is a branch state. When `selected` becomes active, its child state `waiting` will also become active.
+
+## Condition
+
+## Configuration
+
+## Data
+
+A value stored in a machine. It is (optionally) created through the `data` property of a machine's [configuration](#configuration). The data's current value is passed to all [results](#results), [conditions](#conditions) and [actions](#actions) as those functions' first argument. You can mutate a machine's data using [actions](#actions). Any event that causes a data mutation will cause the machine to update.
+
+```jsx
+const machine = createStateDesigner({
+  // highlight-start
+  data: {
+    count: 0
+  },
+  // highlight-end
+  on: {
+    PLUS_CLICKED: {
+      if: "belowMax",
+      do: "incrementCount"
+    }
+  },
+  actions: {
+    incrementCount(data) {
+      data.count++
+    }
+  },
+  conditions: {
+    belowMax(data) {
+      return data.count < 10
+    }
+  }
+})
+```
+
+## Event
+
+## Event Handler
+
+## If
+
+## IfAny
+
+## Inactive
+
+## Initial State
+
+An initial state is a [state](#state) that will become active when its parent state becomes active — unless the transition that caused the change was a [previous](#previous) or [restore](#restore) transition.
+
+## isIn
+
+## Machine
+
+## onEnter
+
+## onEvent
+
+## onExit
+
+## Parallel State
+
+A parallel state is a [state](#state) that has child states but no [initial state](#initial-state). While a parallel state is active, all of its child states will also be active.
+
+```js
+const machine = createStateDesigner({
+  initial: "idle",
+  states: {
+    idle: {},
+    // highlight-start
+    selected: {
+      states: {
+        italic: {
+          initial: "inactive",
+          states: {
+            inactive: {
+              on: { TOGGLE_ITALIC: { to: "active" } }
+            },
+            active: {
+              on: { TOGGLE_ITALIC: { to: "inactive" } }
+            }
+          }
+        },
+        bold: {
+          initial: "inactive",
+          states: {
+            inactive: {
+              on: { TOGGLE_BOLD: { to: "active" } }
+            },
+            active: {
+              on: { TOGGLE_BOLD: { to: "inactive" } }
+            }
+          }
+        }
+      }
+    }
+    // highlight-end
+  }
+})
+```
+
+In the example above, the `selected` state is a parallel state.
+
+## Previous
+
+## Restore
+
+## Result
+
+## Send
+
+## State
+
+A state represents a specific way that the machine can be, such as "playing", "stopped", or "paused".
+
+In each update, a particular state may be either [active]("#active") or [inactive]("#inactive"). A state may have its own [events](#events) that the machine will handle when the state is [active](#active), as well as [auto events](#auto-events) that will fire when the state is entered, exited, or while the state is active.
+
+A state may have child states. Whenever any of a state's child states becomes active, the parent state will also become active.
+
+```js
+const machine = createStateDesigner({
+  initial: "idle",
+  states: {
+    // highlight-start
+    idle: {
+      on: { DRAG_START: { to: "dragging" } }
+    },
+    dragging: {
+      on: { DRAG_END: { to: "idle" } }
+    }
+    // highlight-end
+  }
+})
+```
+
+In the example above, both `idle` and `dragging` are states.
+
+## State Tree
+
+## Transition
+
+## Unless
+
+## Update
+
+## Wait

@@ -29,19 +29,6 @@ module.exports = {
       }
     },
     {
-      resolve: "gatsby-plugin-webfonts",
-      options: {
-        fonts: {
-          google: [
-            {
-              family: "Fira Code",
-              variants: ["500", "700"]
-            }
-          ]
-        }
-      }
-    },
-    {
       resolve: `gatsby-plugin-manifest`,
       options: {
         start_url: `/`,

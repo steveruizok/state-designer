@@ -30,10 +30,19 @@ export interface IResultConfig<D> {
   (data: D, payload: any, result: any): void
 }
 
+// Async Results
+
+export type IAsyncResult<D> = (
+  data: D,
+  payload: any,
+  result: any
+) => Promise<any>
+
 // Config records for named functions
 export type ActionsCollection<D> = Record<string, IActionConfig<D>>
 export type ConditionsCollection<D> = Record<string, IConditionConfig<D>>
 export type ResultsCollection<D> = Record<string, IResultConfig<D>>
+export type AsyncsCollection<D> = Record<string, IAsyncResult<D>>
 
 // Handler configurations
 
@@ -49,9 +58,13 @@ export type IResultsConfig<D, R> = MaybeArray<
   R extends undefined ? IResultConfig<D> : keyof R | IResultConfig<D>
 >
 
+export type IAsyncResultsConfig<D, Y> = MaybeArray<
+  Y extends undefined ? IAsyncResult<D> : keyof Y | IAsyncResult<D>
+>
+
 // Event Handlers (Config)
 
-export interface IEventHandlerConfig<D, A, C, R> {
+export interface IEventHandlerConfig<D, A, C, R, Y> {
   do?: IActionsConfig<D, A>
   if?: IConditionsConfig<D, C>
   ifAny?: IConditionsConfig<D, C>
@@ -62,13 +75,18 @@ export interface IEventHandlerConfig<D, A, C, R> {
   wait?: number
 }
 
-export type IEventConfigValue<D, A, C, R> = A extends Record<string, never>
-  ? IActionConfig<D> | IEventHandlerConfig<D, A, C, R>
-  : keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R>
+export type IEventConfigValue<D, A, C, R, Y> = A extends Record<string, never>
+  ? IActionConfig<D> | IEventHandlerConfig<D, A, C, R, Y>
+  : keyof A | IActionConfig<D> | IEventHandlerConfig<D, A, C, R, Y>
 
-export type IEventConfig<D, A, C, R> = MaybeArray<IEventConfigValue<D, A, C, R>>
+export type IEventConfig<D, A, C, R, Y> = MaybeArray<
+  IEventConfigValue<D, A, C, R, Y>
+>
 
-export type IEventsConfig<D, A, C, R> = Record<string, IEventConfig<D, A, C, R>>
+export type IEventsConfig<D, A, C, R, Y> = Record<
+  string,
+  IEventConfig<D, A, C, R, Y>
+>
 
 // Event Handlers (final)
 
@@ -89,8 +107,8 @@ type IEvents<D> = Record<string, IEvent<D>>
 
 // Repeat Event
 
-export interface IRepeatEventConfig<D, A, C, R> {
-  event: IEventConfig<D, A, C, R>
+export interface IRepeatEventConfig<D, A, C, R, Y> {
+  event: IEventConfig<D, A, C, R, Y>
   delay?: number
 }
 
@@ -98,18 +116,17 @@ export interface IRepeatEvent<D> {
   event: IEvent<D>
   delay: number
 }
+
 // Async Event
 
-type AsyncResult<D, X> = (data: D, payload: any, result: any) => Promise<X>
-
-export interface IAsyncEventConfig<D, A, C, R, X extends any = unknown> {
-  await: MaybeArray<AsyncResult<D, X>>
-  onResolve: IEventConfig<D, A, C, R>
-  onReject: IEventConfig<D, A, C, R>
+export interface IAsyncEventConfig<D, A, C, R, Y> {
+  await: IAsyncResultsConfig<D, Y>
+  onResolve: IEventConfig<D, A, C, R, Y>
+  onReject: IEventConfig<D, A, C, R, Y>
 }
 
-export interface IAsyncEvent<D, X extends any = unknown> {
-  asyncFns: AsyncResult<D, X>[]
+export interface IAsyncEvent<D> {
+  asyncFns: IAsyncResult<D>[]
   onResolve: IEvent<D>
   onReject: IEvent<D>
 }
@@ -120,11 +137,13 @@ type NamedFunctions<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 > = {
   actions?: A
   conditions?: C
   results?: R
+  asyncs?: Y
 }
 
 // States
@@ -133,25 +152,27 @@ export interface IStateConfig<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 > {
   initial?: string
-  states?: IStatesConfig<D, A, C, R>
-  async?: IAsyncEventConfig<D, A, C, R>
-  onEnter?: IEventConfig<D, A, C, R>
-  onExit?: IEventConfig<D, A, C, R>
-  onEvent?: IEventConfig<D, A, C, R>
-  onEventComplete?: IEventConfig<D, A, C, R>
-  on?: IEventsConfig<D, A, C, R>
-  repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R>>
+  states?: IStatesConfig<D, A, C, R, Y>
+  async?: IAsyncEventConfig<D, A, C, R, Y>
+  onEnter?: IEventConfig<D, A, C, R, Y>
+  onExit?: IEventConfig<D, A, C, R, Y>
+  onEvent?: IEventConfig<D, A, C, R, Y>
+  onEventComplete?: IEventConfig<D, A, C, R, Y>
+  on?: IEventsConfig<D, A, C, R, Y>
+  repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R, Y>>
 }
 
 export type IStatesConfig<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
-> = Record<string, IStateConfig<D, A, C, R>>
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
+> = Record<string, IStateConfig<D, A, C, R, Y>>
 
 // Graph
 
@@ -203,12 +224,13 @@ export type Subscriber<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 > = (snapshot: {
   data: D
   active: string[]
   graph: Graph.Export<D>
-  state: IStateNode<D, A, C, R>
+  state: IStateNode<D, A, C, R, Y>
 }) => void
 
 // State Designer Config
@@ -217,18 +239,20 @@ export type StateDesignerConfig<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 > = {
   data?: D
-  on?: IEventsConfig<D, A, C, R>
-  onEvent?: IEventConfig<D, A, C, R>
-  onEventComplete?: IEventConfig<D, A, C, R>
+  on?: IEventsConfig<D, A, C, R, Y>
+  onEvent?: IEventConfig<D, A, C, R, Y>
+  onEventComplete?: IEventConfig<D, A, C, R, Y>
   initial?: string
-  states?: IStatesConfig<D, A, C, R>
+  states?: IStatesConfig<D, A, C, R, Y>
   actions?: A
   conditions?: C
   results?: R
-} & ThisType<StateDesigner<D, A, C, R>>
+  asyncs?: Y
+} & ThisType<StateDesigner<D, A, C, R, Y>>
 
 /* -------------------------------------------------- */
 /*                       Classes                      */
@@ -238,8 +262,9 @@ export function createStateDesignerConfig<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
->(options: StateDesignerConfig<D, A, C, R>) {
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
+>(options: StateDesignerConfig<D, A, C, R, Y>) {
   return options
 }
 
@@ -247,8 +272,9 @@ export function createStateDesigner<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
->(options: StateDesignerConfig<D, A, C, R>, id = "0") {
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
+>(options: StateDesignerConfig<D, A, C, R, Y>, id = "0") {
   const statedesigner = new StateDesigner(options)
 
   if (!(globalThis as any).statedesigners) {
@@ -281,21 +307,23 @@ class StateDesigner<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 > {
   private _initialData: D
   private _initialOptions: any
-  private _active: IStateNode<D, A, C, R>[] = []
+  private _active: IStateNode<D, A, C, R, Y>[] = []
   private _activeNames: string[]
   private _graph: Graph.Export<D>
   private _collections: {
     actions?: A
     conditions?: C
     results?: R
+    asyncs?: Y
   }
-  private _subscribers = new Set<Subscriber<D, A, C, R>>([])
+  private _subscribers = new Set<Subscriber<D, A, C, R, Y>>([])
   private _pendingSend: [string, any][] = []
-  private _root: IStateNode<D, A, C, R>
+  private _root: IStateNode<D, A, C, R, Y>
   private record: EventRecord<D> = {
     send: false,
     action: false,
@@ -305,9 +333,9 @@ class StateDesigner<
 
   id = uniqueId()
   data: D
-  namedFunctions: NamedFunctions<D, A, C, R>
+  namedFunctions: NamedFunctions<D, A, C, R, Y>
 
-  constructor(options = {} as StateDesignerConfig<D, A, C, R>) {
+  constructor(options = {} as StateDesignerConfig<D, A, C, R, Y>) {
     const {
       data,
       initial,
@@ -317,7 +345,8 @@ class StateDesigner<
       onEventComplete,
       actions,
       conditions,
-      results
+      results,
+      asyncs
     } = options
 
     if (data === undefined) {
@@ -329,7 +358,8 @@ class StateDesigner<
     this.namedFunctions = {
       actions,
       conditions,
-      results
+      results,
+      asyncs
     }
 
     this._root = new IStateNode({
@@ -359,7 +389,8 @@ class StateDesigner<
     this._collections = {
       actions,
       conditions,
-      results
+      results,
+      asyncs
     }
 
     this._root = new IStateNode(this._initialOptions)
@@ -416,7 +447,7 @@ class StateDesigner<
     }
   }
 
-  private graphNode(state: IStateNode<D, A, C, R>): Graph.Node {
+  private graphNode(state: IStateNode<D, A, C, R, Y>): Graph.Node {
     return {
       name: state.name,
       path: state.path,
@@ -451,7 +482,7 @@ class StateDesigner<
   /**
    * Adds an `onChange` callback to the machine's _subscribers. This `onChange` callback will be called whenever the machine changes its data or graph. Returns a second callback to unsubscribe that callback. (This is makes out hook pretty.)
    */
-  subscribe = (onChange: Subscriber<D, A, C, R>) => {
+  subscribe = (onChange: Subscriber<D, A, C, R, Y>) => {
     this._subscribers.add(onChange)
     return () => this.unsubscribe(onChange)
   }
@@ -459,7 +490,7 @@ class StateDesigner<
   /**
    * Remove an `onChange` callback from the machine's _subscribers.
    */
-  unsubscribe = (onChange: Subscriber<D, A, C, R>) => {
+  unsubscribe = (onChange: Subscriber<D, A, C, R, Y>) => {
     this._subscribers.delete(onChange)
   }
 
@@ -586,7 +617,7 @@ class StateDesigner<
   }
 
   handleEvent = async (
-    state: IStateNode<D, any, any, any>,
+    state: IStateNode<D, any, any, any, any>,
     event: IEvent<D> | undefined,
     payload: any,
     result?: any
@@ -605,7 +636,7 @@ class StateDesigner<
   }
 
   handleAsyncEvent(
-    state: IStateNode<D, any, any, any>,
+    state: IStateNode<D, any, any, any, any>,
     asyncEvent: IAsyncEvent<D>
   ) {
     const { asyncFns, onResolve, onReject } = asyncEvent
@@ -626,7 +657,7 @@ class StateDesigner<
   }
 
   handleRepeatEvent = async (
-    state: IStateNode<D, any, any, any>,
+    state: IStateNode<D, any, any, any, any>,
     repeatEvent: IRepeatEvent<D>
   ) => {
     const { event, delay } = repeatEvent
@@ -642,7 +673,7 @@ class StateDesigner<
   }
 
   handleAutoEvent = async (
-    state: IStateNode<D, any, any, any>,
+    state: IStateNode<D, any, any, any, any>,
     event: IEvent<D>,
     payload: any,
     returned: any,
@@ -679,7 +710,7 @@ class StateDesigner<
   }
 
   handleEventHandler = (
-    state: IStateNode<D, any, any, any>,
+    state: IStateNode<D, any, any, any, any>,
     handler: IEventHandler<D>,
     payload: any,
     result?: any
@@ -722,7 +753,7 @@ class StateDesigner<
   }
 
   handleTransitionItem = (
-    state: IStateNode<D, any, any, any>,
+    state: IStateNode<D, any, any, any, any>,
     transition: string
   ) => {
     let previous = false
@@ -787,8 +818,8 @@ class StateDesigner<
   }
 
   handleChanges(
-    target: IStateNode<D, any, any, any>,
-    results: IStateNode<D, any, any, any>[][],
+    target: IStateNode<D, any, any, any, any>,
+    results: IStateNode<D, any, any, any, any>[][],
     andUp: boolean,
     previous: boolean,
     restore: boolean,
@@ -886,38 +917,40 @@ type StateConfig<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 > = {
   name: string
-  parent?: IStateNode<D, A, C, R>
-  machine: StateDesigner<D, A, C, R>
-  onEnter?: IEventConfig<D, A, C, R>
-  onExit?: IEventConfig<D, A, C, R>
-  onEvent?: IEventConfig<D, A, C, R>
-  onEventComplete?: IEventConfig<D, A, C, R>
-  on?: IEventsConfig<D, A, C, R>
-  async?: IAsyncEventConfig<D, A, C, R>
-  repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R>>
+  parent?: IStateNode<D, A, C, R, Y>
+  machine: StateDesigner<D, A, C, R, Y>
+  onEnter?: IEventConfig<D, A, C, R, Y>
+  onExit?: IEventConfig<D, A, C, R, Y>
+  onEvent?: IEventConfig<D, A, C, R, Y>
+  onEventComplete?: IEventConfig<D, A, C, R, Y>
+  on?: IEventsConfig<D, A, C, R, Y>
+  async?: IAsyncEventConfig<D, A, C, R, Y>
+  repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R, Y>>
   active: boolean
   initial?: string
-  states?: IStatesConfig<D, A, C, R>
+  states?: IStatesConfig<D, A, C, R, Y>
 }
 
 export class IStateNode<
   D,
   A extends ActionsCollection<D> | undefined,
   C extends ConditionsCollection<D> | undefined,
-  R extends ResultsCollection<D> | undefined
+  R extends ResultsCollection<D> | undefined,
+  Y extends AsyncsCollection<D> | undefined
 > {
   name: string
   path: string
   active = false
-  machine: StateDesigner<D, A, C, R>
-  parent?: IStateNode<D, A, C, R>
+  machine: StateDesigner<D, A, C, R, Y>
+  parent?: IStateNode<D, A, C, R, Y>
   type: StateType
   initial?: string
   previous?: string
-  children: IStateNode<D, A, C, R>[] = []
+  children: IStateNode<D, A, C, R, Y>[] = []
   events: IEvents<D> = {}
   asyncEvent?: IAsyncEvent<D>
   repeatEvents: IRepeatEvent<D>[]
@@ -928,7 +961,7 @@ export class IStateNode<
     onExit?: IEvent<D>
   }
 
-  constructor(options = {} as StateConfig<D, A, C, R>) {
+  constructor(options = {} as StateConfig<D, A, C, R, Y>) {
     const {
       machine,
       parent,
@@ -957,7 +990,7 @@ export class IStateNode<
 
     this.initial = initial
 
-    this.children = Object.keys(states).reduce<IStateNode<D, A, C, R>[]>(
+    this.children = Object.keys(states).reduce<IStateNode<D, A, C, R, Y>[]>(
       (acc, cur) => {
         const state = states[cur]
 
@@ -1111,7 +1144,7 @@ export class IStateNode<
 
     // End giant typescript mess
 
-    const getProcessedEvent = (event: IEventConfig<D, A, C, R>) => {
+    const getProcessedEvent = (event: IEventConfig<D, A, C, R, Y>) => {
       const handlers = castArray(event as any)
 
       return handlers.map<IEventHandler<D>>(v => {
@@ -1144,16 +1177,30 @@ export class IStateNode<
       })
     }
 
-    function getProcessedRepeat(item: IRepeatEventConfig<D, A, C, R>) {
+    function getProcessedRepeat(item: IRepeatEventConfig<D, A, C, R, Y>) {
       return {
         event: getProcessedEvent(item.event),
         delay: item.delay || 0.016
       }
     }
 
-    function getProcessedAsync(item: IAsyncEventConfig<D, A, C, R>) {
+    function getProcessedAsync(item: IAsyncEventConfig<D, A, C, R, Y>) {
+      const asyncFns = castArray(item.await).map(fn => {
+        if (typeof fn === "string") {
+          if (namedFunctions.asyncs === undefined) {
+            console.error(Errors.noNamedFunction(fn, "async"))
+            return async function() {}
+          } else {
+            const found = namedFunctions.asyncs[fn]
+            return found
+          }
+        } else {
+          return fn as IAsyncResult<D>
+        }
+      })
+
       return {
-        asyncFns: castArray(item.await),
+        asyncFns: asyncFns,
         onReject: getProcessedEvent(item.onReject),
         onResolve: getProcessedEvent(item.onResolve)
       }
@@ -1186,9 +1233,9 @@ export class IStateNode<
 
   getTargetFromTransition = (
     transition: string,
-    state: IStateNode<D, A, C, R>
-  ): IStateNode<D, A, C, R> | undefined => {
-    let target: IStateNode<D, A, C, R> | undefined = undefined
+    state: IStateNode<D, A, C, R, Y>
+  ): IStateNode<D, A, C, R, Y> | undefined => {
+    let target: IStateNode<D, A, C, R, Y> | undefined = undefined
 
     if (transition.includes(".")) {
       let source = state
@@ -1225,8 +1272,8 @@ export class IStateNode<
   }
 
   activateDown = (previous = false, restore = false) => {
-    const activateDowns: IStateNode<D, A, C, R>[] = []
-    const deactivates: IStateNode<D, A, C, R>[] = []
+    const activateDowns: IStateNode<D, A, C, R, Y>[] = []
+    const deactivates: IStateNode<D, A, C, R, Y>[] = []
 
     switch (this.type) {
       case StateType.Branch: {
@@ -1266,10 +1313,10 @@ export class IStateNode<
   }
 
   activateUp = () => {
-    const activateDowns: IStateNode<D, A, C, R>[] = []
-    const deactivates: IStateNode<D, A, C, R>[] = []
+    const activateDowns: IStateNode<D, A, C, R, Y>[] = []
+    const deactivates: IStateNode<D, A, C, R, Y>[] = []
 
-    const parent = this.parent as IStateNode<D, A, C, R>
+    const parent = this.parent as IStateNode<D, A, C, R, Y>
 
     switch (parent.type) {
       case StateType.Branch: {
@@ -1340,14 +1387,14 @@ export class IStateNode<
     return true
   }
 
-  public getActive = (): IStateNode<D, A, C, R>[] => {
+  public getActive = (): IStateNode<D, A, C, R, Y>[] => {
     if (!this.active) {
       return []
     }
 
     return [
       this,
-      ...this.children.reduce<IStateNode<D, A, C, R>[]>((acc, child) => {
+      ...this.children.reduce<IStateNode<D, A, C, R, Y>[]>((acc, child) => {
         acc.push(...child.getActive())
         return acc
       }, [])
@@ -1365,8 +1412,14 @@ const Errors = {
 }
 
 export type StateDesignerWithConfig<
-  C extends StateDesignerConfig<any, any, any, any>
-> = StateDesigner<C["data"], C["actions"], C["conditions"], C["results"]>
+  C extends StateDesignerConfig<any, any, any, any, any>
+> = StateDesigner<
+  C["data"],
+  C["actions"],
+  C["conditions"],
+  C["results"],
+  C["asyncs"]
+>
 
 export type EventRecord<D> = {
   send: boolean
@@ -1376,7 +1429,7 @@ export type EventRecord<D> = {
 }
 
 type TransitionRecord<D> = {
-  target: IStateNode<D, any, any, any>
+  target: IStateNode<D, any, any, any, any>
   previous: boolean
   restore: boolean
 }
@@ -1447,7 +1500,11 @@ function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
   }
 }
 
-function graphAutoEvents(state: IStateNode<any, any, any, any>) {
+// function graphRepeatEvents() {}
+
+// function graphAsyncEvents() {}
+
+function graphAutoEvents(state: IStateNode<any, any, any, any, any>) {
   const autoEvents = [] as Graph.Event[]
 
   for (let eventName of ["onEnter", "onEvent", "onEventComplete", "onExit"]) {
@@ -1461,7 +1518,7 @@ function graphAutoEvents(state: IStateNode<any, any, any, any>) {
   return autoEvents
 }
 
-function getEvents(state: IStateNode<any, any, any, any>): Graph.Event[] {
+function getEvents(state: IStateNode<any, any, any, any, any>): Graph.Event[] {
   const events = [] as Graph.Event[]
 
   for (let eventName in state.events) {
