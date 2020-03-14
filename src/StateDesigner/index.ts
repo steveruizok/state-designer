@@ -162,8 +162,8 @@ export interface IStateConfig<
   onExit?: IEventConfig<D, A, C, R, Y>
   onEvent?: IEventConfig<D, A, C, R, Y>
   onEventComplete?: IEventConfig<D, A, C, R, Y>
-  on?: IEventsConfig<D, A, C, R, Y>
   repeat?: MaybeArray<IRepeatEventConfig<D, A, C, R, Y>>
+  on?: IEventsConfig<D, A, C, R, Y>
 }
 
 export type IStatesConfig<
@@ -561,7 +561,9 @@ class StateDesigner<
     // if isBusy, add to queue?
     this.resetRecord()
 
-    for (let state of this._active) {
+    const activeStates = this._active
+
+    for (let state of activeStates) {
       if (this.record.send || this.record.transition) break
       await this.handleEvent(state, state.events[eventName], payload)
 
@@ -596,7 +598,7 @@ class StateDesigner<
       this.notifySubscribers()
     }
 
-    for (let state of [...this._active].reverse()) {
+    for (let state of [...activeStates].reverse()) {
       if (state.autoEvents.onEventComplete !== undefined) {
         this.handleAutoEvent(
           state,
@@ -607,6 +609,7 @@ class StateDesigner<
       }
     }
   }
+
   resetRecord = () => {
     this.record = {
       send: false,

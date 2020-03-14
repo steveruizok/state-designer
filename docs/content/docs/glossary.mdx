@@ -214,4 +214,28 @@ In the example above, both `idle` and `dragging` are states.
 
 ## Update
 
+An update occurs whenever a machine transitions to a new state, and/or when an action has mutated the machine's data. Updates are "batched" so that an event that causes multiple transitions or actions will only cause a sinlge update.
+
+```js
+const machine = createStateDesigner({
+  data: { changes: 0 },
+  initial: "inactive",
+  states: {
+    // highlight-start
+    inactive: {
+      on: { TOGGLE: { do: "incrementChanges", to: "active" } }
+    },
+    active: {
+      on: { TOGGLE: { to: "inactive" } }
+    }
+    // highlight-end
+  },
+  actions: {
+    incrementChanges(data) {
+      data.changes++
+    }
+  }
+})
+```
+
 ## Wait

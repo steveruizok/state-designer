@@ -25,6 +25,9 @@ export default {
     highlight: "#03d8ff",
     gray: "#d8dde3"
   },
+  shadows: {
+    modal: "0px 2px 26px rgba(0,0,0,.25)"
+  },
   fonts: {
     body: "'IBM Plex Sans', serif",
     heading: "'IBM Plex Serif', sans-serif",

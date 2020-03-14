@@ -1,0 +1,24 @@
+## Action
+
+A function that receives the machine's current `data`, `payload`, and `result`, and which may mutate the machine's [data](#data).
+
+Like other [collectable functions](#collection), you can define an action either in the machine's `actions` [collection](#collection) or inline. You can place an action in an [event handler](#event-handler) object under the `do` property, or else use an action in place of an event handler object.
+
+```jsx
+const machine = createStateDesigner({
+  data: { count: 0 },
+  on: {
+    MINUS_CLICKED: { do: "decrementCount" }
+    PLUS_CLICKED: "incrementCount",
+    CHANGE_CLICKED: (data, payload) => data.count += payload
+  },
+  actions: {
+    incrementCount(data, payload, result) {
+      data.count++
+    },
+    decrementCount(data, payload, result) {
+      data.count--
+    }
+  }
+})
+```
