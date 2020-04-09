@@ -20,7 +20,7 @@ import StateDesigner, {
   ResultsCollection,
   ConditionsCollection,
   AsyncsCollection,
-  Graph
+  Graph,
 } from "./StateDesigner"
 
 export { Graph }
@@ -102,7 +102,7 @@ export function useStateDesigner<
   }, [])
 
   const thenSend = React.useCallback((event: string, payload?: any) => {
-    return function() {
+    return function () {
       machine.current.send(event, payload)
     }
   }, [])
@@ -134,7 +134,7 @@ export function useStateDesigner<
       if (key === "root") {
         setValue(value)
       } else {
-        if (active.find(v => v.endsWith("." + key))) {
+        if (active.find((v) => v.endsWith("." + key))) {
           setValue(value)
         }
       }
@@ -157,8 +157,12 @@ export function useStateDesigner<
     if (!(options instanceof StateDesigner)) {
       machine.current.destroy()
       machine.current = new StateDesigner(options)
-      setState(pick(machine.current, ["graph", "data", "active"]))
+      console.log("rebuilt machine")
     }
+
+    setState(pick(machine.current, ["graph", "data", "active"]))
+
+    console.log("changed")
 
     return machine.current.subscribe(({ data, active, graph }) => {
       setState({ data, active, graph })
@@ -179,7 +183,7 @@ export {
   StateDesignerConfig,
   createStateDesigner,
   createStateDesignerConfig,
-  StateDesignerWithConfig
+  StateDesignerWithConfig,
 }
 
 // Simplified types for export (Are these needed? Maybe for custom machine configuration types?)
