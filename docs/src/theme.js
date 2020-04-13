@@ -29,13 +29,15 @@ export default {
     modal: "0px 2px 26px rgba(0,0,0,.25)"
   },
   fonts: {
-    body: "'IBM Plex Sans', serif",
-    heading: "'IBM Plex Serif', sans-serif",
+    body: "'IBM Plex Sans', sans-serif",
+    quote: "'IBM Plex Serif', serif",
+    heading: "'IBM Plex Serif', serif",
     monospace: "'IBM Plex Mono', monospace"
   },
   fontSizes: [12, 15, 16, 18, 24, 32, 48, 64, 72],
   fontWeights: {
     body: "400",
+    quote: "400",
     heading: "800",
     bold: "800"
   },
@@ -53,6 +55,12 @@ export default {
   },
   borderStyles: {
     quote: "1px solid secondary"
+  },
+  links: {
+    definition: {
+      color: "#FF0000",
+      textTransform: "uppercase"
+    }
   },
   styles: {
     Container: {
@@ -100,11 +108,11 @@ export default {
     },
     blockquote: {
       m: 0,
-      borderLeft: theme => `1px solid ${theme.colors.gray}`,
-      pl: 4,
-      pr: 2,
-      py: 2,
-      fontStyle: "italic"
+      border: theme => `1px solid ${theme.colors.gray}`,
+      fontFamily: "quote",
+      fontWeight: "quote",
+      px: 4,
+      py: 2
     },
     pre: {
       ...prismTheme,

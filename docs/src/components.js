@@ -1,5 +1,5 @@
 import React from "react"
-import { Link } from "gatsby-plugin-modal-routing"
+import InlineLink from "./components/inline-link"
 import { Styled } from "theme-ui"
 import kebabCase from "lodash-es/kebabCase"
 import { GoMarkGithub } from "react-icons/go"
@@ -95,24 +95,14 @@ function Heading6(props) {
   return <h6 {...props}>{props.children}</h6>
 }
 
-const ILink = ({ href, children, ...props }) => {
-  const to = props.to || href
-
-  return (
-    <Link {...props} to={to} asModal={to.includes("definitions")}>
-      {children}
-    </Link>
-  )
-}
-
 export default {
-  h1: Heading1,
-  h2: Heading2,
-  h3: Heading3,
-  h4: Heading4,
-  h5: Heading5,
-  h6: Heading6,
-  a: ILink,
+  // h1: Heading1,
+  // h2: Heading2,
+  // h3: Heading3,
+  // h4: Heading4,
+  // h5: Heading5,
+  // h6: Heading6,
+  a: InlineLink,
   GithubIcon: GoMarkGithub,
   TwitterIcon: FaTwitter
 }

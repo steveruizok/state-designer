@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { Styled, jsx } from "theme-ui"
-import { Link } from "gatsby"
+import { Link } from "gatsby-plugin-modal-routing"
 import { MDXRenderer } from "gatsby-plugin-mdx"
 import { ModalRoutingContext } from "gatsby-plugin-modal-routing"
 
@@ -18,25 +18,21 @@ const Doc = ({ data: { doc } }) => {
             <Styled.root>
               <Styled.div
                 sx={{
+                  maxWidth: 600,
                   height: ["auto", "auto"],
                   maxHeight: ["calc(100vh - 16px)", "calc(100vh - 128px)"],
-                  m: [2, 5],
+                  my: [2, 5],
+                  mx: "auto",
                   pointerEvents: "all",
                   borderRadius: 8,
                   boxShadow: "modal",
-                  overflowY: "scroll"
+                  overflowY: "scroll",
+                  p: [3, 4],
+                  bg: "background"
                 }}
               >
-                <Styled.div
-                  sx={{
-                    height: "100%",
-                    p: [3, 4],
-                    bg: "background"
-                  }}
-                >
-                  <Link to={closeTo}>Close</Link>
-                  <MDXRenderer>{doc.body}</MDXRenderer>
-                </Styled.div>
+                <Link to={closeTo}>Close</Link>
+                <MDXRenderer>{doc.body}</MDXRenderer>
               </Styled.div>
             </Styled.root>
           )
