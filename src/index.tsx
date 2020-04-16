@@ -157,12 +157,9 @@ export function useStateDesigner<
     if (!(options instanceof StateDesigner)) {
       machine.current.destroy()
       machine.current = new StateDesigner(options)
-      console.log("rebuilt machine")
     }
 
     setState(pick(machine.current, ["graph", "data", "active"]))
-
-    console.log("changed")
 
     return machine.current.subscribe(({ data, active, graph }) => {
       setState({ data, active, graph })

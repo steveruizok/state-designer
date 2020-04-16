@@ -73,6 +73,7 @@ export interface IEventHandlerConfig<D, A, C, R, Y> {
   to?: string
   send?: string | [string, any]
   wait?: number
+  break?: true
 }
 
 export type IEventConfigValue<D, A, C, R, Y> = A extends Record<string, never>
@@ -99,6 +100,7 @@ export interface IEventHandler<D> {
   to?: string
   send?: string | [string, any]
   wait?: number
+  break?: true
 }
 
 export type IEvent<D> = IEventHandler<D>[]
@@ -326,9 +328,10 @@ class StateDesigner<
   private _root: IStateNode<D, A, C, R, Y>
   private record: EventRecord<D> = {
     send: false,
+    break: false,
     action: false,
     transition: undefined,
-    transitions: 0
+    transitions: 0,
   }
 
   id = uniqueId()
@@ -346,7 +349,7 @@ class StateDesigner<
       actions,
       conditions,
       results,
-      asyncs
+      asyncs,
     } = options
 
     if (data === undefined) {
@@ -359,7 +362,7 @@ class StateDesigner<
       actions,
       conditions,
       results,
-      asyncs
+      asyncs,
     }
 
     this._root = new IStateNode({
@@ -370,7 +373,7 @@ class StateDesigner<
       states,
       initial,
       name: "root",
-      active: true
+      active: true,
     })
 
     this._initialData = this.data
@@ -383,20 +386,23 @@ class StateDesigner<
       states,
       initial,
       name: "root",
-      active: true
+      active: true,
     }
 
     this._collections = {
       actions,
       conditions,
       results,
-      asyncs
+      asyncs,
     }
 
     this._root = new IStateNode(this._initialOptions)
 
     this._active = this._root.getActive()
-    this._activeNames = this._active.flatMap(state => [state.name, state.path])
+    this._activeNames = this._active.flatMap((state) => [
+      state.name,
+      state.path,
+    ])
     this._graph = this.getGraph()
 
     for (let state of this._active) {
@@ -419,7 +425,10 @@ class StateDesigner<
 
   private updatePublicData = () => {
     this._active = this._root.getActive()
-    this._activeNames = this._active.flatMap(state => [state.name, state.path])
+    this._activeNames = this._active.flatMap((state) => [
+      state.name,
+      state.path,
+    ])
     this._graph = this.getGraph()
   }
 
@@ -433,17 +442,17 @@ class StateDesigner<
           ? Object.entries(value as Record<any, Function>).map(
               ([key, value]) => ({
                 name: key,
-                value: value.toString()
+                value: value.toString(),
               })
             )
-          : []
+          : [],
       }
     })
 
     return {
       data: this.data,
       ...this.graphNode(this._root),
-      collections
+      collections,
     }
   }
 
@@ -461,7 +470,7 @@ class StateDesigner<
       states:
         state.type === "leaf"
           ? []
-          : state.children.map((child: any) => this.graphNode(child))
+          : state.children.map((child: any) => this.graphNode(child)),
     }
   }
 
@@ -469,12 +478,12 @@ class StateDesigner<
    * Share certain information with each of the machine's _subscribers.
    */
   private notifySubscribers = () => {
-    this._subscribers.forEach(subscriber =>
+    this._subscribers.forEach((subscriber) =>
       subscriber({
         data: this.data,
         active: this.active,
         graph: this.graph,
-        state: this._root
+        state: this._root,
       })
     )
   }
@@ -538,8 +547,8 @@ class StateDesigner<
    * Is the machine in the given state name?
    */
   isIn = (...states: string[]) => {
-    return states.every(s =>
-      this._active.find(v => v.path.endsWith("." + s)) ? true : false
+    return states.every((s) =>
+      this._active.find((v) => v.path.endsWith("." + s)) ? true : false
     )
   }
 
@@ -614,8 +623,9 @@ class StateDesigner<
     this.record = {
       send: false,
       action: false,
+      break: false,
       transition: undefined,
-      transitions: 0
+      transitions: 0,
     }
   }
 
@@ -630,11 +640,11 @@ class StateDesigner<
     for (let handler of event) {
       const { wait } = handler
       if (wait !== undefined) {
-        await new Promise(resolve => setTimeout(resolve, wait * 1000))
+        await new Promise((resolve) => setTimeout(resolve, wait * 1000))
       }
 
       this.handleEventHandler(state, handler, payload, result)
-      if (this.record.transition !== undefined) break
+      if (this.record.transition !== undefined || this.record.break) break
     }
   }
 
@@ -644,15 +654,17 @@ class StateDesigner<
   ) {
     const { asyncFns, onResolve, onReject } = asyncEvent
 
-    const allPromises = asyncFns.map(fn => fn(this.data, undefined, undefined))
+    const allPromises = asyncFns.map((fn) =>
+      fn(this.data, undefined, undefined)
+    )
 
     Promise.all(allPromises)
-      .then(resolved => {
+      .then((resolved) => {
         if (state.active && onResolve !== undefined) {
           this.handleAutoEvent(state, onResolve, undefined, resolved)
         }
       })
-      .catch(rejected => {
+      .catch((rejected) => {
         if (state.active && onResolve !== undefined) {
           this.handleAutoEvent(state, onReject, undefined, rejected)
         }
@@ -668,7 +680,7 @@ class StateDesigner<
     this.handleAutoEvent(state, event, undefined, undefined)
 
     if (delay !== undefined) {
-      await new Promise(resolve => setTimeout(resolve, delay * 1000))
+      await new Promise((resolve) => setTimeout(resolve, delay * 1000))
       if (this.isIn(state.name)) {
         this.handleRepeatEvent(state, repeatEvent)
       }
@@ -718,22 +730,54 @@ class StateDesigner<
     payload: any,
     result?: any
   ) => {
-    const { do: actions, get: resolvers, to: transition, send } = handler
+    const {
+      do: actions,
+      get: resolvers,
+      to: transition,
+      send,
+      break: shouldBreak,
+    } = handler
 
     for (let resolver of resolvers) {
-      result = resolver(this.data, payload, result)
+      try {
+        result = resolver(this.data, payload, result)
+      } catch (e) {
+        console.error("Error in Resolver!", resolver, e)
+        return
+      }
     }
 
-    if (!state.canEventHandlerRun(handler, this.data, payload, result)) {
+    try {
+      const canRun = state.canEventHandlerRun(
+        handler,
+        this.data,
+        payload,
+        result
+      )
+
+      if (!canRun) {
+        return
+      }
+    } catch (e) {
+      console.error("Error in Conditions!", handler, e.message)
       return
     }
 
-    this.data = produce(this.data, draft => {
+    this.data = produce(this.data, (draft) => {
       for (let action of actions) {
         this.record.action = true
-        action(draft, payload, result)
+        try {
+          action(draft, payload, result)
+        } catch (e) {
+          console.error(`Error!`, action, e)
+          break
+        }
       }
     })
+
+    if (shouldBreak) {
+      this.record.break = true
+    }
 
     if (transition !== undefined) {
       this.handleTransitionItem(state, transition)
@@ -777,7 +821,7 @@ class StateDesigner<
       this.record.transition = {
         previous,
         restore,
-        target
+        target,
       }
     }
 
@@ -913,7 +957,7 @@ class StateDesigner<
 enum StateType {
   Leaf = "leaf",
   Branch = "branch",
-  Parallel = "parallel"
+  Parallel = "parallel",
 }
 
 type StateConfig<
@@ -976,7 +1020,7 @@ export class IStateNode<
       onEventComplete,
       onEnter,
       onExit,
-      active
+      active,
     } = options
 
     this.machine = machine
@@ -1015,7 +1059,7 @@ export class IStateNode<
             onEventComplete: state.onEventComplete,
             on: state.on,
             async: state.async,
-            repeat: state.repeat
+            repeat: state.repeat,
           })
         )
         return acc
@@ -1026,7 +1070,7 @@ export class IStateNode<
     // INITIAL STATE
 
     if (this.initial !== undefined) {
-      const initialState = this.children.find(v => v.name === this.initial)
+      const initialState = this.children.find((v) => v.name === this.initial)
       if (!initialState) {
         throw new Error("No initial state found!")
       } else {
@@ -1150,7 +1194,7 @@ export class IStateNode<
     const getProcessedEvent = (event: IEventConfig<D, A, C, R, Y>) => {
       const handlers = castArray(event as any)
 
-      return handlers.map<IEventHandler<D>>(v => {
+      return handlers.map<IEventHandler<D>>((v) => {
         let result: IEventHandler<D> = {
           get: [],
           if: [],
@@ -1159,7 +1203,7 @@ export class IStateNode<
           do: [],
           send: undefined,
           to: undefined,
-          wait: undefined
+          wait: undefined,
         }
 
         if (typeof v === "string" || typeof v === "function") {
@@ -1174,6 +1218,7 @@ export class IStateNode<
           result.to = v.to
           result.send = v.send
           result.wait = v.wait
+          result.break = v.break
         }
 
         return result
@@ -1183,16 +1228,16 @@ export class IStateNode<
     function getProcessedRepeat(item: IRepeatEventConfig<D, A, C, R, Y>) {
       return {
         event: getProcessedEvent(item.event),
-        delay: item.delay || 0.016
+        delay: item.delay || 0.016,
       }
     }
 
     function getProcessedAsync(item: IAsyncEventConfig<D, A, C, R, Y>) {
-      const asyncFns = castArray(item.await).map(fn => {
+      const asyncFns = castArray(item.await).map((fn) => {
         if (typeof fn === "string") {
           if (namedFunctions.asyncs === undefined) {
             console.error(Errors.noNamedFunction(fn, "async"))
-            return async function() {}
+            return async function () {}
           } else {
             const found = namedFunctions.asyncs[fn]
             return found
@@ -1205,7 +1250,7 @@ export class IStateNode<
       return {
         asyncFns: asyncFns,
         onReject: getProcessedEvent(item.onReject),
-        onResolve: getProcessedEvent(item.onResolve)
+        onResolve: getProcessedEvent(item.onResolve),
       }
     }
 
@@ -1217,7 +1262,7 @@ export class IStateNode<
         : undefined,
       onEvent: onEvent ? getProcessedEvent(onEvent) : undefined,
       onEnter: onEnter ? getProcessedEvent(onEnter) : undefined,
-      onExit: onExit ? getProcessedEvent(onExit) : undefined
+      onExit: onExit ? getProcessedEvent(onExit) : undefined,
     }
 
     this.repeatEvents = options.repeat
@@ -1244,7 +1289,7 @@ export class IStateNode<
       let source = state
       let path = transition.split(".")
       for (let step of path) {
-        const next = source.children.find(v => v.name === step)
+        const next = source.children.find((v) => v.name === step)
         if (next === undefined) {
           // console.warn("Could not find that state:", step)
           break
@@ -1255,7 +1300,7 @@ export class IStateNode<
       target = source
     } else {
       target = undefined
-      const next = state.children.find(v => v.name === transition)
+      const next = state.children.find((v) => v.name === transition)
       if (next === undefined) {
         // console.warn("Could not find that state:", transition)
       } else {
@@ -1283,8 +1328,8 @@ export class IStateNode<
         // Find the child to activate
         const activeChild =
           previous || restore
-            ? this.children.find(v => v.name === this.previous)
-            : this.children.find(v => v.name === this.initial)
+            ? this.children.find((v) => v.name === this.previous)
+            : this.children.find((v) => v.name === this.initial)
 
         if (activeChild === undefined) {
           // Active child does not exist!
@@ -1369,21 +1414,21 @@ export class IStateNode<
     // Every `if` condition must return true
     if (
       handler.if.length > 0 &&
-      !handler.if.every(c => c(draft, payload, result))
+      !handler.if.every((c) => c(draft, payload, result))
     )
       return false
 
     // Every `unless` condition must return false
     if (
       handler.unless.length > 0 &&
-      handler.unless.some(c => c(draft, payload, result))
+      handler.unless.some((c) => c(draft, payload, result))
     )
       return false
 
     // One or more `ifAny` conditions must return true
     if (
       handler.ifAny.length > 0 &&
-      !handler.ifAny.some(c => c(draft, payload, result))
+      !handler.ifAny.some((c) => c(draft, payload, result))
     )
       return false
 
@@ -1400,7 +1445,7 @@ export class IStateNode<
       ...this.children.reduce<IStateNode<D, A, C, R, Y>[]>((acc, child) => {
         acc.push(...child.getActive())
         return acc
-      }, [])
+      }, []),
     ]
   }
 }
@@ -1411,7 +1456,7 @@ const Errors = {
   noNamedFunction: (name: string, type: string) =>
     `Error! You've referenced a named ${type} (${name}) but your configuration does not include any named ${type}s.`,
   noMatchingNamedFunction: (name: string, type: string) =>
-    `Error! You've referenced a named ${type} (${name}) but your configuration does not include any named ${type}s with that name.`
+    `Error! You've referenced a named ${type} (${name}) but your configuration does not include any named ${type}s with that name.`,
 }
 
 export type StateDesignerWithConfig<
@@ -1429,6 +1474,7 @@ export type EventRecord<D> = {
   action: boolean
   transition?: TransitionRecord<D>
   transitions: number
+  break: boolean
 }
 
 type TransitionRecord<D> = {
@@ -1456,7 +1502,7 @@ function createGroup<
 
 createGroup({
   items: { cat: 0 },
-  selected: "cat"
+  selected: "cat",
 })
 
 /* -------------------------------------------------- */
@@ -1477,14 +1523,16 @@ function getGraphHandlerFunction<D>(
 function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
   return {
     name: eventName,
-    eventHandlers: event.map(eventHandler => ({
-      get: eventHandler.get.map(h => getGraphHandlerFunction(h, eventName)),
-      if: eventHandler.if.map(h => getGraphHandlerFunction(h, eventName)),
-      ifAny: eventHandler.ifAny.map(h => getGraphHandlerFunction(h, eventName)),
-      unless: eventHandler.unless.map(h =>
+    eventHandlers: event.map((eventHandler) => ({
+      get: eventHandler.get.map((h) => getGraphHandlerFunction(h, eventName)),
+      if: eventHandler.if.map((h) => getGraphHandlerFunction(h, eventName)),
+      ifAny: eventHandler.ifAny.map((h) =>
         getGraphHandlerFunction(h, eventName)
       ),
-      do: eventHandler.do.map(h => getGraphHandlerFunction(h, eventName)),
+      unless: eventHandler.unless.map((h) =>
+        getGraphHandlerFunction(h, eventName)
+      ),
+      do: eventHandler.do.map((h) => getGraphHandlerFunction(h, eventName)),
       to: eventHandler.to || "",
       wait: eventHandler.wait ? eventHandler.wait.toString() : "",
 
@@ -1492,14 +1540,14 @@ function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
         ? Array.isArray(eventHandler.send)
           ? {
               name: eventHandler.send[0],
-              payload: JSON.stringify(eventHandler.send[1] || "")
+              payload: JSON.stringify(eventHandler.send[1] || ""),
             }
           : {
               name: eventHandler.send,
-              payload: ""
+              payload: "",
             }
-        : ""
-    }))
+        : "",
+    })),
   }
 }
 

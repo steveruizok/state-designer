@@ -10,6 +10,8 @@ import OnEvent from "./Examples/OnEvent"
 import Blended from "./Examples/Blended"
 import Login from "./Examples/Login"
 import Async from "./Examples/Async"
+import Break from "./Examples/Break"
+import ErrorHandling from "./Examples/ErrorHandling"
 import SharedMachine from "./Examples/SharedMachine"
 import EventLevels from "./Examples/EventLevels"
 import Editor from "./Editor"
@@ -21,7 +23,8 @@ const App: React.FC<Props> = ({ children }) => {
     <div>
       <h1>State Designer</h1>
       <hr />
-      <SharedMachine />
+      <ErrorHandling />
+      <Break />
       {/* <Login /> */}
       {/* <Chain />
       <PlayPauseStop /> */}

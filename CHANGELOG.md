@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.42
+
+- Adds error handling.
+
+## 1.0.41
+
+- Adds `break` to event.
+
 ## 1.0.40
 
 - Adds `asyncs` collection.
@@ -45,7 +53,7 @@ whenIn({
   active: { backgroundColor: "#fff" },
   inactive: { backgroundColor: "#ccc" },
   bold: { fontWeight: "bold" },
-  normal: { fontWeight: "normal" }
+  normal: { fontWeight: "normal" },
 })
 ```
 
