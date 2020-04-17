@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.0.42",
+  "version": "1.0.44",
   "description": "A state and event management tool.",
   "author": "steveruizok",
   "license": "MIT",
@@ -19,10 +19,6 @@
     "build": "rollup -c",
     "start": "rollup -c -w"
   },
-  "dependencies": {
-    "immer": "^6.0.3",
-    "lodash-es": "^4.17.15"
-  },
   "peerDependencies": {
     "react": "^16.12.0"
   },
@@ -33,7 +29,7 @@
     "@types/lodash-es": "^4.17.3",
     "@types/react": "^16.7.22",
     "cross-env": "^5.2.0",
-    "gh-pages": "^2.2.0",
+    "lodash-es": "^4.17.15",
     "react-scripts": "^3.0.1",
     "rollup": "^1.1.2",
     "rollup-plugin-babel": "^4.3.2",

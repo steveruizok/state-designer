@@ -25,16 +25,16 @@ const App: React.FC<Props> = ({ children }) => {
       <hr />
       <ErrorHandling />
       <Break />
-      {/* <Login /> */}
-      {/* <Chain />
-      <PlayPauseStop /> */}
-      {/* <Blended /> */}
-      {/* <Counter />
+      <Login />
+      <Chain />
+      <PlayPauseStop />
+      <Blended />
+      <Counter />
       <Switch />
       <NestedStates />
       <DeepLink />
-      <OnEvent /> */}
-      {/* <Editor /> */}
+      <OnEvent />
+      <Editor />
     </div>
   )
 }

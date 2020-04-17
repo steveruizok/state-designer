@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.44
+
+- Removes Immer usage.
+
 ## 1.0.43
 
 - Adds Immer enableMapSet, bumps Immer version.

@@ -1,15 +1,11 @@
 import castArray from "lodash/castArray"
 import uniqueId from "lodash/uniqueId"
-import produce, { Draft, setAutoFreeze, enableMapSet } from "immer"
-
-enableMapSet()
-setAutoFreeze(false)
 
 // Actions
 
 export type MaybeArray<T> = T | T[]
 
-export type IAction<D> = (data: Draft<D>, payload: any, result: any) => any
+export type IAction<D> = (data: D, payload: any, result: any) => any
 
 export interface IActionConfig<D> {
   (data: D, payload: any, result: any): any
@@ -764,17 +760,17 @@ class StateDesigner<
       return
     }
 
-    this.data = produce(this.data, (draft) => {
-      for (let action of actions) {
-        this.record.action = true
-        try {
-          action(draft, payload, result)
-        } catch (e) {
-          console.error(`Error!`, action, e)
-          break
-        }
+    // this.data = produce(this.data, (draft) => {
+    for (let action of actions) {
+      this.record.action = true
+      try {
+        action(this.data, payload, result)
+      } catch (e) {
+        console.error(`Error!`, action, e)
+        break
       }
-    })
+    }
+    // })
 
     if (shouldBreak) {
       this.record.break = true
