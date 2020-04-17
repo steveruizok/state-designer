@@ -1,7 +1,8 @@
 import castArray from "lodash/castArray"
 import uniqueId from "lodash/uniqueId"
-import produce, { Draft, setAutoFreeze } from "immer"
+import produce, { Draft, setAutoFreeze, enableMapSet } from "immer"
 
+enableMapSet()
 setAutoFreeze(false)
 
 // Actions

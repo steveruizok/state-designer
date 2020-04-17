@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.43
+
+- Adds Immer enableMapSet, bumps Immer version.
+
 ## 1.0.42
 
 - Adds error handling.
