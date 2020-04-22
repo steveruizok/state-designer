@@ -1,11 +1,14 @@
 import castArray from "lodash/castArray"
 import uniqueId from "lodash/uniqueId"
+import produce, { Draft, enableMapSet } from "immer"
+
+enableMapSet()
 
 // Actions
 
 export type MaybeArray<T> = T | T[]
 
-export type IAction<D> = (data: D, payload: any, result: any) => any
+export type IAction<D> = (data: D | Draft<D>, payload: any, result: any) => any
 
 export interface IActionConfig<D> {
   (data: D, payload: any, result: any): any
@@ -651,9 +654,9 @@ class StateDesigner<
   ) {
     const { asyncFns, onResolve, onReject } = asyncEvent
 
-    const allPromises = asyncFns.map((fn) =>
+    const allPromises = asyncFns.map((fn) => {
       fn(this.data, undefined, undefined)
-    )
+    })
 
     Promise.all(allPromises)
       .then((resolved) => {
@@ -764,7 +767,9 @@ class StateDesigner<
     for (let action of actions) {
       this.record.action = true
       try {
-        action(this.data, payload, result)
+        this.data = produce(this.data, (draft) => {
+          action(draft, payload, result)
+        })
       } catch (e) {
         console.error(`Error!`, action, e)
         break

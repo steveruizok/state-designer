@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.0.44",
+  "version": "1.0.45",
   "description": "A state and event management tool.",
   "author": "steveruizok",
   "license": "MIT",
@@ -40,5 +40,8 @@
     "rollup-plugin-url": "^2.1.0",
     "typescript": "^3.8.2",
     "utility-types": "^3.10.0"
+  },
+  "dependencies": {
+    "immer": "^6.0.3"
   }
 }
