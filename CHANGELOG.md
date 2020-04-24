@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.47
+
+- Fixes waits on auto events.
+
 ## 1.0.46
 
 - Restores Immer.

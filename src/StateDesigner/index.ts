@@ -640,11 +640,13 @@ class StateDesigner<
 
     for (let handler of event) {
       const { wait } = handler
+
       if (wait !== undefined) {
         await new Promise((resolve) => setTimeout(resolve, wait * 1000))
       }
 
       this.handleEventHandler(state, handler, payload, result)
+
       if (this.record.transition !== undefined || this.record.break) break
     }
   }
@@ -699,7 +701,7 @@ class StateDesigner<
 
     this.resetRecord()
 
-    this.handleEvent(state, event, payload, returned)
+    await this.handleEvent(state, event, payload, returned)
 
     if (this.record.transition !== undefined) {
       while (this.record.transition !== undefined) {
@@ -764,7 +766,6 @@ class StateDesigner<
       return
     }
 
-    // this.data = produce(this.data, (draft) => {
     for (let action of actions) {
       this.record.action = true
       try {
@@ -776,7 +777,6 @@ class StateDesigner<
         break
       }
     }
-    // })
 
     if (shouldBreak) {
       this.record.break = true
@@ -827,8 +827,6 @@ class StateDesigner<
         target,
       }
     }
-
-    return
   }
 
   enactTransition = (transition: TransitionRecord<D>, payload: any) => {
