@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.46
+
+- Restores Immer.
+
 ## 1.0.44
 
 - Removes Immer usage.
