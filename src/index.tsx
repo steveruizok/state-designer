@@ -151,69 +151,6 @@ export function useStateDesigner<
       )
 
       return returnValue
-
-      // entries.forEach(([key, value]) => {
-      //   let v = getValue(value)
-      //   if (key === "root") {
-      //     returnValue.push(v)
-      //   } else {
-      //     if (active.find((v) => v.endsWith("." + key))) {
-      //       returnValue.push(v)
-      //     }
-      //   }
-      // })
-
-      // switch (type) {
-      //   case "array": {
-      //     let returnValue = [] as any[]
-
-      //     entries.forEach(([key, value]) => {
-      //       let v = getValue(value)
-      //       if (key === "root") {
-      //         returnValue.push(v)
-      //       } else {
-      //         if (active.find((v) => v.endsWith("." + key))) {
-      //           returnValue.push(v)
-      //         }
-      //       }
-      //     })
-
-      //     return returnValue
-      //   }
-      //   case "object": {
-      //     let returnValue: { [key: string]: any } = {}
-
-      //     entries.forEach(([key, value]) => {
-      //       let v = getValue(value)
-      //       if (key === "root") {
-      //         Object.assign(returnValue, v)
-      //       } else {
-      //         if (active.find((v) => v.endsWith("." + key))) {
-      //           Object.assign(returnValue, v)
-      //         }
-      //       }
-      //     })
-      //     return returnValue
-      //   }
-      //   case "value": {
-      //     let returnValue: any = undefined
-
-      //     entries.forEach(([key, value]) => {
-      //       let v = getValue(value)
-      //       if (key === "root") {
-      //         returnValue = v
-      //       } else {
-      //         if (active.find((v) => v.endsWith("." + key))) {
-      //           returnValue = v
-      //         }
-      //       }
-      //     })
-      //     return returnValue
-      //   }
-      //   default: {
-      //     return undefined
-      //   }
-      // }
     },
     []
   )

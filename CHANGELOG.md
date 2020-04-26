@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.48
+
+- Adds reducer to `whenIn` helper.
+
 ## 1.0.47
 
 - Fixes waits on auto events.
