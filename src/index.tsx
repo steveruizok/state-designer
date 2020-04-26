@@ -1,6 +1,5 @@
 import * as React from "react"
 import isFunction from "lodash-es/isFunction"
-import isPlainObject from "lodash-es/isPlainObject"
 import pick from "lodash-es/pick"
 import StateDesigner, {
   createStateDesignerConfig,
@@ -27,6 +26,19 @@ export { Graph }
 
 export type OnChange<T> = (state: T) => void
 
+type WhenInReducer<T, V> = (
+  previousValue: any,
+  currentValue: [string, V],
+  currentIndex: number,
+  array: [string, V][]
+) => T
+
+type WhenIn<T = any, V = any> = (
+  states: { [key: string]: V },
+  reducer?: WhenInReducer<T, V>,
+  initial?: T
+) => T
+
 export type StateDesignerInfo<D> = {
   data: D
   thenSend: (eventName: string, payload?: any) => () => void
@@ -34,7 +46,7 @@ export type StateDesignerInfo<D> = {
   graph: Graph.Export<D>
   active: string[]
   isIn(states: string): boolean
-  whenIn(state: { [key: string]: any }): any
+  whenIn: WhenIn
   can(event: string, payload?: any): boolean
   reset(): void
 }
@@ -111,37 +123,100 @@ export function useStateDesigner<
     return machine.current.isIn(state)
   }, [])
 
-  const whenIn = React.useCallback((states: { [key: string]: any }) => {
-    const { active } = machine.current
+  const whenIn = React.useCallback<WhenIn>(
+    (states, reducer = (prev, cur) => [...prev, cur[1]], initial = []) => {
+      const { active } = machine.current
 
-    let returnValue = states["default"]
-
-    if (isFunction(returnValue)) {
-      returnValue = returnValue()
-    }
-
-    function setValue(value: any) {
-      let v = isFunction(value) ? value() : value
-
-      if (isPlainObject(returnValue)) {
-        returnValue = { ...returnValue, ...v }
-      } else {
-        returnValue = v
+      function getValue(value: any) {
+        return isFunction(value) ? value() : value
       }
-    }
 
-    Object.entries(states).forEach(([key, value]) => {
-      if (key === "root") {
-        setValue(value)
-      } else {
-        if (active.find((v) => v.endsWith("." + key))) {
-          setValue(value)
+      const entries: [string, any][] = []
+
+      Object.entries(states).forEach(([key, value]) => {
+        let v = getValue(value)
+        if (key === "root") {
+          entries.push([key, v])
+        } else {
+          if (active.find((v) => v.endsWith("." + key))) {
+            entries.push([key, v])
+          }
         }
-      }
-    })
+      })
 
-    return returnValue
-  }, [])
+      let returnValue = initial
+
+      entries.forEach(
+        (entry, i) => (returnValue = reducer(returnValue, entry, i, entries))
+      )
+
+      return returnValue
+
+      // entries.forEach(([key, value]) => {
+      //   let v = getValue(value)
+      //   if (key === "root") {
+      //     returnValue.push(v)
+      //   } else {
+      //     if (active.find((v) => v.endsWith("." + key))) {
+      //       returnValue.push(v)
+      //     }
+      //   }
+      // })
+
+      // switch (type) {
+      //   case "array": {
+      //     let returnValue = [] as any[]
+
+      //     entries.forEach(([key, value]) => {
+      //       let v = getValue(value)
+      //       if (key === "root") {
+      //         returnValue.push(v)
+      //       } else {
+      //         if (active.find((v) => v.endsWith("." + key))) {
+      //           returnValue.push(v)
+      //         }
+      //       }
+      //     })
+
+      //     return returnValue
+      //   }
+      //   case "object": {
+      //     let returnValue: { [key: string]: any } = {}
+
+      //     entries.forEach(([key, value]) => {
+      //       let v = getValue(value)
+      //       if (key === "root") {
+      //         Object.assign(returnValue, v)
+      //       } else {
+      //         if (active.find((v) => v.endsWith("." + key))) {
+      //           Object.assign(returnValue, v)
+      //         }
+      //       }
+      //     })
+      //     return returnValue
+      //   }
+      //   case "value": {
+      //     let returnValue: any = undefined
+
+      //     entries.forEach(([key, value]) => {
+      //       let v = getValue(value)
+      //       if (key === "root") {
+      //         returnValue = v
+      //       } else {
+      //         if (active.find((v) => v.endsWith("." + key))) {
+      //           returnValue = v
+      //         }
+      //       }
+      //     })
+      //     return returnValue
+      //   }
+      //   default: {
+      //     return undefined
+      //   }
+      // }
+    },
+    []
+  )
 
   const can = React.useCallback((event: string, payload?: any) => {
     return machine.current.can(event, payload)

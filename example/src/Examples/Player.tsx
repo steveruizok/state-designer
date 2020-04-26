@@ -1,11 +1,11 @@
 import React from "react"
 import { useStateDesigner } from "state-designer"
 
-export default function() {
+export default function () {
   const { data, active, isIn, send, can, whenIn } = useStateDesigner({
     data: {
       currentTime: 0,
-      duration: 30
+      duration: 30,
     },
     initial: "stopped",
     states: {
@@ -13,8 +13,8 @@ export default function() {
         on: {
           PRESSED_PLAY: { to: "playing" },
           PRESSED_REWIND: { to: "rewinding" },
-          PRESSED_FASTFORWARD: { to: "fastForwarding" }
-        }
+          PRESSED_FASTFORWARD: { to: "fastForwarding" },
+        },
       },
       playing: {
         initial: "normal",
@@ -24,91 +24,91 @@ export default function() {
               event: [
                 {
                   if: "atEnd",
-                  to: "stopped"
+                  to: "stopped",
                 },
-                "forwardOneSecond"
+                "forwardOneSecond",
               ],
-              delay: 1
+              delay: 1,
             },
             on: {
               PRESSED_STOP: { to: "stopped" },
               PRESSED_PAUSE: { to: "paused" },
               HELD_REWIND: { to: "scrubbingBack" },
-              HELD_FASTFORWARD: { to: "scrubbingForward" }
-            }
+              HELD_FASTFORWARD: { to: "scrubbingForward" },
+            },
           },
           paused: {
             on: {
               PRESSED_PLAY: { to: "normal" },
               PRESSED_STOP: { to: "stopped" },
               HELD_REWIND: { to: "scrubbingBack" },
-              HELD_FASTFORWARD: { to: "scrubbingForward" }
-            }
-          }
-        }
+              HELD_FASTFORWARD: { to: "scrubbingForward" },
+            },
+          },
+        },
       },
       scrubbingForward: {
         repeat: {
           event: [
             {
               if: "atEnd",
-              to: "stopped"
+              to: "stopped",
             },
-            "forwardOneSecond"
+            "forwardOneSecond",
           ],
-          delay: 0.1
+          delay: 0.1,
         },
         on: {
-          RELEASED_FASTFORWARD: { to: "playing.restore" }
-        }
+          RELEASED_FASTFORWARD: { to: "playing.restore" },
+        },
       },
       scrubbingBack: {
         repeat: {
           event: [
             {
               if: "atStart",
-              to: "stopped"
+              to: "stopped",
             },
-            "rewindOneSecond"
+            "rewindOneSecond",
           ],
-          delay: 0.1
+          delay: 0.1,
         },
         on: {
-          RELEASED_REWIND: { to: "playing.restore" }
-        }
+          RELEASED_REWIND: { to: "playing.restore" },
+        },
       },
       fastForwarding: {
         repeat: {
           event: [
             {
               if: "atEnd",
-              to: "stopped"
+              to: "stopped",
             },
-            "forwardOneSecond"
+            "forwardOneSecond",
           ],
-          delay: 0.05
+          delay: 0.05,
         },
         on: {
           PRESSED_PLAY: { to: "playing" },
-          PRESSED_STOP: { to: "stopped" }
-        }
+          PRESSED_STOP: { to: "stopped" },
+        },
       },
       rewinding: {
         repeat: {
           event: [
             {
               if: "atStart",
-              to: "stopped"
+              to: "stopped",
             },
-            "rewindOneSecond"
+            "rewindOneSecond",
           ],
-          delay: 0.05
+          delay: 0.05,
         },
         on: {
           PRESSED_PLAY: { to: "playing" },
-          PRESSED_STOP: { to: "stopped" }
-        }
-      }
+          PRESSED_STOP: { to: "stopped" },
+        },
+      },
     },
     conditions: {
       atStart(data) {
@@ -116,7 +116,7 @@ export default function() {
       },
       atEnd(data) {
         return data.currentTime >= data.duration
-      }
+      },
     },
     actions: {
       forwardOneSecond(data) {
@@ -124,8 +124,8 @@ export default function() {
       },
       rewindOneSecond(data) {
         data.currentTime--
-      }
-    }
+      },
+    },
   })
 
   return (

@@ -31,6 +31,10 @@ export interface IResultConfig<D> {
   (data: D, payload: any, result: any): void
 }
 
+// Time Values
+
+export type ITime<D> = (data: D) => number
+
 // Async Results
 
 export type IAsyncResult<D> = (
@@ -73,7 +77,7 @@ export interface IEventHandlerConfig<D, A, C, R, Y> {
   get?: IResultsConfig<D, R>
   to?: string
   send?: string | [string, any]
-  wait?: number
+  wait?: number | ITime<D>
   break?: true
 }
 
@@ -100,7 +104,7 @@ export interface IEventHandler<D> {
   get: IResult<D>[]
   to?: string
   send?: string | [string, any]
-  wait?: number
+  wait?: number | ITime<D>
   break?: true
 }
 
@@ -112,12 +116,12 @@ type IEvents<D> = Record<string, IEvent<D>>
 
 export interface IRepeatEventConfig<D, A, C, R, Y> {
   event: IEventConfig<D, A, C, R, Y>
-  delay?: number
+  delay?: number | ITime<D>
 }
 
 export interface IRepeatEvent<D> {
   event: IEvent<D>
-  delay: number
+  delay: number | ITime<D>
 }
 
 // Async Event
@@ -642,7 +646,8 @@ class StateDesigner<
       const { wait } = handler
 
       if (wait !== undefined) {
-        await new Promise((resolve) => setTimeout(resolve, wait * 1000))
+        let t = typeof wait === "number" ? wait : wait(this.data)
+        await new Promise((resolve) => setTimeout(resolve, t * 1000))
       }
 
       this.handleEventHandler(state, handler, payload, result)
@@ -683,7 +688,8 @@ class StateDesigner<
     this.handleAutoEvent(state, event, undefined, undefined)
 
     if (delay !== undefined) {
-      await new Promise((resolve) => setTimeout(resolve, delay * 1000))
+      let t = typeof delay === "number" ? delay : delay(this.data)
+      await new Promise((resolve) => setTimeout(resolve, t * 1000))
       if (this.isIn(state.name)) {
         this.handleRepeatEvent(state, repeatEvent)
       }

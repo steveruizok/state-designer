@@ -14,11 +14,14 @@ export enum TetrominoType {
 }
 
 export type FallingTetromino = {
-  point: Point
-  teromino: TetrominoType
+  origin: Point
+  type: TetrominoType
+  tetromino: Tetromino
   rotation: number
 }
 
-export type Tetromino = [Point, Point, Point, Point]
+export type Tetromino = number[][]
 
-export type Grid = (TetrominoType | undefined)[][]
+export type Piece = Tetromino[]
+
+export type Grid = (TetrominoType | 0)[][]
