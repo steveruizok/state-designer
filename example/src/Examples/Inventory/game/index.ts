@@ -25,6 +25,10 @@ const game = createStateDesigner({
   initial: "idle",
   on: {
     ADD_ITEMS: "addItems",
+    QUICK_EQUIPPED_ITEM: {
+      do: "swapItem",
+      to: "idle",
+    },
   },
   states: {
     idle: {
@@ -41,59 +45,135 @@ const game = createStateDesigner({
           do: "clearDraggingItem",
           to: "idle",
         },
-
-        STOPPED_DRAGGING_ITEM: [
-          {
-            get: "draggingPoint",
-            if: "pointIsValid",
-            do: ["updateDraggingItem", "setItemPoint"],
-          },
-          {
-            do: "clearDraggingItem",
-            to: "idle",
-          },
-        ],
       },
-      initial: "valid",
+      initial: "draggingGrid",
+      onEnter: [
+        {
+          get: "draggingPoint",
+          if: "isHoveringGrid",
+          to: "draggingGrid",
+        },
+        {
+          to: "draggingSlots",
+        },
+      ],
       states: {
-        valid: {
+        draggingGrid: {
           on: {
-            DRAGGED_ITEM: [
+            DRAGGED_ITEM: {
+              get: "draggingPoint",
+              unless: "isHoveringGrid",
+              to: "draggingSlots",
+            },
+            STOPPED_DRAGGING_ITEM: [
               {
                 get: "draggingPoint",
-                if: "pointIsDraggingItemPoint",
-                break: true,
+                if: "pointIsValidInGrid",
+                do: ["updateDraggingItem", "setItemInGrid"],
               },
               {
-                get: "draggingPoint",
-                do: "updateDraggingItem",
-              },
-              {
-                get: "draggingPoint",
-                unless: "pointIsValid",
-                to: "invalid",
+                do: "clearDraggingItem",
+                to: "idle",
               },
             ],
+          },
+          initial: "valid",
+          states: {
+            valid: {
+              on: {
+                DRAGGED_ITEM: [
+                  {
+                    get: "draggingPoint",
+                    if: "pointIsDraggingItemPoint",
+                    break: true,
+                  },
+                  {
+                    get: "draggingPoint",
+                    do: "updateDraggingItem",
+                  },
+                  {
+                    get: "draggingPoint",
+                    unless: "pointIsValidInGrid",
+                    to: "invalid",
+                  },
+                ],
+              },
+            },
+            invalid: {
+              on: {
+                DRAGGED_ITEM: [
+                  {
+                    get: "draggingPoint",
+                    if: "pointIsDraggingItemPoint",
+                    break: true,
+                  },
+                  {
+                    get: "draggingPoint",
+                    do: "updateDraggingItem",
+                  },
+                  {
+                    get: "draggingPoint",
+                    if: "pointIsValidInGrid",
+                    to: "valid",
+                  },
+                ],
+              },
+            },
           },
         },
-        invalid: {
+        draggingSlots: {
           on: {
-            DRAGGED_ITEM: [
-              {
-                get: "draggingPoint",
-                if: "pointIsDraggingItemPoint",
-                break: true,
+            DRAGGED_ITEM: {
+              get: "draggingPoint",
+              if: "isHoveringGrid",
+              to: "draggingGrid",
+            },
+          },
+          initial: "valid",
+          states: {
+            valid: {
+              on: {
+                DRAGGED_ITEM: [
+                  {
+                    get: ["draggingPoint", "hoveredSlot"],
+                    unless: "slotIsDraggingItemSlot",
+                    do: "updateDraggingItemSlot",
+                  },
+                  {
+                    get: ["draggingPoint", "hoveredSlot"],
+                    unless: "slotIsValid",
+                    to: "invalid",
+                  },
+                ],
+                STOPPED_DRAGGING_ITEM: [
+                  {
+                    get: ["draggingPoint", "hoveredSlot"],
+                    if: "slotIsValid",
+                    do: "setItemInSlot",
+                  },
+                  {
+                    do: "clearDraggingItem",
+                    to: "idle",
+                  },
+                ],
               },
-              {
-                get: "draggingPoint",
-                do: "updateDraggingItem",
+            },
+            invalid: {
+              on: {
+                DRAGGED_ITEM: [
+                  {
+                    get: ["draggingPoint", "hoveredSlot"],
+                    unless: "slotIsDraggingItemSlot",
+                    do: "updateDraggingItemSlot",
+                  },
+                  {
+                    get: ["draggingPoint", "hoveredSlot"],
+                    if: "slotIsValid",
+                    to: "valid",
+                  },
+                ],
               },
-              {
-                get: "draggingPoint",
-                if: "pointIsValid",
-                to: "valid",
-              },
-            ],
+            },
           },
         },
       },
@@ -104,18 +184,51 @@ const game = createStateDesigner({
       const { id, info } = event
 
       const item = data.inventory.contents[id]
-      const thing = things[item.thing]
 
-      let x = Math.round(info.offset.x / 20 + item.point.x)
-      let y = Math.round(info.offset.y / 20 + item.point.y)
-
-      x = Math.max(Math.min(x, 10 - thing.size.width), 0)
-      y = Math.max(Math.min(y, 20 - thing.size.height), 0)
+      let x = Math.round((info.offset?.x || 0) / 20 + item.point.x)
+      let y = Math.round((info.offset?.y || 0) / 20 + item.point.y)
 
       return { x, y }
     },
+    hoveredSlot(data, event: DragEvent, point: DS.Point) {
+      let slotId: DS.SlotId | undefined = undefined
+
+      const item = data.inventory.contents[event.id]
+      const thing = data.things[item.thing]
+
+      for (let slot of Object.values(data.slots)) {
+        if (
+          !(
+            point.x + thing.size.width / 2 < slot.point.x ||
+            point.x + thing.size.width / 2 > slot.point.x + slot.size.width ||
+            point.y + thing.size.height / 2 < slot.point.y ||
+            point.y + thing.size.height / 2 > slot.point.y + slot.size.height
+          )
+        ) {
+          slotId = slot.id
+        }
+      }
+
+      return slotId
+    },
   },
   conditions: {
+    isHoveringSlot(data, event: DragEvent, id: string) {
+      return id !== undefined
+    },
+    isHoveringGrid(data, event: DragEvent, point: DS.Point) {
+      const { id } = event
+
+      const item = data.inventory.contents[id]
+      const thing = things[item.thing]
+
+      return !(
+        point.x < 21 ||
+        point.x + thing.size.width > 31 ||
+        point.y < 2 ||
+        point.y + thing.size.height > 22
+      )
+    },
     pointIsDraggingItemPoint(data, event: DragEvent, point: DS.Point) {
       const { dragging } = data.inventory
 
@@ -125,7 +238,29 @@ const game = createStateDesigner({
         return false
       }
     },
-    pointIsValid(data, event: DragEvent, point: DS.Point) {
+    slotIsDraggingItemSlot(data, event: DragEvent, slotId: DS.SlotId) {
+      const { dragging } = data.inventory
+
+      if (dragging) {
+        return dragging.slot === slotId
+      } else {
+        return false
+      }
+    },
+    slotIsValid(data, event: DragEvent, slotId: DS.SlotId) {
+      const { id } = event
+      const item = data.inventory.contents[id]
+      const thing = things[item.thing]
+      const slot = data.slots[slotId]
+
+      if (!slot) return false
+
+      return (
+        (slot.item === undefined || slot.item === item.id) &&
+        thing.slots.includes(slotId)
+      )
+    },
+    pointIsValidInGrid(data, event: DragEvent, point: DS.Point) {
       const { id } = event
 
       const item = data.inventory.contents[id]
@@ -135,11 +270,12 @@ const game = createStateDesigner({
 
       for (let x = 0; x < thing.size.width; x++) {
         for (let y = 0; y < thing.size.height; y++) {
-          const px = point.x + x
-          const py = point.y + y
-          const cell = data.inventory.cells[py][px]
+          const cx = point.x + x - 21
+          const cy = point.y + y - 2
 
-          if (cell !== item.id && cell !== ".") {
+          const cell = data.inventory.cells[cy]?.[cx]
+
+          if (cell === undefined || (cell !== item.id && cell !== ".")) {
             valid = false
             break
           }
@@ -152,13 +288,18 @@ const game = createStateDesigner({
   actions: {
     addItems(data, items: DS.Item[]) {
       for (let item of items) {
+        item.point.x += 21
+        item.point.y += 2
+
         data.inventory.contents[item.id] = item
 
         const thing = things[item.thing]
 
         for (let x = 0; x < thing.size.width; x++) {
           for (let y = 0; y < thing.size.height; y++) {
-            data.inventory.cells[y + item.point.y][x + item.point.x] = item.id
+            const cx = x + item.point.x - 21
+            const cy = y + item.point.y - 2
+            data.inventory.cells[cy][cx] = item.id
           }
         }
       }
@@ -174,10 +315,55 @@ const game = createStateDesigner({
       const draggingItem = data.inventory.dragging
 
       if (draggingItem) {
-        draggingItem.point = point
+        draggingItem.point = { x: point.x, y: point.y }
       }
     },
-    setItemPoint(data, event: DragEvent, point: DS.Point) {
+    clearDraggingSlot(data) {
+      const draggingItem = data.inventory.dragging
+      if (draggingItem) {
+        draggingItem.slot = undefined
+      }
+    },
+    updateDraggingItemSlot(data, event: DragEvent, slotId: DS.SlotId) {
+      const draggingItem = data.inventory.dragging
+
+      if (draggingItem) {
+        draggingItem.slot = slotId
+
+        if (slotId) {
+          const slot = data.slots[slotId]
+          draggingItem.point = { ...slot.point }
+        }
+      }
+    },
+    setItemInSlot(data, event: DragEvent, slotId: DS.SlotId) {
+      const draggingItem = data.inventory.dragging
+      const item = data.inventory.contents[event.id]
+      const thing = things[item.thing]
+
+      if (draggingItem) {
+        if (item.slot === undefined) {
+          for (let x = 0; x < thing.size.width; x++) {
+            for (let y = 0; y < thing.size.height; y++) {
+              const cx = x + item.point.x - 21
+              const cy = y + item.point.y - 2
+              data.inventory.cells[cy][cx] = "."
+            }
+          }
+        } else {
+          const lastSlot = data.slots[item.slot]
+          lastSlot.item = undefined
+        }
+
+        const slot = data.slots[slotId]
+
+        item.slot = slot.id
+        slot.item = item.id
+
+        item.point = { ...slot.point }
+      }
+    },
+    setItemInGrid(data, event: DragEvent, point: DS.Point) {
       const draggingItem = data.inventory.dragging
       const item = data.inventory.contents[event.id]
       const thing = things[item.thing]
@@ -185,15 +371,94 @@ const game = createStateDesigner({
       if (draggingItem) {
         for (let x = 0; x < thing.size.width; x++) {
           for (let y = 0; y < thing.size.height; y++) {
-            data.inventory.cells[y + item.point.y][x + item.point.x] = "."
+            const cx = x + item.point.x - 21
+            const cy = y + item.point.y - 2
+            data.inventory.cells[cy][cx] = "."
           }
         }
 
         item.point = draggingItem.point
 
+        if (item.slot) {
+          const slot = data.slots[item.slot]
+          slot.item = undefined
+          item.slot = undefined
+        }
+
         for (let x = 0; x < thing.size.width; x++) {
           for (let y = 0; y < thing.size.height; y++) {
-            data.inventory.cells[y + item.point.y][x + item.point.x] = item.id
+            const cx = x + item.point.x - 21
+            const cy = y + item.point.y - 2
+            data.inventory.cells[cy][cx] = item.id
+          }
+        }
+      }
+    },
+    swapItem(data, event: DragEvent) {
+      const { id } = event
+      const item = data.inventory.contents[id]
+      const thing = things[item.thing]
+
+      if (item.slot) {
+        const slot = data.slots[item.slot]
+
+        // Move to inventory (if it fits)
+        for (let y = 0; y <= 20 - thing.size.height; y++) {
+          for (let x = 0; x <= 10 - thing.size.width; x++) {
+            let open = true
+
+            // Can the item fit here?
+            for (let y1 = 0; y1 < thing.size.height; y1++) {
+              for (let x1 = 0; x1 < thing.size.width; x1++) {
+                const cx = x + x1
+                const cy = y + y1
+
+                if (open) {
+                  if (data.inventory.cells[cy][cx] !== ".") {
+                    open = false
+                  }
+                }
+              }
+            }
+
+            if (open) {
+              slot.item = undefined
+              item.slot = undefined
+
+              item.point.x = x + 21
+              item.point.y = y + 2
+
+              for (let y1 = 0; y1 < thing.size.height; y1++) {
+                for (let x1 = 0; x1 < thing.size.width; x1++) {
+                  const cx = x + x1
+                  const cy = y + y1
+
+                  data.inventory.cells[cy][cx] = item.id
+                }
+              }
+
+              return
+            }
+          }
+        }
+      } else {
+        // Move to slots (if one is open)
+        for (let slot of Object.values(data.slots)) {
+          if (slot.item === undefined && thing.slots.includes(slot.id)) {
+            for (let x = 0; x < thing.size.width; x++) {
+              for (let y = 0; y < thing.size.height; y++) {
+                const cx = x + item.point.x - 21
+                const cy = y + item.point.y - 2
+                data.inventory.cells[cy][cx] = "."
+              }
+            }
+
+            item.slot = slot.id
+            slot.item = item.id
+
+            item.point = { ...slot.point }
+
+            return
           }
         }
       }
@@ -231,6 +496,16 @@ game.send("ADD_ITEMS", [
     id: uniqueId(),
     thing: DS.ThingId.Hat,
     point: { x: 1, y: 16 },
+  },
+  {
+    id: uniqueId(),
+    thing: DS.ThingId.Compass,
+    point: { x: 0, y: 14 },
+  },
+  {
+    id: uniqueId(),
+    thing: DS.ThingId.SwissArmyKnife,
+    point: { x: 5, y: 16 },
   },
 ])
 

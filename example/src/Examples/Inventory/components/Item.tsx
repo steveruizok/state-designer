@@ -9,35 +9,30 @@ import things from "../game/things"
 
 export type Props = {
   item: DS.Item
-  offsetX: number
-  offsetY: number
   isDragging: boolean
-  fixed: boolean
+  fixed?: boolean
 }
 
-const Item: React.FC<Props> = ({
-  item,
-  offsetX,
-  offsetY,
-  isDragging,
-  fixed,
-}) => {
+const Item: React.FC<Props> = ({ item, isDragging, fixed = false }) => {
+  const { data, isIn } = useStateDesigner(game)
+
   const thing = things[item.thing]
+  const slot = item.slot ? data.slots[item.slot] : undefined
 
   return (
     <motion.div
+      className={isDragging ? "" : "textured"}
       style={{
         padding: 4,
         fontSize: 11,
-        gridColumn: `${item.point.x + 1 + offsetX} / span ${thing.size.width}`,
-        gridRow: `${item.point.y + 1 + offsetY} / span ${thing.size.height}`,
+        gridColumn: `${item.point.x + 1} / span ${
+          slot && !isDragging ? slot.size.width : thing.size.width
+        }`,
+        gridRow: `${item.point.y + 1} / span ${
+          slot && !isDragging ? slot.size.height : thing.size.height
+        }`,
         border: isDragging ? "none" : "1px solid var(--zh-thunder)",
-        backgroundColor: isDragging ? "transparent" : "var(--zh-sisal)",
         userSelect: "none",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundImage: `url(${thing.image})`,
-        backgroundSize: `80% 80%`,
       }}
       drag
       dragMomentum={false}
@@ -47,12 +42,27 @@ const Item: React.FC<Props> = ({
       onTapStart={(e, info) =>
         game.send("STARTED_DRAGGING_ITEM", { id: item.id, info })
       }
+      onClick={(e) =>
+        e.metaKey && game.send("QUICK_EQUIPPED_ITEM", { id: item.id })
+      }
       onTap={() => game.send("STOPPED_DRAGGING_BEFORE_MOVING", { id: item.id })}
       onDragEnd={(e, info) =>
         game.send("STOPPED_DRAGGING_ITEM", { id: item.id, info })
       }
       onDrag={(e, info) => game.send("DRAGGED_ITEM", { id: item.id, info })}
-    ></motion.div>
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundImage: `url(${thing.image})`,
+          backgroundSize: `80%`,
+          pointerEvents: "none",
+        }}
+      />
+    </motion.div>
   )
 }
 

@@ -4,22 +4,22 @@ import { useStateDesigner } from "state-designer"
 const DeepLink: React.FC<{}> = () => {
   const { data, send, graph, isIn, can } = useStateDesigner({
     data: {
-      transitions: 0
+      transitions: 0,
     },
-    onEvent: data => data.transitions++,
+    onEvent: (data) => data.transitions++,
     initial: "inactive",
     states: {
       inactive: {
         on: {
-          TOGGLE: { to: "active" }
-        }
+          TOGGLE: { to: "active" },
+        },
       },
       active: {
         on: {
-          TOGGLE: { to: "inactive" }
-        }
-      }
-    }
+          TOGGLE: { to: "inactive" },
+        },
+      },
+    },
   })
 
   return (

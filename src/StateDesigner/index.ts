@@ -77,6 +77,7 @@ export interface IEventHandlerConfig<D, A, C, R, Y> {
   unless?: IConditionsConfig<D, C>
   get?: IResultsConfig<D, R>
   to?: string
+  elseTo?: string
   send?: string | [string, any]
   wait?: number | ITime<D>
   break?: boolean
@@ -105,6 +106,7 @@ export interface IEventHandler<D> {
   unless: ICondition<D>[]
   get: IResult<D>[]
   to?: string
+  elseTo?: string
   send?: string | [string, any]
   wait?: number | ITime<D>
   break?: boolean
@@ -223,6 +225,7 @@ export namespace Graph {
     do: string[]
     elseDo: string[]
     to: string
+    elseTo: string
     wait: string
     send: string | { name: string; payload: string }
   }
@@ -747,6 +750,7 @@ class StateDesigner<
       elseDo: elseActions,
       get: resolvers,
       to: transition,
+      elseTo: elseTransition,
       send,
       break: shouldBreak,
     } = handler
@@ -769,7 +773,7 @@ class StateDesigner<
       )
 
       if (!canRun) {
-        // Run "elseDo" actions and break
+        // Run "elseDo" actions and "elseTo" and break
         for (let action of elseActions) {
           this.record.action = true
           try {
@@ -781,6 +785,12 @@ class StateDesigner<
             break
           }
         }
+
+        if (elseTransition !== undefined) {
+          this.handleTransitionItem(state, elseTransition)
+          return
+        }
+
         return
       }
     } catch (e) {
@@ -1227,6 +1237,7 @@ export class IStateNode<
           elseDo: [],
           send: undefined,
           to: undefined,
+          elseTo: undefined,
           wait: undefined,
         }
 
@@ -1241,6 +1252,7 @@ export class IStateNode<
           result.do = getActions(v.do)
           result.elseDo = getActions(v.elseDo)
           result.to = v.to
+          result.elseTo = v.elseTo
           result.send = v.send
           result.wait = v.wait
           result.break = v.break
@@ -1562,6 +1574,7 @@ function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
       ),
       do: eventHandler.do.map((h) => getGraphHandlerFunction(h, eventName)),
       to: eventHandler.to || "",
+      elseTo: eventHandler.elseTo || "",
       wait: eventHandler.wait ? eventHandler.wait.toString() : "",
 
       send: eventHandler.send

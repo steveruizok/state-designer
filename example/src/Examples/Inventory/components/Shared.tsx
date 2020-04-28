@@ -27,15 +27,13 @@ type BoxProps = {
   height: number
 }
 
-export const Box: React.FC<BoxProps & React.HTMLProps<HTMLDivElement>> = ({
-  x,
-  y,
-  width,
-  height,
-  ...rest
-}) => {
+export const Box = React.forwardRef<
+  HTMLDivElement,
+  BoxProps & React.HTMLProps<HTMLDivElement>
+>(({ x, y, width, height, ...rest }, ref) => {
   return (
     <div
+      ref={ref}
       {...rest}
       style={{
         gridColumn: `${x + 1} / span ${width}`,
@@ -44,7 +42,7 @@ export const Box: React.FC<BoxProps & React.HTMLProps<HTMLDivElement>> = ({
       }}
     />
   )
-}
+})
 
 export const MotionBox: React.FC<BoxProps & MotionProps> = ({
   x,

@@ -4,24 +4,23 @@ import "./styles.css"
 import game from "./game"
 import { useStateDesigner } from "state-designer"
 
+import useRefs from "./hooks/useRefs"
+
 import * as Shared from "./components/Shared"
-import EquipSlot from "./components/EquipSlot"
+import Slot from "./components/Slot"
+import SlotGhost from "./components/SlotGhost"
 import GridCell from "./components/GridCell"
 import Item from "./components/Item"
-import Ghost from "./components/Ghost"
+import GridGhost from "./components/GridGhost"
 
 type Props = {}
 
 const Inventory: React.FC<Props> = () => {
-  const { data, active, send } = useStateDesigner(game)
+  const { data, active, isIn, send } = useStateDesigner(game)
+
+  const { register, refs, getRef } = useRefs<HTMLDivElement>()
 
   // Static items
-
-  const slots = React.useMemo(() => {
-    const slots = Object.values(data.slots)
-
-    return slots.map((slot) => <EquipSlot key={slot.id} slot={slot} />)
-  }, [data.slots])
 
   const cells = React.useMemo(() => {
     return data.inventory.cells.map((row, y) =>
@@ -32,40 +31,46 @@ const Inventory: React.FC<Props> = () => {
   return (
     <Shared.Background>
       <Shared.Screen>
-        {slots}
+        {Object.values(data.slots).map((slot) => (
+          <Slot
+            key={"droppable_slot" + slot.id}
+            slot={slot}
+            item={slot.item ? data.inventory.contents[slot.item] : undefined}
+          />
+        ))}
         {cells}
+        {isIn("draggingSlots") && data.inventory.dragging?.slot && (
+          <SlotGhost
+            key="dragging_item_valid_slot_ghost"
+            item={data.inventory.dragging}
+            slot={data.slots[data.inventory.dragging.slot]}
+          />
+        )}
+        {isIn("draggingGrid") && data.inventory.dragging && (
+          <GridGhost
+            key="dragging_item_valid_grid_ghost"
+            item={data.inventory.dragging}
+          />
+        )}
         {data.inventory.dragging && (
           <Item
-            key="draggingItemCopy"
+            key="copy_of_dragging_item"
             item={data.inventory.dragging}
-            offsetX={21}
-            offsetY={2}
             isDragging={false}
             fixed
           />
         )}
-        {data.inventory.dragging && (
-          <Ghost
-            key="draggingItem"
-            item={data.inventory.dragging}
-            offsetX={21}
-            offsetY={2}
-          />
-        )}
         {Object.values(data.inventory.contents).map((item) => (
           <Item
-            key={item.id}
+            key={"draggable_item" + item.id}
             item={item}
-            offsetX={21}
-            offsetY={2}
             isDragging={data.inventory.dragging?.id === item.id}
-            fixed={false}
           />
         ))}
       </Shared.Screen>
-      <div>
-        {active} — {data.inventory.dragging?.id}
-      </div>
+      {/* <div>
+        {active.join(" ")} — {data.inventory.dragging?.id}
+      </div> */}
     </Shared.Background>
   )
 }

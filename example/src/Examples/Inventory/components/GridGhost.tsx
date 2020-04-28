@@ -10,11 +10,9 @@ import things from "../game/things"
 
 export type Props = {
   item: DS.Item
-  offsetX: number
-  offsetY: number
 }
 
-const Ghost: React.FC<Props> = ({ item, offsetX, offsetY }) => {
+const GridGhost: React.FC<Props> = ({ item }) => {
   const { isIn } = useStateDesigner(game)
   const thing = things[item.thing]
 
@@ -23,8 +21,8 @@ const Ghost: React.FC<Props> = ({ item, offsetX, offsetY }) => {
       style={{
         padding: 4,
         fontSize: 10,
-        gridColumn: `${item.point.x + 1 + offsetX} / span ${thing.size.width}`,
-        gridRow: `${item.point.y + 1 + offsetY} / span ${thing.size.height}`,
+        gridColumn: `${item.point.x + 1} / span ${thing.size.width}`,
+        gridRow: `${item.point.y + 1} / span ${thing.size.height}`,
         border: "1px solid var(--zh-thunder)",
         backgroundColor: isIn("valid")
           ? "var(--zh-goblin)"
@@ -35,4 +33,4 @@ const Ghost: React.FC<Props> = ({ item, offsetX, offsetY }) => {
   )
 }
 
-export default Ghost
+export default GridGhost

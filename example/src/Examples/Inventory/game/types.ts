@@ -24,6 +24,8 @@ export enum ThingId {
   TShirt = "t-shirt",
   Binoculars = "binoculars",
   FishingVest = "fishing-vest",
+  Compass = "compass",
+  SwissArmyKnife = "swiss-army-knife",
 }
 
 export interface Thing {
@@ -51,6 +53,7 @@ export interface Item {
   point: Point
   thing: ThingId
   rotation: number
+  slot: SlotId | undefined
 }
 
 export type InventoryGrid = string[][]

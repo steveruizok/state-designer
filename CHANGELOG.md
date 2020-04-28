@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.49
+
+- Adds `elseDo` and `elseTo`.
+
 ## 1.0.48
 
 - Adds reducer to `whenIn` helper.

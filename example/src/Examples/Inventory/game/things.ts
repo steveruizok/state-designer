@@ -82,6 +82,26 @@ const things: DS.Things = {
       width: 4,
     },
   },
+  [DS.ThingId.Compass]: {
+    id: DS.ThingId.Compass,
+    name: "Compass",
+    image: Images.Compass,
+    slots: [DS.SlotId.LeftHand, DS.SlotId.RightHand],
+    size: {
+      height: 2,
+      width: 2,
+    },
+  },
+  [DS.ThingId.SwissArmyKnife]: {
+    id: DS.ThingId.SwissArmyKnife,
+    name: "Swiss Army Knife",
+    image: Images.SwissArmyKnife,
+    slots: [DS.SlotId.LeftHand, DS.SlotId.RightHand],
+    size: {
+      height: 2,
+      width: 3,
+    },
+  },
 }
 
 export default things
