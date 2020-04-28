@@ -16,7 +16,7 @@ import ErrorHandling from "./Examples/ErrorHandling"
 import SharedMachine from "./Examples/SharedMachine"
 import EventLevels from "./Examples/EventLevels"
 import Editor from "./Editor"
-import Tetris from "./Examples/Tetris/Tetris"
+import Inventory from "./Examples/Inventory/App"
 
 export interface Props {}
 
@@ -25,7 +25,7 @@ const App: React.FC<Props> = ({ children }) => {
     <div>
       <h1>State Designer</h1>
       <hr />
-      <Tetris />
+      <Inventory />
       {/* <ResultMutation />
       <ErrorHandling />
       <Break />

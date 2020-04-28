@@ -71,6 +71,7 @@ export type IAsyncResultsConfig<D, Y> = MaybeArray<
 
 export interface IEventHandlerConfig<D, A, C, R, Y> {
   do?: IActionsConfig<D, A>
+  elseDo?: IActionsConfig<D, A>
   if?: IConditionsConfig<D, C>
   ifAny?: IConditionsConfig<D, C>
   unless?: IConditionsConfig<D, C>
@@ -78,7 +79,7 @@ export interface IEventHandlerConfig<D, A, C, R, Y> {
   to?: string
   send?: string | [string, any]
   wait?: number | ITime<D>
-  break?: true
+  break?: boolean
 }
 
 export type IEventConfigValue<D, A, C, R, Y> = A extends Record<string, never>
@@ -98,6 +99,7 @@ export type IEventsConfig<D, A, C, R, Y> = Record<
 
 export interface IEventHandler<D> {
   do: IAction<D>[]
+  elseDo: IAction<D>[]
   if: ICondition<D>[]
   ifAny: ICondition<D>[]
   unless: ICondition<D>[]
@@ -105,7 +107,7 @@ export interface IEventHandler<D> {
   to?: string
   send?: string | [string, any]
   wait?: number | ITime<D>
-  break?: true
+  break?: boolean
 }
 
 export type IEvent<D> = IEventHandler<D>[]
@@ -219,6 +221,7 @@ export namespace Graph {
     ifAny: string[]
     unless: string[]
     do: string[]
+    elseDo: string[]
     to: string
     wait: string
     send: string | { name: string; payload: string }
@@ -741,6 +744,7 @@ class StateDesigner<
   ) => {
     const {
       do: actions,
+      elseDo: elseActions,
       get: resolvers,
       to: transition,
       send,
@@ -751,7 +755,7 @@ class StateDesigner<
       try {
         result = resolver(this.data, payload, result)
       } catch (e) {
-        console.error("Error in Resolver!", resolver, e)
+        console.error("Error in Resolver!", resolver, e.message)
         return
       }
     }
@@ -765,10 +769,22 @@ class StateDesigner<
       )
 
       if (!canRun) {
+        // Run "elseDo" actions and break
+        for (let action of elseActions) {
+          this.record.action = true
+          try {
+            this.data = produce(this.data, (draft) => {
+              action(draft, payload, result)
+            })
+          } catch (e) {
+            console.error(`Error in Else Actions!`, action, e.message)
+            break
+          }
+        }
         return
       }
     } catch (e) {
-      console.error("Error in Conditions!", handler, e.message)
+      console.error("Error in Else Actions!", handler, e.message)
       return
     }
 
@@ -779,7 +795,7 @@ class StateDesigner<
           action(draft, payload, result)
         })
       } catch (e) {
-        console.error(`Error!`, action, e)
+        console.error(`Error in Actions!`, action, e.message)
         break
       }
     }
@@ -1208,6 +1224,7 @@ export class IStateNode<
           unless: [],
           ifAny: [],
           do: [],
+          elseDo: [],
           send: undefined,
           to: undefined,
           wait: undefined,
@@ -1222,6 +1239,7 @@ export class IStateNode<
           result.unless = getConditions(v.unless)
           result.ifAny = getConditions(v.ifAny)
           result.do = getActions(v.do)
+          result.elseDo = getActions(v.elseDo)
           result.to = v.to
           result.send = v.send
           result.wait = v.wait
@@ -1537,6 +1555,9 @@ function getEvent(event: IEvent<unknown>, eventName: string): Graph.Event {
         getGraphHandlerFunction(h, eventName)
       ),
       unless: eventHandler.unless.map((h) =>
+        getGraphHandlerFunction(h, eventName)
+      ),
+      elseDo: eventHandler.elseDo.map((h) =>
         getGraphHandlerFunction(h, eventName)
       ),
       do: eventHandler.do.map((h) => getGraphHandlerFunction(h, eventName)),

@@ -10,12 +10,14 @@
     "@types/react": "^16.9.17",
     "@types/react-dom": "^16.9.4",
     "@types/react-syntax-highlighter": "^11.0.4",
-    "framer-motion": "^1.8.3",
+    "@types/styled-components": "^5.1.0",
+    "framer-motion": "^2.0.0-beta.55",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-scripts": "^3.0.1",
     "react-syntax-highlighter": "^12.2.1",
-    "state-designer": "link:.."
+    "state-designer": "link:..",
+    "styled-components": "^5.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
