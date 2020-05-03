@@ -427,6 +427,12 @@ class StateDesigner<
       }
 
       if (state.repeatEvents.length > 0) {
+        // Clear any existing timeouts on target
+        for (let timeout of state.timeouts) {
+          window.clearInterval(timeout)
+        }
+
+        // Add new timeouts
         for (let event of state.repeatEvents) {
           this.handleRepeatEvent(state, event)
         }
@@ -891,6 +897,12 @@ class StateDesigner<
     }
 
     if (target.repeatEvents.length > 0) {
+      // Clear any existing timeouts on target
+      for (let timeout of target.timeouts) {
+        window.clearInterval(timeout)
+      }
+
+      // Add new timeouts to target
       for (let event of target.repeatEvents) {
         this.handleRepeatEvent(target, event)
       }
@@ -931,6 +943,12 @@ class StateDesigner<
       }
 
       if (state.repeatEvents.length > 0) {
+        // Clear any existing timeouts on target
+        for (let timeout of target.timeouts) {
+          window.clearInterval(timeout)
+        }
+
+        // Add new timeouts
         for (let event of state.repeatEvents) {
           this.handleRepeatEvent(state, event)
         }

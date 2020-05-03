@@ -2,6 +2,10 @@
 
 ## 1.0.50
 
+- Fixed further `repeat` bugs.
+
+## 1.0.50
+
 - Fixed `repeat` not cleaning up correctly.
 
 ## 1.0.49
