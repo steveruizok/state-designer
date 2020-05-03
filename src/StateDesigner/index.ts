@@ -656,9 +656,11 @@ class StateDesigner<
         await new Promise((resolve) => setTimeout(resolve, t * 1000))
       }
 
-      this.handleEventHandler(state, handler, payload, result)
+      if (state.active) {
+        this.handleEventHandler(state, handler, payload, result)
 
-      if (this.record.transition !== undefined || this.record.break) break
+        if (this.record.transition !== undefined || this.record.break) break
+      }
     }
   }
 
@@ -690,16 +692,14 @@ class StateDesigner<
     repeatEvent: IRepeatEvent<D>
   ) => {
     const { event, delay } = repeatEvent
+    let t = typeof delay === "number" ? delay : delay(this.data)
 
-    this.handleAutoEvent(state, event, undefined, undefined)
-
-    if (delay !== undefined) {
-      let t = typeof delay === "number" ? delay : delay(this.data)
-      await new Promise((resolve) => setTimeout(resolve, t * 1000))
-      if (this.isIn(state.name)) {
-        this.handleRepeatEvent(state, repeatEvent)
-      }
-    }
+    state.timeouts.push(
+      setInterval(
+        () => this.handleAutoEvent(state, event, undefined, undefined),
+        t * 1000
+      )
+    )
   }
 
   handleAutoEvent = async (
@@ -1034,6 +1034,7 @@ export class IStateNode<
   events: IEvents<D> = {}
   asyncEvent?: IAsyncEvent<D>
   repeatEvents: IRepeatEvent<D>[]
+  timeouts: any[] = []
   autoEvents: {
     onEvent?: IEvent<D>
     onEventComplete?: IEvent<D>
@@ -1435,6 +1436,11 @@ export class IStateNode<
 
   deactivate = () => {
     this.active = false
+
+    for (let timeout of this.timeouts) {
+      window.clearInterval(timeout)
+    }
+
     for (let state of this.children) {
       state.deactivate()
     }

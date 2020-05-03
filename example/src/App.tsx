@@ -15,8 +15,8 @@ import ResultMutation from "./Examples/ResultMutation"
 import ErrorHandling from "./Examples/ErrorHandling"
 import SharedMachine from "./Examples/SharedMachine"
 import EventLevels from "./Examples/EventLevels"
+import Repeat from "./Examples/Repeat"
 import Editor from "./Editor"
-import Inventory from "./Examples/Inventory/App"
 
 export interface Props {}
 
@@ -25,7 +25,7 @@ const App: React.FC<Props> = ({ children }) => {
     <div>
       <h1>State Designer</h1>
       <hr />
-      <Inventory />
+      <Repeat />
       {/* <ResultMutation />
       <ErrorHandling />
       <Break />
