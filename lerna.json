@@ -7,9 +7,13 @@
     },
     "bootstrap": {
       "ignore": "component-*",
-      "npmClientArgs": ["--no-package-lock"]
+      "npmClientArgs": [
+        "--no-package-lock"
+      ]
     }
   },
-  "packages": ["packages/*"],
-  "version": "1.0.0"
+  "packages": [
+    "packages/*"
+  ],
+  "version": "1.0.1"
 }
