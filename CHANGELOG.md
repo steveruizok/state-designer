@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.50
+## 1.0.52
 
 - Fixed further `repeat` bugs.
 

@@ -530,7 +530,7 @@ class StateDesigner<
     // Rebuild state tree
     this._root = new IStateNode(this._initialOptions)
 
-    this.resetRecord()
+    this.resetRecordAndNotify()
     this.updatePublicData()
 
     // Notify _subscribers
@@ -585,12 +585,15 @@ class StateDesigner<
 
   send = async (eventName: string, payload?: any) => {
     // if isBusy, add to queue?
-    this.resetRecord()
+    this.resetRecordAndNotify()
 
     const activeStates = this._active
 
-    for (let state of activeStates) {
-      if (this.record.send || this.record.transition) break
+    const statesToHandle = activeStates.filter(
+      (state) => state.events[eventName] !== undefined
+    )
+
+    for (let state of statesToHandle) {
       await this.handleEvent(state, state.events[eventName], payload)
 
       if (this.record.transition !== undefined) {
@@ -607,22 +610,15 @@ class StateDesigner<
           undefined
         )
       }
+
+      if (this.record.transition) break
     }
 
-    if (this.record.transitions > 0 || this.record.action || this.record.send) {
-      this.resetRecord()
-      this.updatePublicData()
+    // Notify subscribers and reset the record
 
-      const next = this._pendingSend.shift()
+    this.resetRecordAndNotify()
 
-      if (next !== undefined) {
-        const [e, p] = next
-        this.send(e, p)
-        return
-      }
-
-      this.notifySubscribers()
-    }
+    // Handle onEventComplete autoevents on active states
 
     for (let state of [...activeStates].reverse()) {
       if (state.autoEvents.onEventComplete !== undefined) {
@@ -634,9 +630,27 @@ class StateDesigner<
         )
       }
     }
+
+    // Handle next sent event
+
+    const next = this._pendingSend.shift()
+
+    if (next !== undefined) {
+      const [e, p] = next
+      this.send(e, p)
+      return
+    }
   }
 
-  resetRecord = () => {
+  resetRecordAndNotify = () => {
+    const { transitions, action, send } = this.record
+
+    this.updatePublicData()
+
+    if (transitions > 0 || action || send) {
+      this.notifySubscribers()
+    }
+
     this.record = {
       send: false,
       action: false,
@@ -717,8 +731,6 @@ class StateDesigner<
   ) => {
     if (!state.active && !ignoreActive) return
 
-    this.resetRecord()
-
     await this.handleEvent(state, event, payload, returned)
 
     if (this.record.transition !== undefined) {
@@ -728,7 +740,6 @@ class StateDesigner<
     }
 
     if (this.record.transitions > 0 || this.record.action || this.record.send) {
-      this.resetRecord()
       this.updatePublicData()
 
       const next = this._pendingSend.shift()
@@ -816,18 +827,17 @@ class StateDesigner<
       }
     }
 
+    if (send !== undefined) {
+      this.record.send = true
+      this.handleSendItem(send)
+    }
+
     if (shouldBreak) {
       this.record.break = true
     }
 
     if (transition !== undefined) {
       this.handleTransitionItem(state, transition)
-      return
-    }
-
-    if (send !== undefined) {
-      this.record.send = true
-      this.handleSendItem(send)
       return
     }
   }
@@ -876,7 +886,6 @@ class StateDesigner<
     }
 
     const { target, previous, restore } = transition
-    const { onEnter } = target.autoEvents
 
     target.active = true
 
@@ -887,6 +896,8 @@ class StateDesigner<
     const downChanges = target.activateDown(previous, restore)
 
     this.handleChanges(target, downChanges, false, previous, restore, payload)
+
+    const { onEnter } = target.autoEvents
 
     if (onEnter !== undefined) {
       this.handleAutoEvent(target, onEnter, payload, undefined)
@@ -944,7 +955,7 @@ class StateDesigner<
 
       if (state.repeatEvents.length > 0) {
         // Clear any existing timeouts on target
-        for (let timeout of target.timeouts) {
+        for (let timeout of state.timeouts) {
           window.clearInterval(timeout)
         }
 
