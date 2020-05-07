@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/react",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "private": false,
   "description": "A React hook for State Designer, a state management library.",
   "author": "steveruizok",
@@ -23,7 +23,6 @@
     "react": "^16.0.0"
   },
   "devDependencies": {
-    "state-designer": "^1.0.9",
     "@types/jest": "^25.1.4",
     "@types/lodash-es": "^4.17.3",
     "@types/react": "^16.9.27",
@@ -47,7 +46,8 @@
     "prettier": "^2.0.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "^3.4.1"
+    "react-scripts": "^3.4.1",
+    "state-designer": "^1.0.12"
   },
   "files": [
     "dist"
