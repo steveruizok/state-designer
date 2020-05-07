@@ -1,10 +1,7 @@
 {
-  "name": "state-designer-monorepo",
-  "version": "1.0.3",
-  "private": false,
-  "publishConfig": {
-    "access": "public"
-  },
+  "name": "state-designer",
+  "version": "1.0.4",
+  "private": true,
   "author": "Steve Ruiz",
   "homepage": "https://statedesigner.com",
   "license": "MIT",
@@ -17,5 +14,8 @@
   "devDependencies": {
     "lerna": "^3.20.2"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {}
 }
