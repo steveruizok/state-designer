@@ -1,5 +1,5 @@
 {
-  "name": "state-designer-monorepo",
+  "name": "state-designer",
   "version": "1.0.10",
   "private": false,
   "description": "Core package for State Designer, a state management library.",
@@ -47,5 +47,5 @@
   "files": [
     "dist"
   ],
-  "gitHead": "2eba5e5eadb43a06e07adb4acca67e7d3d4f02fc"
+  "gitHead": "60500432b952f31632a3e5523ef83833726ca147"
 }
