@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/react",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "private": false,
   "description": "A React hook for State Designer, a state management library.",
   "author": "steveruizok",
@@ -9,8 +9,9 @@
   },
   "license": "MIT",
   "repository": "steveruizok/state-designer",
-  "main": "dist/index",
-  "module": "dist/index.modern",
+  "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "source": "src/index.tsx",
   "engines": {
     "node": ">=10"
   },
@@ -30,8 +31,5 @@
     "react-dom": "^16.13.1",
     "react-scripts": "^3.4.1"
   },
-  "files": [
-    "dist"
-  ],
   "gitHead": "0bdc12da21c67e97b0948a804aa1153436f2fc35"
 }

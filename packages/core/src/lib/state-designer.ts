@@ -1,12 +1,12 @@
-import last from "lodash-es/last";
-import castArray from "lodash-es/castArray";
-import trimEnd from "lodash-es/trimEnd";
-import isFunction from "lodash-es/isFunction";
-import isUndefined from "lodash-es/isUndefined";
-import { Draft, produce } from "immer";
-import * as S from "./types";
-import { getStateTreeFromConfig } from "./getStateTreeFromConfig";
-import * as StateTree from "./stateTree";
+import last from "lodash-es/last"
+import castArray from "lodash-es/castArray"
+import trimEnd from "lodash-es/trimEnd"
+import isFunction from "lodash-es/isFunction"
+import isUndefined from "lodash-es/isUndefined"
+import { Draft, produce } from "immer"
+import * as S from "./types"
+import { getStateTreeFromConfig } from "./getStateTreeFromConfig"
+import * as StateTree from "./stateTree"
 
 /* -------------------------------------------------- */
 /*                    Create Config                   */
@@ -19,7 +19,7 @@ export function createConfig<
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>
 >(config: S.Config<D, R, C, A, Y>): S.Config<D, R, C, A, Y> {
-  return config;
+  return config
 }
 
 /* -------------------------------------------------- */
@@ -35,43 +35,43 @@ export function createStateDesigner<
 >(config: S.Config<D, R, C, A, Y>): S.StateDesigner<D> {
   /* ------------------ Mutable Data ------------------ */
 
-  let { data } = config;
+  let { data } = config
 
-  const stateTree = getStateTreeFromConfig(config);
+  const stateTree = getStateTreeFromConfig(config)
 
-  let active = StateTree.getActiveStates(stateTree);
+  let active = StateTree.getActiveStates(stateTree)
 
   const current: {
-    payload: any;
-    result: any;
-  } = { payload: undefined, result: undefined };
+    payload: any
+    result: any
+  } = { payload: undefined, result: undefined }
 
   const update = {
     transitions: 0,
     didTransition: false,
     didAction: false,
-  };
+  }
 
   /* ------------------ Subscriptions ----------------- */
 
-  const subscribers = new Set<S.SubscriberFn<D>>([]);
+  const subscribers = new Set<S.SubscriberFn<D>>([])
 
   function subscribe(callbackFn: S.SubscriberFn<D>) {
-    subscribers.add(callbackFn);
-    return () => unsubscribe(callbackFn);
+    subscribers.add(callbackFn)
+    return () => unsubscribe(callbackFn)
   }
 
   function unsubscribe(callbackFn: S.SubscriberFn<D>) {
     if (subscribers.has(callbackFn)) {
-      subscribers.delete(callbackFn);
+      subscribers.delete(callbackFn)
     }
   }
 
   function notifySubscribers() {
-    active = StateTree.getActiveStates(stateTree);
+    active = StateTree.getActiveStates(stateTree)
     subscribers.forEach((subscriber) => {
-      subscriber({ data: data as D, stateTree });
-    });
+      subscriber({ data: data as D, stateTree })
+    })
   }
 
   /* --------------------- Updates -------------------- */
@@ -79,175 +79,182 @@ export function createStateDesigner<
   // Run event handler that updates the global `updates` object,
   // useful for (more or less) synchronous events
   async function runOnThreadEventHandler(eventHandler: S.EventHandler<D>) {
-    const updates = await runEventHandler(eventHandler);
-    Object.assign(update, updates);
-    return update;
+    const localUpdate = await runEventHandler(eventHandler)
+    if (localUpdate.didAction) update.didAction = true
+    if (localUpdate.didTransition) update.didTransition = true
+    return update
   }
 
   // Run event handler that only returns a local `updates` object,
   // useful in handling delayed events, repeats, etc; so that they don't
   // interfere with "on thread" event handling.
   async function runOffThreadEventHandler(eventHandler: S.EventHandler<D>) {
-    const updates = await runEventHandler(eventHandler);
-    return updates;
+    const updates = await runEventHandler(eventHandler)
+    return updates
   }
 
+  // Try to run an event on a state. If active, it will run the corresponding
+  // event, if it has one; and, so long as there hasn't been a transition,
+  // will run its onEvent event, if it has one. If still no transition has
+  // occurred, it will move to try its child states.
   async function handleEventOnState(
     state: S.State<D>,
     sent: S.SendItem
   ): Promise<void> {
     if (state.active) {
-      const beforeActiveChildStates = Object.values(state.states).filter(
-        (state) => state.active
-      );
+      const eventHandler = state.on[sent.event]
 
-      const eventHandler = state.on[sent.event];
-
+      // Run event handler, if present
       if (!isUndefined(eventHandler)) {
-        runOnThreadEventHandler(eventHandler);
+        runOnThreadEventHandler(eventHandler)
+        if (update.didTransition) return
       }
 
-      for (let childState of beforeActiveChildStates) {
-        await handleEventOnState(childState, sent);
+      // Run onEvent, if present
+      if (!isUndefined(state.onEvent)) {
+        runOnThreadEventHandler(state.onEvent)
+        if (update.didTransition) return
+      }
+
+      // Run event on states
+      for (let childState of Object.values(state.states)) {
+        await handleEventOnState(childState, sent)
+        if (update.didTransition) return
       }
     }
 
-    return;
+    return
   }
 
   async function runEventHandler(
     eventHandler: S.EventHandler<D>
   ): Promise<{
-    didTransition: boolean;
-    didAction: boolean;
+    didTransition: boolean
+    didAction: boolean
   }> {
     let localUpdate = {
       didAction: false,
       didTransition: false,
-    };
+    }
 
     for (let item of eventHandler) {
       // Results
 
       for (let resu of item.get) {
-        current.result = resu(
-          data as Draft<D>,
-          current.payload,
-          current.result
-        );
+        current.result = resu(data as Draft<D>, current.payload, current.result)
       }
 
       // Conditions
 
-      let passedConditions = true;
+      let passedConditions = true
 
       if (passedConditions && item.if.length > 0) {
         passedConditions = item.if.every((cond) =>
           cond(data as Draft<D>, current.payload, current.result)
-        );
+        )
       }
 
       if (passedConditions && item.unless.length > 0) {
         passedConditions = item.unless.every(
           (cond) => !cond(data as Draft<D>, current.payload, current.result)
-        );
+        )
       }
 
       if (passedConditions && item.ifAny.length > 0) {
         passedConditions = item.ifAny.some((cond) =>
           cond(data as Draft<D>, current.payload, current.result)
-        );
+        )
       }
 
       if (item.wait) {
-        const s = item.wait(data as Draft<D>, current.payload, current.result);
-        await new Promise((resolve) => setTimeout(() => resolve(), s * 1000));
+        const s = item.wait(data as Draft<D>, current.payload, current.result)
+        await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
       }
 
       if (passedConditions) {
         // Actions
         if (item.do.length > 0) {
-          localUpdate.didAction = true;
+          localUpdate.didAction = true
           data = produce(data, (draft) => {
             for (let action of item.do) {
-              action(draft as Draft<D>, current.payload, current.result);
+              action(draft as Draft<D>, current.payload, current.result)
             }
-          });
+          })
         }
 
         // Transitions
         if (!isUndefined(item.to)) {
           if (update.transitions > 200) {
-            throw Error("Stuck in a loop! Bailing.");
+            throw Error("Stuck in a loop! Bailing.")
           }
 
-          update.transitions++;
-          localUpdate.didTransition = true;
-          runTransition(item.to);
-          return localUpdate;
+          update.transitions++
+          localUpdate.didTransition = true
+          runTransition(item.to)
+          return localUpdate
         }
       } else {
         // Else Actions
         if (item.elseDo.length > 0) {
-          localUpdate.didAction = true;
+          localUpdate.didAction = true
           data = produce(data, (draft) => {
             for (let action of item.elseDo) {
-              action(draft as Draft<D>, current.payload, current.result);
+              action(draft as Draft<D>, current.payload, current.result)
             }
-          });
+          })
         }
 
         // Else Transitions
         if (!isUndefined(item.elseTo)) {
           if (update.transitions < 200) {
-            throw Error("Stuck in a loop! Bailing.");
+            throw Error("Stuck in a loop! Bailing.")
           }
 
-          update.transitions++;
-          localUpdate.didTransition = true;
-          runTransition(item.elseTo);
-          return localUpdate;
+          update.transitions++
+          localUpdate.didTransition = true
+          runTransition(item.elseTo)
+          return localUpdate
         }
       }
     }
 
-    return localUpdate;
+    return localUpdate
   }
 
   async function runTransition(targetFn: S.EventFn<D, string>) {
-    let targetPath = targetFn(data as Draft<D>);
+    let targetPath = targetFn(data as Draft<D>)
 
     // Is this a restore transition?
 
-    const isPreviousTransition = targetPath.endsWith(".previous");
-    const isRestoreTransition = targetPath.endsWith(".restore");
+    const isPreviousTransition = targetPath.endsWith(".previous")
+    const isRestoreTransition = targetPath.endsWith(".restore")
 
     if (isPreviousTransition) {
-      targetPath = trimEnd(targetPath, ".previous");
+      targetPath = trimEnd(targetPath, ".previous")
     }
 
     if (isRestoreTransition) {
-      targetPath = trimEnd(targetPath, ".restore");
+      targetPath = trimEnd(targetPath, ".restore")
     }
 
     // Get all states from the tree that match the target
-    const targets = StateTree.findTransitionTargets(stateTree, targetPath);
+    const targets = StateTree.findTransitionTargets(stateTree, targetPath)
 
     // Get the deepest matching target state
-    const target = last(targets);
+    const target = last(targets)
 
     if (isUndefined(target)) {
-      throw Error("No state with that path in the tree!");
+      throw Error("No state with that path in the tree!")
     }
 
     // Get the path of state names to the target state
-    const pathDown = target.path.split(".");
+    const pathDown = target.path.split(".")
 
     // Get an array of states that are currently active
-    const beforeActive = StateTree.getActiveStates(stateTree);
+    const beforeActive = StateTree.getActiveStates(stateTree)
 
     // Deactivate the whole state tree
-    StateTree.deactivateState(stateTree);
+    StateTree.deactivateState(stateTree)
 
     // Use the path to activate the tree again
     StateTree.activateState(
@@ -255,38 +262,38 @@ export function createStateDesigner<
       pathDown,
       isPreviousTransition || isRestoreTransition,
       isRestoreTransition
-    );
+    )
 
     // Get an array of states that are now active
-    const afterActive = StateTree.getActiveStates(stateTree);
+    const afterActive = StateTree.getActiveStates(stateTree)
 
     // Get an array of states that are no longer active
     const deactivatedStates = beforeActive.filter(
       (state) => !afterActive.includes(state)
-    );
+    )
 
     // Get an array of states that have become active
     const activatedStates = afterActive.filter(
       (state) => !beforeActive.includes(state)
-    );
+    )
 
-    const currentTransitions = update.transitions;
+    const currentTransitions = update.transitions
 
     // Deactivated States
     // - clear any intervals
     // - handle onExit events
     // - bail if we've transitioned
 
-    deactivatedStates.forEach(StateTree.clearIntervalsOnState);
+    deactivatedStates.forEach(StateTree.clearIntervalsOnState)
 
     for (let state of deactivatedStates) {
-      const { onExit } = state;
+      const { onExit } = state
 
       if (!isUndefined(onExit)) {
-        runOnThreadEventHandler(onExit);
+        runOnThreadEventHandler(onExit)
       }
 
-      if (update.transitions > currentTransitions) return;
+      if (update.transitions > currentTransitions) return
     }
 
     // Activated States
@@ -295,108 +302,89 @@ export function createStateDesigner<
     // - bail if we've transitioned
 
     for (let state of activatedStates) {
-      const { async, repeat, onEnter } = state;
+      const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
         const s = repeat.delay(
           data as Draft<D>,
           current.payload,
           current.result
-        );
+        )
 
         state.intervals.push(
           setInterval(async () => {
-            const localUpdate = await runOffThreadEventHandler(repeat.event);
+            const localUpdate = await runOffThreadEventHandler(repeat.event)
 
             if (localUpdate.didAction || localUpdate.didTransition) {
-              notifySubscribers();
+              notifySubscribers()
             }
           }, Math.max(1 / 60, s * 1000))
-        );
+        )
       }
 
       if (!isUndefined(onEnter)) {
-        runOnThreadEventHandler(onEnter);
+        runOnThreadEventHandler(onEnter)
       }
 
-      if (update.transitions > currentTransitions) return;
+      if (update.transitions > currentTransitions) return
 
       if (!isUndefined(async)) {
         async.await(data as Draft<D>, current.payload, current.result).then(
           async (result) => {
-            current.result = result;
-            const localUpdate = await runOffThreadEventHandler(async.onResolve);
+            current.result = result
+            const localUpdate = await runOffThreadEventHandler(async.onResolve)
             if (localUpdate.didAction || localUpdate.didTransition) {
-              notifySubscribers();
+              notifySubscribers()
             }
           },
           async (result) => {
             if (!isUndefined(async.onReject)) {
-              current.result = result;
-              const localUpdate = await runOffThreadEventHandler(
-                async.onReject
-              );
+              current.result = result
+              const localUpdate = await runOffThreadEventHandler(async.onReject)
               if (localUpdate.didAction || localUpdate.didTransition) {
-                notifySubscribers();
+                notifySubscribers()
               }
             }
           }
-        );
+        )
       }
     }
 
-    return;
+    return
   }
 
   /* -------------- Sent Event Processing ------------- */
 
-  const sendQueue: S.SendItem[] = [];
+  const sendQueue: S.SendItem[] = []
 
-  let pendingProcess: Promise<S.Update<D>> | void;
+  let pendingProcess: Promise<S.Update<D>> | void
 
   async function processSendQueue(): Promise<S.Update<D>> {
-    update.didAction = false;
-    update.didTransition = false;
+    update.didAction = false
+    update.didTransition = false
 
-    const next = sendQueue.shift();
+    const next = sendQueue.shift()
 
     if (isUndefined(next)) {
-      pendingProcess = undefined;
-
-      update.transitions = 0;
-      return { data: data as D, stateTree };
+      pendingProcess = undefined
+      update.transitions = 0
+      return { data: data as D, stateTree }
     }
 
-    current.payload = undefined;
-    current.result = undefined;
-
-    // Run onEvents on current active states, and
-    // notify / bail if this causes any transition.
-
-    for (let state of StateTree.getActiveStates(stateTree)) {
-      if (!isUndefined(state.onEvent)) {
-        runOnThreadEventHandler(state.onEvent);
-      }
-
-      if (update.didTransition) {
-        notifySubscribers();
-        return processSendQueue();
-      }
-    }
+    current.payload = undefined
+    current.result = undefined
 
     // Handle the event and set the current handleEventOnState
     // promise, which will hold any additional sent events
-
-    pendingProcess = await handleEventOnState(stateTree, next);
+    pendingProcess = await handleEventOnState(stateTree, next)
 
     // Notify subscribers, if we should
-
     if (update.didAction || update.didTransition) {
-      notifySubscribers();
+      notifySubscribers()
     }
 
     // Then process the next sent event
-    return processSendQueue();
+    return processSendQueue()
   }
 
   /* ----------------- Public Methods ----------------- */
@@ -407,8 +395,8 @@ export function createStateDesigner<
    * @param payload A payload of any type
    */
   async function send(eventName: string, payload?: any): Promise<S.Update<D>> {
-    sendQueue.push({ event: eventName, payload });
-    return pendingProcess ? pendingProcess : processSendQueue();
+    sendQueue.push({ event: eventName, payload })
+    return pendingProcess ? pendingProcess : processSendQueue()
   }
 
   /**
@@ -417,12 +405,12 @@ export function createStateDesigner<
    * @param every (optional) Whether to return true only if every path is active
    */
   function isIn(paths: string | string[], every = false): boolean {
-    const p = castArray(paths);
+    const p = castArray(paths)
     return (
       active.find((state) =>
         p[every ? "every" : "some"]((path) => state.path.endsWith(path))
       ) !== undefined
-    );
+    )
   }
 
   /**
@@ -431,14 +419,14 @@ export function createStateDesigner<
    * @param payload A payload of any type
    */
   function can(eventName: string, payload?: any): boolean {
-    current.payload = payload;
+    current.payload = payload
 
     return !isUndefined(
       active.find((state) => {
-        const eventHandler = state.on[eventName];
+        const eventHandler = state.on[eventName]
 
         if (!isUndefined(eventHandler)) {
-          current.result = undefined;
+          current.result = undefined
 
           for (let item of eventHandler) {
             for (let resu of item.get) {
@@ -446,7 +434,7 @@ export function createStateDesigner<
                 data as Draft<D>,
                 current.payload,
                 current.result
-              );
+              )
             }
 
             if (
@@ -464,13 +452,13 @@ export function createStateDesigner<
                   cond(data as Draft<D>, current.payload, current.result)
                 ))
             )
-              return true;
+              return true
           }
         }
 
-        return false;
+        return false
       })
-    );
+    )
   }
 
   /**
@@ -489,35 +477,35 @@ export function createStateDesigner<
     ) => any = (prev, cur) => [...prev, cur[1]],
     initial = []
   ) {
-    const entries: [string, any][] = [];
+    const entries: [string, any][] = []
 
     Object.entries(paths).forEach(([key, value]) => {
-      let v = isFunction(value) ? value() : value;
+      let v = isFunction(value) ? value() : value
       if (key === "root") {
-        entries.push([key, v]);
+        entries.push([key, v])
       } else {
         if (active.find((v) => v.path.endsWith("." + key))) {
-          entries.push([key, v]);
+          entries.push([key, v])
         }
       }
-    });
+    })
 
-    let returnValue = initial;
+    let returnValue = initial
 
     entries.forEach(
       (entry, i) => (returnValue = reducer(returnValue, entry, i, entries))
-    );
+    )
 
-    return returnValue;
+    return returnValue
   }
 
   /* --------------------- Kickoff -------------------- */
 
   // Deactivate the tree
-  StateTree.deactivateState(stateTree);
+  StateTree.deactivateState(stateTree)
 
   // Activate it again to trigger events
-  runTransition(() => "root");
+  runTransition(() => "root")
 
   return {
     data: data as D,
@@ -528,5 +516,5 @@ export function createStateDesigner<
     stateTree,
     subscribe,
     unsubscribe,
-  };
+  }
 }

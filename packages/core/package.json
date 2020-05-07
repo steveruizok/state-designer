@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/core",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "private": false,
   "description": "Core package for State Designer, a state management library.",
   "author": "steveruizok",
@@ -24,8 +24,5 @@
     "immer": "^6.0.3",
     "microbundle-crl": "^0.13.10"
   },
-  "files": [
-    "dist"
-  ],
   "gitHead": "0bdc12da21c67e97b0948a804aa1153436f2fc35"
 }
