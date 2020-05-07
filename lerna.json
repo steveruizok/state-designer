@@ -1,0 +1,15 @@
+{
+  "npmClient": "yarn",
+  "command": {
+    "publish": {
+      "ignoredChanges": [],
+      "message": "chore(release): publish"
+    },
+    "bootstrap": {
+      "ignore": "component-*",
+      "npmClientArgs": ["--no-package-lock"]
+    }
+  },
+  "packages": ["packages/*"],
+  "version": "1.0.0"
+}
