@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/react",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A React hook for State Designer, a state management library.",
   "author": "steveruizok",
   "license": "MIT",
@@ -47,5 +47,6 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "gitHead": "944eb3a828233a86ebd18269f33d265dbc7f3989"
 }
