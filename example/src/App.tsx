@@ -11,6 +11,7 @@ const state = createStateDesigner({
   onEvent: {
     if: (d) => d.count >= 10,
     to: "warn",
+    elseTo: "safe",
   },
   initial: "safe",
   states: {

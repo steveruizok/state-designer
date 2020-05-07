@@ -206,7 +206,7 @@ export function createStateDesigner<
 
         // Else Transitions
         if (!isUndefined(item.elseTo)) {
-          if (update.transitions < 200) {
+          if (update.transitions > 200) {
             throw Error("Stuck in a loop! Bailing.")
           }
 
