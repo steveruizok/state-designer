@@ -11,3 +11,4 @@
 - Reduced the amount of code significantly.
 - Types are much improved.
 - Removed the graph object — now returns `stateTree`.
+- The `state-designer` library now exports all 
