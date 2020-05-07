@@ -2,6 +2,9 @@
   "name": "state-designer-monorepo",
   "version": "1.0.3",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "Steve Ruiz",
   "homepage": "https://statedesigner.com",
   "license": "MIT",
