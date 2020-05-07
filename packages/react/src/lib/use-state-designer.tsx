@@ -1,9 +1,9 @@
-import pick from "lodash-es/pick";
-import isUndefined from "lodash-es/isUndefined";
-import * as React from "react";
-import { createStateDesigner, S } from "@state-designer/core";
+import pick from "lodash-es/pick"
+import isUndefined from "lodash-es/isUndefined"
+import * as React from "react"
+import { createStateDesigner, S } from "state-designer"
 
-const emptyArray: any[] = [];
+const emptyArray: any[] = []
 
 /* -------------------------------------------------- */
 /*                     React Hook                     */
@@ -27,20 +27,20 @@ export function useStateDesigner<
   const state: S.StateDesigner<D> = React.useMemo(() => {
     return isUndefined((config as S.StateDesigner<D>).send)
       ? createStateDesigner(config)
-      : (config as S.StateDesigner<D>);
-  }, dependencies);
+      : (config as S.StateDesigner<D>)
+  }, dependencies)
 
   // Keep subscription updates in state
   const [update, setUpdate] = React.useState<S.Update<D>>({
     data: state.data,
     stateTree: state.stateTree,
-  });
+  })
 
   // Subscribe — and resubscribe when dependencies change
-  React.useEffect(() => state.subscribe(setUpdate), [state, setUpdate]);
+  React.useEffect(() => state.subscribe(setUpdate), [state, setUpdate])
 
   return {
     ...update,
     ...pick(state, ["send", "isIn", "can", "whenIn"]),
-  };
+  }
 }

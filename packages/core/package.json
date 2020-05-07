@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "private": false,
   "description": "Core package for State Designer, a state management library.",
   "author": "steveruizok",
@@ -47,5 +47,5 @@
   "files": [
     "dist"
   ],
-  "gitHead": "60500432b952f31632a3e5523ef83833726ca147"
+  "gitHead": "a0e4608d97c3e8573eda863f77141a626a24026c"
 }
