@@ -26,3 +26,4 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+lerna-debug.log
