@@ -24,27 +24,8 @@
   },
   "devDependencies": {
     "@state-designer/core": "^1.0.14",
-    "@types/jest": "^25.1.4",
-    "@types/lodash-es": "^4.17.3",
     "@types/react": "^16.9.27",
-    "@typescript-eslint/eslint-plugin": "^2.26.0",
-    "@typescript-eslint/parser": "^2.26.0",
-    "babel-eslint": "^10.0.3",
-    "cross-env": "^7.0.2",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.7.0",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-config-standard-react": "^9.2.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-react": "^7.17.0",
-    "eslint-plugin-standard": "^4.0.1",
-    "lodash-es": "^4.17.15",
     "microbundle-crl": "^0.13.10",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.0.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "^3.4.1"
@@ -52,5 +33,5 @@
   "files": [
     "dist"
   ],
-  "gitHead": "a22072c7a988f35bf5868062f8b2a30145652755"
+  "gitHead": "ba408a93b18120348cd8c261a1b343ce0b9a3340"
 }
