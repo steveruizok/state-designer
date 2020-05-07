@@ -1,5 +1,5 @@
 {
-  "name": "state-designer",
+  "name": "@state-designer/core",
   "version": "1.0.13",
   "private": false,
   "description": "Core package for State Designer, a state management library.",
@@ -47,5 +47,5 @@
   "files": [
     "dist"
   ],
-  "gitHead": "d36851d311caa9d7aba15400c806833fb4bbdfa3"
+  "gitHead": "a22072c7a988f35bf5868062f8b2a30145652755"
 }

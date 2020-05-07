@@ -47,10 +47,10 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "^3.4.1",
-    "state-designer": "^1.0.13"
+    "@state-designer/core": "^1.0.13"
   },
   "files": [
     "dist"
   ],
-  "gitHead": "d36851d311caa9d7aba15400c806833fb4bbdfa3"
+  "gitHead": "a22072c7a988f35bf5868062f8b2a30145652755"
 }

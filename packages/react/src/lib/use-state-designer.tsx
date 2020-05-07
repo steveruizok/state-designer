@@ -1,7 +1,7 @@
 import pick from "lodash-es/pick"
 import isUndefined from "lodash-es/isUndefined"
 import * as React from "react"
-import { createStateDesigner, S } from "state-designer"
+import { createStateDesigner, S } from "@state-designer/core"
 
 const emptyArray: any[] = []
 
