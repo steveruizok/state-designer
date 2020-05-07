@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/core",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "private": false,
   "description": "Core package for State Designer, a state management library.",
   "author": "steveruizok",
