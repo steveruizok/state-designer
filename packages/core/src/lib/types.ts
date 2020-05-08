@@ -32,11 +32,11 @@ export type Async<D> = EventFn<D, Promise<any>>
 
 export type AsyncConfig<D, T> = EventFnConfig<T, Async<D>>
 
-// Timer
+// Time
 
-export type Timer<D> = EventFn<D, number>
+export type Time<D> = EventFn<D, number>
 
-export type TimerConfig<D, T> = number | EventFnConfig<T, Timer<D>>
+export type TimeConfig<D, T> = number | EventFnConfig<T, Time<D>>
 
 // Target
 
@@ -70,7 +70,7 @@ export type EventHandlerItem<D> = {
   to?: Target<D>
   elseTo?: Target<D>
   send?: Send<D>
-  wait?: Timer<D>
+  wait?: Time<D>
   break?: Break<D>
 }
 
@@ -84,7 +84,7 @@ export type EventHandlerItemConfig<D, R, C, A, T> = {
   to?: TargetConfig<D>
   elseTo?: TargetConfig<D>
   send?: SendConfig<D>
-  wait?: TimerConfig<D, T>
+  wait?: TimeConfig<D, T>
   break?: BreakConfig<D>
 }
 
@@ -98,12 +98,12 @@ export type EventHandlerConfig<D, R, C, A, T> = MaybeArray<
 
 export type RepeatEventHandler<D> = {
   event: EventHandler<D>
-  delay: Timer<D>
+  delay: Time<D>
 }
 
 export type RepeatEventHandlerConfig<D, R, C, A, T> = {
   event: EventHandlerConfig<D, R, C, A, T>
-  delay?: TimerConfig<D, T>
+  delay?: TimeConfig<D, T>
 }
 // Async Event Handler
 
@@ -156,7 +156,7 @@ export interface Config<
   C extends Record<string, Condition<D>> = any,
   A extends Record<string, Action<D>> = any,
   Y extends Record<string, Async<D>> = any,
-  T extends Record<string, Timer<D>> = any
+  T extends Record<string, Time<D>> = any
 > extends StateConfig<D, R, C, A, Y, T> {
   data?: D
   results?: R
@@ -164,6 +164,35 @@ export interface Config<
   actions?: A
   asyncs?: Y
   times?: T
+}
+
+export interface ConfigWithHelpers<
+  D,
+  R extends Record<string, Result<D>> = any,
+  C extends Record<string, Condition<D>> = any,
+  A extends Record<string, Action<D>> = any,
+  Y extends Record<string, Async<D>> = any,
+  T extends Record<string, Time<D>> = any
+> extends Config<D, R, C, A, Y, T> {
+  getEventHandlerConfig: (
+    config: EventHandlerConfig<D, R, C, A, T>
+  ) => EventHandlerConfig<D, R, C, A, T>
+  getEventHandlerItemConfig: (
+    config: EventHandlerItemConfig<D, R, C, A, T>
+  ) => EventHandlerItemConfig<D, R, C, A, T>
+  getAsyncEventHandlerConfig: (
+    config: AsyncEventHandlerConfig<D, R, C, A, Y, T>
+  ) => AsyncEventHandlerConfig<D, R, C, A, Y, T>
+  getRepeatEventHandlerConfig: (
+    config: RepeatEventHandlerConfig<D, R, C, A, T>
+  ) => RepeatEventHandlerConfig<D, R, C, A, T>
+  getStateConfig: (
+    config: StateConfig<D, R, C, A, Y, T>
+  ) => StateConfig<D, R, C, A, Y, T>
+  getResultConfig: (config: ResultConfig<D, R>) => ResultConfig<D, R>
+  getConditionConfig: (config: ConditionConfig<D, C>) => ConditionConfig<D, C>
+  getActionConfig: (config: ActionConfig<D, A>) => ActionConfig<D, A>
+  getTimeConfig: (config: TimeConfig<D, T>) => TimeConfig<D, T>
 }
 
 // Subscribers

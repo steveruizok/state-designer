@@ -17,7 +17,7 @@ export function getStateTreeFromConfig<
   C extends Record<string, S.Condition<D>>,
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>,
-  T extends Record<string, S.Timer<D>>
+  T extends Record<string, S.Time<D>>
 >(config: S.Config<D, R, C, A, Y, T>) {
   const labels = new Map<Record<string, S.EventFn<D, any>> | undefined, string>(
     [
@@ -57,7 +57,7 @@ export function getStateTreeFromConfig<
     return getEventFn(item, config.asyncs)
   }
 
-  function getTime(item: S.TimerConfig<D, T> | undefined) {
+  function getTime(item: S.TimeConfig<D, T> | undefined) {
     if (isUndefined(item)) return undefined
     return isNumber(item) ? () => item : getEventFn(item, config.times)
   }
