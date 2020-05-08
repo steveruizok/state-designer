@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/react",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "private": false,
   "description": "A React hook for State Designer, a state management library.",
   "author": "steveruizok",
@@ -24,7 +24,7 @@
     "react": "^16.0.0"
   },
   "devDependencies": {
-    "@state-designer/core": "^1.0.19",
+    "@state-designer/core": "^1.0.20",
     "@types/react": "^16.9.27",
     "microbundle-crl": "^0.13.10",
     "react": "^16.13.1",

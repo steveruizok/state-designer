@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "2.0.3",
+  "version": "1.0.20",
   "description": "State management library.",
   "author": "Steve Ruiz",
   "homepage": "https://statedesigner.com",
@@ -11,8 +11,8 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@state-designer/core": "^1.0.16",
-    "@state-designer/react": "^1.0.16"
+    "@state-designer/core": "^1.0.20",
+    "@state-designer/react": "^1.0.20"
   },
   "devDependencies": {
     "typescript": "^3.8.3"
