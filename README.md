@@ -64,9 +64,8 @@ An update includes:
 - The full **state tree**
 
 ```js
-state.onUpdate((update) => {
-  const itemsCount = document.getElementById("items")
-  itemsCount.textContent = update.data.items
+state.onUpdate(({ data }) => {
+  document.getElementById("itemsCount").textContent = data.items.toString()
 })
 ```
 
@@ -82,11 +81,13 @@ The send method takes two arguments:
 - A payload of any type
 
 ```js
-const resetButton = document.getElementById("reset_button")
-resetButton.onclick = () => state.send("RESET")
+document.getElementById("reset_button").onclick = () => {
+  state.send("RESET")
+}
 
-const plusTwoButton = document.getElementById("plus_two_button")
-plusTwoButton.onclick = () => state.send("ADDED_ITEMS", 2)
+document.getElementById("plus_two_button").onclick = () => {
+  state.send("ADDED_ITEMS", 2)
+}
 ```
 
 Events can belong to child states, too. If an event belongs to a child state that is not active, the event will not be handled. If an event belongs to multiple active states, it will be handled on each state in the state tree, starting from the root.
@@ -106,10 +107,7 @@ const state = createStateDesigner({
   on: {
     ADDED_ITEMS: {
       unless: (data, payload) => data.items + payload >= 10,
-      do: (data, payload) => {
-        console.log(payload)
-        data.items += payload
-      },
+      do: (data, payload) => (data.items += payload),
     },
     RESET: (data) => (data.items = 0),
   },
