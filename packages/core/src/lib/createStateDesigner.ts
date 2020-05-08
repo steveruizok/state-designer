@@ -369,7 +369,7 @@ export function createStateDesigner<
       return { data: data, active, stateTree }
     }
 
-    current.payload = undefined
+    current.payload = next.payload
     current.result = undefined
 
     // Handle the event and set the current handleEventOnState

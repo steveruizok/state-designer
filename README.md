@@ -97,7 +97,7 @@ plusTwoButton.onclick = () => state.send("ADDED_ITEMS", 2)
 
   <script>
     // Create state
-    const { data, send } = createStateDesigner({
+    const state = createStateDesigner({
       data: { items: 0 },
       on: {
         ADDED_ITEMS: {

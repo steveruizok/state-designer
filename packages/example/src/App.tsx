@@ -10,6 +10,10 @@ const state = createStateDesigner({
     },
     GREET: () => console.log("what's up!"),
     INCREMENTED: "increment",
+    ADDED: (data, payload) => {
+      console.log(payload)
+      data.count += payload
+    },
     INCREMENTED_TWICE: ["increment", "increment"],
   },
   onEvent: {
@@ -39,6 +43,7 @@ function App() {
       <button onClick={() => send("GREET")}>Greet</button>
       <button onClick={() => send("INCREMENTED")}>+1</button>
       <button onClick={() => send("INCREMENTED_TWICE")}>+2</button>
+      <button onClick={() => send("ADDED", 3)}>Added</button>
       {whenIn({
         safe: "safe!",
         warn: "warn!",
