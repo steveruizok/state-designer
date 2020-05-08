@@ -10,13 +10,9 @@ The library has separate packages for different development frameworks.
 
 #### Vanilla JavaScript
 
-For standard JavaScript projects, install `@state-designer/core`.
-
 `npm install @state-designer/core`
 
 #### React
-
-For React projects, install `@state-designer/react`.
 
 `npm install @state-designer/react`
 
@@ -78,7 +74,7 @@ To send an **event** to the state, call the state's `send` method.
 The send method takes two arguments:
 
 - The name of the event as a string
-- A payload of any type
+- A payload of any type (optional)
 
 ```js
 document.getElementById("reset_button").onclick = () => {
