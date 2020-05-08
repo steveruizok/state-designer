@@ -2,6 +2,8 @@
 
 State Designer is a JavaScript library for managing the state of a user interface. It prioritizes the design experience, making it easy to experiment with ideas, iterate on solutions, and communicate the final result.
 
+Learn more at [statedesigner.com](https://statedesigner.com).
+
 ## Installation
 
 The library has separate packages for different development frameworks.
@@ -26,7 +28,7 @@ Using State Designer involves three steps:
 2. Subscribe to the state's updates.
 3. Send events to the state.
 
-### Creating a State
+### 1. Creating a State
 
 To create a new **state**, call the `createStateDesigner` function and pass it a **configuration object**.
 
@@ -49,7 +51,9 @@ const state = createStateDesigner({
 })
 ```
 
-### Subscribing to Updates
+The example above is just the start of what you can add to a state's configuration object. [Learn more](https://statedesigner.com).
+
+### 2. Subscribing to Updates
 
 To subscribe to a state's **updates**, call the state's `onUpdate` method and pass it a callback function to call with each new update.
 
@@ -66,9 +70,9 @@ state.onUpdate((update) => {
 })
 ```
 
-> Tip: In React, the `useStateDesigner` hook will subscribe a component to a state's updates.
+**Tip:** In React, the `useStateDesigner` hook will subscribe a component to a state's updates. [Learn more](https://statedesigner.com).
 
-### Sending Events
+### 3. Sending Events
 
 To send an **event** to the state, call the state's `send` method.
 
@@ -85,54 +89,56 @@ const plusTwoButton = document.getElementById("plus_two_button")
 plusTwoButton.onclick = () => state.send("ADDED_ITEMS", 2)
 ```
 
+Events can belong to child states, too. If an event belongs to a child state that is not active, the event will not be handled. If an event belongs to multiple active states, it will be handled on each state in the state tree, starting from the root.
+
 ## Example
 
 #### HTML + JavaScript
 
-```html
-<body>
-  <h2 id="itemsCount">0</h2>
-  <button onClick="addTwoItems">Add two items</button>
-  <button onClick="reset">Reset</button>
+[![Edit state-designer-vanilla-example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/adoring-nightingale-g7ch1?fontsize=14&hidenavigation=1&theme=dark)
 
-  <script>
-    // Create state
-    const state = createStateDesigner({
-      data: { items: 0 },
-      on: {
-        ADDED_ITEMS: {
-          unless: (data, payload) => data.items + payload >= 10,
-          do: (data, payload) => (data.items += payload),
-        },
-        RESET: (data) => (data.items = 0),
+```js
+import { createStateDesigner } from "@state-designer/core"
+
+// Create state
+const state = createStateDesigner({
+  data: { items: 0 },
+  on: {
+    ADDED_ITEMS: {
+      unless: (data, payload) => data.items + payload >= 10,
+      do: (data, payload) => {
+        console.log(payload)
+        data.items += payload
       },
-    })
+    },
+    RESET: (data) => (data.items = 0),
+  },
+})
 
-    // Subscribe to updates
-    function handleUpdate(update) {
-      const itemsCount = document.getElementById("items")
-      itemsCount.textContent = update.data.items
-    }
+// Subscribe to updates
+state.onUpdate(({ data }) => {
+  document.getElementById("itemsCount").textContent = data.items.toString()
+})
 
-    state.onUpdate(handleUpdate)
+// Send events
+document.getElementById("reset_button").onclick = () => {
+  state.send("RESET")
+}
 
-    // Send events
-    function reset() {
-      state.send("RESET")
-    }
-
-    function addTwoItems() {
-      state.send("ADDED_ITEMS", 2)
-    }
-  </script>
-</body>
+document.getElementById("plus_two_button").onclick = () => {
+  state.send("ADDED_ITEMS", 2)
+}
 ```
 
 #### React
 
+[![Edit state-designer-example-react](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/objective-drake-20bkh?fontsize=14&hidenavigation=1&theme=dark)
+
 ```jsx
-const itemCounter = () => {
-  // Create state and subscribe to updates
+import React from "react"
+import { useStateDesigner } from "@state-designer/react"
+
+export default function App() {
   const { data, send } = useStateDesigner({
     data: { items: 0 },
     on: {
@@ -145,11 +151,10 @@ const itemCounter = () => {
   })
 
   return (
-    <div>
-      <h2>{data.count}</h2>
-      {/* Send events */}
+    <div className="App">
+      <h2>{data.items}</h2>
       <button onClick={() => send("ADDED_ITEMS", 2)}>Add two items</button>
-      <button onClick={() => send("Reset")}>Reset</button>
+      <button onClick={() => send("RESET")}>Reset</button>
     </div>
   )
 }
