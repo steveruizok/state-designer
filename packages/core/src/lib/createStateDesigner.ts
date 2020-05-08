@@ -67,9 +67,7 @@ export function createStateDesigner<
   // Call each subscriber callback with the state's current update
   function notifySubscribers() {
     active = StateTree.getActiveStates(stateTree)
-    subscribers.forEach((subscriber) =>
-      subscriber({ data: data, active, stateTree })
-    )
+    subscribers.forEach((subscriber) => subscriber({ data, active, stateTree }))
   }
 
   /* --------------------- Updates -------------------- */
@@ -391,20 +389,30 @@ export function createStateDesigner<
 
   /**
    * Subscribe a callback function to the state's updates. Each time
-   * the state changes (due to a successful transition or action), the
-   * state will call the callback with its new state. This function
-   * returns a second callback that will unsubscribe.
-   *
+   * the state updates (due to a successful transition or action), the
+   * state will call the callback with its new update. This function
+   * returns a second callback that will unsubscribe the callback.
    * @param callbackFn
    * @public
    * @example
    * const state = createStateDesigner({ ... })
-   * const cancelUpdates = state.onChange((update) => { ... })
+   * const cancelUpdates = state.onUpdate((update) => { ... })
    * if (allDone) cancelUpdates()
    *
    */
-  function onChange(callbackFn: S.SubscriberFn<D>) {
+  function onUpdate(callbackFn: S.SubscriberFn<D>) {
+    subscribe(callbackFn)
     return () => unsubscribe(callbackFn)
+  }
+
+  /**
+   * Get an update from the current state without subscribing.
+   * @param callbackFn
+   * @public
+   */
+  function getUpdate(callbackFn: S.SubscriberFn<D>) {
+    active = StateTree.getActiveStates(stateTree)
+    callbackFn({ data, active, stateTree })
   }
 
   /**
@@ -530,6 +538,7 @@ export function createStateDesigner<
     can,
     whenIn,
     stateTree,
-    onChange,
+    onUpdate,
+    getUpdate,
   }
 }

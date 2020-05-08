@@ -40,7 +40,7 @@ export function useStateDesigner<
 
   // Subscribe to changes — and resubscribe when dependencies change.
   // Note that the effect returns the cancel function returned by onChange.
-  React.useEffect(() => state.onChange(setUpdate), [state, setUpdate])
+  React.useEffect(() => state.onUpdate(setUpdate), [state, setUpdate])
 
   return {
     ...update,

@@ -182,7 +182,8 @@ export interface StateDesigner<D> {
   data: D
   active: State<D>[]
   stateTree: State<D>
-  onChange: (callbackFn: SubscriberFn<D>) => () => void
+  onUpdate: (callbackFn: SubscriberFn<D>) => () => void
+  getUpdate: (callbackFn: SubscriberFn<D>) => void
   send: (eventName: string, payload?: any) => Promise<Update<D>>
   can: (eventName: string, payload?: any) => boolean
   isIn: (paths: string | string[]) => boolean
