@@ -102,7 +102,7 @@ const state = createStateDesigner({
   data: { items: 0 },
   on: {
     ADDED_ITEMS: {
-      unless: (data, payload) => data.items + payload >= 10,
+      unless: (data, payload) => data.items + payload > 10,
       do: (data, payload) => (data.items += payload),
     },
     RESET: (data) => (data.items = 0),
@@ -137,7 +137,7 @@ export default function App() {
     data: { items: 0 },
     on: {
       ADDED_ITEMS: {
-        unless: (data, payload) => data.items + payload >= 10,
+        unless: (data, payload) => data.items + payload > 10,
         do: (data, payload) => (data.items += payload),
       },
       RESET: (data) => (data.items = 0),
