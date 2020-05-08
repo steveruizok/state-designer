@@ -44,9 +44,25 @@ export function createStateDesigner<
   // adds a callback to the set; unsubscribe removes it.
   const subscribers = new Set<S.SubscriberFn<D>>([])
 
-  // Unsubscribe -> see Public API below
+  /**
+   * Subscribe a callback to this state's updates. On each update, the state
+   * will call the callback with the state's new update.
+   * @param callbackFn
+   */
+  function subscribe(callbackFn: S.SubscriberFn<D>) {
+    subscribers.add(callbackFn)
+  }
 
-  // Subscribe -> see Public API below
+  /**
+   * Unsubscribe a callback from the state. The callback will no longer be
+   * called when the state changes.
+   * @param callbackFn
+   */
+  function unsubscribe(callbackFn: S.SubscriberFn<D>) {
+    if (subscribers.has(callbackFn)) {
+      subscribers.delete(callbackFn)
+    }
+  }
 
   // Call each subscriber callback with the state's current update
   function notifySubscribers() {
@@ -374,31 +390,28 @@ export function createStateDesigner<
   /* ----------------- Public Methods ----------------- */
 
   /**
-   * Subscribe to this state's updates. On each update, the state will call
-   * the provided callback with the state's new update. This function also
-   * returns a new function that will unsubscribe the callback.
+   * Subscribe a callback function to the state's updates. Each time
+   * the state changes (due to a successful transition or action), the
+   * state will call the callback with its new state. This function
+   * returns a second callback that will unsubscribe.
+   *
    * @param callbackFn
+   * @public
+   * @example
+   * const state = createStateDesigner({ ... })
+   * const cancelUpdates = state.onChange((update) => { ... })
+   * if (allDone) cancelUpdates()
+   *
    */
-  function subscribe(callbackFn: S.SubscriberFn<D>) {
-    subscribers.add(callbackFn)
+  function onChange(callbackFn: S.SubscriberFn<D>) {
     return () => unsubscribe(callbackFn)
-  }
-
-  /**
-   * Unsubscribe a callback from the state. The callback will no longer be
-   * called when the state changes.
-   * @param callbackFn
-   */
-  function unsubscribe(callbackFn: S.SubscriberFn<D>) {
-    if (subscribers.has(callbackFn)) {
-      subscribers.delete(callbackFn)
-    }
   }
 
   /**
    * Send an event to the state machine
    * @param eventName The name of the event
    * @param payload A payload of any type
+   * @public
    */
   async function send(eventName: string, payload?: any): Promise<S.Update<D>> {
     sendQueue.push({ event: eventName, payload })
@@ -409,6 +422,7 @@ export function createStateDesigner<
    * Return true if the state tree has any (or every) of the paths active
    * @param paths The paths to check
    * @param every (optional) Whether to return true only if every path is active
+   * @public
    */
   function isIn(paths: string | string[], every = false): boolean {
     const p = castArray(paths)
@@ -423,6 +437,7 @@ export function createStateDesigner<
    * Return true if the event exists and would pass its conditions
    * @param eventName The name of the event
    * @param payload A payload of any type
+   * @public
    */
   function can(eventName: string, payload?: any): boolean {
     current.payload = payload
@@ -467,6 +482,7 @@ export function createStateDesigner<
    * @param paths An object with paths as keys and a value to include if this path is active.
    * @param reducer (optional) A function that will take all values from active paths and return an output.
    * @param initial (optional) The reducer's initial value.
+   * @public
    */
   function whenIn<T>(
     paths: Record<string, any>,
@@ -514,7 +530,6 @@ export function createStateDesigner<
     can,
     whenIn,
     stateTree,
-    subscribe,
-    unsubscribe,
+    onChange,
   }
 }

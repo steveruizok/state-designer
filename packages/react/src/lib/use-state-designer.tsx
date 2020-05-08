@@ -23,7 +23,8 @@ export function useStateDesigner<
   config: S.Config<D, R, C, A> | S.StateDesigner<D>,
   dependencies = emptyArray
 ): S.Update<D> & Pick<S.StateDesigner<D>, "send" | "isIn" | "can" | "whenIn"> {
-  // Store a state — either as provided or new from config
+  // Store a state — either as provided or new from config,
+  // and, if given a config, re-create the state when dependencies change
   const state: S.StateDesigner<D> = React.useMemo(() => {
     return isUndefined((config as S.StateDesigner<D>).send)
       ? createStateDesigner(config)
@@ -37,8 +38,9 @@ export function useStateDesigner<
     active: state.active,
   })
 
-  // Subscribe — and resubscribe when dependencies change
-  React.useEffect(() => state.subscribe(setUpdate), [state, setUpdate])
+  // Subscribe to changes — and resubscribe when dependencies change.
+  // Note that the effect returns the cancel function returned by onChange.
+  React.useEffect(() => state.onChange(setUpdate), [state, setUpdate])
 
   return {
     ...update,

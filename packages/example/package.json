@@ -1,6 +1,5 @@
 {
-  "name": "example",
-  "version": "0.1.0",
+  "name": "state-designer-example",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "link:../node_modules/@testing-library/jest-dom",
