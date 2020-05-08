@@ -11,8 +11,8 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@state-designer/core": "^1.1.0",
-    "@state-designer/react": "^1.1.0"
+    "@state-designer/core": "^1.1.1",
+    "@state-designer/react": "^1.1.1"
   },
   "devDependencies": {
     "typescript": "^3.8.3"
