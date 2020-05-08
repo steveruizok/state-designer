@@ -1,38 +1,23 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "outDir": "build",
-    "module": "esnext",
-    "target": "es2015",
-    "lib": ["dom", "es6", "es2019"],
-    "sourceMap": true,
-    "allowJs": false,
-    "jsx": "preserve",
-    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@state-designer/*": ["packages/*/src"]
+    },
+    "lib": ["dom", "esnext"],
     "moduleResolution": "node",
-    "forceConsistentCasingInFileNames": true,
+    "jsx": "react",
+    "sourceMap": true,
+    "declaration": true,
+    "esModuleInterop": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "resolveJsonModule": true,
-    "isolatedModules": false,
-    "noEmit": true
-  },
-  "include": ["src"],
-  "exclude": [
-    ".docz",
-    "**/.node_modules",
-    "docs",
-    "build",
-    "dist",
-    "example",
-    "rollup.config.js"
-  ]
+    "allowSyntheticDefaultImports": true
+  }
 }

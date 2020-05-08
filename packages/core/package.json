@@ -1,0 +1,28 @@
+{
+  "name": "@state-designer/core",
+  "version": "1.1.2",
+  "private": false,
+  "description": "Core package for State Designer, a state management library.",
+  "author": "steveruizok",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "repository": "steveruizok/state-designer",
+  "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "source": "src/index.tsx",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
+    "start": "microbundle-crl watch --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
+    "compile": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json"
+  },
+  "devDependencies": {
+    "immer": "^6.0.3",
+    "microbundle-crl": "^0.13.10"
+  },
+  "gitHead": "68339fd4a49727ebfb95e74fed330ac9f5f58e3c"
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@state-designer/react",
+  "version": "1.1.2",
+  "private": false,
+  "description": "A React hook for State Designer, a state management library.",
+  "author": "steveruizok",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "repository": "steveruizok/state-designer",
+  "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "source": "src/index.tsx",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
+    "start": "microbundle-crl watch --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
+    "compile": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0"
+  },
+  "devDependencies": {
+    "@state-designer/core": "^1.1.2",
+    "@types/react": "^16.9.27",
+    "microbundle-crl": "^0.13.10",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "^3.4.1"
+  },
+  "gitHead": "68339fd4a49727ebfb95e74fed330ac9f5f58e3c"
+}

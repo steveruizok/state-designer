@@ -1,0 +1,40 @@
+# Todo
+
+- [x] Data
+- [x] States
+  - [x] Nested states
+- [x] collections
+  - [x] actions
+  - [x] conditions
+  - [x] results
+  - [x] asyncs
+- [x] createConfig
+- [x] createStateDesigner
+- [x] useStateDesigner
+  - [x] with config
+  - [x] with state designer
+- [x] Actions
+- [ ] Sends
+- [x] Conditions
+- [x] Repeat events
+- [x] Wait events
+- [x] onEnter
+- [x] onExit
+- [x] onEvent
+- [x] transitions
+  - [x] direct (`target`)
+  - [x] deep (`parent.target`)
+  - [x] previous (`.previous`)
+  - [x] restore (`.restore`)
+- [-] Public API
+  - [x] isIn
+  - [x] send
+    - [x] async/await send
+  - [x] tree
+  - [x] whenIn
+- [ ] graphStateDesigner
+- [ ] graphViewer
+- [ ] split into packages
+  - [ ] core
+  - [ ] viewer
+  - [ ] react

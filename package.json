@@ -1,47 +1,38 @@
 {
-  "name": "state-designer",
-  "version": "1.0.52",
-  "description": "A state and event management tool.",
-  "author": "steveruizok",
+  "name": "state-designer-monorepo",
+  "version": "1.1.1",
+  "private": true,
+  "author": "Steve Ruiz",
+  "homepage": "https://statedesigner.com",
+  "repository": "https://github.com/steveruizok/state-designer",
   "license": "MIT",
-  "repository": "steveruizok/state-designer",
-  "main": "dist/index.js",
-  "module": "dist/index.es.js",
-  "jsnext:main": "dist/index.es.js",
-  "engines": {
-    "node": ">=8",
-    "npm": ">=5"
-  },
-  "scripts": {
-    "test": "cross-env CI=1 react-scripts test --env=jsdom",
-    "test:watch": "react-scripts test --env=jsdom",
-    "now-build": "cd docs && yarn && yarn run build",
-    "build": "rollup -c",
-    "start": "rollup -c -w"
-  },
-  "peerDependencies": {
-    "react": "^16.12.0"
-  },
+  "keywords": [
+    "state",
+    "machine",
+    "statecharts",
+    "state machine"
+  ],
   "devDependencies": {
-    "@babel/core": "^7.2.2",
-    "@babel/runtime": "^7.3.1",
-    "@types/jest": "^23.3.13",
     "@types/lodash-es": "^4.17.3",
-    "@types/react": "^16.7.22",
-    "cross-env": "^5.2.0",
-    "lodash-es": "^4.17.15",
-    "react-scripts": "^3.0.1",
-    "rollup": "^1.1.2",
-    "rollup-plugin-babel": "^4.3.2",
-    "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-node-resolve": "^4.0.0",
-    "rollup-plugin-peer-deps-external": "^2.2.0",
-    "rollup-plugin-typescript2": "^0.19.2",
-    "rollup-plugin-url": "^2.1.0",
-    "typescript": "^3.8.2",
-    "utility-types": "^3.10.0"
+    "lerna": "^3.20.2",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-config-standard-react": "^9.2.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.17.0",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.26.0",
+    "babel-eslint": "^10.0.3",
+    "eslint-plugin-standard": "^4.0.1",
+    "prettier": "^2.0.4",
+    "lodash-es": "^4.17.15"
   },
-  "dependencies": {
-    "immer": "^6.0.3"
-  }
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {}
 }
