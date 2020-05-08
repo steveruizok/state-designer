@@ -1,2 +1,3 @@
-export * as S from "./lib/types";
-export { createStateDesigner, createConfig } from "./lib/state-designer";
+export * as S from "./lib/types"
+export { createConfig } from "./lib/createConfig"
+export { createStateDesigner } from "./lib/createStateDesigner"

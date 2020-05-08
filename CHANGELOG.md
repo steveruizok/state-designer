@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.17
+
+- Adds `send` event item.
+
 ## 1.0.16
 
 - Fixes a bug where `elseTo` transitions would throw an infinite loop error at the wrong time.

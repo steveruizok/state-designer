@@ -34,6 +34,7 @@ export function useStateDesigner<
   const [update, setUpdate] = React.useState<S.Update<D>>({
     data: state.data,
     stateTree: state.stateTree,
+    active: state.active,
   })
 
   // Subscribe — and resubscribe when dependencies change

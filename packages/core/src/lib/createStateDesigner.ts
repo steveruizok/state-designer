@@ -5,41 +5,21 @@ import isFunction from "lodash-es/isFunction"
 import isUndefined from "lodash-es/isUndefined"
 import { Draft, produce } from "immer"
 import * as S from "./types"
-import { getStateTreeFromConfig } from "./getStateTreeFromConfig"
 import * as StateTree from "./stateTree"
-
-/* -------------------------------------------------- */
-/*                    Create Config                   */
-/* -------------------------------------------------- */
-
-export function createConfig<
-  D extends unknown,
-  R extends Record<string, S.Result<D>>,
-  C extends Record<string, S.Condition<D>>,
-  A extends Record<string, S.Action<D>>,
-  Y extends Record<string, S.Async<D>>
->(config: S.Config<D, R, C, A, Y>): S.Config<D, R, C, A, Y> {
-  return config
-}
+import { getStateTreeFromConfig } from "./getStateTreeFromConfig"
 
 /* -------------------------------------------------- */
 /*                Create State Designer               */
 /* -------------------------------------------------- */
 
 export function createStateDesigner<
-  D extends unknown,
+  D,
   R extends Record<string, S.Result<D>>,
   C extends Record<string, S.Condition<D>>,
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>
 >(config: S.Config<D, R, C, A, Y>): S.StateDesigner<D> {
   /* ------------------ Mutable Data ------------------ */
-
-  let { data } = config
-
-  const stateTree = getStateTreeFromConfig(config)
-
-  let active = StateTree.getActiveStates(stateTree)
 
   const current: {
     payload: any
@@ -52,26 +32,28 @@ export function createStateDesigner<
     didAction: false,
   }
 
+  let data: D = config.data as D
+
+  const stateTree = getStateTreeFromConfig(config)
+
+  let active = StateTree.getActiveStates(stateTree)
+
   /* ------------------ Subscriptions ----------------- */
 
+  // A set of subscription callbacks. The subscribe function
+  // adds a callback to the set; unsubscribe removes it.
   const subscribers = new Set<S.SubscriberFn<D>>([])
 
-  function subscribe(callbackFn: S.SubscriberFn<D>) {
-    subscribers.add(callbackFn)
-    return () => unsubscribe(callbackFn)
-  }
+  // Unsubscribe -> see Public API below
 
-  function unsubscribe(callbackFn: S.SubscriberFn<D>) {
-    if (subscribers.has(callbackFn)) {
-      subscribers.delete(callbackFn)
-    }
-  }
+  // Subscribe -> see Public API below
 
+  // Call each subscriber callback with the state's current update
   function notifySubscribers() {
     active = StateTree.getActiveStates(stateTree)
-    subscribers.forEach((subscriber) => {
-      subscriber({ data: data as D, stateTree })
-    })
+    subscribers.forEach((subscriber) =>
+      subscriber({ data: data, active, stateTree })
+    )
   }
 
   /* --------------------- Updates -------------------- */
@@ -141,7 +123,7 @@ export function createStateDesigner<
       // Results
 
       for (let resu of item.get) {
-        current.result = resu(data as Draft<D>, current.payload, current.result)
+        current.result = resu(data, current.payload, current.result)
       }
 
       // Conditions
@@ -150,24 +132,24 @@ export function createStateDesigner<
 
       if (passedConditions && item.if.length > 0) {
         passedConditions = item.if.every((cond) =>
-          cond(data as Draft<D>, current.payload, current.result)
+          cond(data, current.payload, current.result)
         )
       }
 
       if (passedConditions && item.unless.length > 0) {
         passedConditions = item.unless.every(
-          (cond) => !cond(data as Draft<D>, current.payload, current.result)
+          (cond) => !cond(data, current.payload, current.result)
         )
       }
 
       if (passedConditions && item.ifAny.length > 0) {
         passedConditions = item.ifAny.some((cond) =>
-          cond(data as Draft<D>, current.payload, current.result)
+          cond(data, current.payload, current.result)
         )
       }
 
       if (item.wait) {
-        const s = item.wait(data as Draft<D>, current.payload, current.result)
+        const s = item.wait(data, current.payload, current.result)
         await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
       }
 
@@ -177,9 +159,15 @@ export function createStateDesigner<
           localUpdate.didAction = true
           data = produce(data, (draft) => {
             for (let action of item.do) {
-              action(draft as Draft<D>, current.payload, current.result)
+              action(draft as D, current.payload, current.result)
             }
           })
+        }
+
+        // Send
+        if (!isUndefined(item.send)) {
+          const sendItem = item.send(data, current.payload, current.result)
+          send(sendItem.event, sendItem.payload)
         }
 
         // Transitions
@@ -199,7 +187,7 @@ export function createStateDesigner<
           localUpdate.didAction = true
           data = produce(data, (draft) => {
             for (let action of item.elseDo) {
-              action(draft as Draft<D>, current.payload, current.result)
+              action(draft as D, current.payload, current.result)
             }
           })
         }
@@ -222,7 +210,7 @@ export function createStateDesigner<
   }
 
   async function runTransition(targetFn: S.EventFn<D, string>) {
-    let targetPath = targetFn(data as Draft<D>)
+    let targetPath = targetFn(data)
 
     // Is this a restore transition?
 
@@ -305,11 +293,7 @@ export function createStateDesigner<
       const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
-        const s = repeat.delay(
-          data as Draft<D>,
-          current.payload,
-          current.result
-        )
+        const s = repeat.delay(data, current.payload, current.result)
 
         state.intervals.push(
           setInterval(async () => {
@@ -329,7 +313,7 @@ export function createStateDesigner<
       if (update.transitions > currentTransitions) return
 
       if (!isUndefined(async)) {
-        async.await(data as Draft<D>, current.payload, current.result).then(
+        async.await(data, current.payload, current.result).then(
           async (result) => {
             current.result = result
             const localUpdate = await runOffThreadEventHandler(async.onResolve)
@@ -368,7 +352,7 @@ export function createStateDesigner<
     if (isUndefined(next)) {
       pendingProcess = undefined
       update.transitions = 0
-      return { data: data as D, stateTree }
+      return { data: data, active, stateTree }
     }
 
     current.payload = undefined
@@ -388,6 +372,28 @@ export function createStateDesigner<
   }
 
   /* ----------------- Public Methods ----------------- */
+
+  /**
+   * Subscribe to this state's updates. On each update, the state will call
+   * the provided callback with the state's new update. This function also
+   * returns a new function that will unsubscribe the callback.
+   * @param callbackFn
+   */
+  function subscribe(callbackFn: S.SubscriberFn<D>) {
+    subscribers.add(callbackFn)
+    return () => unsubscribe(callbackFn)
+  }
+
+  /**
+   * Unsubscribe a callback from the state. The callback will no longer be
+   * called when the state changes.
+   * @param callbackFn
+   */
+  function unsubscribe(callbackFn: S.SubscriberFn<D>) {
+    if (subscribers.has(callbackFn)) {
+      subscribers.delete(callbackFn)
+    }
+  }
 
   /**
    * Send an event to the state machine
@@ -430,26 +436,21 @@ export function createStateDesigner<
 
           for (let item of eventHandler) {
             for (let resu of item.get) {
-              current.result = resu(
-                data as Draft<D>,
-                current.payload,
-                current.result
-              )
+              current.result = resu(data, current.payload, current.result)
             }
 
             if (
               (item.if.length > 0 &&
                 item.if.every((cond) =>
-                  cond(data as Draft<D>, current.payload, current.result)
+                  cond(data, current.payload, current.result)
                 )) ||
               (item.unless.length > 0 &&
                 !item.unless.every(
-                  (cond) =>
-                    !cond(data as Draft<D>, current.payload, current.result)
+                  (cond) => !cond(data, current.payload, current.result)
                 )) ||
               (item.ifAny.length > 0 &&
                 item.ifAny.some((cond) =>
-                  cond(data as Draft<D>, current.payload, current.result)
+                  cond(data, current.payload, current.result)
                 ))
             )
               return true
@@ -501,14 +502,13 @@ export function createStateDesigner<
 
   /* --------------------- Kickoff -------------------- */
 
-  // Deactivate the tree
+  // Deactivate the tree, then activate it again to trigger events
   StateTree.deactivateState(stateTree)
-
-  // Activate it again to trigger events
   runTransition(() => "root")
 
   return {
-    data: data as D,
+    data,
+    active,
     send,
     isIn,
     can,
