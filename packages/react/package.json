@@ -25,8 +25,10 @@
     "compile": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json"
   },
   "peerDependencies": {
-    "@state-designer/core": "^1.1.8-alpha.3",
     "react": "^16.0.0"
+  },
+  "dependencies": {
+    "@state-designer/core": "^1.1.8-alpha.3"
   },
   "devDependencies": {
     "@types/react": "^16.9.27",
