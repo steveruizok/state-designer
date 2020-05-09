@@ -6,6 +6,9 @@
   "homepage": "https://statedesigner.com",
   "repository": "https://github.com/steveruizok/state-designer",
   "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "source": "src/index.tsx",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc"
   },
