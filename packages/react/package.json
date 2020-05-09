@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/react",
-  "version": "1.1.8-alpha.3",
+  "version": "1.1.8-alpha.4",
   "private": false,
   "description": "A React hook for State Designer, a state management library.",
   "author": "steveruizok",
@@ -25,8 +25,8 @@
     "compile": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json"
   },
   "peerDependencies": {
-    "react": "^16.0.0",
-    "@state-designer/core": "^1.1.8-alpha.3"
+    "@state-designer/core": "^1.1.8-alpha.3",
+    "react": "^16.0.0"
   },
   "devDependencies": {
     "@types/react": "^16.9.27",
