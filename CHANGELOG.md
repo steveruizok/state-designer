@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.5
+
+- Adds helpers to the config returned from `createConfig`. This is useful (in theory) when composing a configuration from separate parts, rather than in one giant object, and where type safety is required.
+
 ## 1.1.4
 
 - Adds `send` event item.

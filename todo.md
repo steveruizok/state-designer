@@ -14,7 +14,7 @@
   - [x] with config
   - [x] with state designer
 - [x] Actions
-- [ ] Sends
+- [x] Sends
 - [x] Conditions
 - [x] Repeat events
 - [x] Wait events
@@ -32,9 +32,11 @@
     - [x] async/await send
   - [x] tree
   - [x] whenIn
-- [ ] graphStateDesigner
-- [ ] graphViewer
-- [ ] split into packages
-  - [ ] core
-  - [ ] viewer
-  - [ ] react
+- [ ] view
+  - [ ] package
+  - [ ] viewStateDesigner
+  - [ ] View
+- [x] split into packages
+  - [x] core
+  - [x] react
+  - [ ] view
