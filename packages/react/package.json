@@ -11,8 +11,11 @@
   "repository": "https://github.com/steveruizok/state-designer",
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
+  "typings": "dist/index.d.ts",
   "source": "src/index.tsx",
-  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=10"
   },

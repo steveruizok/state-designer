@@ -2,8 +2,12 @@
   "extends": "../../tsconfig.build.json",
 
   "compilerOptions": {
-    "outDir": "./dist",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationDir": "dist",
+    "outDir": "dist"
   },
 
   "include": ["src/**/*"]

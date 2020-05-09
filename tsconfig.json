@@ -8,6 +8,7 @@
     "lib": ["dom", "esnext"],
     "moduleResolution": "node",
     "jsx": "react",
+    "strict": true,
     "sourceMap": true,
     "declaration": true,
     "esModuleInterop": true,
