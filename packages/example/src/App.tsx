@@ -5,19 +5,22 @@ import { createStateDesigner, useStateDesigner } from "@state-designer/react"
 const state = createStateDesigner({
   data: { count: 0 },
   on: {
+    GOTO_WARN: { to: "warn" },
     SEND: {
       send: "GREET",
     },
     GREET: () => console.log("what's up!"),
     INCREMENTED: "increment",
     ADDED: (data, payload) => {
-      console.log(payload)
       data.count += payload
     },
     INCREMENTED_TWICE: ["increment", "increment"],
   },
   onEvent: {
-    if: (d) => d.count >= 10,
+    if: (d) => {
+      console.log(d)
+      return d.count >= 10
+    },
     to: "warn",
     elseTo: "safe",
   },
@@ -39,6 +42,7 @@ function App() {
   return (
     <div className="App">
       <h2>{data.count}</h2>
+      <button onClick={() => send("GOTO_WARN")}>Go to warn</button>
       <button onClick={() => send("SEND")}>Send</button>
       <button onClick={() => send("GREET")}>Greet</button>
       <button onClick={() => send("INCREMENTED")}>+1</button>

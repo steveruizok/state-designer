@@ -19,6 +19,8 @@ export function getStateTreeFromConfig<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>
 >(config: S.Config<D, R, C, A, Y, T>) {
+  const id = "#" + (isUndefined(config.id) ? "state" : config.id)
+
   const labels = new Map<Record<string, S.EventFn<D, any>> | undefined, string>(
     [
       [config.results, "results"],
@@ -206,5 +208,5 @@ export function getStateTreeFromConfig<
     }
   }
 
-  return createState(config, "root", "", true)
+  return createState(config, "root", id + ".", true)
 }

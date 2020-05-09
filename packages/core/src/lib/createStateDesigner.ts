@@ -21,6 +21,8 @@ export function createStateDesigner<
 >(config: S.Config<D, R, C, A, Y>): S.StateDesigner<D> {
   /* ------------------ Mutable Data ------------------ */
 
+  const id = isUndefined(config.id) ? "root" : config.id
+
   const current: {
     payload: any
     result: any
@@ -224,23 +226,23 @@ export function createStateDesigner<
   }
 
   async function runTransition(targetFn: S.EventFn<D, string>) {
-    let targetPath = targetFn(data)
+    let path = targetFn(data, current.payload, current.result)
 
     // Is this a restore transition?
 
-    const isPreviousTransition = targetPath.endsWith(".previous")
-    const isRestoreTransition = targetPath.endsWith(".restore")
+    const isPreviousTransition = path.endsWith(".previous")
+    const isRestoreTransition = path.endsWith(".restore")
 
     if (isPreviousTransition) {
-      targetPath = trimEnd(targetPath, ".previous")
+      path = trimEnd(path, ".previous")
     }
 
     if (isRestoreTransition) {
-      targetPath = trimEnd(targetPath, ".restore")
+      path = trimEnd(path, ".restore")
     }
 
     // Get all states from the tree that match the target
-    const targets = StateTree.findTransitionTargets(stateTree, targetPath)
+    const targets = StateTree.findTransitionTargets(stateTree, path)
 
     // Get the deepest matching target state
     const target = last(targets)
@@ -250,7 +252,7 @@ export function createStateDesigner<
     }
 
     // Get the path of state names to the target state
-    const pathDown = target.path.split(".")
+    const pathDown = target.path.split(".").slice(1)
 
     // Get an array of states that are currently active
     const beforeActive = StateTree.getActiveStates(stateTree)
@@ -539,6 +541,7 @@ export function createStateDesigner<
   runTransition(() => "root")
 
   return {
+    id: stateTree.name,
     data,
     active,
     send,

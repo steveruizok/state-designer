@@ -158,6 +158,7 @@ export interface Config<
   Y extends Record<string, Async<D>> = any,
   T extends Record<string, Time<D>> = any
 > extends StateConfig<D, R, C, A, Y, T> {
+  id?: string
   data?: D
   results?: R
   conditions?: C
@@ -208,6 +209,7 @@ export type Update<D> = {
 // State Designer
 
 export interface StateDesigner<D> {
+  id: string
   data: D
   active: State<D>[]
   stateTree: State<D>
