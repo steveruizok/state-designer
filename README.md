@@ -14,7 +14,7 @@ The library has separate packages for different development frameworks.
 
 #### React
 
-`npm install @state-designer/react`
+`npm install @state-designer/core @state-designer/react`
 
 ## Usage
 
