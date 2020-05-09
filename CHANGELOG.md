@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.8
+
+- Fixes ambiguous targeting. Previously, a target like `active` would hit on either `inactive` or `active` in transitions, because both states ended in "active". The bug was found in transitions, whenIn, and isIn. This is now fixed — calling `isIn("active")` behaves exactly like calling `isIn(".active")`. There is still some ambiguity here: calling `isIn("active")` which will correctly hit on either state with a path `root.buzzing.active` or `root.clicking.active`. You can add more specificity by including the parent as well, such as `isIn("buzzing.active")`.
+
 ## 1.1.5
 
 - Adds helpers to the config returned from `createConfig`. This is useful (in theory) when composing a configuration from separate parts, rather than in one giant object, and where type safety is required.

@@ -436,7 +436,10 @@ export function createStateDesigner<
     const p = castArray(paths)
     return (
       active.find((state) =>
-        p[every ? "every" : "some"]((path) => state.path.endsWith(path))
+        p[every ? "every" : "some"]((path) => {
+          let safePath = path.startsWith(".") ? path : "." + path
+          return state.path.endsWith(safePath)
+        })
       ) !== undefined
     )
   }
@@ -509,7 +512,12 @@ export function createStateDesigner<
       if (key === "root") {
         entries.push([key, v])
       } else {
-        if (active.find((v) => v.path.endsWith("." + key))) {
+        if (
+          active.find((v) => {
+            let safeKey = key.startsWith(".") ? key : "." + key
+            return v.path.endsWith(safeKey)
+          })
+        ) {
           entries.push([key, v])
         }
       }
