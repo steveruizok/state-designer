@@ -3,7 +3,12 @@ import isFunction from "lodash-es/isFunction"
 import isNumber from "lodash-es/isNumber"
 import castArray from "lodash-es/castArray"
 import isString from "lodash-es/isString"
+import fromEntries from "object.fromentries"
+import entries from "object.entries"
 import * as S from "./types"
+
+if (!Object.fromEntries) Object.fromEntries = fromEntries
+if (!Object.entries) Object.entries = entries
 
 /**
  * Turn a configuration object into a complete state tree, where shortcuts in the configuration

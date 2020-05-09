@@ -447,7 +447,7 @@ export function createStateDesigner<
   }
 
   /**
-   * Return true if the event exists and would pass its conditions
+   * Return true if the event exists and would pass its conditions, given the current state and payload.
    * @param eventName The name of the event
    * @param payload A payload of any type
    * @public
@@ -460,28 +460,40 @@ export function createStateDesigner<
         const eventHandler = state.on[eventName]
 
         if (!isUndefined(eventHandler)) {
-          current.result = undefined
-
           for (let item of eventHandler) {
+            current.result = undefined
+
+            // Result
+
             for (let resu of item.get) {
               current.result = resu(data, current.payload, current.result)
             }
 
-            if (
-              (item.if.length > 0 &&
-                item.if.every((cond) =>
-                  cond(data, current.payload, current.result)
-                )) ||
-              (item.unless.length > 0 &&
-                !item.unless.every(
-                  (cond) => !cond(data, current.payload, current.result)
-                )) ||
-              (item.ifAny.length > 0 &&
-                item.ifAny.some((cond) =>
-                  cond(data, current.payload, current.result)
-                ))
-            )
+            // Conditions
+
+            let passedConditions = true
+
+            if (passedConditions && item.if.length > 0) {
+              passedConditions = item.if.every((cond) =>
+                cond(data, current.payload, current.result)
+              )
+            }
+
+            if (passedConditions && item.unless.length > 0) {
+              passedConditions = item.unless.every(
+                (cond) => !cond(data, current.payload, current.result)
+              )
+            }
+
+            if (passedConditions && item.ifAny.length > 0) {
+              passedConditions = item.ifAny.some((cond) =>
+                cond(data, current.payload, current.result)
+              )
+            }
+
+            if (passedConditions) {
               return true
+            }
           }
         }
 

@@ -28,5 +28,10 @@
     "immer": "^6.0.3",
     "microbundle-crl": "^0.13.10"
   },
-  "gitHead": "68339fd4a49727ebfb95e74fed330ac9f5f58e3c"
+  "gitHead": "68339fd4a49727ebfb95e74fed330ac9f5f58e3c",
+  "dependencies": {
+    "@types/object.fromentries": "^2.0.0",
+    "object.entries": "^1.1.1",
+    "object.fromentries": "^2.0.2"
+  }
 }

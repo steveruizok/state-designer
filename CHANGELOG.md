@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.10
+
+- Fixes `can` bug where conditions were failing.
+
 ## 1.1.9
 
 - Further fixes.

@@ -6,11 +6,9 @@
       "@state-designer/*": ["packages/*/src"]
     },
     "lib": ["dom", "esnext"],
+    "target": "es5",
     "moduleResolution": "node",
     "jsx": "react",
-    "strict": true,
-    "sourceMap": true,
-    "declaration": true,
     "esModuleInterop": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,

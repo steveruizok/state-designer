@@ -2,13 +2,9 @@
   "extends": "../../tsconfig.json",
 
   "compilerOptions": {
-    "moduleResolution": "node",
-    "strict": true,
-    "sourceMap": true,
-    "declaration": true,
     "declarationDir": "dist",
     "outDir": "dist"
   },
 
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "decs.d.ts"]
 }
