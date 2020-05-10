@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.1.10-alpha.1",
+  "version": "1.1.10",
   "main": "build/index.js",
   "scripts": {
     "start": "node scripts/start.js",
@@ -10,8 +10,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@state-designer/core": "^1.1.10-alpha.1",
-    "@state-designer/react": "^1.1.10-alpha.1"
+    "@state-designer/core": "^1.1.10",
+    "@state-designer/react": "^1.1.10"
   },
   "devDependencies": {
     "@babel/core": "7.6.0",
