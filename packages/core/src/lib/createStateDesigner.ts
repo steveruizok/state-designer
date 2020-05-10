@@ -2,6 +2,7 @@ import last from "lodash-es/last"
 import castArray from "lodash-es/castArray"
 import trimEnd from "lodash-es/trimEnd"
 import isFunction from "lodash-es/isFunction"
+import uniqueId from "lodash-es/uniqueId"
 import isUndefined from "lodash-es/isUndefined"
 import { Draft, produce } from "immer"
 import * as S from "./types"
@@ -17,11 +18,12 @@ export function createStateDesigner<
   R extends Record<string, S.Result<D>>,
   C extends Record<string, S.Condition<D>>,
   A extends Record<string, S.Action<D>>,
-  Y extends Record<string, S.Async<D>>
->(config: S.Config<D, R, C, A, Y>): S.StateDesigner<D> {
+  Y extends Record<string, S.Async<D>>,
+  T extends Record<string, S.Time<D>>
+>(config: S.Config<D, R, C, A, Y, T>): S.StateDesigner<D, R, C, A, Y, T> {
   /* ------------------ Mutable Data ------------------ */
 
-  const id = isUndefined(config.id) ? "root" : config.id
+  const id = "#" + (isUndefined(config.id) ? `state_${uniqueId()}` : config.id)
 
   const current: {
     payload: any
@@ -36,7 +38,7 @@ export function createStateDesigner<
 
   let data: D = config.data as D
 
-  const stateTree = getStateTreeFromConfig(config)
+  const stateTree = getStateTreeFromConfig(config, id)
 
   let active = StateTree.getActiveStates(stateTree)
 
@@ -97,7 +99,7 @@ export function createStateDesigner<
   // occurred, it will move to try its child states.
   async function handleEventOnState(
     state: S.State<D>,
-    sent: S.SendItem
+    sent: S.Event
   ): Promise<void> {
     if (state.active) {
       const eventHandler = state.on[sent.event]
@@ -355,7 +357,7 @@ export function createStateDesigner<
 
   /* -------------- Sent Event Processing ------------- */
 
-  const sendQueue: S.SendItem[] = []
+  const sendQueue: S.Event[] = []
 
   let pendingProcess: Promise<S.Update<D>> | void
 
@@ -546,6 +548,14 @@ export function createStateDesigner<
     return returnValue
   }
 
+  /**
+   * Get the original config object (for debugging, mostly)
+   * @public
+   */
+  function getConfig() {
+    return config
+  }
+
   /* --------------------- Kickoff -------------------- */
 
   // Deactivate the tree, then activate it again to trigger events
@@ -553,7 +563,7 @@ export function createStateDesigner<
   runTransition(() => "root")
 
   return {
-    id: stateTree.name,
+    id,
     data,
     active,
     send,
@@ -563,5 +573,6 @@ export function createStateDesigner<
     stateTree,
     onUpdate,
     getUpdate,
+    getConfig,
   }
 }

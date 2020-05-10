@@ -23,9 +23,7 @@ export function getStateTreeFromConfig<
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>
->(config: S.Config<D, R, C, A, Y, T>) {
-  const id = "#" + (isUndefined(config.id) ? "state" : config.id)
-
+>(config: S.Config<D, R, C, A, Y, T>, id: string) {
   const labels = new Map<Record<string, S.EventFn<D, any>> | undefined, string>(
     [
       [config.results, "results"],
@@ -66,21 +64,32 @@ export function getStateTreeFromConfig<
 
   function getTime(item: S.TimeConfig<D, T> | undefined) {
     if (isUndefined(item)) return undefined
-    return isNumber(item) ? () => item : getEventFn(item, config.times)
+    return isNumber(item)
+      ? castToNamedFunction(item)
+      : getEventFn(item, config.times)
   }
 
   function getSend(item: S.SendConfig<D> | undefined): S.Send<D> | undefined {
     if (isUndefined(item)) return undefined
-    if (isString(item)) return () => ({ event: item, payload: undefined })
+    if (isString(item))
+      return castToNamedFunction({ event: item, payload: undefined })
     if (isFunction(item)) return item
-    return () => item
+    return castToNamedFunction(item)
+  }
+
+  function castToNamedFunction<T>(item: T): () => T {
+    return {
+      [item as any]() {
+        return item
+      },
+    }[item as any]
   }
 
   function castToFunction<T>(
     item: T | S.EventFn<D, T> | undefined
   ): S.EventFn<D, T> | undefined {
     if (isUndefined(item)) return undefined
-    return isFunction(item) ? item : () => item
+    return isFunction(item) ? item : castToNamedFunction(item)
   }
 
   function getResults(items: S.MaybeArray<S.ResultConfig<D, R>> | undefined) {

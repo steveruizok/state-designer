@@ -18,17 +18,23 @@ export function useStateDesigner<
   D extends unknown,
   R extends Record<string, S.Result<D>>,
   C extends Record<string, S.Condition<D>>,
-  A extends Record<string, S.Action<D>>
+  A extends Record<string, S.Action<D>>,
+  Y extends Record<string, S.Async<D>>,
+  T extends Record<string, S.Time<D>>
 >(
-  config: S.Config<D, R, C, A> | S.StateDesigner<D>,
+  config: S.Config<D, R, C, A, Y, T> | S.StateDesigner<D, R, C, A, Y, T>,
   dependencies = emptyArray
-): S.Update<D> & Pick<S.StateDesigner<D>, "send" | "isIn" | "can" | "whenIn"> {
+): S.Update<D> &
+  Pick<
+    S.StateDesigner<D, R, C, A, Y, T>,
+    "send" | "isIn" | "can" | "whenIn" | "getConfig"
+  > {
   // Store a state — either as provided or new from config,
   // and, if given a config, re-create the state when dependencies change
-  const state: S.StateDesigner<D> = React.useMemo(() => {
-    return isUndefined((config as S.StateDesigner<D>).send)
+  const state: S.StateDesigner<D, R, C, A, Y, T> = React.useMemo(() => {
+    return isUndefined((config as S.StateDesigner<D, R, C, A, Y, T>).send)
       ? createStateDesigner(config)
-      : (config as S.StateDesigner<D>)
+      : (config as S.StateDesigner<D, R, C, A, Y, T>)
   }, dependencies)
 
   // Keep subscription updates in state
@@ -44,6 +50,6 @@ export function useStateDesigner<
 
   return {
     ...update,
-    ...pick(state, ["send", "isIn", "can", "whenIn"]),
+    ...pick(state, ["send", "isIn", "can", "whenIn", "getConfig"]),
   }
 }

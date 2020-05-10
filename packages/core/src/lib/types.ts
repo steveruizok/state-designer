@@ -46,11 +46,11 @@ export type TargetConfig<D> = string | EventFn<D, string>
 
 // Send
 
-export type SendItem = { event: string; payload: any }
+export type Event = { event: string; payload: any }
 
-export type Send<D> = EventFn<D, SendItem>
+export type Send<D> = EventFn<D, Event>
 
-export type SendConfig<D> = string | SendItem | EventFn<D, SendItem>
+export type SendConfig<D> = string | Event | EventFn<D, Event>
 
 // Break
 
@@ -208,7 +208,14 @@ export type Update<D> = {
 
 // State Designer
 
-export interface StateDesigner<D> {
+export interface StateDesigner<
+  D,
+  R extends Record<string, Result<D>>,
+  C extends Record<string, Condition<D>>,
+  A extends Record<string, Action<D>>,
+  Y extends Record<string, Async<D>>,
+  T extends Record<string, Time<D>>
+> {
   id: string
   data: D
   active: State<D>[]
@@ -228,4 +235,5 @@ export interface StateDesigner<D> {
     ) => any,
     initial?: any
   ) => any
+  getConfig: () => Config<D, R, C, A, Y, T>
 }
