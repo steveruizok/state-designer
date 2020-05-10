@@ -139,112 +139,101 @@ export function createStateDesigner<
     let localUpdate = {
       didAction: false,
       didTransition: false,
+      send: undefined as S.Event | undefined,
       transition: undefined as S.EventFn<D, string> | undefined,
     }
 
-    for (let item of eventHandler) {
-      // Results
-
-      current = produce(current, (c) => {
+    current = await produce(current, async (c) => {
+      for (let item of eventHandler) {
+        // Results
         for (let resu of item.get) {
           c.result = resu(c.data as D, c.payload, c.result)
         }
-      })
 
-      // Conditions
+        // Conditions
+        let passedConditions = true
 
-      let passedConditions = true
+        if (passedConditions && item.if.length > 0) {
+          passedConditions = item.if.every((cond) =>
+            cond(c.data as D, c.payload, c.result)
+          )
+        }
 
-      if (passedConditions && item.if.length > 0) {
-        passedConditions = item.if.every((cond) =>
-          cond(current.data, current.payload, current.result)
-        )
-      }
+        if (passedConditions && item.unless.length > 0) {
+          passedConditions = item.unless.every(
+            (cond) => !cond(c.data as D, c.payload, c.result)
+          )
+        }
 
-      if (passedConditions && item.unless.length > 0) {
-        passedConditions = item.unless.every(
-          (cond) => !cond(current.data, current.payload, current.result)
-        )
-      }
+        if (passedConditions && item.ifAny.length > 0) {
+          passedConditions = item.ifAny.some((cond) =>
+            cond(c.data as D, c.payload, c.result)
+          )
+        }
 
-      if (passedConditions && item.ifAny.length > 0) {
-        passedConditions = item.ifAny.some((cond) =>
-          cond(current.data, current.payload, current.result)
-        )
-      }
+        if (item.wait) {
+          const s = item.wait(c.data as D, c.payload, c.result)
+          await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
+        }
 
-      if (item.wait) {
-        const s = item.wait(current.data, current.payload, current.result)
-        await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
-      }
+        if (passedConditions) {
+          // Actions
+          if (item.do.length > 0) {
+            localUpdate.didAction = true
 
-      if (passedConditions) {
-        // Actions
-        if (item.do.length > 0) {
-          localUpdate.didAction = true
-
-          current = produce(current, (c) => {
             for (let action of item.do) {
               action(c.data as D, c.payload, c.result)
             }
-          })
-        }
-
-        // Send
-        if (!isUndefined(item.send)) {
-          const sendItem = item.send(
-            current.data,
-            current.payload,
-            current.result
-          )
-          send(sendItem.event, sendItem.payload)
-        }
-
-        // Transitions
-        if (!isUndefined(item.to)) {
-          if (update.transitions > 200) {
-            throw Error("Stuck in a loop! Bailing.")
           }
 
-          update.transitions++
-          localUpdate.didTransition = true
-          localUpdate.transition = item.to
-          break
-        }
-      } else {
-        // Else Actions
-        if (item.elseDo.length > 0) {
-          localUpdate.didAction = true
+          // Send
+          if (!isUndefined(item.send)) {
+            localUpdate.send = item.send(c.data as D, c.payload, c.result)
+          }
 
-          current = produce(current, (c) => {
+          // Transitions
+          if (!isUndefined(item.to)) {
+            if (update.transitions > 200) {
+              throw Error("Stuck in a loop! Bailing.")
+            }
+
+            update.transitions++
+            localUpdate.didTransition = true
+            localUpdate.transition = item.to
+            break
+          }
+        } else {
+          // Else Actions
+          if (item.elseDo.length > 0) {
+            localUpdate.didAction = true
+
             for (let action of item.elseDo) {
               action(c.data as D, c.payload, c.result)
             }
-          })
-        }
-
-        // Else Send
-        if (!isUndefined(item.elseSend)) {
-          const sendItem = item.elseSend(
-            current.data,
-            current.payload,
-            current.result
-          )
-          send(sendItem.event, sendItem.payload)
-        }
-
-        // Else Transitions
-        if (!isUndefined(item.elseTo)) {
-          if (update.transitions > 200) {
-            throw Error("Stuck in a loop! Bailing.")
           }
 
-          update.transitions++
-          localUpdate.didTransition = true
-          localUpdate.transition = item.elseTo
-          break
+          // Else Send
+          if (!isUndefined(item.elseSend)) {
+            localUpdate.send = item.elseSend(c.data as D, c.payload, c.result)
+          }
+
+          // Else Transitions
+          if (!isUndefined(item.elseTo)) {
+            if (update.transitions > 200) {
+              throw Error("Stuck in a loop! Bailing.")
+            }
+
+            update.transitions++
+            localUpdate.didTransition = true
+            localUpdate.transition = item.elseTo
+            break
+          }
         }
       }
+    })
+
+    if (!isUndefined(localUpdate.send)) {
+      send(localUpdate.send.event, localUpdate.send.payload)
     }
 
     // If we made a transition, run that transition
