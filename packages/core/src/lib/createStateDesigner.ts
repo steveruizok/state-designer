@@ -4,10 +4,13 @@ import trimEnd from "lodash-es/trimEnd"
 import isFunction from "lodash-es/isFunction"
 import uniqueId from "lodash-es/uniqueId"
 import isUndefined from "lodash-es/isUndefined"
-import { Draft, produce } from "immer"
+import { produce, setAutoFreeze, enableAllPlugins } from "immer"
 import * as S from "./types"
 import * as StateTree from "./stateTree"
 import { getStateTreeFromConfig } from "./getStateTreeFromConfig"
+
+setAutoFreeze(false)
+enableAllPlugins()
 
 /* -------------------------------------------------- */
 /*                Create State Designer               */
