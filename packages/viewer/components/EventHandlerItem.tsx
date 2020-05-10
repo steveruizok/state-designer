@@ -33,6 +33,16 @@ export const EventHandlerItem: React.FC<{
           )}
         </Card>
       )}
+      {item.wait && (
+        <Card variant="eventFns">
+          <Styled.pre>wait</Styled.pre>
+          {item.wait.name === "to" ? (
+            <EventFn eventFn={item.wait} showName={false} />
+          ) : (
+            <Styled.pre>{item.wait.name}</Styled.pre>
+          )}
+        </Card>
+      )}
     </Card>
   )
 }

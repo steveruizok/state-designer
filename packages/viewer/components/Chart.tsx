@@ -16,16 +16,20 @@ const state = createStateDesigner({
   states: {
     inactive: {
       on: {
-        TURNED_ON: { to: () => "active" },
+        TURNED_ON: {
+          get: [(d) => d.count, (data, payload, result) => result - 1],
+          do: [(data, payload, result) => console.log(result)],
+          to: () => "active",
+        },
       },
     },
     active: {
       repeat: {
-        event: [{ do: "increment" }, { do: "increment" }],
+        event: [{ do: "increment" }],
         delay: 1,
       },
       on: {
-        TURNED_OFF: { to: "inactive" },
+        TURNED_OFF: { to: "inactive", wait: 1 },
         PLUSSED: [
           {
             do: ["increment", (d) => d.count++],
@@ -52,7 +56,9 @@ export const Chart: React.FC<{}> = () => {
     state
   )
 
-  const config = getConfig()
+  const config = React.useMemo(() => {
+    return getConfig()
+  }, [getConfig])
 
   return (
     <Box>

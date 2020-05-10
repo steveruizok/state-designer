@@ -27,7 +27,7 @@ export const State: React.FC<{ state: S.State<any>; initial: boolean }> = ({
 
   const hasEvents = hasAutoEvents || hasOnEvents
 
-  const { data, send, whenIn, isIn } = useStateDesigner({
+  const { send, whenIn, isIn } = useStateDesigner({
     initial: "expanded",
     states: {
       expanded: { on: { TOGGLE: { to: "collapsed" } } },

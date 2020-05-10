@@ -70,6 +70,7 @@ export type EventHandlerItem<D> = {
   to?: Target<D>
   elseTo?: Target<D>
   send?: Send<D>
+  elseSend?: Send<D>
   wait?: Time<D>
   break?: Break<D>
 }
@@ -84,6 +85,7 @@ export type EventHandlerItemConfig<D, R, C, A, T> = {
   to?: TargetConfig<D>
   elseTo?: TargetConfig<D>
   send?: SendConfig<D>
+  elseSend?: SendConfig<D>
   wait?: TimeConfig<D, T>
   break?: BreakConfig<D>
 }

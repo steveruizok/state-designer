@@ -5,11 +5,11 @@ import isFunction from "lodash-es/isFunction"
 import uniqueId from "lodash-es/uniqueId"
 import isUndefined from "lodash-es/isUndefined"
 import { produce, setAutoFreeze, enableAllPlugins } from "immer"
+
 import * as S from "./types"
 import * as StateTree from "./stateTree"
 import { getStateTreeFromConfig } from "./getStateTreeFromConfig"
 
-setAutoFreeze(false)
 enableAllPlugins()
 
 /* -------------------------------------------------- */
@@ -28,18 +28,17 @@ export function createStateDesigner<
 
   const id = "#" + (isUndefined(config.id) ? `state_${uniqueId()}` : config.id)
 
-  const current: {
+  let current: {
+    data: D
     payload: any
     result: any
-  } = { payload: undefined, result: undefined }
+  } = { data: config.data as D, payload: undefined, result: undefined }
 
   const update = {
     transitions: 0,
     didTransition: false,
     didAction: false,
   }
-
-  let data: D = config.data as D
 
   const stateTree = getStateTreeFromConfig(config, id)
 
@@ -74,7 +73,9 @@ export function createStateDesigner<
   // Call each subscriber callback with the state's current update
   function notifySubscribers() {
     active = StateTree.getActiveStates(stateTree)
-    subscribers.forEach((subscriber) => subscriber({ data, active, stateTree }))
+    subscribers.forEach((subscriber) =>
+      subscriber({ data: current.data, active, stateTree })
+    )
   }
 
   /* --------------------- Updates -------------------- */
@@ -92,8 +93,8 @@ export function createStateDesigner<
   // useful in handling delayed events, repeats, etc; so that they don't
   // interfere with "on thread" event handling.
   async function runOffThreadEventHandler(eventHandler: S.EventHandler<D>) {
-    const updates = await runEventHandler(eventHandler)
-    return updates
+    const localUpdate = await runEventHandler(eventHandler)
+    return localUpdate
   }
 
   // Try to run an event on a state. If active, it will run the corresponding
@@ -109,13 +110,13 @@ export function createStateDesigner<
 
       // Run event handler, if present
       if (!isUndefined(eventHandler)) {
-        runOnThreadEventHandler(eventHandler)
+        await runOnThreadEventHandler(eventHandler)
         if (update.didTransition) return
       }
 
       // Run onEvent, if present
       if (!isUndefined(state.onEvent)) {
-        runOnThreadEventHandler(state.onEvent)
+        await runOnThreadEventHandler(state.onEvent)
         if (update.didTransition) return
       }
 
@@ -138,14 +139,17 @@ export function createStateDesigner<
     let localUpdate = {
       didAction: false,
       didTransition: false,
+      transition: undefined as S.EventFn<D, string> | undefined,
     }
 
     for (let item of eventHandler) {
       // Results
 
-      for (let resu of item.get) {
-        current.result = resu(data, current.payload, current.result)
-      }
+      current = produce(current, (c) => {
+        for (let resu of item.get) {
+          c.result = resu(c.data as D, c.payload, c.result)
+        }
+      })
 
       // Conditions
 
@@ -153,24 +157,24 @@ export function createStateDesigner<
 
       if (passedConditions && item.if.length > 0) {
         passedConditions = item.if.every((cond) =>
-          cond(data, current.payload, current.result)
+          cond(current.data, current.payload, current.result)
         )
       }
 
       if (passedConditions && item.unless.length > 0) {
         passedConditions = item.unless.every(
-          (cond) => !cond(data, current.payload, current.result)
+          (cond) => !cond(current.data, current.payload, current.result)
         )
       }
 
       if (passedConditions && item.ifAny.length > 0) {
         passedConditions = item.ifAny.some((cond) =>
-          cond(data, current.payload, current.result)
+          cond(current.data, current.payload, current.result)
         )
       }
 
       if (item.wait) {
-        const s = item.wait(data, current.payload, current.result)
+        const s = item.wait(current.data, current.payload, current.result)
         await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
       }
 
@@ -178,16 +182,21 @@ export function createStateDesigner<
         // Actions
         if (item.do.length > 0) {
           localUpdate.didAction = true
-          data = produce(data, (draft) => {
+
+          current = produce(current, (c) => {
             for (let action of item.do) {
-              action(draft as D, current.payload, current.result)
+              action(c.data as D, c.payload, c.result)
             }
           })
         }
 
         // Send
         if (!isUndefined(item.send)) {
-          const sendItem = item.send(data, current.payload, current.result)
+          const sendItem = item.send(
+            current.data,
+            current.payload,
+            current.result
+          )
           send(sendItem.event, sendItem.payload)
         }
 
@@ -199,18 +208,29 @@ export function createStateDesigner<
 
           update.transitions++
           localUpdate.didTransition = true
-          runTransition(item.to)
-          return localUpdate
+          localUpdate.transition = item.to
+          break
         }
       } else {
         // Else Actions
         if (item.elseDo.length > 0) {
           localUpdate.didAction = true
-          data = produce(data, (draft) => {
+
+          current = produce(current, (c) => {
             for (let action of item.elseDo) {
-              action(draft as D, current.payload, current.result)
+              action(c.data as D, c.payload, c.result)
             }
           })
+        }
+
+        // Else Send
+        if (!isUndefined(item.elseSend)) {
+          const sendItem = item.elseSend(
+            current.data,
+            current.payload,
+            current.result
+          )
+          send(sendItem.event, sendItem.payload)
         }
 
         // Else Transitions
@@ -221,17 +241,22 @@ export function createStateDesigner<
 
           update.transitions++
           localUpdate.didTransition = true
-          runTransition(item.elseTo)
-          return localUpdate
+          localUpdate.transition = item.elseTo
+          break
         }
       }
+    }
+
+    // If we made a transition, run that transition
+    if (!isUndefined(localUpdate.transition)) {
+      await runTransition(localUpdate.transition)
     }
 
     return localUpdate
   }
 
   async function runTransition(targetFn: S.EventFn<D, string>) {
-    let path = targetFn(data, current.payload, current.result)
+    let path = targetFn(current.data, current.payload, current.result)
 
     // Is this a restore transition?
 
@@ -299,10 +324,9 @@ export function createStateDesigner<
       const { onExit } = state
 
       if (!isUndefined(onExit)) {
-        runOnThreadEventHandler(onExit)
+        await runOnThreadEventHandler(onExit)
+        if (update.transitions > currentTransitions) return
       }
-
-      if (update.transitions > currentTransitions) return
     }
 
     // Activated States
@@ -314,7 +338,7 @@ export function createStateDesigner<
       const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
-        const s = repeat.delay(data, current.payload, current.result)
+        const s = repeat.delay(current.data, current.payload, current.result)
 
         state.intervals.push(
           setInterval(async () => {
@@ -328,13 +352,12 @@ export function createStateDesigner<
       }
 
       if (!isUndefined(onEnter)) {
-        runOnThreadEventHandler(onEnter)
+        await runOnThreadEventHandler(onEnter)
+        if (update.transitions > currentTransitions) return
       }
 
-      if (update.transitions > currentTransitions) return
-
       if (!isUndefined(async)) {
-        async.await(data, current.payload, current.result).then(
+        async.await(current.data, current.payload, current.result).then(
           async (result) => {
             current.result = result
             const localUpdate = await runOffThreadEventHandler(async.onResolve)
@@ -373,11 +396,13 @@ export function createStateDesigner<
     if (isUndefined(next)) {
       pendingProcess = undefined
       update.transitions = 0
-      return { data: data, active, stateTree }
+      return { data: current.data, active, stateTree }
     }
 
-    current.payload = next.payload
-    current.result = undefined
+    current = produce(current, (draft) => {
+      draft.payload = next.payload
+      draft.result = undefined
+    })
 
     // Handle the event and set the current handleEventOnState
     // promise, which will hold any additional sent events
@@ -419,7 +444,7 @@ export function createStateDesigner<
    */
   function getUpdate(callbackFn: S.SubscriberFn<D>) {
     active = StateTree.getActiveStates(stateTree)
-    callbackFn({ data, active, stateTree })
+    callbackFn({ data: current.data, active, stateTree })
   }
 
   /**
@@ -458,7 +483,11 @@ export function createStateDesigner<
    * @public
    */
   function can(eventName: string, payload?: any): boolean {
-    current.payload = payload
+    let local = {
+      data: current.data,
+      payload,
+      result: undefined as any,
+    }
 
     return !isUndefined(
       active.find((state) => {
@@ -466,13 +495,15 @@ export function createStateDesigner<
 
         if (!isUndefined(eventHandler)) {
           for (let item of eventHandler) {
-            current.result = undefined
+            local.result = undefined
 
             // Result
 
-            for (let resu of item.get) {
-              current.result = resu(data, current.payload, current.result)
-            }
+            local = produce(local, (l) => {
+              for (let resu of item.get) {
+                l.result = resu(l.data as D, l.payload, l.result)
+              }
+            })
 
             // Conditions
 
@@ -480,19 +511,19 @@ export function createStateDesigner<
 
             if (passedConditions && item.if.length > 0) {
               passedConditions = item.if.every((cond) =>
-                cond(data, current.payload, current.result)
+                cond(local.data, local.payload, local.result)
               )
             }
 
             if (passedConditions && item.unless.length > 0) {
               passedConditions = item.unless.every(
-                (cond) => !cond(data, current.payload, current.result)
+                (cond) => !cond(local.data, local.payload, local.result)
               )
             }
 
             if (passedConditions && item.ifAny.length > 0) {
               passedConditions = item.ifAny.some((cond) =>
-                cond(data, current.payload, current.result)
+                cond(local.data, local.payload, local.result)
               )
             }
 
@@ -567,7 +598,7 @@ export function createStateDesigner<
 
   return {
     id,
-    data,
+    data: current.data,
     active,
     send,
     isIn,

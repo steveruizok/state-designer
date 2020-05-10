@@ -126,6 +126,7 @@ export function getStateTreeFromConfig<
       to: castToFunction(itemCfg.to),
       elseTo: castToFunction(itemCfg.elseTo),
       send: getSend(itemCfg.send),
+      elseSend: getSend(itemCfg.elseSend),
       wait: getTime(itemCfg.wait),
       break: castToFunction(itemCfg.break),
     }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.11
+
+- Adds `elseSend`.
+- Begins preliminary work on viewer.
+- Fixes problems with immutable data. (I'll avoid unfreezing as long as I can.)
+
 ## 1.1.10
 
 - Fixes `can` bug where conditions were failing.
