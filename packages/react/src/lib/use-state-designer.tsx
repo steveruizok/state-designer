@@ -23,7 +23,7 @@ export function useStateDesigner<
   T extends Record<string, S.Time<D>>
 >(
   config: S.Config<D, R, C, A, Y, T> | S.StateDesigner<D, R, C, A, Y, T>,
-  dependencies = emptyArray
+  dependencies: any[] = emptyArray
 ): S.Update<D> &
   Pick<
     S.StateDesigner<D, R, C, A, Y, T>,

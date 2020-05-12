@@ -16,6 +16,11 @@ enableAllPlugins()
 /*                Create State Designer               */
 /* -------------------------------------------------- */
 
+/**
+ * Create a new state from a configuration object.
+ * @param config
+ * @public
+ */
 export function createStateDesigner<
   D,
   R extends Record<string, S.Result<D>>,
