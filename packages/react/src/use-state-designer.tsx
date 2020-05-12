@@ -1,9 +1,8 @@
-import pick from "lodash-es/pick"
-import isUndefined from "lodash-es/isUndefined"
-import * as React from "react"
-import { createStateDesigner, S } from "@state-designer/core"
+import { isUndefined, pick } from 'lodash';
+import * as React from 'react';
+import { createStateDesigner, S } from '@state-designer/core';
 
-const emptyArray: any[] = []
+const emptyArray: any[] = [];
 
 /* -------------------------------------------------- */
 /*                     React Hook                     */
@@ -27,29 +26,29 @@ export function useStateDesigner<
 ): S.Update<D> &
   Pick<
     S.StateDesigner<D, R, C, A, Y, T>,
-    "send" | "isIn" | "can" | "whenIn" | "getConfig"
+    'send' | 'isIn' | 'can' | 'whenIn' | 'getConfig'
   > {
   // Store a state — either as provided or new from config,
   // and, if given a config, re-create the state when dependencies change
   const state: S.StateDesigner<D, R, C, A, Y, T> = React.useMemo(() => {
     return isUndefined((config as S.StateDesigner<D, R, C, A, Y, T>).send)
       ? createStateDesigner(config)
-      : (config as S.StateDesigner<D, R, C, A, Y, T>)
-  }, dependencies)
+      : (config as S.StateDesigner<D, R, C, A, Y, T>);
+  }, dependencies);
 
   // Keep subscription updates in state
   const [update, setUpdate] = React.useState<S.Update<D>>({
     data: state.data,
     stateTree: state.stateTree,
     active: state.active,
-  })
+  });
 
   // Subscribe to changes — and resubscribe when dependencies change.
   // Note that the effect returns the cancel function returned by onChange.
-  React.useEffect(() => state.onUpdate(setUpdate), [state, setUpdate])
+  React.useEffect(() => state.onUpdate(setUpdate), [state, setUpdate]);
 
   return {
     ...update,
-    ...pick(state, ["send", "isIn", "can", "whenIn", "getConfig"]),
-  }
+    ...pick(state, ['send', 'isIn', 'can', 'whenIn', 'getConfig']),
+  };
 }

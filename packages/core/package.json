@@ -1,37 +1,54 @@
 {
   "name": "@state-designer/core",
   "version": "1.1.11",
-  "private": false,
   "description": "Core package for State Designer, a state management library.",
   "author": "steveruizok",
-  "publishConfig": {
-    "access": "public"
-  },
-  "license": "MIT",
   "repository": "https://github.com/steveruizok/state-designer",
-  "files": [
-    "dist"
-  ],
+  "private": false,
+  "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/index.modern.js",
   "typings": "dist/index.d.ts",
-  "source": "src/index.tsx",
+  "files": [
+    "dist",
+    "src"
+  ],
   "engines": {
     "node": ">=10"
   },
   "scripts": {
-    "build": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
-    "start": "microbundle-crl watch --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
-    "compile": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json"
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build"
   },
+  "peerDependencies": {},
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "module": "dist/core.esm.js",
   "devDependencies": {
-    "immer": "^6.0.3",
-    "microbundle-crl": "^0.13.10"
-  },
-  "gitHead": "68339fd4a49727ebfb95e74fed330ac9f5f58e3c",
-  "dependencies": {
+    "@types/lodash-es": "^4.17.3",
+    "@types/lodash": "^4.14.150",
     "@types/object.fromentries": "^2.0.0",
+    "husky": "^4.2.5",
     "object.entries": "^1.1.1",
-    "object.fromentries": "^2.0.2"
+    "object.fromentries": "^2.0.2",
+    "tsdx": "^0.13.2",
+    "tslib": "^1.11.2",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "lodash-es": "^4.17.15",
+    "immer": "^6.0.5"
   }
 }

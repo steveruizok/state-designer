@@ -1,7 +1,9 @@
-# @state-designer/react
+# State Designer / React
 
-> State manager.
+```
+npm install @state-designer/react
 
-## License
+// or
 
-MIT © [steveruizok](https://github.com/steveruizok)
+yarn add @state-designer/react
+```

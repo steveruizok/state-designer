@@ -1,4 +1,4 @@
-import * as S from "./types"
+import * as S from './types';
 
 /* -------------------------------------------------- */
 /*                    Create Config                   */
@@ -33,5 +33,5 @@ export function createConfig<
       conditionConfig,
     getResultConfig: (resultConfig: S.ResultConfig<D, R>) => resultConfig,
     getTimeConfig: (timeConfig: S.TimeConfig<D, T>) => timeConfig,
-  }
+  };
 }

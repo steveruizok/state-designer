@@ -1,22 +1,47 @@
 {
   "extends": "./tsconfig.build.json",
+  "include": ["packages"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "example",
+    "__tests__",
+    "**/*.test*",
+    "**/*.spec*"
+  ],
   "compilerOptions": {
-    "baseUrl": ".",
+    "rootDir": "./",
+    "baseUrl": "./",
     "paths": {
       "@state-designer/*": ["packages/*/src"]
     },
-    "lib": ["dom", "esnext"],
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "target": "es5",
-    "moduleResolution": "node",
-    "jsx": "react",
-    "esModuleInterop": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
+    "module": "esnext",
+    "lib": ["dom", "esnext"],
+    "importHelpers": true,
+    "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "allowSyntheticDefaultImports": true
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   }
 }

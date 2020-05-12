@@ -1,5 +1,5 @@
-import isUndefined from "lodash-es/isUndefined"
-import * as S from "./types"
+import { isUndefined } from 'lodash';
+import * as S from './types';
 
 /*
   Note: The functions in this file do not rely on closures.
@@ -12,9 +12,9 @@ import * as S from "./types"
  * @param state
  */
 export function deactivateState<D = any>(state: S.State<D>) {
-  state.active = false
+  state.active = false;
   for (let childState of Object.values(state.states)) {
-    deactivateState(childState)
+    deactivateState(childState);
   }
 }
 
@@ -25,16 +25,16 @@ export function deactivateState<D = any>(state: S.State<D>) {
  * @param state The current state to examine.
  */
 export function getActiveStates<D = any>(state: S.State<D>) {
-  const acc: S.State<D>[] = []
+  const acc: S.State<D>[] = [];
 
   if (state.active) {
-    acc.push(state)
+    acc.push(state);
     for (let childState of Object.values(state.states)) {
-      acc.push(...getActiveStates(childState))
+      acc.push(...getActiveStates(childState));
     }
   }
 
-  return acc
+  return acc;
 }
 
 /**
@@ -56,51 +56,51 @@ export function activateState<D = any>(
   restore: boolean
 ): void {
   // Activate this state
-  state.active = true
+  state.active = true;
 
   // If this state is next in the path, remove it from path
   if (state.name === path[0]) {
-    path.shift()
+    path.shift();
   }
 
   // Only actually restore previous on target state and its descendents
-  const activatePrevious = previous && path.length === 0
+  const activatePrevious = previous && path.length === 0;
 
   // If state is parallel, activate all child states.
   // Don't worry about history.
   if (isUndefined(state.initial)) {
     for (let childState of Object.values(state.states)) {
-      activateState(childState, path, restore, restore)
+      activateState(childState, path, restore, restore);
     }
-    return
+    return;
   }
 
   // Branch states will activate either state in path or else,
   // if at the end of the path (or in a branch outside of it),
   // either its initial state or previous state (when restoring).
-  const childStates = Object.values(state.states)
+  const childStates = Object.values(state.states);
 
   // If the state is in path, then use the path for the next active
   // state; otherwise, use the state's initial value.
-  const inPath = childStates.find((state) => state.name === path[0])
+  const inPath = childStates.find((state) => state.name === path[0]);
 
   // If restore and previous state remaining, pop that state and
   // activate the child with that name
   if (activatePrevious) {
     if (state.history.length > 1) {
       // Activating previous and remaining history — pop and activate previous
-      const prev = state.history.pop()
+      const prev = state.history.pop();
 
       for (let childState of Object.values(state.states)) {
         if (childState.name === prev) {
-          activateState(childState, path, restore, restore)
+          activateState(childState, path, restore, restore);
         }
       }
     } else {
       // Activating previous but no history left — activate previous
       for (let childState of childStates) {
         if (childState.name === state.history[0]) {
-          activateState(childState, path, restore, restore)
+          activateState(childState, path, restore, restore);
         }
       }
     }
@@ -108,21 +108,21 @@ export function activateState<D = any>(
     // Not activating previous, in path — activate next in path
     for (let childState of childStates) {
       if (childState.name === path[0]) {
-        state.history.push(childState.name)
-        activateState(childState, path, previous, restore)
+        state.history.push(childState.name);
+        activateState(childState, path, previous, restore);
       }
     }
   } else {
     // Not activating previous, not in path — activate initial
     for (let childState of Object.values(state.states)) {
       if (childState.name === state.initial) {
-        state.history.push(childState.name)
-        activateState(childState, path, false, false)
+        state.history.push(childState.name);
+        activateState(childState, path, false, false);
       }
     }
   }
 
-  return
+  return;
 }
 
 /**
@@ -136,19 +136,19 @@ export function findTransitionTargets<D = any>(
   state: S.State<D>,
   path: string
 ): S.State<D>[] {
-  const acc: S.State<D>[] = []
+  const acc: S.State<D>[] = [];
 
-  let safePath = path.startsWith(".") ? path : "." + path
+  let safePath = path.startsWith('.') ? path : '.' + path;
 
   if (state.path.endsWith(safePath)) {
-    acc.push(state)
+    acc.push(state);
   }
 
   for (let childState of Object.values(state.states)) {
-    acc.push(...findTransitionTargets(childState, path))
+    acc.push(...findTransitionTargets(childState, path));
   }
 
-  return acc
+  return acc;
 }
 
 /**
@@ -157,8 +157,8 @@ export function findTransitionTargets<D = any>(
  */
 export function clearIntervalsOnState<D = any>(state: S.State<D>) {
   for (let interval of state.intervals) {
-    clearInterval(interval)
+    clearInterval(interval);
   }
 
-  state.intervals = []
+  state.intervals = [];
 }

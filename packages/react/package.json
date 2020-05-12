@@ -1,41 +1,58 @@
 {
   "name": "@state-designer/react",
   "version": "1.1.11",
-  "private": false,
-  "description": "A React hook for State Designer, a state management library.",
+  "description": "React hook for State Designer, a state management library.",
   "author": "steveruizok",
-  "publishConfig": {
-    "access": "public"
-  },
-  "license": "MIT",
   "repository": "https://github.com/steveruizok/state-designer",
+  "private": false,
+  "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/index.modern.js",
   "typings": "dist/index.d.ts",
-  "source": "src/index.tsx",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "engines": {
     "node": ">=10"
   },
   "scripts": {
-    "build": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
-    "start": "microbundle-crl watch --no-compress --format modern,cjs --tsconfig tsconfig.build.json",
-    "compile": "microbundle-crl --no-compress --format modern,cjs --tsconfig tsconfig.build.json"
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test --passWithNoTests",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build"
   },
   "peerDependencies": {
-    "react": "^16.0.0"
+    "react": ">=16"
   },
-  "dependencies": {
-    "@state-designer/core": "^1.1.11"
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
   },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "module": "dist/react.esm.js",
   "devDependencies": {
-    "@types/react": "^16.9.27",
-    "microbundle-crl": "^0.13.10",
+    "@types/lodash": "^4.14.150",
+    "@types/lodash-es": "^4.17.3",
+    "@types/react": "^16.9.35",
+    "@types/react-dom": "^16.9.8",
+    "husky": "^4.2.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "^3.4.1"
+    "tsdx": "^0.13.2",
+    "tslib": "^1.11.2",
+    "typescript": "^3.8.3"
   },
-  "gitHead": "68339fd4a49727ebfb95e74fed330ac9f5f58e3c"
+  "dependencies": {
+    "@state-designer/core": "^1.1.11",
+    "@types/lodash": "^4.14.150",
+    "@types/lodash-es": "^4.17.3",
+    "lodash-es": "^4.17.15"
+  }
 }

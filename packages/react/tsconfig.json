@@ -1,15 +1,9 @@
 {
   "extends": "../../tsconfig.json",
-
+  "include": ["src", "types", "test"],
+  "exclude": ["node_modules", "dist", "__tests__", "**/*.test*", "**/*.spec*"],
   "compilerOptions": {
-    "moduleResolution": "node",
-    "strict": true,
-    "sourceMap": true,
-    "declaration": true,
-    "declarationDir": "dist",
-    "outDir": "dist",
-    "target": "es5"
-  },
-
-  "include": ["src/**/*"]
+    "rootDir": "./",
+    "baseUrl": "./src"
+  }
 }

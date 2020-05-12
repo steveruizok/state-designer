@@ -1,7 +1,9 @@
-# @state-designer/core
+# State Designer / Core
 
-> State manager.
+```
+npm install @state-designer/core
 
-## License
+// or
 
-MIT © [steveruizok](https://github.com/steveruizok)
+yarn add @state-designer/core
+```

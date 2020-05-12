@@ -32,11 +32,12 @@
     - [x] async/await send
   - [x] tree
   - [x] whenIn
-- [ ] view
+- [ ] viewer
   - [ ] package
   - [ ] viewStateDesigner
-  - [ ] View
+  - [ ] Viewer
 - [x] split into packages
   - [x] core
   - [x] react
-  - [ ] view
+  - [x] viewer
+- [x] move to tsdx
