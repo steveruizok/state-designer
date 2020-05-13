@@ -7,10 +7,7 @@ export const config = createConfig({
   states: {
     inactive: {
       on: {
-        TOGGLE: {
-          to: "active",
-          do: () => console.log("toggled from inactive"),
-        },
+        TOGGLE: { to: "active" },
       },
     },
     active: {
@@ -20,7 +17,7 @@ export const config = createConfig({
         CLICKED_MINUS: { do: "increment" },
         ADDED_BY: { do: "incrementBy" },
       },
-      onEnter: [
+      onEvent: [
         {
           if: "atMin",
           to: "min",
@@ -30,7 +27,7 @@ export const config = createConfig({
           to: "max",
         },
         {
-          to: "between",
+          to: "mid",
         },
       ],
       initial: "min",
@@ -80,13 +77,15 @@ export const config = createConfig({
 export const state = createStateDesigner(config)
 
 export const counterConfig = createConfig({
-  data: { count: 1 },
+  data: { count: 1, activations: 0, deactivations: 0 },
   initial: "inactive",
   states: {
     inactive: {
       on: { TOGGLED: { to: "active" } },
     },
     active: {
+      onEnter: (d) => d.activations++,
+      onExit: (d) => d.deactivations++,
       on: {
         TOGGLED: { to: "inactive" },
         CLICKED_PLUS: { if: "belowMax", do: "increment" },

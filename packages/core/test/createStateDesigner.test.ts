@@ -1,5 +1,5 @@
 import { createStateDesigner } from "../src"
-import { config, state, counterConfig } from "./shared"
+import { state, config, counterConfig } from "./shared"
 
 describe("createStateDesigner", () => {
   it("Should create a state.", () => {
@@ -15,22 +15,68 @@ describe("createStateDesigner", () => {
     expect(state.isIn).toBeTruthy()
   })
 
-  it("Should support can.", async (done) => {
+  // Can I chain events?
+
+  it("Should support chaining with then.", async (done) => {
     const counter = createStateDesigner(counterConfig)
-    expect(counter.can("CLICKED_MINUS")).toBeTruthy()
-    expect(counter.can("CLICKED_PLUS")).toBeTruthy()
+
+    await counter
+      .send("TOGGLED")
+      .then((c) => c.send("CLICKED_PLUS"))
+      .then((c) => c.send("CLICKED_PLUS"))
+
+    expect(counter.data.count).toBe(3)
     done()
   })
 
-  // it("Should support can with transitions.", async (done) => {
-  //   const counter = createStateDesigner(counterConfig)
-  //   expect(counter.can("CLICKED_PLUS")).toBeFalsy()
-  //   expect(counter.can("TOGGLED")).toBeTruthy()
-  //   await counter.send("TOGGLED")
-  //   expect(counter.can("CLICKED_PLUS")).toBeTruthy()
-  //   expect(counter.can("TOGGLED")).toBeTruthy()
-  //   done()
-  // })
+  // Does the `isIn` helper work?
+
+  it("Should support the isIn helper.", async (done) => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.isIn("active")).toBeFalsy()
+    expect(counter.isIn("inactive")).toBeTruthy()
+    done()
+  })
+
+  it("Should support the isIn helper with transitions.", async (done) => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.isIn("active")).toBeFalsy()
+    expect(counter.isIn("inactive")).toBeTruthy()
+    await counter.send("TOGGLED")
+    expect(counter.isIn("active")).toBeTruthy()
+    expect(counter.isIn("inactive")).toBeFalsy()
+    done()
+  })
+
+  // Does the `can` helper work?
+
+  it("Should support can helper.", async (done) => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.can("CLICKED_PLUS")).toBeFalsy()
+    expect(counter.can("TOGGLED")).toBeTruthy()
+    done()
+  })
+
+  it("Should support can helper with transitions.", async (done) => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.can("CLICKED_PLUS")).toBeFalsy()
+    expect(counter.can("TOGGLED")).toBeTruthy()
+    await counter.send("TOGGLED")
+    expect(counter.can("CLICKED_PLUS")).toBeTruthy()
+    expect(counter.can("TOGGLED")).toBeTruthy()
+    done()
+  })
+
+  // Do initial active states work?
+  it("Should support initial active states.", () => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.isIn("inactive")).toBeTruthy()
+    expect(counter.isIn("active")).toBeFalsy()
+  })
+
+  // Do transitions work?
+  // Do down-level activations work?
+  // Do onEvent events work?
 
   it("Should handle transitions.", async (done) => {
     const { stateTree } = state
@@ -49,6 +95,12 @@ describe("createStateDesigner", () => {
     expect(state.isIn("mid")).toBeFalsy()
     expect(state.isIn("max")).toBeFalsy()
 
+    await state.send("CLICKED_PLUS")
+
+    expect(state.isIn("min")).toBeFalsy()
+    expect(state.isIn("mid")).toBeTruthy()
+    expect(state.isIn("max")).toBeFalsy()
+
     await state.send("TOGGLE")
 
     expect(state.isIn("inactive")).toBeTruthy()
@@ -59,21 +111,56 @@ describe("createStateDesigner", () => {
     done()
   })
 
-  // Does can work?
-
-  // Do initial active states work?
-
-  // Do transitions work?
-
-  // Do down-level activations work?
-
-  // Do onEnter events work?
-
-  // Do onEvent events work?
+  // Do onEnter / onExit events work?
 
   // Do onExit events work?
 
+  it("Should support onEnter and onExit events.", async (done) => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.data.activations).toBe(0)
+    let update = await counter.send("TOGGLED")
+    expect(update.data.activations).toBe(1)
+    expect(update.data.deactivations).toBe(0)
+    expect(counter.isIn("active")).toBeTruthy()
+    update = await counter.send("TOGGLED")
+    expect(update.data.activations).toBe(1)
+    expect(update.data.deactivations).toBe(1)
+    done()
+  })
+
   // Does causing a transition prevent further updates?
+  it("Should support onEnter and onExit events.", async (done) => {
+    const toggler = createStateDesigner({
+      initial: "inactive",
+      data: {
+        count: 0,
+      },
+      states: {
+        inactive: {
+          on: { TOGGLED: { do: "increment", to: "active" } },
+        },
+        active: {
+          on: { TOGGLED: [{ to: "inactive" }, { do: "increment" }] },
+        },
+      },
+      actions: {
+        increment(d) {
+          d.count++
+        },
+      },
+    })
+
+    let update = await toggler.send("TOGGLED")
+    expect(toggler.isIn("active")).toBeTruthy()
+    expect(update.data.count).toBe(1)
+    update = await toggler.send("TOGGLED")
+    expect(toggler.isIn("inactive")).toBeTruthy()
+    update = await toggler.send("TOGGLED")
+    expect(toggler.isIn("active")).toBeTruthy()
+    expect(update.data.count).toBe(2)
+    expect(toggler.data.count).toBe(2)
+    done()
+  })
 
   // Do asynchronous actions block further updates?
 

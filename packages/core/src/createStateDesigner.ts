@@ -33,14 +33,6 @@ export function createStateDesigner<
 >(config: S.Config<D, R, C, A, Y, T>): S.StateDesigner<D, R, C, A, Y, T> {
   /* ------------------ Mutable Data ------------------ */
 
-  // State Tree
-
-  const id = "#" + (isUndefined(config.id) ? `state_${uniqueId()}` : config.id)
-
-  const stateTree = getStateTreeFromConfig(config, id)
-
-  let active = StateTree.getActiveStates(stateTree)
-
   // Current (internal data state)
 
   type Current = {
@@ -60,13 +52,15 @@ export function createStateDesigner<
       Object.assign(draft, changes)
     })
 
+    core.data = current.data
+
     return current
   }
 
   // Update (internal update state)
 
   type Update = {
-    process: Promise<S.Update<D>> | void
+    process: Promise<S.StateDesigner<D, R, C, A, Y, T>> | void
     transitions: number
     didTransition: boolean
     didAction: boolean
@@ -112,10 +106,8 @@ export function createStateDesigner<
 
   // Call each subscriber callback with the state's current update
   function notifySubscribers() {
-    active = StateTree.getActiveStates(stateTree)
-    subscribers.forEach((subscriber) =>
-      subscriber({ data: current.data, active, stateTree })
-    )
+    core.active = StateTree.getActiveStates(core.stateTree)
+    subscribers.forEach((subscriber) => subscriber(core))
   }
 
   /* --------------------- Updates -------------------- */
@@ -316,7 +308,7 @@ export function createStateDesigner<
     }
 
     // Get all states from the tree that match the target
-    const targets = StateTree.findTransitionTargets(stateTree, path)
+    const targets = StateTree.findTransitionTargets(core.stateTree, path)
 
     // Get the deepest matching target state
     const target = last(targets)
@@ -333,21 +325,21 @@ export function createStateDesigner<
     const pathDown = target.path.split(".").slice(1)
 
     // Get an array of states that are currently active
-    const beforeActive = StateTree.getActiveStates(stateTree)
+    const beforeActive = StateTree.getActiveStates(core.stateTree)
 
     // Deactivate the whole state tree
-    StateTree.deactivateState(stateTree)
+    StateTree.deactivateState(core.stateTree)
 
     // Use the path to activate the tree again
     StateTree.activateState(
-      stateTree,
+      core.stateTree,
       pathDown,
       isPreviousTransition || isRestoreTransition,
       isRestoreTransition
     )
 
     // Get an array of states that are now active
-    const afterActive = StateTree.getActiveStates(stateTree)
+    const afterActive = StateTree.getActiveStates(core.stateTree)
 
     // Get an array of states that are no longer active
     const deactivatedStates = beforeActive.filter(
@@ -433,7 +425,9 @@ export function createStateDesigner<
 
   const sendQueue: S.Event[] = []
 
-  async function processSendQueue(): Promise<S.Update<D>> {
+  async function processSendQueue(): Promise<
+    S.StateDesigner<D, R, C, A, Y, T>
+  > {
     setUpdate({
       didAction: false,
       didTransition: false,
@@ -447,7 +441,7 @@ export function createStateDesigner<
         transitions: 0,
       })
 
-      return { data: current.data, active, stateTree }
+      return core
     } else {
       setCurrent({
         payload: next.payload,
@@ -457,7 +451,7 @@ export function createStateDesigner<
       // Handle the event and set the current handleEventOnState
       // promise, which will hold any additional sent events
       setUpdate({
-        process: await handleEventOnState(stateTree, next),
+        process: await handleEventOnState(core.stateTree, next),
       })
 
       // Notify subscribers, if we should
@@ -496,8 +490,8 @@ export function createStateDesigner<
    * @public
    */
   function getUpdate(callbackFn: S.SubscriberFn<D>) {
-    active = StateTree.getActiveStates(stateTree)
-    callbackFn({ data: current.data, active, stateTree })
+    core.active = StateTree.getActiveStates(core.stateTree)
+    callbackFn(core)
   }
 
   /**
@@ -506,7 +500,10 @@ export function createStateDesigner<
    * @param payload A payload of any type
    * @public
    */
-  async function send(eventName: string, payload?: any): Promise<S.Update<D>> {
+  async function send(
+    eventName: string,
+    payload?: any
+  ): Promise<S.StateDesigner<D, R, C, A, Y, T>> {
     sendQueue.push({ event: eventName, payload })
     return update.process ? update.process : processSendQueue()
   }
@@ -520,7 +517,7 @@ export function createStateDesigner<
   function isIn(paths: string | string[], every = false): boolean {
     const p = castArray(paths)
     return (
-      active.find((state) =>
+      core.active.find((state) =>
         p[every ? "every" : "some"]((path) => {
           let safePath = path.startsWith(".") ? path : "." + path
           return state.path.endsWith(safePath)
@@ -543,7 +540,7 @@ export function createStateDesigner<
     }
 
     return !isUndefined(
-      active.find((state) => {
+      core.active.find((state) => {
         const eventHandler = state.on[eventName]
 
         if (!isUndefined(eventHandler)) {
@@ -618,7 +615,7 @@ export function createStateDesigner<
         entries.push([key, v])
       } else {
         if (
-          active.find((v) => {
+          core.active.find((v) => {
             let safeKey = key.startsWith(".") ? key : "." + key
             return v.path.endsWith(safeKey)
           })
@@ -645,23 +642,34 @@ export function createStateDesigner<
     return config
   }
 
+  function clone() {
+    return createStateDesigner(config)
+  }
+
   /* --------------------- Kickoff -------------------- */
 
-  // Deactivate the tree, then activate it again to trigger events
-  StateTree.deactivateState(stateTree)
-  runTransition(() => "root")
+  const id = "#" + (isUndefined(config.id) ? `state_${uniqueId()}` : config.id)
 
-  return {
+  const _stateTree = getStateTreeFromConfig(config, id)
+
+  const core = {
     id,
-    data: current.data,
-    active,
+    data: config.data as D,
+    active: StateTree.getActiveStates(_stateTree),
+    stateTree: _stateTree,
     send,
     isIn,
     can,
     whenIn,
-    stateTree,
     onUpdate,
     getUpdate,
     getConfig,
+    clone,
   }
+
+  // Deactivate the tree, then activate it again to trigger events
+  StateTree.deactivateState(core.stateTree)
+  runTransition(() => "root")
+
+  return core
 }

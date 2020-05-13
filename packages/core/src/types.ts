@@ -200,13 +200,14 @@ export interface ConfigWithHelpers<
 
 // Subscribers
 
-export type SubscriberFn<D> = (update: Update<D>) => void
-
-export type Update<D> = {
-  data: D
-  active: State<D>[]
-  stateTree: State<D>
-}
+export type SubscriberFn<
+  D,
+  R extends Record<string, Result<D>> = any,
+  C extends Record<string, Condition<D>> = any,
+  A extends Record<string, Action<D>> = any,
+  Y extends Record<string, Async<D>> = any,
+  T extends Record<string, Time<D>> = any
+> = (update: StateDesigner<D, R, C, A, Y, T>) => void
 
 // State Designer
 
@@ -224,7 +225,10 @@ export interface StateDesigner<
   stateTree: State<D>
   onUpdate: (callbackFn: SubscriberFn<D>) => () => void
   getUpdate: (callbackFn: SubscriberFn<D>) => void
-  send: (eventName: string, payload?: any) => Promise<Update<D>>
+  send: (
+    eventName: string,
+    payload?: any
+  ) => Promise<StateDesigner<D, R, C, A, Y, T>>
   can: (eventName: string, payload?: any) => boolean
   isIn: (paths: string | string[]) => boolean
   whenIn: (
@@ -238,4 +242,5 @@ export interface StateDesigner<
     initial?: any
   ) => any
   getConfig: () => Config<D, R, C, A, Y, T>
+  clone: () => StateDesigner<D, R, C, A, Y, T>
 }
