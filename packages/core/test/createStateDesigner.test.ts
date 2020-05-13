@@ -171,4 +171,6 @@ describe("createStateDesigner", () => {
   // Do auto events work?
 
   // Does asynchronous send queueing work?
+
+  // Does WhenIn work?
 })

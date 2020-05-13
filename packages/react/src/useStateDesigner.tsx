@@ -1,4 +1,4 @@
-import { isUndefined, pick } from "lodash"
+import { isUndefined } from "lodash"
 import * as React from "react"
 import { createStateDesigner, S } from "@state-designer/core"
 
@@ -23,11 +23,7 @@ export function useStateDesigner<
 >(
   config: S.Config<D, R, C, A, Y, T> | S.StateDesigner<D, R, C, A, Y, T>,
   dependencies: any[] = emptyArray
-): S.Update<D> &
-  Pick<
-    S.StateDesigner<D, R, C, A, Y, T>,
-    "send" | "isIn" | "can" | "whenIn" | "getConfig"
-  > {
+): S.StateDesigner<D, R, C, A, Y, T> {
   // Store a state — either as provided or new from config,
   // and, if given a config, re-create the state when dependencies change
   const state: S.StateDesigner<D, R, C, A, Y, T> = React.useMemo(() => {
@@ -37,18 +33,13 @@ export function useStateDesigner<
   }, dependencies)
 
   // Keep subscription updates in state
-  const [update, setUpdate] = React.useState<S.Update<D>>({
-    data: state.data,
-    stateTree: state.stateTree,
-    active: state.active,
-  })
+  const [current, setCurrent] = React.useState<
+    S.StateDesigner<D, R, C, A, Y, T>
+  >(state)
 
   // Subscribe to changes — and resubscribe when dependencies change.
   // Note that the effect returns the cancel function returned by onChange.
-  React.useEffect(() => state.onUpdate(setUpdate), [state, setUpdate])
+  React.useEffect(() => state.onUpdate(setCurrent), [state, setCurrent])
 
-  return {
-    ...update,
-    ...pick(state, ["send", "isIn", "can", "whenIn", "getConfig"]),
-  }
+  return current
 }
