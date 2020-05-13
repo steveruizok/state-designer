@@ -50,8 +50,6 @@
   },
   "dependencies": {
     "@state-designer/core": "^1.1.12",
-    "@types/lodash": "^4.14.150",
-    "@types/lodash-es": "^4.17.3",
     "lodash-es": "^4.17.15"
   }
 }
