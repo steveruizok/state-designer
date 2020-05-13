@@ -78,3 +78,37 @@ export const config = createConfig({
 })
 
 export const state = createStateDesigner(config)
+
+export const counterConfig = createConfig({
+  data: { count: 1 },
+  initial: "inactive",
+  states: {
+    inactive: {
+      on: { TOGGLED: { to: "active" } },
+    },
+    active: {
+      on: {
+        TOGGLED: { to: "inactive" },
+      },
+    },
+  },
+  on: {
+    CLICKED_PLUS: { if: "belowMax", do: "increment" },
+    CLICKED_MINUS: "decrement",
+  },
+  actions: {
+    increment(d) {
+      d.count++
+    },
+    decrement(d) {
+      d.count--
+    },
+  },
+  conditions: {
+    belowMax(d) {
+      return d.count < 10
+    },
+  },
+})
+
+export const counter = createStateDesigner(counterConfig)

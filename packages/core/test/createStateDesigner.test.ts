@@ -1,5 +1,5 @@
 import { createStateDesigner } from "../src"
-import { config, state } from "./shared"
+import { config, state, counterConfig } from "./shared"
 
 describe("createStateDesigner", () => {
   it("Should create a state.", () => {
@@ -14,6 +14,23 @@ describe("createStateDesigner", () => {
     expect(state.data).toBeTruthy()
     expect(state.isIn).toBeTruthy()
   })
+
+  it("Should support can.", async (done) => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.can("CLICKED_MINUS")).toBeTruthy()
+    expect(counter.can("CLICKED_PLUS")).toBeTruthy()
+    done()
+  })
+
+  // it("Should support can with transitions.", async (done) => {
+  //   const counter = createStateDesigner(counterConfig)
+  //   expect(counter.can("CLICKED_PLUS")).toBeFalsy()
+  //   expect(counter.can("TOGGLED")).toBeTruthy()
+  //   await counter.send("TOGGLED")
+  //   expect(counter.can("CLICKED_PLUS")).toBeTruthy()
+  //   expect(counter.can("TOGGLED")).toBeTruthy()
+  //   done()
+  // })
 
   it("Should handle transitions.", async (done) => {
     const { stateTree } = state
@@ -41,6 +58,8 @@ describe("createStateDesigner", () => {
 
     done()
   })
+
+  // Does can work?
 
   // Do initial active states work?
 

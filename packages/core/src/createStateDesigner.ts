@@ -542,28 +542,23 @@ export function createStateDesigner<
       result: undefined as any,
     }
 
-    function setLocal(changes: Partial<Current>) {
-      Object.assign(local, changes)
-      return local
-    }
-
     return !isUndefined(
       active.find((state) => {
         const eventHandler = state.on[eventName]
 
         if (!isUndefined(eventHandler)) {
           for (let item of eventHandler) {
-            setLocal({ result: undefined })
+            local = produce(local, (l) => {
+              l.result = undefined
+            })
 
             // Result
 
-            setLocal(
-              produce(local, (l) => {
-                for (let resu of item.get) {
-                  l.result = resu(l.data as D, l.payload, l.result)
-                }
-              })
-            )
+            local = produce(local, (l) => {
+              for (let resu of item.get) {
+                l.result = resu(l.data as D, l.payload, l.result)
+              }
+            })
 
             // Conditions
 

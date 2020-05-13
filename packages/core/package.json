@@ -17,7 +17,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
-    "start-test": "tsdx test --watch",
+    "start-test": "tsdx test --watchAll",
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "tsdx build --tsconfig ./tsconfig.build.json"
