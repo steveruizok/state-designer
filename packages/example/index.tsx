@@ -16,7 +16,6 @@ const config = createConfig({
       on: {
         TOGGLE: {
           to: "active",
-          do: () => console.log("toggled from inactive"),
         },
       },
     },

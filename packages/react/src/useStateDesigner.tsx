@@ -1,4 +1,4 @@
-import { isUndefined } from "lodash"
+import { isUndefined, pick } from "lodash"
 import * as React from "react"
 import { createStateDesigner, S } from "@state-designer/core"
 
@@ -39,7 +39,13 @@ export function useStateDesigner<
 
   // Subscribe to changes — and resubscribe when dependencies change.
   // Note that the effect returns the cancel function returned by onChange.
-  React.useEffect(() => state.onUpdate(setCurrent), [state, setCurrent])
+  React.useEffect(
+    () =>
+      state.onUpdate((update) => {
+        setCurrent({ ...update })
+      }),
+    [state, setCurrent]
+  )
 
-  return current
+  return { ...state, ...pick(current, "data", "active", "stateTree") }
 }
