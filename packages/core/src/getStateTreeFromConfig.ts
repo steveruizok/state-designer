@@ -1,11 +1,11 @@
-import { isUndefined, isFunction, isNumber, castArray, isString } from 'lodash';
-import fromEntries from 'object.fromentries';
-import entries from 'object.entries';
+import { isUndefined, isFunction, isNumber, castArray, isString } from "lodash"
+import fromEntries from "object.fromentries"
+import entries from "object.entries"
 
-import * as S from './types';
+import * as S from "./types"
 
-if (!Object.fromEntries) Object.fromEntries = fromEntries;
-if (!Object.entries) Object.entries = entries;
+if (!Object.fromEntries) Object.fromEntries = fromEntries
+if (!Object.entries) Object.entries = entries
 
 /**
  * Turn a configuration object into a complete state tree, where shortcuts in the configuration
@@ -21,89 +21,88 @@ export function getStateTreeFromConfig<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>
 >(config: S.Config<D, R, C, A, Y, T>, id: string) {
-  const labels = new Map<Record<string, S.EventFn<D, any>> | undefined, string>(
-    [
-      [config.results, 'results'],
-      [config.conditions, 'conditions'],
-      [config.actions, 'actions'],
-      [config.asyncs, 'asyncs'],
-    ]
-  );
-
   /**
    * Convert an event function config into an event function.
    * @param item
    * @param collection
+   * @param collectionName
    */
   function getEventFn<T, K>(
     item: Extract<keyof T, string> | S.EventFn<D, K>,
-    collection: Record<string, S.EventFn<D, K>> | undefined
+    collection: Record<string, S.EventFn<D, K>> | undefined,
+    collectionName: string
   ): S.EventFn<D, K> {
     if (isString(item)) {
       if (isUndefined(collection)) {
-        throw Error(`No ${labels.get(collection)} in config!`);
+        throw Error(`No ${collectionName} in config!`)
       } else {
-        const itemFromCollection = collection[item];
+        const itemFromCollection = collection[item]
         if (isUndefined(itemFromCollection)) {
-          throw Error(`No item in ${labels.get(collection)} named ${item}!`);
+          throw Error(`No item in ${collectionName} named ${item}!`)
         }
 
-        return itemFromCollection;
+        return itemFromCollection
       }
     } else {
-      return item;
+      return item
     }
-  }
-
-  function getAsync(item: S.AsyncConfig<D, Y>) {
-    return getEventFn(item, config.asyncs);
-  }
-
-  function getTime(item: S.TimeConfig<D, T> | undefined) {
-    if (isUndefined(item)) return undefined;
-    return isNumber(item)
-      ? castToNamedFunction(item)
-      : getEventFn(item, config.times);
-  }
-
-  function getSend(item: S.SendConfig<D> | undefined): S.Send<D> | undefined {
-    if (isUndefined(item)) return undefined;
-    if (isString(item))
-      return castToNamedFunction({ event: item, payload: undefined });
-    if (isFunction(item)) return item;
-    return castToNamedFunction(item);
   }
 
   function castToNamedFunction<T>(item: T): () => T {
     return {
       [item as any]() {
-        return item;
+        return item
       },
-    }[item as any];
+    }[item as any]
   }
 
   function castToFunction<T>(
     item: T | S.EventFn<D, T> | undefined
   ): S.EventFn<D, T> | undefined {
-    if (isUndefined(item)) return undefined;
-    return isFunction(item) ? item : castToNamedFunction(item);
+    if (isUndefined(item)) return undefined
+    return isFunction(item) ? item : castToNamedFunction(item)
   }
 
   function getResults(items: S.MaybeArray<S.ResultConfig<D, R>> | undefined) {
-    if (isUndefined(items)) return [];
-    return castArray(items).map((item) => getEventFn(item, config.results));
+    if (isUndefined(items)) return []
+    return castArray(items).map((item) =>
+      getEventFn(item, config.results, "results")
+    )
   }
 
   function getConditions(
     items: S.MaybeArray<S.ConditionConfig<D, C>> | undefined
   ) {
-    if (isUndefined(items)) return [];
-    return castArray(items).map((item) => getEventFn(item, config.conditions));
+    if (isUndefined(items)) return []
+    return castArray(items).map((item) =>
+      getEventFn(item, config.conditions, "conditions")
+    )
   }
 
   function getActions(items: S.MaybeArray<S.ActionConfig<D, A>> | undefined) {
-    if (isUndefined(items)) return [];
-    return castArray(items).map((item) => getEventFn(item, config.actions));
+    if (isUndefined(items)) return []
+    return castArray(items).map((item) =>
+      getEventFn(item, config.actions, "actions")
+    )
+  }
+
+  function getAsync(item: S.AsyncConfig<D, Y>) {
+    return getEventFn(item, config.asyncs, "asyncs")
+  }
+
+  function getTime(item: S.TimeConfig<D, T> | undefined) {
+    if (isUndefined(item)) return undefined
+    return isNumber(item)
+      ? castToNamedFunction(item)
+      : getEventFn(item, config.times, "times")
+  }
+
+  function getSend(item: S.SendConfig<D> | undefined): S.Send<D> | undefined {
+    if (isUndefined(item)) return undefined
+    if (isString(item))
+      return castToNamedFunction({ event: item, payload: undefined })
+    if (isFunction(item)) return item
+    return castToNamedFunction(item)
   }
 
   /**
@@ -126,7 +125,7 @@ export function getStateTreeFromConfig<
       elseSend: getSend(itemCfg.elseSend),
       wait: getTime(itemCfg.wait),
       break: castToFunction(itemCfg.break),
-    };
+    }
   }
 
   /**
@@ -138,22 +137,22 @@ export function getStateTreeFromConfig<
   ): S.EventHandler<D> {
     return castArray(event).map((eventHandler) => {
       switch (typeof eventHandler) {
-        case 'string': {
+        case "string": {
           if (isUndefined(config.actions)) {
-            throw new Error('Actions is undefined!');
+            throw new Error("Actions is undefined!")
           } else {
-            const eventFn = config.actions && config.actions[eventHandler];
-            return getEventHandlerItem({ do: eventFn });
+            const eventFn = config.actions && config.actions[eventHandler]
+            return getEventHandlerItem({ do: eventFn })
           }
         }
-        case 'function': {
-          return getEventHandlerItem({ do: eventHandler });
+        case "function": {
+          return getEventHandlerItem({ do: eventHandler })
         }
         default: {
-          return getEventHandlerItem(eventHandler);
+          return getEventHandlerItem(eventHandler)
         }
       }
-    });
+    })
   }
 
   /**
@@ -210,15 +209,15 @@ export function getStateTreeFromConfig<
                 createState(
                   childState,
                   childName,
-                  path + name + '.',
+                  path + name + ".",
                   isUndefined(state.initial) || state.initial === childName
                 ),
-              ];
+              ]
             })
           : []
       ),
-    };
+    }
   }
 
-  return createState(config, 'root', id + '.', true);
+  return createState(config, "root", id + ".", true)
 }

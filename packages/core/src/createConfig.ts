@@ -1,4 +1,4 @@
-import * as S from './types';
+import * as S from "./types"
 
 /* -------------------------------------------------- */
 /*                    Create Config                   */
@@ -14,24 +14,24 @@ export function createConfig<
 >(config: S.Config<D, R, C, A, Y>): S.ConfigWithHelpers<D, R, C, A, Y, T> {
   return {
     ...config,
-    getEventHandlerConfig: (
+    createEventHandlerConfig: (
       eventHandlerConfig: S.EventHandlerConfig<D, R, C, A, T>
     ) => eventHandlerConfig,
-    getEventHandlerItemConfig: (
+    createEventHandlerItemConfig: (
       eventHandlerItemConfig: S.EventHandlerItemConfig<D, R, C, A, T>
     ) => eventHandlerItemConfig,
-    getAsyncEventHandlerConfig: (
+    createAsyncEventHandlerConfig: (
       asyncEventHandlerConfig: S.AsyncEventHandlerConfig<D, R, C, A, Y, T>
     ) => asyncEventHandlerConfig,
-    getRepeatEventHandlerConfig: (
+    createRepeatEventHandlerConfig: (
       repeatEventHandler: S.RepeatEventHandlerConfig<D, R, C, A, T>
     ) => repeatEventHandler,
-    getStateConfig: (stateConfig: S.StateConfig<D, R, C, A, Y, T>) =>
+    createStateConfig: (stateConfig: S.StateConfig<D, R, C, A, Y, T>) =>
       stateConfig,
-    getActionConfig: (actionConfig: S.ActionConfig<D, A>) => actionConfig,
-    getConditionConfig: (conditionConfig: S.ConditionConfig<D, C>) =>
+    createActionConfig: (actionConfig: S.ActionConfig<D, A>) => actionConfig,
+    createConditionConfig: (conditionConfig: S.ConditionConfig<D, C>) =>
       conditionConfig,
-    getResultConfig: (resultConfig: S.ResultConfig<D, R>) => resultConfig,
-    getTimeConfig: (timeConfig: S.TimeConfig<D, T>) => timeConfig,
-  };
+    createResultConfig: (resultConfig: S.ResultConfig<D, R>) => resultConfig,
+    createTimeConfig: (timeConfig: S.TimeConfig<D, T>) => timeConfig,
+  }
 }

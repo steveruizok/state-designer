@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
-    "module": "esnext",
     "target": "es5",
-    "strict": true,
-    "sourceMap": true,
+    "module": "esnext",
+    "lib": ["dom", "esnext"],
+    "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "allowSyntheticDefaultImports": true
+    "declarationMap": true,
+    "sourceMap": true
   },
-  "exclude": ["node_modules", "dist", "example"]
+
+  "exclude": ["node_modules", "dist"]
 }

@@ -3,7 +3,7 @@
   "include": ["src", "types", "test", "decs.d.ts"],
   "exclude": ["node_modules", "dist", "__tests__", "**/*.test*", "**/*.spec*"],
   "compilerOptions": {
-    "rootDir": "./",
+    "rootDir": "./src",
     "baseUrl": "./src"
   }
 }

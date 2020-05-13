@@ -9,18 +9,18 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "engines": {
     "node": ">=10"
   },
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build",
+    "build": "tsdx build --tsconfig ./tsconfig.build.json",
+    "start-test": "tsdx test --watch",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepare": "tsdx build --tsconfig ./tsconfig.build.json"
   },
   "peerDependencies": {},
   "husky": {
@@ -28,11 +28,10 @@
       "pre-commit": "tsdx lint"
     }
   },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
+  "jest": {
+    "globals": {
+      "__DEV__": true
+    }
   },
   "module": "dist/core.esm.js",
   "devDependencies": {

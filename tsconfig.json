@@ -1,19 +1,11 @@
 {
   "extends": "./tsconfig.build.json",
-  "include": ["packages"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "example",
-    "__tests__",
-    "**/*.test*",
-    "**/*.spec*"
-  ],
   "compilerOptions": {
-    "rootDir": "./",
     "baseUrl": "./",
     "paths": {
-      "@state-designer/*": ["packages/*/src"]
+      "@state-designer/core": ["packages/core/src"],
+      "@state-designer/react": ["packages/react/src"],
+      "state-designer": ["packages/state-designer/src"]
     },
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -36,7 +28,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "jsx": "preserve",
+    "jsx": "react",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "composite": true,

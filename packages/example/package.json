@@ -1,6 +1,7 @@
 {
   "name": "example",
   "version": "1.0.0",
+  "private": true,
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -8,16 +9,15 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "react-app-polyfill": "^1.0.0"
-  },
-  "alias": {
-    "react": "../node_modules/react",
-    "react-dom": "../node_modules/react-dom/profiling",
-    "scheduler/tracing": "../node_modules/scheduler/tracing-profiling"
+    "@state-designer/core": "^1.1.11",
+    "@state-designer/react": "^1.1.11",
+    "react": "^16.13.1",
+    "react-app-polyfill": "^1.0.6",
+    "react-dom": "^16.13.1"
   },
   "devDependencies": {
-    "@types/react": "^16.9.11",
-    "@types/react-dom": "^16.8.4",
+    "@types/react": "^16.9.35",
+    "@types/react-dom": "^16.9.8",
     "parcel": "^1.12.3",
     "typescript": "^3.4.5"
   }
