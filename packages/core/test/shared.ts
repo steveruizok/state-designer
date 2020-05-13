@@ -89,12 +89,10 @@ export const counterConfig = createConfig({
     active: {
       on: {
         TOGGLED: { to: "inactive" },
+        CLICKED_PLUS: { if: "belowMax", do: "increment" },
+        CLICKED_MINUS: "decrement",
       },
     },
-  },
-  on: {
-    CLICKED_PLUS: { if: "belowMax", do: "increment" },
-    CLICKED_MINUS: "decrement",
   },
   actions: {
     increment(d) {

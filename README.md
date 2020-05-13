@@ -34,6 +34,61 @@ Your exact usage will depend on your framework:
 - [Usage in JavaScript](https://github.com/@state-designer/core#usage)
 - [Usage in React](https://github.com/@state-designer/react#usage)
 
+## Example
+
+Note: this example uses the [React](https://github.com/@state-designer/react) package.
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "@state-designer/react"
+
+function App() {
+  const { data, send } = useStateDesigner({
+    data: { count: 1 },
+    initial: "inactive",
+    states: {
+      inactive: {
+        on: { TOGGLED: { to: "active" } },
+      },
+      active: {
+        on: {
+          TOGGLED: { to: "inactive" },
+          CLICKED_PLUS: { if: "belowMax", do: "increment" },
+          CLICKED_MINUS: "decrement",
+        },
+      },
+    },
+    actions: {
+      increment(d) {
+        d.count++
+      },
+      decrement(d) {
+        d.count--
+      },
+    },
+    conditions: {
+      belowMax(d) {
+        return d.count < 10
+      },
+    },
+  })
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>{data.count}</p>
+        <button onClick={() => send("TOGGLED")}>Toggle</button>
+        <button onClick={() => send("CLICKED_MINUS")}>-1</button>
+        <button onClick={() => send("CLICKED_PLUS")}>+1</button>
+      </header>
+    </div>
+  )
+}
+
+export default App
+```
+
 ## Inspiration
 
 State Designer is heavily inspired by [xstate](https://github.com/davidkpiano/xstate). Note that, unlike xstate, State Designer does not adhere to the [scxml spec](https://en.wikipedia.org/wiki/SCXML).
