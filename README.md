@@ -6,9 +6,9 @@ Learn more at [statedesigner.com](https://statedesigner.com).
 
 ## Features
 
-- Create your state using a flexible, declaratively syntax.
-- Use collections to re-use code and make your state human-readable.
-- Create both global and local component states.
+- Create your state using a flexible, declarative syntax.
+- Use collections to reuse code and clarify make your state.
+- Create both global and local states.
 
 ## Packages
 
@@ -36,7 +36,7 @@ Your exact usage will depend on your framework:
 
 ## Example
 
-**Note:** this example uses the [React](https://github.com/@state-designer/react) package.
+**Note:** This example uses the [React](https://github.com/@state-designer/react) package.
 
 [![Edit little-snowflake-rmu8q](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/little-snowflake-rmu8q?fontsize=14&hidenavigation=1&theme=dark)
 
