@@ -1,6 +1,6 @@
 {
   "name": "example",
-  "version": "1.1.15",
+  "version": "1.1.16",
   "private": true,
   "main": "index.js",
   "license": "MIT",
@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@state-designer/core": "^1.1.15",
-    "@state-designer/react": "^1.1.15",
+    "@state-designer/react": "^1.1.16",
     "react": "^16.13.1",
     "react-app-polyfill": "^1.0.6",
     "react-dom": "^16.13.1"
