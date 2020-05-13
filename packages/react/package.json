@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/react",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "React hook for State Designer, a state management library.",
   "author": "steveruizok",
   "repository": "https://github.com/steveruizok/state-designer",
@@ -41,15 +41,15 @@
     "@types/lodash-es": "^4.17.3",
     "@types/react": "^16.9.35",
     "@types/react-dom": "^16.9.8",
+    "husky": "^4.2.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "husky": "^4.2.5",
     "tsdx": "^0.13.2",
     "tslib": "^1.11.2",
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@state-designer/core": "^1.1.11",
+    "@state-designer/core": "^1.1.12",
     "@types/lodash": "^4.14.150",
     "@types/lodash-es": "^4.17.3",
     "lodash-es": "^4.17.15"
