@@ -36,14 +36,16 @@ Your exact usage will depend on your framework:
 
 ## Example
 
-Note: this example uses the [React](https://github.com/@state-designer/react) package.
+**Note:** this example uses the [React](https://github.com/@state-designer/react) package.
+
+[![Edit little-snowflake-rmu8q](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/little-snowflake-rmu8q?fontsize=14&hidenavigation=1&theme=dark)
 
 ```jsx
 import React from "react"
 import { useStateDesigner } from "@state-designer/react"
 
 function App() {
-  const { data, send } = useStateDesigner({
+  const { data, send, can, whenIn } = useStateDesigner({
     data: { count: 1 },
     initial: "inactive",
     states: {
@@ -75,13 +77,25 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>{data.count}</p>
-        <button onClick={() => send("TOGGLED")}>Toggle</button>
-        <button onClick={() => send("CLICKED_MINUS")}>-1</button>
-        <button onClick={() => send("CLICKED_PLUS")}>+1</button>
-      </header>
+      <h2>{data.count}</h2>
+      <button
+        disabled={!can("CLICKED_MINUS")}
+        onClick={() => send("CLICKED_MINUS")}
+      >
+        -1
+      </button>
+      <button
+        disabled={!can("CLICKED_PLUS")}
+        onClick={() => send("CLICKED_PLUS")}
+      >
+        +1
+      </button>
+      <button onClick={() => send("TOGGLED")}>
+        {whenIn({
+          active: "Turn Off",
+          inactive: "Turn On",
+        })}
+      </button>
     </div>
   )
 }
