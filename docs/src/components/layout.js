@@ -1,60 +1,65 @@
-/** @jsx jsx */
-import { useState, useRef } from 'react'
-import { Global } from '@emotion/core'
-import { css } from '@styled-system/css'
-import { Styled, Layout, Main, Container, jsx, useThemeUI } from 'theme-ui'
+import React from "react"
+import { Link } from "gatsby"
 
-import Header from './header'
-import Sidenav from './sidenav'
-import Footer from './footer'
+import { rhythm, scale } from "../utils/typography"
 
-export default ({ children }) => {
-	const { theme } = useThemeUI()
-	const [menuOpen, setMenuOpen] = useState(false)
-	const nav = useRef(null)
+const Layout = ({ location, title, children }) => {
+  const rootPath = `${__PATH_PREFIX__}/`
+  let header
 
-	const bodyStyles = {
-		body: css({ bg: 'background', color: 'text' })(theme),
-	}
-
-	return (
-		<Styled.root>
-			<Global styles={bodyStyles} />
-			<Layout>
-				<Header nav={nav} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-				<Main>
-					<Container py={0} px={3}>
-						<div
-							sx={{
-								display: [null, 'flex'],
-								mx: -3,
-								width: '100%',
-								mt: [5, 0],
-							}}
-						>
-							<Sidenav
-								ref={nav}
-								open={menuOpen}
-								sx={{ display: [null, 'block'] }}
-								onFocus={() => setMenuOpen(true)}
-								onBlur={() => setMenuOpen(false)}
-								onClick={() => setMenuOpen(false)}
-							/>
-							<div
-								sx={{
-									px: [3, 0],
-									width: '100%',
-									overflow: 'hidden',
-									mb: 2,
-								}}
-							>
-								{children}
-								<Footer />
-							</div>
-						</div>
-					</Container>
-				</Main>
-			</Layout>
-		</Styled.root>
-	)
+  if (location.pathname === rootPath) {
+    header = (
+      <h1
+        style={{
+          ...scale(1.5),
+          marginBottom: rhythm(1.5),
+          marginTop: 0,
+        }}
+      >
+        <Link
+          style={{
+            boxShadow: `none`,
+            color: `inherit`,
+          }}
+          to={`/`}
+        >
+          {title}
+        </Link>
+      </h1>
+    )
+  } else {
+    header = (
+      <h3
+        style={{
+          fontFamily: `Montserrat, sans-serif`,
+          marginTop: 0,
+        }}
+      >
+        <Link
+          style={{
+            boxShadow: `none`,
+            color: `inherit`,
+          }}
+          to={`/`}
+        >
+          {title}
+        </Link>
+      </h3>
+    )
+  }
+  return (
+    <div
+      style={{
+        marginLeft: `auto`,
+        marginRight: `auto`,
+        maxWidth: rhythm(24),
+        padding: `${rhythm(1.5)} ${rhythm(3 / 4)}`,
+      }}
+    >
+      <header>{header}</header>
+      <main>{children}</main>
+    </div>
+  )
 }
+
+export default Layout

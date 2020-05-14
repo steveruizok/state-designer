@@ -1,171 +1,64 @@
-const crypto = require(`crypto`)
 const path = require(`path`)
+const { createFilePath } = require(`gatsby-source-filesystem`)
 
-let basePath
-let contentPath
-
-const DefinitionTemplate = require.resolve("./src/templates/doc")
-const DocTemplate = require.resolve("./src/templates/doc")
-const EmptyTemplate = require.resolve(`./src/templates/404`)
-
-const mdxResolverPassthrough = fieldName => async (
-  source,
-  args,
-  context,
-  info
-) => {
-  const type = info.schema.getType(`Mdx`)
-  const mdxNode = context.nodeModel.getNodeById({
-    id: source.parent
-  })
-
-  const resolver = type.getFields()[fieldName].resolve
-  const result = await resolver(mdxNode, args, context, {
-    fieldName
-  })
-
-  return result
-}
-
-exports.onPreBootstrap = (_, themeOptions) => {
-  basePath = themeOptions.basePath || `/`
-  contentPath = themeOptions.contentPath || `content`
-}
-
-exports.sourceNodes = ({ actions, schema }) => {
-  const { createTypes } = actions
-
-  createTypes(
-    schema.buildObjectType({
-      name: `Docs`,
-      fields: {
-        id: { type: `ID!` },
-        title: { type: `String!` },
-        description: { type: `String` },
-        path: { type: `String!` },
-        slug: { type: `String!` },
-        headings: {
-          type: `[MdxHeadingMdx!]`,
-          resolve: mdxResolverPassthrough(`headings`)
-        },
-        excerpt: {
-          type: `String!`,
-          args: {
-            pruneLength: {
-              type: `Int`,
-              defaultValue: 140
-            }
-          },
-          resolve: mdxResolverPassthrough(`excerpt`)
-        },
-        body: {
-          type: `String!`,
-          resolve: mdxResolverPassthrough(`body`)
-        }
-      },
-      interfaces: [`Node`]
-    })
-  )
-}
-
-exports.onCreateNode = ({ node, actions, getNode, createNodeId }) => {
-  const { createNode, createParentChildLink, createRedirect } = actions
-
-  const isIndexPath = name => name === "index"
-
-  const toDocsPath = node => {
-    const { dir } = path.parse(node.relativePath)
-    const fullPath = [
-      basePath,
-      dir,
-      !isIndexPath(node.name) && node.name
-    ].filter(Boolean)
-    return path.join(...fullPath)
-  }
-
-  // Make sure it's an MDX node
-  if (node.internal.type !== `Mdx`) {
-    return
-  }
-
-  // Create source field (according to contentPath)
-  const fileNode = getNode(node.parent)
-  const source = fileNode.sourceInstanceName
-
-  if (node.internal.type === `Mdx` && source === contentPath) {
-    const slug = toDocsPath(fileNode)
-
-    const title = node.frontmatter.title
-    const description = node.frontmatter.description
-
-    const fieldData = { title, description, slug }
-
-    createNode({
-      ...fieldData,
-      id: createNodeId(`${node.id} >>> Docs`),
-      parent: node.id,
-      children: [],
-      internal: {
-        type: `Docs`,
-        contentDigest: crypto
-          .createHash(`md5`)
-          .update(JSON.stringify(fieldData))
-          .digest(`hex`),
-        content: JSON.stringify(fieldData),
-        description: `Docs`
-      }
-    })
-
-    createParentChildLink({ parent: fileNode, child: node })
-  }
-}
-
-exports.createPages = async ({ graphql, actions, reporter }) => {
+exports.createPages = async ({ graphql, actions }) => {
   const { createPage } = actions
 
-  const result = await graphql(`
-    {
-      docs: allDocs {
-        nodes {
-          id
-          slug
+  const blogPost = path.resolve(`./src/templates/blog-post.js`)
+  const result = await graphql(
+    `
+      {
+        allMarkdownRemark(
+          sort: { fields: [frontmatter___date], order: DESC }
+          limit: 1000
+        ) {
+          edges {
+            node {
+              fields {
+                slug
+              }
+              frontmatter {
+                title
+              }
+            }
+          }
         }
       }
-    }
-  `)
+    `
+  )
 
   if (result.errors) {
-    reporter.panic(result.errors)
+    throw result.errors
   }
 
-  const docs = result.data.docs.nodes
+  // Create blog posts pages.
+  const posts = result.data.allMarkdownRemark.edges
 
-  docs.forEach((doc, index) => {
-    const previous = index === docs.length - 1 ? null : docs[index + 1]
-    const next = index === 0 ? null : docs[index - 1]
-    const { slug } = doc
+  posts.forEach((post, index) => {
+    const previous = index === posts.length - 1 ? null : posts[index + 1].node
+    const next = index === 0 ? null : posts[index - 1].node
 
     createPage({
-      path: slug,
-      component: DocTemplate,
+      path: post.node.fields.slug,
+      component: blogPost,
       context: {
-        ...doc,
+        slug: post.node.fields.slug,
         previous,
-        next
-      }
+        next,
+      },
     })
-  })
-
-  createPage({
-    path: `/404/`,
-    component: EmptyTemplate
   })
 }
 
-exports.onCreateWebpackConfig = ({ actions }) => {
-  actions.setWebpackConfig({
-    node: {
-      fs: "empty"
-    }
-  })
+exports.onCreateNode = ({ node, actions, getNode }) => {
+  const { createNodeField } = actions
+
+  if (node.internal.type === `MarkdownRemark`) {
+    const value = createFilePath({ node, getNode })
+    createNodeField({
+      name: `slug`,
+      node,
+      value,
+    })
+  }
 }

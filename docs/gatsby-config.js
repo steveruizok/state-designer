@@ -1,56 +1,83 @@
 module.exports = {
   siteMetadata: {
-    title: "State Designer Docs",
-    description: "Docs for the state-designer library."
+    title: `State Designer`,
+    author: {
+      name: `Steve Ruiz`,
+      summary: `Creating tricky interfaces and fun tools.`,
+    },
+    description: `Documentation for State Designer, a state management library.`,
+    siteUrl: `https://state-designer.com/`,
+    social: {
+      twitter: `steveruizok`,
+    },
   },
   plugins: [
-    `@pauliescanlon/gatsby-mdx-embed`,
-    "gatsby-plugin-meta-redirect",
-    "gatsby-plugin-theme-ui",
-    "gatsby-plugin-react-helmet",
-    "gatsby-plugin-redirects",
     {
-      resolve: `gatsby-plugin-modal-routing`,
+      resolve: `gatsby-source-filesystem`,
       options: {
-        // A selector to set react-modal's app root to, default is `#___gatsby`
-        // See http://reactcommunity.org/react-modal/accessibility/#app-element
-        appElement: "#___gatsby",
-
-        // Object of props that will be passed to the react-modal container
-        // See http://reactcommunity.org/react-modal/#usage
-        modalProps: {
-          className: "modal",
-          shouldCloseOnOverlayClick: true
-        }
-      }
+        path: `${__dirname}/content/blog`,
+        name: `blog`,
+      },
     },
     {
-      resolve: "gatsby-plugin-mdx",
+      resolve: `gatsby-source-filesystem`,
       options: {
-        extensions: [".md", ".mdx"],
-        gatsbyRemarkPlugins: [
-          "gatsby-remark-smartypants",
-          "gatsby-remark-prismjs",
-          "remark-slug",
-          "remark-emoji"
-        ]
-      }
+        path: `${__dirname}/content/assets`,
+        name: `assets`,
+      },
     },
     {
-      resolve: "gatsby-source-filesystem",
+      resolve: `gatsby-transformer-remark`,
       options: {
-        path: "content",
-        name: "content"
-      }
+        plugins: [
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              maxWidth: 590,
+            },
+          },
+          {
+            resolve: `gatsby-remark-responsive-iframe`,
+            options: {
+              wrapperStyle: `margin-bottom: 1.0725rem`,
+            },
+          },
+          `gatsby-remark-prismjs`,
+          `gatsby-remark-copy-linked-files`,
+          `gatsby-remark-smartypants`,
+        ],
+      },
     },
+    `gatsby-transformer-sharp`,
+    `gatsby-plugin-sharp`,
+    {
+      resolve: `gatsby-plugin-google-analytics`,
+      options: {
+        //trackingId: `ADD YOUR TRACKING ID HERE`,
+      },
+    },
+    `gatsby-plugin-feed`,
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
+        name: `Gatsby Starter Blog`,
+        short_name: `GatsbyJS`,
         start_url: `/`,
-        display: `standalone`,
-        icon: `static/icon.png`,
-        include_favicon: true
-      }
-    }
-  ]
+        background_color: `#ffffff`,
+        theme_color: `#663399`,
+        display: `minimal-ui`,
+        icon: `content/assets/gatsby-icon.png`,
+      },
+    },
+    `gatsby-plugin-react-helmet`,
+    {
+      resolve: `gatsby-plugin-typography`,
+      options: {
+        pathToConfigModule: `src/utils/typography`,
+      },
+    },
+    // this (optional) plugin enables Progressive Web App + Offline functionality
+    // To learn more, visit: https://gatsby.dev/offline
+    // `gatsby-plugin-offline`,
+  ],
 }
