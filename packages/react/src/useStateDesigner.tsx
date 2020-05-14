@@ -48,5 +48,5 @@ export function useStateDesigner<
     [state, setCurrent]
   )
 
-  return { ...state, ...pick(current, "data", "active", "stateTree") }
+  return { ...state, ...pick(current, "data", "active", "stateTree", "values") }
 }
