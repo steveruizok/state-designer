@@ -36,6 +36,14 @@ export type Time<D> = EventFn<D, number>
 
 export type TimeConfig<D, T> = number | EventFnConfig<T, Time<D>>
 
+// Value
+
+export type Value<D> = (data: D) => any
+
+export type Values<D, V extends Record<string, Value<D>>> = {
+  [key in keyof V]: ReturnType<V[key]>
+}
+
 // Target
 
 export type Target<D> = EventFn<D, string>
@@ -137,14 +145,14 @@ export interface State<D> {
   initial?: string
 }
 
-export interface StateConfig<D, R, C, A, Y, T> {
+export interface StateConfig<D, R, C, A, Y, T, V> {
   on?: Record<string, EventHandlerConfig<D, R, C, A, T>>
   onEnter?: EventHandlerConfig<D, R, C, A, T>
   onExit?: EventHandlerConfig<D, R, C, A, T>
   onEvent?: EventHandlerConfig<D, R, C, A, T>
   repeat?: RepeatEventHandlerConfig<D, R, C, A, T>
   async?: AsyncEventHandlerConfig<D, R, C, A, Y, T>
-  states?: Record<string, StateConfig<D, R, C, A, Y, T>>
+  states?: Record<string, StateConfig<D, R, C, A, Y, T, V>>
   initial?: string
 }
 
@@ -156,8 +164,9 @@ export interface Config<
   C extends Record<string, Condition<D>> = any,
   A extends Record<string, Action<D>> = any,
   Y extends Record<string, Async<D>> = any,
-  T extends Record<string, Time<D>> = any
-> extends StateConfig<D, R, C, A, Y, T> {
+  T extends Record<string, Time<D>> = any,
+  V extends Record<string, Value<D>> = any
+> extends StateConfig<D, R, C, A, Y, T, V> {
   id?: string
   data?: D
   results?: R
@@ -165,6 +174,7 @@ export interface Config<
   actions?: A
   asyncs?: Y
   times?: T
+  values?: V
 }
 
 export interface ConfigWithHelpers<
@@ -173,8 +183,9 @@ export interface ConfigWithHelpers<
   C extends Record<string, Condition<D>> = any,
   A extends Record<string, Action<D>> = any,
   Y extends Record<string, Async<D>> = any,
-  T extends Record<string, Time<D>> = any
-> extends Config<D, R, C, A, Y, T> {
+  T extends Record<string, Time<D>> = any,
+  V extends Record<string, Value<D>> = any
+> extends Config<D, R, C, A, Y, T, V> {
   createEventHandlerConfig: (
     config: EventHandlerConfig<D, R, C, A, T>
   ) => EventHandlerConfig<D, R, C, A, T>
@@ -188,14 +199,15 @@ export interface ConfigWithHelpers<
     config: RepeatEventHandlerConfig<D, R, C, A, T>
   ) => RepeatEventHandlerConfig<D, R, C, A, T>
   createStateConfig: (
-    config: StateConfig<D, R, C, A, Y, T>
-  ) => StateConfig<D, R, C, A, Y, T>
+    config: StateConfig<D, R, C, A, Y, T, V>
+  ) => StateConfig<D, R, C, A, Y, T, V>
   createResultConfig: (config: ResultConfig<D, R>) => ResultConfig<D, R>
   createConditionConfig: (
     config: ConditionConfig<D, C>
   ) => ConditionConfig<D, C>
   createActionConfig: (config: ActionConfig<D, A>) => ActionConfig<D, A>
   createTimeConfig: (config: TimeConfig<D, T>) => TimeConfig<D, T>
+  createValueConfig: (config: Value<D>) => Value<D>
 }
 
 // Subscribers
@@ -206,8 +218,9 @@ export type SubscriberFn<
   C extends Record<string, Condition<D>> = any,
   A extends Record<string, Action<D>> = any,
   Y extends Record<string, Async<D>> = any,
-  T extends Record<string, Time<D>> = any
-> = (update: StateDesigner<D, R, C, A, Y, T>) => void
+  T extends Record<string, Time<D>> = any,
+  V extends Record<string, Value<D>> = any
+> = (update: StateDesigner<D, R, C, A, Y, T, V>) => void
 
 // State Designer
 
@@ -217,7 +230,8 @@ export interface StateDesigner<
   C extends Record<string, Condition<D>>,
   A extends Record<string, Action<D>>,
   Y extends Record<string, Async<D>>,
-  T extends Record<string, Time<D>>
+  T extends Record<string, Time<D>>,
+  V extends Record<string, Value<D>>
 > {
   id: string
   data: D
@@ -228,7 +242,7 @@ export interface StateDesigner<
   send: (
     eventName: string,
     payload?: any
-  ) => Promise<StateDesigner<D, R, C, A, Y, T>>
+  ) => Promise<StateDesigner<D, R, C, A, Y, T, V>>
   can: (eventName: string, payload?: any) => boolean
   isIn: (paths: string | string[]) => boolean
   whenIn: (
@@ -241,6 +255,7 @@ export interface StateDesigner<
     ) => any,
     initial?: any
   ) => any
-  getConfig: () => Config<D, R, C, A, Y, T>
-  clone: () => StateDesigner<D, R, C, A, Y, T>
+  getConfig: () => Config<D, R, C, A, Y, T, V>
+  clone: () => StateDesigner<D, R, C, A, Y, T, V>
+  values: Values<D, V>
 }

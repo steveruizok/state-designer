@@ -1,9 +1,8 @@
-import { createStateDesigner } from "../src"
+import { createStateDesigner } from "../createStateDesigner"
 import { state, config, counterConfig } from "./shared"
 
 describe("createStateDesigner", () => {
   it("Should create a state.", () => {
-    expect(state).toBeTruthy()
     expect(createStateDesigner({})).toBeTruthy()
     expect(createStateDesigner(config)).toBeTruthy()
 
@@ -173,4 +172,26 @@ describe("createStateDesigner", () => {
   // Does asynchronous send queueing work?
 
   // Does WhenIn work?
+
+  // Do value types work?
+  const stateB = createStateDesigner({
+    data: { count: 0 },
+    values: {
+      doubleCount(d) {
+        return d.count * 2
+      },
+      shoutedCount(d) {
+        return "Hey, the count is " + d.count
+      },
+    },
+  })
+
+  type IsNumber<T extends number> = T
+  type IsString<T extends string> = T
+
+  type A = IsString<typeof stateB.values.shoutedCount>
+  type B = IsNumber<typeof stateB.values.doubleCount>
+
+  // @ts-ignore
+  type C = A | B
 })

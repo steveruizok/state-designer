@@ -29,8 +29,9 @@ export function createStateDesigner<
   C extends Record<string, S.Condition<D>>,
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>,
-  T extends Record<string, S.Time<D>>
->(config: S.Config<D, R, C, A, Y, T>): S.StateDesigner<D, R, C, A, Y, T> {
+  T extends Record<string, S.Time<D>>,
+  V extends Record<string, S.Value<D>>
+>(config: S.Config<D, R, C, A, Y, T, V>): S.StateDesigner<D, R, C, A, Y, T, V> {
   /* ------------------ Mutable Data ------------------ */
 
   // Current (internal data state)
@@ -60,7 +61,7 @@ export function createStateDesigner<
   // Update (internal update state)
 
   type Update = {
-    process: Promise<S.StateDesigner<D, R, C, A, Y, T>> | void
+    process: Promise<S.StateDesigner<D, R, C, A, Y, T, V>> | void
     transitions: number
     didTransition: boolean
     didAction: boolean
@@ -106,6 +107,7 @@ export function createStateDesigner<
 
   // Call each subscriber callback with the state's current update
   function notifySubscribers() {
+    core.values = getValues(core.data)
     core.active = StateTree.getActiveStates(core.stateTree)
     subscribers.forEach((subscriber) => subscriber(core))
   }
@@ -426,7 +428,7 @@ export function createStateDesigner<
   const sendQueue: S.Event[] = []
 
   async function processSendQueue(): Promise<
-    S.StateDesigner<D, R, C, A, Y, T>
+    S.StateDesigner<D, R, C, A, Y, T, V>
   > {
     setUpdate({
       didAction: false,
@@ -503,7 +505,7 @@ export function createStateDesigner<
   async function send(
     eventName: string,
     payload?: any
-  ): Promise<S.StateDesigner<D, R, C, A, Y, T>> {
+  ): Promise<S.StateDesigner<D, R, C, A, Y, T, V>> {
     sendQueue.push({ event: eventName, payload })
     return update.process ? update.process : processSendQueue()
   }
@@ -635,6 +637,20 @@ export function createStateDesigner<
   }
 
   /**
+   * Hideously compute values based on the current data.
+   * @param data The current data state.
+   */
+  function getValues(data: D): S.Values<D, V> {
+    return Object.entries(config.values || {}).reduce<S.Values<D, V>>(
+      (acc, [key, fn]) => {
+        acc[key as keyof V] = fn(data as D)
+        return acc
+      },
+      {} as S.Values<D, V>
+    )
+  }
+
+  /**
    * Get the original config object (for debugging, mostly)
    * @public
    */
@@ -665,6 +681,7 @@ export function createStateDesigner<
     getUpdate,
     getConfig,
     clone,
+    values: getValues(config.data as D),
   }
 
   // Deactivate the tree, then activate it again to trigger events

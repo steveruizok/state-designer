@@ -19,8 +19,9 @@ export function getStateTreeFromConfig<
   C extends Record<string, S.Condition<D>>,
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>,
-  T extends Record<string, S.Time<D>>
->(config: S.Config<D, R, C, A, Y, T>, id: string) {
+  T extends Record<string, S.Time<D>>,
+  V extends Record<string, S.Value<D>>
+>(config: S.Config<D, R, C, A, Y, T, V>, id: string) {
   /**
    * Convert an event function config into an event function.
    * @param item
@@ -163,7 +164,7 @@ export function getStateTreeFromConfig<
    * @param active
    */
   function createState(
-    state: S.StateConfig<D, R, C, A, Y, T>,
+    state: S.StateConfig<D, R, C, A, Y, T, V>,
     name: string,
     path: string,
     active: boolean

@@ -10,8 +10,11 @@ export function createConfig<
   C extends Record<string, S.Condition<D>>,
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>,
-  T extends Record<string, S.Time<D>>
->(config: S.Config<D, R, C, A, Y>): S.ConfigWithHelpers<D, R, C, A, Y, T> {
+  T extends Record<string, S.Time<D>>,
+  V extends Record<string, S.Value<D>>
+>(
+  config: S.Config<D, R, C, A, Y, T, V>
+): S.ConfigWithHelpers<D, R, C, A, Y, T, V> {
   return {
     ...config,
     createEventHandlerConfig: (
@@ -26,12 +29,13 @@ export function createConfig<
     createRepeatEventHandlerConfig: (
       repeatEventHandler: S.RepeatEventHandlerConfig<D, R, C, A, T>
     ) => repeatEventHandler,
-    createStateConfig: (stateConfig: S.StateConfig<D, R, C, A, Y, T>) =>
+    createStateConfig: (stateConfig: S.StateConfig<D, R, C, A, Y, T, V>) =>
       stateConfig,
     createActionConfig: (actionConfig: S.ActionConfig<D, A>) => actionConfig,
     createConditionConfig: (conditionConfig: S.ConditionConfig<D, C>) =>
       conditionConfig,
     createResultConfig: (resultConfig: S.ResultConfig<D, R>) => resultConfig,
     createTimeConfig: (timeConfig: S.TimeConfig<D, T>) => timeConfig,
+    createValueConfig: (valueConfig: S.Value<D>) => valueConfig,
   }
 }
