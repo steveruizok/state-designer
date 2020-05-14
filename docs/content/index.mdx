@@ -1,100 +1,38 @@
-## Introduction
+# State Designer
 
-**State Designer** is a tool for designing how a user interface should work.
+State Designer is a JavaScript and TypeScript library for managing the state of a user interface. It prioritizes the design experience, making it easy to experiment with ideas, iterate on solutions, and communicate the final result.
 
-## Installation
+Learn more at [statedesigner.com](https://statedesigner.com).
 
-```
-npm install state-designer
-```
+## Features
 
-or
+- Create your state using a flexible, declarative syntax.
+- Use collections to reuse code and clarify make your state.
+- Create both global and local states.
 
-```
-yarn add state-designer
-```
+## Packages
+
+- [`@state-designer/core`](https://github.com/@state-designer/core) - Core library.
+- [`@state-designer/react`](https://github.com/@state-designer/react) - React hook.
+
+## Starters
+
+- [JavaScript](https://codesandbox.io/s/state-designer-vanilla-javascript-gmxhy)
+- [React](https://codesandbox.io/s/state-designer-react-r0z0v)
+- [React + TypeScript](https://codesandbox.io/s/state-designer-react-typescript)
 
 ## Usage
 
-Using **State Designer** involves three steps:
+Using State Designer involves three steps:
 
-1. **Create** a machine.
-2. **Subscribe** to its updates.
-3. **Send** events to the machine.
+1. Create a state with a configuration object.
+2. Subscribe to the state's updates.
+3. Send events to the state.
 
-### In React
+Your exact usage will depend on your framework:
 
-For React projects, you can use the provided [`useStateDesigner`](/docs/useStateDesigner) hook to both create the machine and subscribe to its updates. The hook returns several useful items, including a method that you can use to send events to the machine.
-
-```jsx
-// Counter.js
-
-import React from "react"
-import { useStateDesigner } from "state-designer"
-
-export function Counter() {
-  const { data, send } = useStateDesigner({
-    data: { count: 0 },
-    on: { PLUS_CLICKED: data => data.count++ }
-  })
-
-  return (
-    <div>
-      <h2>{data.count}</h2>
-      <button onClick={() => send("PLUS_CLICKED")}>+</button>
-    </div>
-  )
-}
-```
-
-You can also use the `createStateDesigner` function to create your machine separately, then subscribe to its changes using `useStateDesigner`. With this approach, you can subscribe _multiple_ components to the same machine.
-
-```jsx
-// Counter.js
-
-import React from "react"
-import { createStateDesigner } from "state-designer"
-
-const machine = createStateDesigner({
-  data: { count: 0 },
-  on: { PLUS_CLICKED: data => data.count++ }
-})
-
-export function Counter() {
-  const { data, send } = useStateDesigner(machine)
-
-  return (
-    <div>
-      <h2>{data.count}</h2>
-      <button onClick={() => send("PLUS_CLICKED")}>+</button>
-    </div>
-  )
-}
-```
-
-## In Vanilla JavaScript
-
-To use **State Designer** with regular JavaScript, you will need to "manually" subscribe to your machine's changes using its `subscribe` method.
-
-```js
-// index.js
-
-import { createStateDesigner } from "state-designer"
-
-const machine = createStateDesigner({
-  data: { count: 0 },
-  on: { PLUS_CLICKED: data => data.count++ }
-})
-
-const countH2 = document.getElementById("countH2")
-const button = document.getElementById("button")
-
-machine.subscribe(({ data }) => {
-  countH2.textContent = data.count
-})
-
-button.onclick = () => machine.send("PLUS_CLICKED")
-```
+- [Usage in JavaScript](https://github.com/@state-designer/core#usage)
+- [Usage in React](https://github.com/@state-designer/react#usage)
 
 ## Concepts
 
@@ -110,63 +48,81 @@ Follow the links above to learn more about each of these concepts and how they w
 
 ## Example
 
-View on [CodeSandbox](https://codesandbox.io/s/counter-with-states-cwvn3).
+**Note:** This example uses the [React](https://github.com/@state-designer/react) package.
+
+[![Edit little-snowflake-rmu8q](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/little-snowflake-rmu8q?fontsize=14&hidenavigation=1&theme=dark)
 
 ```jsx
 import React from "react"
-import { useStateDesigner } from "state-designer"
+import { useStateDesigner } from "@state-designer/react"
 
-export default function Counter() {
-  const { data, send, isIn } = useStateDesigner({
-    data: {
-      min: 0,
-      max: 10,
-      count: 0
-    },
+function App() {
+  const { data, send, can, whenIn } = useStateDesigner({
+    data: { count: 1 },
     initial: "inactive",
     states: {
       inactive: {
-        on: {
-          TOGGLED: { to: "active" }
-        }
+        on: { TOGGLED: { to: "active" } },
       },
       active: {
         on: {
           TOGGLED: { to: "inactive" },
-          PLUS_CLICKED: { unless: "atMax", do: "incrementCount" },
-          MINUS_CLICKED: { unless: "atMin", do: "decrementCount" }
-        }
-      }
-    },
-    conditions: {
-      atMin(data) {
-        return data.count <= data.min
+          CLICKED_PLUS: { if: "belowMax", do: "increment" },
+          CLICKED_MINUS: "decrement",
+        },
       },
-      atMax(data) {
-        return data.count >= data.max
-      }
     },
     actions: {
-      incrementCount(data) {
-        data.count++
+      increment(d) {
+        d.count++
       },
-      decrementCount(data) {
-        data.count--
-      }
-    }
+      decrement(d) {
+        d.count--
+      },
+    },
+    conditions: {
+      belowMax(d) {
+        return d.count < 10
+      },
+    },
   })
 
   return (
-    <div>
-      <h2>Count: {data.count}</h2>
-      <button onClick={() => send("TOGGLED")}>Toggle</button>
-      <button disabled={!isIn("active")} onClick={() => send("PLUS_CLICKED")}>
-        +
+    <div className="App">
+      <h2>{data.count}</h2>
+      <button
+        disabled={!can("CLICKED_MINUS")}
+        onClick={() => send("CLICKED_MINUS")}
+      >
+        -1
       </button>
-      <button disabled={!isIn("active")} onClick={() => send("MINUS_CLICKED")}>
-        -
+      <button
+        disabled={!can("CLICKED_PLUS")}
+        onClick={() => send("CLICKED_PLUS")}
+      >
+        +1
+      </button>
+      <button onClick={() => send("TOGGLED")}>
+        {whenIn({
+          active: "Turn Off",
+          inactive: "Turn On",
+        })}
       </button>
     </div>
   )
 }
+
+export default App
 ```
+
+## Inspiration
+
+State Designer is heavily inspired by [xstate](https://github.com/davidkpiano/xstate). Note that, unlike xstate, State Designer does not adhere to the [scxml spec](https://en.wikipedia.org/wiki/SCXML).
+
+## Author
+
+- [Steve Ruiz](https://twitter.com/@steveruizok)
+
+## License
+
+[MIT](https://oss.ninja/mit/steveruizok)
