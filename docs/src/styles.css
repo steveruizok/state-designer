@@ -6,6 +6,10 @@ html {
   scroll-behavior: smooth;
 }
 
+body {
+  background-color: #fff !important;
+}
+
 .ReactModalPortal {
   position: relative;
   z-index: 9998;

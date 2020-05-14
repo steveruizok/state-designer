@@ -68,7 +68,7 @@ export default {
       maxWidth: 1024,
     },
     root: {
-      fontFamily: "body",
+      fontFamily: "'IBM Plex Sans', sans-serif",
       lineHeight: "body",
       fontWeight: "body",
       fontSize: 3,
