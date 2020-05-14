@@ -1,9 +1,8 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src", "types", "test", "decs.d.ts"],
+  "include": ["src", "types", "src/test", "decs.d.ts"],
   "exclude": ["node_modules", "dist", "__tests__", "**/*.test*", "**/*.spec*"],
   "compilerOptions": {
-    "rootDir": "./src",
-    "baseUrl": "./src"
+    "rootDir": "./src"
   }
 }

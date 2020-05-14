@@ -1,4 +1,4 @@
-import { createConfig, createStateDesigner } from "../src"
+import { createConfig, createStateDesigner } from ".."
 
 export const config = createConfig({
   data: { count: 0 },

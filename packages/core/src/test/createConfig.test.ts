@@ -1,4 +1,4 @@
-import { createConfig } from "../src"
+import { createConfig } from ".."
 import { config } from "./shared"
 
 describe("createConfig", () => {
