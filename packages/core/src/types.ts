@@ -72,6 +72,7 @@ export type EventHandlerItem<D> = {
   unless: Condition<D>[]
   ifAny: Condition<D>[]
   do: Action<D>[]
+  // secretlyDo:
   elseDo: Action<D>[]
   to?: Target<D>
   elseTo?: Target<D>
@@ -134,7 +135,10 @@ export interface State<D> {
   active: boolean
   path: string
   history: string[]
-  interval?: any
+  times: {
+    interval?: any
+    animationFrame?: number
+  }
   on: Record<string, EventHandler<D>>
   onEnter?: EventHandler<D>
   onExit?: EventHandler<D>

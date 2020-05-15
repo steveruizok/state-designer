@@ -362,9 +362,15 @@ export function createStateDesigner<
     // - bail if we've transitioned
 
     deactivatedStates.forEach((state) => {
-      if (!isUndefined(state.interval)) {
-        clearInterval(state.interval)
-        state.interval = undefined
+      const { interval, animationFrame } = state.times
+      if (!isUndefined(interval)) {
+        clearInterval(interval)
+        state.times.interval = undefined
+      }
+
+      if (!isUndefined(animationFrame)) {
+        cancelAnimationFrame(animationFrame)
+        state.times.animationFrame = undefined
       }
     })
 
@@ -408,17 +414,17 @@ export function createStateDesigner<
               notifySubscribers()
             }
 
-            state.interval = requestAnimationFrame(loop)
+            state.times.animationFrame = requestAnimationFrame(loop)
           }
 
-          state.interval = requestAnimationFrame(loop)
+          state.times.animationFrame = requestAnimationFrame(loop)
         } else {
           let lastTime = Date.now()
           // Run on provided delay amount
 
           const s = delay(current.data, current.payload, current.result)
 
-          state.interval = setInterval(async () => {
+          state.times.interval = setInterval(async () => {
             now = Date.now()
             const interval = now - lastTime
             elapsed += interval

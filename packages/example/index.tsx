@@ -1,6 +1,7 @@
 import "react-app-polyfill/ie11"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
+import { padStart } from "lodash"
 import {
   createConfig,
   createStateDesigner,
@@ -18,13 +19,13 @@ const config = createConfig({
           to: "active",
         },
       },
-      repeat: {
-        event: [
-          (d, _, { elapsed }) => {
-            d.ms = elapsed
-          },
-        ],
-      },
+      // repeat: {
+      //   event: [
+      //     (d, _, { elapsed }) => {
+      //       d.ms = elapsed
+      //     },
+      //   ],
+      // },
     },
     active: {
       on: {
@@ -41,6 +42,17 @@ const config = createConfig({
     },
     incrementBy(d, p) {
       d.count += p
+    },
+  },
+  values: {
+    milliseconds(d) {
+      return padStart((Math.floor(d.ms / 10) % 100).toString(), 2, "0")
+    },
+    seconds(d) {
+      return padStart((Math.floor(d.ms / 1000) % 60).toString(), 2, "0")
+    },
+    minutes(d) {
+      return padStart(Math.floor(d.ms / 60000).toString(), 2, "0")
     },
   },
 })
@@ -74,12 +86,16 @@ function Checkbox({ checked = false }) {
 
 const App = () => {
   const [inputState, setInputState] = React.useState(0)
-  const { data, send, isIn, whenIn, stateTree } = useStateDesigner(state)
+  const { data, send, values, isIn, whenIn, stateTree } = useStateDesigner(
+    state
+  )
 
   return (
     <div>
       <h3>{data.count}</h3>
-      <h2>Time {(data.ms / 1000).toFixed(2)}</h2>
+      <h2>
+        Seconds {values.minutes}:{values.seconds}:{values.milliseconds}
+      </h2>
       <Checkbox checked={isIn("active")} />
       <button onClick={() => send("TOGGLE")}>Turn on</button>
       <button onClick={() => send("TOGGLE")}>Turn off</button>

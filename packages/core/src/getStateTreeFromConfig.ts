@@ -174,7 +174,10 @@ export function getStateTreeFromConfig<
       path: path + name,
       active,
       history: state.initial ? [state.initial] : [],
-      interval: undefined,
+      times: {
+        interval: undefined,
+        animationFrame: undefined,
+      },
       initial: state.initial,
       onEnter: state.onEnter ? getEventHandler(state.onEnter) : undefined,
       onExit: state.onExit ? getEventHandler(state.onExit) : undefined,
