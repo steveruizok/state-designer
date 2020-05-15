@@ -106,7 +106,7 @@ export type EventHandlerConfig<D, R, C, A, T> = MaybeArray<
 
 export type RepeatEventHandler<D> = {
   event: EventHandler<D>
-  delay: Time<D>
+  delay?: Time<D>
 }
 
 export type RepeatEventHandlerConfig<D, R, C, A, T> = {
@@ -134,7 +134,7 @@ export interface State<D> {
   active: boolean
   path: string
   history: string[]
-  intervals: any[]
+  interval?: any
   on: Record<string, EventHandler<D>>
   onEnter?: EventHandler<D>
   onExit?: EventHandler<D>

@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
+    "rootDir": "./src",
     "baseUrl": "./",
     "paths": {
       "@state-designer/*": ["packages/*/src"],

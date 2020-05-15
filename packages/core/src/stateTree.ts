@@ -150,15 +150,3 @@ export function findTransitionTargets<D = any>(
 
   return acc
 }
-
-/**
- * Clear all intervals currently running on the state.
- * @param state
- */
-export function clearIntervalsOnState<D = any>(state: S.State<D>) {
-  for (let interval of state.intervals) {
-    clearInterval(interval)
-  }
-
-  state.intervals = []
-}

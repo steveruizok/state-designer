@@ -8,7 +8,7 @@ import {
 } from "@state-designer/react"
 
 const config = createConfig({
-  data: { count: 0, idleCount: 0 },
+  data: { count: 0, ms: 0 },
   on: {},
   initial: "inactive",
   states: {
@@ -19,8 +19,11 @@ const config = createConfig({
         },
       },
       repeat: {
-        event: (d) => d.idleCount++,
-        delay: 0.1,
+        event: [
+          (d, _, { elapsed }) => {
+            d.ms = elapsed
+          },
+        ],
       },
     },
     active: {
@@ -75,8 +78,8 @@ const App = () => {
 
   return (
     <div>
-      <h2>{data.count}</h2>
-      <h3>{data.idleCount}</h3>
+      <h3>{data.count}</h3>
+      <h2>Time {(data.ms / 1000).toFixed(2)}</h2>
       <Checkbox checked={isIn("active")} />
       <button onClick={() => send("TOGGLE")}>Turn on</button>
       <button onClick={() => send("TOGGLE")}>Turn off</button>

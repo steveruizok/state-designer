@@ -180,6 +180,7 @@ export function createStateDesigner<
       transition: undefined as S.EventFn<D, string> | undefined,
     }
 
+    // TODO: Make sure off-thread event handlers don't mutate current.
     setCurrent(
       await produce(current, async (c) => {
         for (let item of eventHandler) {
@@ -356,11 +357,16 @@ export function createStateDesigner<
     const currentTransitions = update.transitions
 
     // Deactivated States
-    // - clear any intervals
+    // - clear any interval
     // - handle onExit events
     // - bail if we've transitioned
 
-    deactivatedStates.forEach(StateTree.clearIntervalsOnState)
+    deactivatedStates.forEach((state) => {
+      if (!isUndefined(state.interval)) {
+        clearInterval(state.interval)
+        state.interval = undefined
+      }
+    })
 
     for (let state of deactivatedStates) {
       const { onExit } = state
@@ -372,7 +378,7 @@ export function createStateDesigner<
     }
 
     // Activated States
-    // - set any repeat intervals
+    // - set any repeat interval
     // - handle onEnter events
     // - bail if we've transitioned
 
@@ -380,17 +386,52 @@ export function createStateDesigner<
       const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
-        const s = repeat.delay(current.data, current.payload, current.result)
+        const { delay, event } = repeat
 
-        state.intervals.push(
-          setInterval(async () => {
-            const localUpdate = await runOffThreadEventHandler(repeat.event)
+        let now = Date.now()
+        let lastTime = 0
+        let elapsed = 0
+
+        if (delay === undefined) {
+          // Run on every animation frame
+
+          const loop = async (now: number) => {
+            const interval = now - lastTime
+            elapsed += interval
+            setCurrent({ result: { interval, elapsed } })
+
+            lastTime = now
+
+            const localUpdate = await runOffThreadEventHandler(event)
+
+            if (localUpdate.didAction || localUpdate.didTransition) {
+              notifySubscribers()
+            }
+
+            state.interval = requestAnimationFrame(loop)
+          }
+
+          state.interval = requestAnimationFrame(loop)
+        } else {
+          let lastTime = Date.now()
+          // Run on provided delay amount
+
+          const s = delay(current.data, current.payload, current.result)
+
+          state.interval = setInterval(async () => {
+            now = Date.now()
+            const interval = now - lastTime
+            elapsed += interval
+            setCurrent({ result: { interval, elapsed } })
+            lastTime = now
+
+            const localUpdate = await runOffThreadEventHandler(event)
 
             if (localUpdate.didAction || localUpdate.didTransition) {
               notifySubscribers()
             }
           }, Math.max(1 / 60, s * 1000))
-        )
+        }
       }
 
       if (!isUndefined(onEnter)) {

@@ -3,7 +3,8 @@
 
   "compilerOptions": {
     "declarationDir": "dist",
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "./src"
   },
 
   "include": ["src/**/*", "decs.d.ts"]

@@ -174,7 +174,7 @@ export function getStateTreeFromConfig<
       path: path + name,
       active,
       history: state.initial ? [state.initial] : [],
-      intervals: [],
+      interval: undefined,
       initial: state.initial,
       onEnter: state.onEnter ? getEventHandler(state.onEnter) : undefined,
       onExit: state.onExit ? getEventHandler(state.onExit) : undefined,
@@ -191,7 +191,7 @@ export function getStateTreeFromConfig<
       repeat: state.repeat
         ? {
             event: getEventHandler(state.repeat.event),
-            delay: getTime(state.repeat.delay) || (() => 1 / 60),
+            delay: state.repeat.delay ? getTime(state.repeat.delay) : undefined,
           }
         : undefined,
       on: Object.fromEntries(
