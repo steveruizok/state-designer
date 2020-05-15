@@ -1,56 +1,30 @@
 {
-  "name": "state-designer-docs",
   "private": true,
-  "description": "A temporary rebuild.",
-  "version": "0.1.0",
-  "author": "Steve Ruiz <steveruizok@gmail.com>",
-  "bugs": {
-    "url": "https://github.com/steveruizok/state-designer/issues"
+  "name": "docz-example-typescript",
+  "version": "2.0.0-rc.41",
+  "license": "MIT",
+  "files": [
+    "src/",
+    "doczrc.js",
+    "tsconfig.json",
+    "package.json"
+  ],
+  "scripts": {
+    "dev": "docz dev",
+    "start": "docz dev",
+    "build": "docz build"
   },
   "dependencies": {
-    "gatsby": "^2.21.22",
-    "gatsby-image": "^2.4.3",
-    "gatsby-plugin-feed": "^2.5.1",
-    "gatsby-plugin-google-analytics": "^2.3.1",
-    "gatsby-plugin-manifest": "^2.4.2",
-    "gatsby-plugin-offline": "^3.2.1",
-    "gatsby-plugin-react-helmet": "^3.3.1",
-    "gatsby-plugin-sharp": "^2.6.2",
-    "gatsby-plugin-typography": "^2.5.1",
-    "gatsby-remark-copy-linked-files": "^2.3.2",
-    "gatsby-remark-images": "^3.3.2",
-    "gatsby-remark-prismjs": "^3.5.1",
-    "gatsby-remark-responsive-iframe": "^2.4.2",
-    "gatsby-remark-smartypants": "^2.3.1",
-    "gatsby-source-filesystem": "^2.3.1",
-    "gatsby-transformer-remark": "^2.8.7",
-    "gatsby-transformer-sharp": "^2.5.2",
-    "prismjs": "^1.20.0",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "react-helmet": "^5.2.1",
-    "react-typography": "^0.16.19",
-    "typeface-merriweather": "0.0.72",
-    "typeface-montserrat": "0.0.75",
-    "typography": "^0.16.19",
-    "typography-theme-wordpress-2016": "^0.16.19"
+    "@emotion/core": "^10.0.14",
+    "@emotion/styled": "^10.0.14",
+    "@state-designer/react": "^1.1.19",
+    "docz": "latest",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-live": "^2.2.2"
   },
   "devDependencies": {
-    "prettier": "2.0.5"
-  },
-  "homepage": "https://github.com/steveruizok/state-designer/",
-  "keywords": [
-    "gatsby"
-  ],
-  "license": "MIT",
-  "main": "n/a",
-  "scripts": {
-    "build": "gatsby build",
-    "develop": "gatsby develop",
-    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
-    "start": "npm run develop",
-    "serve": "gatsby serve",
-    "clean": "gatsby clean",
-    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
+    "@types/react": "^16.8.23",
+    "@types/react-dom": "^16.8.4"
   }
 }

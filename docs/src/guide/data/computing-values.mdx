@@ -1,0 +1,47 @@
+---
+name: Values
+route: guide/values
+menu: Guide
+---
+
+import { Playground } from "docz"
+import { useStateDesigner } from "@state-designer/react"
+
+# Computing `values`
+
+Depending on what you're building, the values you're interested in might not be the same as the values that you store in `data`. To make this easier, you can add a `values` object to your configuration.
+
+<Playground>
+  {() => {
+    const { data, send, values } = useStateDesigner({
+      data: {
+        value: 0,
+      },
+      on: {
+        INCREASED: (data) => {
+          data.value++
+        },
+      },
+      values: {
+        doubled: (data) => {
+          return data.value * 2
+        },
+      },
+    })
+    return (
+      <div>
+        <h2>{data.value}</h2>
+        <p>Doubled: {values.doubled}</p>
+        <button onClick={() => send("INCREASED")}>Increase</button>
+      </div>
+    )
+  }}
+</Playground>
+
+The `values` object is an object made up of functions that, like actions, accept the state's current `data`. Unlike actions, what matters here is what the function returns.
+
+Each time the state is ready to update, it will run all of its `values` functions and return a new object—also named `values`—that contains whatever each function returned.
+
+#### 🏆 Challenge
+
+In the playground above, can you create a new value named `half` that returns half the value of `data.count`?

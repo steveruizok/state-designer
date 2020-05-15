@@ -1,0 +1,46 @@
+---
+name: Conditions
+route: guide/conditions
+menu: Guide
+---
+
+import { Playground } from "docz"
+import { useStateDesigner } from "@state-designer/react"
+import LiveView from "../../LiveView"
+
+<LiveView />
+
+# Using Conditions
+
+Conditions are a way to control how an event handler works.
+
+<Playground>
+  {() => {
+    const { data, send, values } = useStateDesigner({
+      data: {
+        value: 0,
+      },
+      on: {
+        INCREASED: (data) => {
+          data.value++
+        },
+      },
+      values: {
+        doubled: (data) => {
+          return data.value * 2
+        },
+      },
+    })
+    return (
+      <div>
+        <h2>{data.value}</h2>
+        <p>Doubled: {values.doubled}</p>
+        <button onClick={() => send("INCREASED")}>Increase</button>
+      </div>
+    )
+  }}
+</Playground>
+
+#### 🏆 Challenge
+
+...
