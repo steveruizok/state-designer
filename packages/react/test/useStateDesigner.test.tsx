@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-import { createConfig, createStateDesigner, useStateDesigner } from "../src"
+import { createConfig, createStateDesigner, useStateDesigner } from "../"
 
 const configObject = {
   data: { count: 0 },

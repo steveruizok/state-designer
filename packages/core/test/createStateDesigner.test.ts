@@ -1,4 +1,4 @@
-import { createStateDesigner } from "../createStateDesigner"
+import { createStateDesigner } from "../src"
 import { state, config, counterConfig } from "./shared"
 
 describe("createStateDesigner", () => {
