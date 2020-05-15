@@ -511,21 +511,43 @@ export function createStateDesigner<
   }
 
   /**
-   * Return true if the state tree has any (or every) of the paths active
+   * Accepts one or more paths and returns true if the state tree has matching active states for every path.
    * @param paths The paths to check
-   * @param every (optional) Whether to return true only if every path is active
    * @public
+   * @example
+   * state.isIn("playing")
+   * state.isIn("playing.paused")
+   * state.isIn("on", "stopped") // true if BOTH states are active
+   *
    */
-  function isIn(paths: string | string[], every = false): boolean {
-    const p = castArray(paths)
-    return (
-      core.active.find((state) =>
-        p[every ? "every" : "some"]((path) => {
-          let safePath = path.startsWith(".") ? path : "." + path
-          return state.path.endsWith(safePath)
-        })
-      ) !== undefined
-    )
+  function isIn(path: string): boolean
+  function isIn(...paths: string[]): boolean {
+    return castArray(paths)
+      .map((path) => (path.startsWith(".") ? path : "." + path))
+      .every(
+        (path) =>
+          core.active.find((state) => state.path.endsWith(path)) !== undefined
+      )
+  }
+
+  /**
+   * Accepts one or more paths and returns true if the state tree has matching active states for any path.
+   * @param paths The paths to check
+   * @public
+   * @example
+   * state.isIn("playing")
+   * state.isIn("playing.paused")
+   * state.isIn("on", "stopped") // true if EITHER state is active
+   *
+   */
+  function isInAny(path: string): boolean
+  function isInAny(...paths: string[]): boolean {
+    return castArray(paths)
+      .map((path) => (path.startsWith(".") ? path : "." + path))
+      .some(
+        (path) =>
+          core.active.find((state) => state.path.endsWith(path)) !== undefined
+      )
   }
 
   /**
@@ -675,6 +697,7 @@ export function createStateDesigner<
     stateTree: _stateTree,
     send,
     isIn,
+    isInAny,
     can,
     whenIn,
     onUpdate,

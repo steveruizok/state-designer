@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.18
+
+- Adds `isInAny` helper.
+- Removes `every` argument from `isIn`.
+- The `isIn` helper now takes one or more state paths (strings) and returns true only if it finds matching active states for **every** path. You can think of it as asking the state "Are all of these paths active?".
+- The new `isInAny` helper also takes one or more state paths (strings), but will returns true if it finds a matching active state for **any** path. You can think of it as asking the state "Are any of these paths active?".
+
+## 1.1.17
+
+- Adds `values`. You can use this property in a machine's config to create computed values. Each update will include the returned value of the functions provided in `values`.
+
 ## 1.1.11
 
 - Adds `elseSend`.

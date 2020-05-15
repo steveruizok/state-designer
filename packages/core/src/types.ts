@@ -244,7 +244,8 @@ export interface StateDesigner<
     payload?: any
   ) => Promise<StateDesigner<D, R, C, A, Y, T, V>>
   can: (eventName: string, payload?: any) => boolean
-  isIn: (paths: string | string[]) => boolean
+  isIn: (...paths: string[]) => boolean
+  isInAny: (...paths: string[]) => boolean
   whenIn: (
     states: { [key: string]: any },
     reducer?: (

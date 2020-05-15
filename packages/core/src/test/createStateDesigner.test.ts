@@ -34,6 +34,17 @@ describe("createStateDesigner", () => {
     const counter = createStateDesigner(counterConfig)
     expect(counter.isIn("active")).toBeFalsy()
     expect(counter.isIn("inactive")).toBeTruthy()
+    expect(counter.isIn("active", "inactive")).toBeFalsy()
+    expect(counter.isIn("missing")).toBeFalsy()
+    done()
+  })
+
+  it("Should support the isInAny helper.", async (done) => {
+    const counter = createStateDesigner(counterConfig)
+    expect(counter.isIn("active")).toBeFalsy()
+    expect(counter.isIn("inactive")).toBeTruthy()
+    expect(counter.isInAny("active", "inactive")).toBeTruthy()
+    expect(counter.isInAny("missing")).toBeFalsy()
     done()
   })
 
@@ -149,6 +160,7 @@ describe("createStateDesigner", () => {
       },
     })
 
+    expect(toggler.isIn("inactive")).toBeTruthy()
     let update = await toggler.send("TOGGLED")
     expect(toggler.isIn("active")).toBeTruthy()
     expect(update.data.count).toBe(1)
