@@ -34,7 +34,7 @@ export default {
     heading: "'Fira Sans', sans-serif",
     monospace: "'Fira Code', monospace",
   },
-  fontSizes: [12, 15, 16, 18, 24, 32, 48, 64, 72],
+  fontSizes: [12, 15, 16, 18, 22, 24, 32, 44, 72],
   fontWeights: {
     body: "400",
     quote: "400",

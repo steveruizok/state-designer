@@ -1,4 +1,4 @@
-## useStateDesigner
+# useStateDesigner
 
 The `state-designer` package includes a React hook named `useStateDesigner`. You can use this hook in one of two ways:
 
@@ -57,7 +57,7 @@ export function TodoList() {
 
   return (
     <div>
-      {data.todos.map(todo => (
+      {data.todos.map((todo) => (
         <div>...</div>
       ))}
     </div>
@@ -82,11 +82,11 @@ export function Clicker({ id, onClick }) {
     {
       data: { count: 0 },
       on: {
-        CLICKED: data => data.count++
-      }
+        CLICKED: (data) => data.count++,
+      },
     },
     // highlight-start
-    info => {
+    (info) => {
       const json = JSON.stringify(info.data)
       localStorage.setItem(`clicker_${id}`, json)
     }
@@ -149,8 +149,8 @@ export function Clicker({ count }) {
     {
       data: { count },
       on: {
-        CLICKED: data => data.count++
-      }
+        CLICKED: (data) => data.count++,
+      },
     },
     undefined,
     // highlight-next-line
@@ -177,9 +177,9 @@ export function Clicker({ count }) {
   const { data, send } = useStateDesigner({
     data: { count },
     on: {
-      CLICKED: data => data.count++,
-      FORCED_CHANGE: (data, payload) => (data.count = payload)
-    }
+      CLICKED: (data) => data.count++,
+      FORCED_CHANGE: (data, payload) => (data.count = payload),
+    },
   })
 
   // highlight-start

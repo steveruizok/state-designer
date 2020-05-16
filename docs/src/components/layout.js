@@ -39,9 +39,7 @@ export default ({ children }) => {
                 ref={nav}
                 open={menuOpen}
                 sx={{ display: [null, "block"] }}
-                onFocus={() => setMenuOpen(true)}
-                onBlur={() => setMenuOpen(false)}
-                onClick={() => setMenuOpen(false)}
+                onClick={() => setMenuOpen(!menuOpen)}
               />
               <div
                 sx={{
@@ -50,7 +48,7 @@ export default ({ children }) => {
                   width: "100%",
                   overflow: "hidden",
                   mb: 2,
-                  mt: [4, 2],
+                  mt: [4, 3],
                 }}
               >
                 {children}

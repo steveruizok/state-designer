@@ -1,10 +1,10 @@
 /** @jsx jsx */
-import React from "react";
-import { jsx } from "theme-ui";
-import { Sidenav } from "@theme-ui/sidenav";
+import React from "react"
+import { jsx } from "theme-ui"
+import { Sidenav } from "@theme-ui/sidenav"
 
-import SidebarLink from "./sidebar-link";
-import Content from "../../content/nav/sidebar.mdx";
+import SidebarLink from "./sidebar-link"
+import Content from "../../content/nav/sidebar.mdx"
 
 export default React.forwardRef((props, ref) => (
   <Sidenav
@@ -21,7 +21,7 @@ export default React.forwardRef((props, ref) => (
       pb: 4,
       mx: 0,
       mt: [57, 0],
-      mr: [0, 4],
+      mr: [0, 5],
       transition: "none",
       "& ul ul a": {
         pl: 0,
@@ -39,4 +39,4 @@ export default React.forwardRef((props, ref) => (
   >
     <Content />
   </Sidenav>
-));
+))
