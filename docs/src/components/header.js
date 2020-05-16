@@ -68,7 +68,9 @@ export default ({ menuOpen, setMenuOpen, nav }) => {
               display: "flex",
               listStyleType: "none",
             },
-            li: {},
+            li: {
+              my: 0,
+            },
           }}
         >
           <MenuButton
