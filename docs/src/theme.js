@@ -29,10 +29,10 @@ export default {
     modal: "0px 2px 26px rgba(0,0,0,.25)",
   },
   fonts: {
-    body: "'IBM Plex Sans', sans-serif",
-    quote: "'IBM Plex Serif', serif",
-    heading: "'IBM Plex Serif', serif",
-    monospace: "'IBM Plex Mono', monospace",
+    body: "'Fira Sans', sans-serif",
+    quote: "'Fira Sans', sans-serif",
+    heading: "'Fira Sans', sans-serif",
+    monospace: "'Fira Code', monospace",
   },
   fontSizes: [12, 15, 16, 18, 24, 32, 48, 64, 72],
   fontWeights: {
@@ -111,8 +111,13 @@ export default {
       border: (theme) => `1px solid ${theme.colors.gray}`,
       fontFamily: "quote",
       fontWeight: "quote",
+      fontSize: 2,
+      bg: "codeBg",
       px: 4,
       py: 2,
+      "& pre": {
+        bg: "codeHl",
+      },
     },
     pre: {
       ...prismTheme,
@@ -137,9 +142,10 @@ export default {
     },
     code: {
       fontFamily: "monospace",
-      fontSize: 3,
+      fontSize: 2,
+      color: "code",
       bg: "codeBg",
-      fontWeight: 400,
+      fontWeight: 500,
       // fontSize: 1,
       // border: '1px solid #efefef',
       px: 1,

@@ -1,26 +1,18 @@
 /** @jsx jsx */
-import { useState, useRef } from "react";
-import { Global } from "@emotion/core";
-import {
-  Styled,
-  Box,
-  Layout,
-  Main,
-  Container,
-  jsx,
-  useThemeUI,
-} from "theme-ui";
+import { useState, useRef } from "react"
+import { Global } from "@emotion/core"
+import { Styled, Box, Layout, Main, Container, jsx, useThemeUI } from "theme-ui"
 
-import Footer from "./footer";
-import Header from "./header";
-import Sidenav from "./sidenav";
+import Footer from "./footer"
+import Header from "./header"
+import Sidenav from "./sidenav"
 
 export default ({ children }) => {
   const {
     theme: { colors = {} },
-  } = useThemeUI();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const nav = useRef(null);
+  } = useThemeUI()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const nav = useRef(null)
 
   const bodyStyles = {
     body: {
@@ -28,20 +20,18 @@ export default ({ children }) => {
       color: colors.text,
       backgroundColor: colors.background,
     },
-  };
+  }
 
   return (
     <Styled.root>
       <Global styles={bodyStyles} />
-      <Box>
+      <Box sx={{ maxWidth: 960, margin: "0 auto" }}>
         <Header nav={nav} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
         <main>
-          <Container py={0} px={3}>
+          <Container py={0}>
             <div
               sx={{
                 display: [null, "flex"],
-                mx: -3,
-                width: "100%",
                 mt: [5, 0],
               }}
             >
@@ -55,10 +45,12 @@ export default ({ children }) => {
               />
               <div
                 sx={{
-                  px: [3, 0],
+                  pl: [3, 0],
+                  pr: [3, 4],
                   width: "100%",
                   overflow: "hidden",
                   mb: 2,
+                  mt: [4, 2],
                 }}
               >
                 {children}
@@ -69,5 +61,5 @@ export default ({ children }) => {
         </main>
       </Box>
     </Styled.root>
-  );
-};
+  )
+}

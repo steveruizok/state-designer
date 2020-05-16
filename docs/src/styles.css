@@ -36,3 +36,35 @@ body {
 .ReactModal__Body--after-open {
   overflow-y: hidden;
 }
+
+.live-view {
+  font-family: "Fira Sans", sans-serif;
+}
+
+.live-view button {
+  font-size: 16px;
+  border-radius: 4px;
+  padding: 12px 24px;
+  background: unset;
+  box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.1);
+  font-family: "Fira Sans", sans-serif;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.live-view button:hover {
+  background-color: #ffffff;
+  border: 1px solid #aaa;
+}
+
+.live-view button:focus {
+  background-color: #ffffff;
+  border: 1px solid #aaa;
+}
+
+.live-view button:active {
+  background-color: #fefefe;
+  border: 1px solid #999;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}

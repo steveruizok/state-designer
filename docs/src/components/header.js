@@ -1,27 +1,28 @@
 /** @jsx jsx */
-import { jsx, Container, Flex } from "theme-ui";
-import { MDXProvider } from "@mdx-js/react";
+import { jsx, Container, Flex } from "theme-ui"
+import { MDXProvider } from "@mdx-js/react"
 
-import MenuButton from "./menu-button";
-import NavLink from "./nav-link";
+import MenuButton from "./menu-button"
+import NavLink from "./nav-link"
 // @ts-ignore
-import Content from "../../content/nav/header.mdx";
+import Content from "../../content/nav/header.mdx"
 
 const components = {
   a: NavLink,
-};
+}
 
 export default ({ menuOpen, setMenuOpen, nav }) => {
   return (
     <Container
       sx={{
         mx: [0, "auto"],
-        px: [1, 4],
+        px: [0, 4],
         py: 0,
         position: ["fixed", "relative"],
         top: 0,
         left: 0,
         backgroundColor: "#FFFFFF",
+        zIndex: "99999",
       }}
     >
       <Flex
@@ -34,6 +35,7 @@ export default ({ menuOpen, setMenuOpen, nav }) => {
           borderColor: "text",
           borderBottomStyle: "solid",
           borderBottomWidth: "1px",
+          backgroundColor: "#FFFFFF",
         }}
       >
         <Flex
@@ -72,10 +74,10 @@ export default ({ menuOpen, setMenuOpen, nav }) => {
           <MenuButton
             sx={{ mr: 2 }}
             onClick={(e) => {
-              setMenuOpen(!menuOpen);
-              if (!nav.current) return;
-              const navLink = nav.current.querySelector("a");
-              if (navLink) navLink.focus();
+              setMenuOpen(!menuOpen)
+              if (!nav.current) return
+              const navLink = nav.current.querySelector("a")
+              if (navLink) navLink.focus()
             }}
           />
           <MDXProvider components={components}>
@@ -84,5 +86,5 @@ export default ({ menuOpen, setMenuOpen, nav }) => {
         </Flex>
       </Flex>
     </Container>
-  );
-};
+  )
+}

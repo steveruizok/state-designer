@@ -1,0 +1,25 @@
+import Snippets from "./snippets"
+
+# Events
+
+In State Designer, events are our way of making things happen.
+
+Click on the button in the example below to open an alert.
+
+<LiveView code={Snippets.events} />
+
+Now let's look at how that works.
+
+We declare a state's **events** under the property `on`, an object where we can define individual events as key value pairs. We call the key the event's **name** and the value the event's **handler**.
+
+In our case, we've created a single event named `"CLICKED"` that we're handling with a function that opens the alert.
+
+```jsx
+on: {
+  CLICKED: () => window.alert("Hello world!")
+},
+```
+
+#### 🏆 Challenge
+
+...
