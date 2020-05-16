@@ -1,0 +1,38 @@
+/* @import url("https://fonts.googleapis.com/css?family=Merriweather:400,400i,700&display=swap"); */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;700&family=IBM+Plex+Serif:wght@400;700&display=swap");
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #fff !important;
+}
+
+.ReactModalPortal {
+  position: relative;
+  z-index: 9998;
+}
+
+.modal {
+  outline: none;
+  pointer-events: none;
+}
+
+.ReactModal__Body {
+  z-index: 9998;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.ReactModal__Body--before-open {
+  opacity: 0;
+}
+
+.ReactModal__Body--after-open {
+  overflow-y: hidden;
+}

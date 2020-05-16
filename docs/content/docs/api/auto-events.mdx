@@ -1,0 +1,202 @@
+## Auto Events
+
+[Unlike](/definitions/action) regular [events](./events), which are handled when a machine receives a event's name through its `send` method, **auto events** are triggered automatically.
+
+There are several kinds of auto events that will each fire under different circumstances. You can add auto events to any state in a machine's [state tree](/docs/glossary#state-tree). Certain auto events will also work on the [root state](/docs/glossary#root-state).
+
+In complex machines, an event or transition may cause several auto events to fire.
+
+## onEnter
+
+The `onEnter` auto event has the same API as a normal event. It is handled automatically as soon as a state switches from inactive to active.
+
+```js
+createStateDesigner({
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: {
+        PLAY_PRESSED: { to: "playing" }
+      }
+    },
+    playing: {
+      // highlight-start
+      onEnter: {
+        do: () => console.log("Now entering the playing state!")
+      },
+      // highlight-end
+      on: {
+        STOP_PRESSED: { to: "stopped" }
+      }
+    }
+  }
+})
+```
+
+## onExit
+
+The `onExit` auto event is handled automatically as soon as a state switches from active to inactive. It has the same API as a normal event.
+
+```js
+createStateDesigner({
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: {
+        PLAY_PRESSED: { to: "playing" }
+      }
+    },
+    playing: {
+      // highlight-start
+      onExit: {
+        do: () => console.log("Now leaving the playing state!")
+      },
+      // highlight-end
+      on: {
+        STOP_PRESSED: { to: "stopped" }
+      }
+    }
+  }
+})
+```
+
+## onExit
+
+The `onExit` auto event is handled automatically as soon as a state switches from active to inactive. It has the same API as a normal event.
+
+```js
+createStateDesigner({
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: {
+        PLAY_PRESSED: { to: "playing" }
+      }
+    },
+    playing: {
+      // highlight-start
+      onExit: {
+        do: () => console.log("Now leaving the playing state!")
+      },
+      // highlight-end
+      on: {
+        STOP_PRESSED: { to: "stopped" }
+      }
+    }
+  }
+})
+```
+
+# onEvent
+
+The `onEvent` auto event is handled automatically if a `send` call triggered an event while the state was active. It has the same API as a normal event.
+
+**Note:** the root state also supports `onEvent`.
+
+```js
+createStateDesigner({
+  // highlight-start
+  onEvent: {
+    do: () => console.log("Something changed in the root!")
+  },
+  // highlight-end
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: {
+        PLAY_PRESSED: { to: "playing" }
+      }
+    },
+    playing: {
+      // highlight-start
+      onEvent: {
+        do: () => console.log("Something changed in playing!")
+      },
+      // highlight-end
+      on: {
+        STOP_PRESSED: { to: "stopped" }
+      }
+    }
+  }
+})
+```
+
+A machine will handle its `onEvent` auto events in a "top down" order, starting with the root state. In the example above, if the machine received a `"STOP_PRESSED"` event while in its `playing` state, the resulting console would read:
+
+```
+Something changed in the root!
+Something changed in playing!
+```
+
+## onEventComplete
+
+The `onEventComplete` auto event is handled automatically if a `send` call triggered an event while the state was active. Unlike `onEvent`, this auto event is handled _after_ all other events and auto events have been handled. It has the same API as a normal event.
+
+**Note:** the root state also supports `onEventComplete`.
+
+```js
+createStateDesigner({
+  // highlight-start
+  onEventComplete: {
+    do: () => console.log("Something changed in the root!")
+  },
+  // highlight-end
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: {
+        PLAY_PRESSED: { to: "playing" }
+      }
+    },
+    playing: {
+      // highlight-start
+      onEventComplete: {
+        do: () => console.log("Something changed in playing!")
+      },
+      // highlight-end
+      on: {
+        STOP_PRESSED: { to: "stopped" }
+      }
+    }
+  }
+})
+```
+
+A machine will handle its `onEventComplete` auto events in a "bottom up" order, starting with the deepest active states and moving up the tree until reaching the root. In the example above, if the machine received a `"STOP_PRESSED"` event while in its `playing` state, the resulting console would read:
+
+```
+Something changed in playing!
+Something changed in the root!
+```
+
+## repeat
+
+The `repeat` auto event is handled automatically on an interval that begins when the state becomes active and ends when the state becomes inactive. It has its own unique API consisting of an object with two properties:
+
+- `event`, a regular event
+- `delay`, a number in seconds
+
+```js
+createStateDesigner({
+  data: { currentTime: 0 },
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: { PLAY_PRESSED: { to: "playing" } }
+    },
+    playing: {
+      // highlight-start
+      repeat: {
+        event: {
+          do: data => data.currentTime++
+        },
+        delay: 1
+      },
+      // highlight-end
+      on: { STOP_PRESSED: { to: "stopped" } }
+    }
+  }
+})
+```
+
+In the example above, if the machine received a `"PLAY_PRESSED"` event while in its `stopped` state, the machine would transition to the `playing` state and, every 1 second, would run an event that increments its `data.currentTime`. When the machine received a `STOP_PRESSED` event, it would stop repeating that event.

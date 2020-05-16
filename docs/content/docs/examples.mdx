@@ -1,0 +1,217 @@
+### States
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+function Counter() {
+  const { send, whenIn } = createStateDesigner({
+    initial: "inactive",
+    states: {
+      inactive: {
+        on: { TOGGLED: { to: "active" } }
+      },
+      active: {
+        on: { TOGGLED: { to: "inactive" } }
+      }
+    }
+  })
+
+  return (
+    <div>
+      <button
+        onClick={() => send("TOGGLED")}
+        style={whenIn({
+          inactive: { background: "#fff" },
+          active: { background: "#ccc" }
+        })}
+      >
+        Toggle
+      </button>
+    </div>
+  )
+}
+```
+
+### Data
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+function Counter() {
+  const { data, send } = createStateDesigner({
+    data: {
+      count: 0
+    },
+    on: {
+      PLUS_CLICKED: data => data.count++,
+      MINUS_CLICKED: data => data.count--
+    }
+  })
+
+  return (
+    <div>
+      <p>{data.count}</p>
+      <button onClick={() => send("PLUS_CLICKED")}>+</button>
+      <button onClick={() => send("MINUS_CLICKED")}>-</button>
+    </div>
+  )
+}
+```
+
+### Collections
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+function Counter() {
+  const { data, send } = createStateDesigner({
+    data: {
+      min: 0,
+      max: 10
+      count: 0
+    },
+    on: {
+      PLUS_CLICKED: { unless: "atMax", do: "incrementCount" },
+      MINUS_CLICKED: { unless: "atMin", do: "decrementCount" }
+    },
+    conditions: {
+      atMin(data) {
+        return data.count <= data.min
+      },
+      atMax(data) {
+        return data.count >= data.max
+      }
+    },
+    actions: {
+      incrementCount(data) {
+        data.count++
+      },
+      decrementCount(data) {
+        data.count--
+      },
+      adjustCount(data, payload) {
+        data.count += payload
+      },
+    }
+  })
+
+  return (
+    <div>
+      <p>{data.count}</p>
+      <button onClick={() => send("PLUS_CLICKED")}>+</button>
+      <button onClick={() => send("MINUS_CLICKED")}>-</button>
+    </div>
+  )
+}
+```
+
+### All together now
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+function Counter() {
+  const { data, send, whenIn } = createStateDesigner({
+    data: {
+      min: 0,
+      max: 10
+      count: 0
+    },
+    states: {
+      inactive: {
+        on: {
+          "TOGGLED": { to: "active" }
+        }
+      },
+      active: {
+        on: {
+          "TOGGLED": { to: "inactive" },
+          "PLUS_CLICKED": { unless: "atMax", do: "incrementCount" },
+          "MINUS_CLICKED": { unless: "atMin", do: "decrementCount" }
+        },
+        initial: "min",
+        onEvent: [
+          { if: "atMax", to: "max" },
+          { if: "atMin", to: "min" },
+          { to: "mid"}
+        ],
+        states: {
+          min: {},
+          mid: {},
+          max: {}
+        }
+      },
+    },
+    conditions: {
+      atMin(data) {
+        return data.count <= data.min
+      },
+      atMax(data) {
+        return data.count >= data.max
+      }
+    },
+    actions: {
+      incrementCount(data) {
+        data.count++
+      },
+      decrementCount(data) {
+        data.count--
+      },
+      adjustCount(data, payload) {
+        data.count += payload
+      },
+    }
+  })
+}
+```
+
+```jsx
+import React from "react"
+import { useStateDesigner } from "state-designer"
+
+function Counter() {
+  const { data, send } = createStateDesigner({
+    data: {
+      min: 0,
+      max: 10
+      count: 0
+    },
+    on: {
+      PLUS_CLICKED: { unless: "atMax", do: "incrementCount" },
+      MINUS_CLICKED: { unless: "atMin", do: "decrementCount" }
+    },
+    conditions: {
+      atMin(data) {
+        return data.count <= data.min
+      },
+      atMax(data) {
+        return data.count >= data.max
+      }
+    },
+    actions: {
+      incrementCount(data) {
+        data.count++
+      },
+      decrementCount(data) {
+        data.count--
+      },
+      adjustCount(data, payload) {
+        data.count += payload
+      },
+    }
+  })
+
+  return (
+    <div>
+      <p>{data.count}</p>
+      <button onClick={() => send("TOGGLE")}>+</button>
+      <button onClick={() => send("PLUS_CLICKED")}>+</button>
+      <button onClick={() => send("MINUS_CLICKED")}>-</button>
+    </div>
+  )
+}
+```
