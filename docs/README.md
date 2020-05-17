@@ -1,1 +1,0 @@
-# state-designer docs
