@@ -1,4 +1,5 @@
 import React from "react"
+import PageLinks from "./components/page-links"
 import InlineLink from "./components/inline-link"
 import { Styled } from "theme-ui"
 import kebabCase from "lodash-es/kebabCase"
@@ -106,5 +107,6 @@ export default {
   a: InlineLink,
   GithubIcon: GoMarkGithub,
   TwitterIcon: FaTwitter,
-  LiveView: LiveView,
+  LiveView,
+  PageLinks,
 }

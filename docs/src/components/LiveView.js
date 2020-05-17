@@ -1,44 +1,74 @@
 import * as React from "react"
-import { useColorMode } from "theme-ui"
 
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live"
-import { useStateDesigner } from "@state-designer/react"
+import {
+  createConfig,
+  createStateDesigner,
+  useStateDesigner,
+} from "@state-designer/react"
 import lightTheme from "prism-react-renderer/themes/github"
 
 import * as snippets from "./snippets"
 
-export const LiveView = (snippet = "") => {
+export const LiveView = ({ snippet = "" }) => {
   const isDark = false
   const border = isDark ? "1px solid #333" : "1px solid #ced4de"
 
+  const [updates, setUpdates] = React.useState(0)
+
+  const code = localStorage.getItem(`live_view_${snippet}`) || snippets[snippet]
+
+  function saveCodeToLocalStorage(code) {
+    localStorage.setItem(`live_view_${snippet}`, code)
+  }
+
+  function resetCode(code) {
+    localStorage.setItem(`live_view_${snippet}`, snippets[snippet])
+    setUpdates(updates + 1)
+  }
+
   return (
     <div
+      className={`live-view ${isDark ? "dark" : "light"}`}
+      key={updates}
       style={{
         border,
-        borderRadius: 2,
+        borderRadius: 4,
         overflow: "hidden",
-        marginBottom: "1.5em",
+        marginTop: "1.5em",
+        marginBottom: "2em",
       }}
     >
       <LiveProvider
         language="jsx"
         theme={lightTheme}
-        code={snippets[snippet] || ""}
-        scope={{ useStateDesigner }}
+        code={code}
+        transformCode={(c) => {
+          saveCodeToLocalStorage(c)
+          return c
+        }}
+        scope={{ useStateDesigner, createStateDesigner, createConfig }}
         style={{
           overflowX: "scroll",
         }}
       >
-        <LivePreview
-          className={`live-view ${isDark ? "dark" : "light"}`}
-          style={{
-            padding: 16,
-            backgroundColor: isDark ? "rgba(255, 255, 255, .025" : "#fff",
-          }}
-        />
+        <div style={{ position: "relative" }}>
+          <button
+            className="small"
+            style={{ position: "absolute", top: 4, right: 4 }}
+            onClick={resetCode}
+          >
+            Reset
+          </button>
+          <LivePreview
+            style={{
+              padding: "32px 16px",
+              backgroundColor: isDark ? "rgba(255, 255, 255, .025" : "#fff",
+            }}
+          ></LivePreview>
+        </div>
         <LiveEditor
           style={{
-            fontSize: 16,
             borderTop: border,
             overflowX: "scroll",
             backgroundColor: isDark

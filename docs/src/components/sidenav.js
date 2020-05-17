@@ -16,12 +16,12 @@ export default React.forwardRef((props, ref) => (
     sx={{
       width: ["100%", 200],
       flex: "none",
-      pl: [20, 4],
-      pt: 4,
-      pb: 4,
+      pl: [20, 5],
+      pt: 5,
+      pb: 5,
       mx: 0,
       mt: [57, 0],
-      mr: [0, 5],
+      mr: [0, 6],
       transition: "none",
       "& ul ul a": {
         pl: 0,

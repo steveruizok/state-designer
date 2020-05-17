@@ -12,12 +12,13 @@ const heading = {
 }
 
 export default {
+  space: [0, 4, 8, 16, 24, 32, 48, 64, 128, 256, 512],
   breakpoints: ["52em", "90em", "100em"],
   colors: {
     text: "#000",
     code: "#272727",
     codeBg: "#f6f8fa",
-    codeHl: "#e7ebed",
+    codeHl: "#ebecee",
     muted: "#f6f8fa",
     background: "#fff",
     primary: "#3333ff",
@@ -34,12 +35,12 @@ export default {
     heading: "'Fira Sans', sans-serif",
     monospace: "'Fira Code', monospace",
   },
-  fontSizes: [12, 15, 16, 18, 22, 24, 32, 44, 72],
+  fontSizes: [12, 15, 16, 18, 22, 24, 32, 44, 56],
   fontWeights: {
     body: "400",
     quote: "400",
     heading: "800",
-    bold: "800",
+    bold: "600",
   },
   lineHeights: {
     body: 1.8,
@@ -49,7 +50,7 @@ export default {
     heading,
     display: {
       variant: "textStyles.heading",
-      fontSize: [5, 6, 7],
+      fontSize: [7, 7, 8],
       mt: 3,
     },
   },
@@ -107,7 +108,9 @@ export default {
       },
     },
     blockquote: {
-      m: 0,
+      mx: 0,
+      mt: 4,
+      mb: 5,
       border: (theme) => `1px solid ${theme.colors.gray}`,
       fontFamily: "quote",
       fontWeight: "quote",
@@ -115,6 +118,9 @@ export default {
       bg: "codeBg",
       px: 4,
       py: 2,
+      "& code": {
+        bg: "codeHl",
+      },
       "& pre": {
         bg: "codeHl",
       },

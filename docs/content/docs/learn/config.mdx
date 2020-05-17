@@ -1,0 +1,20 @@
+## Config
+
+In State Designer, we create a **state** by passing a configuration object—or **config**—to the `createStateDesigner` function.
+
+```js
+import { createStateDesigner } from "@state-designer/core"
+
+const state = createStateDesigner({ data: { count: 1 } })
+```
+
+The config object will contain everything about the state: its events, initial data, a tree of child states, and collections of re-usable functions. We'll learn about all of these parts in the following articles.
+
+> **Tip:** Complex states can become quite large. To help you keep your config on track, the `createStateDesigner` function offers TypeScript support throughout the object. To create a config separately without losing this type support, use the `createConfig` function. [Learn more](/docs/api/createConfig).
+
+<PageLinks
+  backTo={"/docs/learn/intro"}
+  back={"Intro"}
+  nextTo={"/docs/learn/updates"}
+  next={"Updates"}
+/>

@@ -3,12 +3,11 @@ import { jsx, Container, Flex } from "theme-ui"
 import { MDXProvider } from "@mdx-js/react"
 
 import MenuButton from "./menu-button"
-import NavLink from "./nav-link"
-// @ts-ignore
+import HeaderLink from "./header-link"
 import Content from "../../content/nav/header.mdx"
 
 const components = {
-  a: NavLink,
+  a: HeaderLink,
 }
 
 export default ({ menuOpen, setMenuOpen, nav }) => {
@@ -28,9 +27,10 @@ export default ({ menuOpen, setMenuOpen, nav }) => {
       <Flex
         sx={{
           justifyContent: "space-between",
-          mx: [3, 0],
-          pb: [2, 4],
-          pt: [3, 4],
+          ml: [3, 2],
+          mr: [3, 0],
+          pb: [2, 5],
+          pt: [3, 5],
           height: "100%",
           borderColor: "text",
           borderBottomStyle: "solid",

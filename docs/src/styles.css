@@ -1,10 +1,4 @@
-/* @import url("https://fonts.googleapis.com/css?family=Merriweather:400,400i,700&display=swap"); */
-
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;700&family=IBM+Plex+Serif:wght@400;700&display=swap");
-
-html {
-  scroll-behavior: smooth;
-}
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Fira+Sans:ital,wght@0,400;0,500;0,700;0,900;1,400&display=swap");
 
 body {
   background-color: #fff !important;
@@ -48,23 +42,55 @@ body {
   background: unset;
   box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.1);
   font-family: "Fira Sans", sans-serif;
+  color: #333;
   background-color: #ffffff;
-  border: 1px solid #ccc;
+  border: 1px solid #aaa;
   outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.live-view button.small {
+  font-size: 14px;
+  border-radius: 4px;
+  padding: 6px 12px;
+  box-shadow: none;
+  border: none;
+}
+
+.live-view button.small:active {
+  border: none;
+  box-shadow: none;
+  background-color: #efefef;
+}
+
+.live-view button.small:hover {
+  border: none;
+  box-shadow: none;
+  background-color: #efefef;
+}
+
+.live-view button.small:focus {
+  border: none;
+  box-shadow: none;
+  background-color: #efefef;
 }
 
 .live-view button:hover {
   background-color: #ffffff;
-  border: 1px solid #aaa;
+  color: #000;
+  border: 1px solid #999;
 }
 
 .live-view button:focus {
   background-color: #ffffff;
-  border: 1px solid #aaa;
+  color: #000;
+  border: 1px solid #999;
 }
 
 .live-view button:active {
   background-color: #fefefe;
-  border: 1px solid #999;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  color: #000;
+  border: 1px solid #777;
+  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
 }

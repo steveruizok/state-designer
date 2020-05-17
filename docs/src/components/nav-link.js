@@ -3,21 +3,27 @@ import { jsx } from "theme-ui"
 import { Link } from "gatsby"
 import isAbsoluteURL from "is-absolute-url"
 
-const styles = {
-  display: "block",
-  px: 2,
-  color: "inherit",
-  textDecoration: "none",
-  fontSize: 2,
-  fontFamily: "heading",
-  fontWeight: "bold",
-  "&:hover": {
-    textDecoration: "underline"
-  }
-}
-
-export default ({ href, children, ...props }) => {
+export default ({ href, children, silent = false, ...props }) => {
   const isExternal = isAbsoluteURL(href || "")
+
+  const styles = {
+    display: "block",
+    px: 0,
+    color: silent ? "text" : "primary",
+    textDecoration: "none",
+    fontSize: 2,
+    fontFamily: "heading",
+    fontWeight: "bold",
+    "&.active": {
+      color: "primary",
+    },
+    "&.visited": {
+      color: "primary",
+    },
+    "&:hover": {
+      textDecoration: "underline",
+    },
+  }
 
   if (isExternal) {
     return (

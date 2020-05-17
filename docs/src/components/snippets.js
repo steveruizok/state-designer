@@ -1,3 +1,11 @@
+export const intro = `<button onClick={() => window.alert("Hey!")}>
+  Click here!
+</button>`
+
+// Config
+
+// Updates
+
 export const events = `function Example() {
   const { send } = useStateDesigner({
     on: {

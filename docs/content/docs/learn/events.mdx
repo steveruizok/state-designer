@@ -1,8 +1,8 @@
 # Events
 
-In State Designer, events are our way of making things happen.
+We can send **events** to a state in order to make change and trigger an update.
 
-Click on the button in the example below to open an alert.
+Let's start with something simple. In the example below, click on the button to open an alert.
 
 <LiveView snippet={"events"} />
 
@@ -14,10 +14,10 @@ In our case, we've created a single event named `"CLICKED"` that we're handling 
 
 ```jsx
 on: {
-  CLICKED: () => window.alert("Hello world!")
+  CLICKED: () => window.alert("Hi!")
 },
 ```
 
-#### 🏆 Challenge
-
-...
+> 🏆 Challenge
+>
+> In the example at the top of this article, can you make the alert say `"Hello world!"` instead?

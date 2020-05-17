@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import { useState, useRef } from "react"
 import { Global } from "@emotion/core"
-import { Styled, Box, Layout, Main, Container, jsx, useThemeUI } from "theme-ui"
+import { Styled, Box, Container, jsx, useThemeUI } from "theme-ui"
 
 import Footer from "./footer"
 import Header from "./header"
@@ -48,7 +48,7 @@ export default ({ children }) => {
                   width: "100%",
                   overflow: "hidden",
                   mb: 2,
-                  mt: [4, 3],
+                  pt: [5, 3],
                 }}
               >
                 {children}
