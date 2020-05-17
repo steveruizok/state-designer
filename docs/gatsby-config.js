@@ -1,13 +1,14 @@
 module.exports = {
   siteMetadata: {
     title: "State Designer Docs",
-    description: "Docs for the state-designer library."
+    description: "Docs for the state-designer library.",
   },
   plugins: [
     `@pauliescanlon/gatsby-mdx-embed`,
     "gatsby-plugin-meta-redirect",
     "gatsby-plugin-theme-ui",
     "gatsby-plugin-react-helmet",
+    "gatsby-plugin-typescript",
     "gatsby-plugin-redirects",
     {
       resolve: `gatsby-plugin-modal-routing`,
@@ -20,9 +21,9 @@ module.exports = {
         // See http://reactcommunity.org/react-modal/#usage
         modalProps: {
           className: "modal",
-          shouldCloseOnOverlayClick: true
-        }
-      }
+          shouldCloseOnOverlayClick: true,
+        },
+      },
     },
     {
       resolve: "gatsby-plugin-mdx",
@@ -32,16 +33,16 @@ module.exports = {
           "gatsby-remark-smartypants",
           "gatsby-remark-prismjs",
           "remark-slug",
-          "remark-emoji"
-        ]
-      }
+          "remark-emoji",
+        ],
+      },
     },
     {
       resolve: "gatsby-source-filesystem",
       options: {
         path: "content",
-        name: "content"
-      }
+        name: "content",
+      },
     },
     {
       resolve: `gatsby-plugin-manifest`,
@@ -49,8 +50,8 @@ module.exports = {
         start_url: `/`,
         display: `standalone`,
         icon: `static/icon.png`,
-        include_favicon: true
-      }
-    }
-  ]
+        include_favicon: true,
+      },
+    },
+  ],
 }

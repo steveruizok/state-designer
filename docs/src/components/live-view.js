@@ -10,22 +10,35 @@ import lightTheme from "prism-react-renderer/themes/github"
 
 import * as snippets from "./snippets"
 
-export const LiveView = ({ snippet = "" }) => {
+export const isBrowser = () => typeof window !== "undefined"
+
+const LiveView = ({ snippet = "" }) => {
   const isDark = false
   const border = isDark ? "1px solid #333" : "1px solid #ced4de"
 
   const [updates, setUpdates] = React.useState(0)
-
-  const code = localStorage.getItem(`live_view_${snippet}`) || snippets[snippet]
+  const [code, setCode] = React.useState(snippets[snippet])
 
   function saveCodeToLocalStorage(code) {
-    localStorage.setItem(`live_view_${snippet}`, code)
+    isBrowser() && window.localStorage.setItem(`live_view_${snippet}`, code)
   }
 
   function resetCode(code) {
-    localStorage.setItem(`live_view_${snippet}`, snippets[snippet])
-    setUpdates(updates + 1)
+    isBrowser() && window.setItem(`live_view_${snippet}`, snippets[snippet])
+    setCode(snippets[snippet])
   }
+
+  React.useEffect(() => {
+    if (isBrowser()) {
+      const localCode =
+        (isBrowser() && window.localStorage.getItem(`live_view_${snippet}`)) ||
+        snippets[snippet]
+
+      if (localCode !== undefined) {
+        setCode(localCode)
+      }
+    }
+  }, [])
 
   return (
     <div
@@ -97,3 +110,5 @@ export const LiveView = ({ snippet = "" }) => {
     </div>
   )
 }
+
+export default LiveView

@@ -39,6 +39,7 @@
     "gatsby-plugin-react-helmet": "^3.1.2",
     "gatsby-plugin-redirects": "^1.0.0",
     "gatsby-plugin-theme-ui": "^0.3.0",
+    "gatsby-plugin-typescript": "^2.4.2",
     "gatsby-plugin-webfonts": "^1.1.0",
     "gatsby-remark-auto-headers": "^1.0.3",
     "gatsby-remark-prismjs": "^3.3.3",

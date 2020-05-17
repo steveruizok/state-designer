@@ -5,7 +5,7 @@ import { Styled } from "theme-ui"
 import kebabCase from "lodash-es/kebabCase"
 import { GoMarkGithub } from "react-icons/go"
 import { FaTwitter } from "react-icons/fa"
-import { LiveView } from "./components/LiveView"
+import LiveView from "./components/live-view"
 
 function Heading1(props) {
   if (typeof props.children === "string") {
