@@ -5,7 +5,9 @@ import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live"
 import { useStateDesigner } from "@state-designer/react"
 import lightTheme from "prism-react-renderer/themes/github"
 
-export const LiveView = ({ code = `` }) => {
+import * as snippets from "./snippets"
+
+export const LiveView = (snippet = "") => {
   const isDark = false
   const border = isDark ? "1px solid #333" : "1px solid #ced4de"
 
@@ -21,7 +23,7 @@ export const LiveView = ({ code = `` }) => {
       <LiveProvider
         language="jsx"
         theme={lightTheme}
-        code={code}
+        code={snippets[snippet] || ""}
         scope={{ useStateDesigner }}
         style={{
           overflowX: "scroll",

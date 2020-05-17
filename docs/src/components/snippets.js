@@ -1,5 +1,4 @@
-export const snippets = {
-  events: `function Example() {
+export const events = `function Example() {
   const { send } = useStateDesigner({
     on: {
       CLICKED: () => window.alert("Hello world!")
@@ -11,8 +10,9 @@ export const snippets = {
       Click here!
     </button>
   )
-}`,
-  data: `function Example() {
+}`
+
+export const data = `function Example() {
   const { data } = useStateDesigner({
     data: {
       value: 0,
@@ -22,8 +22,9 @@ export const snippets = {
   return (
     <h2>{data.value}</h2>
   )
-}`,
-  actions: `function Example() {
+}`
+
+export const actions = `function Example() {
   const { data, send } = useStateDesigner({
     data: {
       value: 0,
@@ -43,8 +44,9 @@ export const snippets = {
       }}>Increase</button>
     </div>
   )
-}`,
-  values: `
+}`
+
+export const values = `function Example() {
   const { data, send, values } = useStateDesigner({
     data: {
       value: 0,
@@ -68,5 +70,30 @@ export const snippets = {
       <button onClick={() => send("INCREASED")}>Increase</button>
     </div>
   )
-}`,
-}
+}`
+
+export const conditions = `function Example() {
+  const { data, send, values } = useStateDesigner({
+    data: {
+      value: 0,
+    },
+    on: {
+      INCREASED: (data) => {
+        data.value++
+      },
+    },
+    values: {
+      doubled: (data) => {
+        return data.value * 2
+      },
+    },
+  })
+
+  return (
+    <div>
+      <h2>{data.value}</h2>
+      <p>Doubled: {values.doubled}</p>
+      <button onClick={() => send("INCREASED")}>Increase</button>
+    </div>
+  )
+}`
