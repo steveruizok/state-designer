@@ -1,16 +1,18 @@
 # Events
 
-We can send **events** to a state in order to make change and trigger an update.
+In State Designer, **events** are our way of making things happen. You can send events to a state in order to make changes to the state and trigger updates.
 
 Let's start with something simple. In the example below, click on the button to open an alert.
 
 <LiveView snippet={"events"} />
 
-Now let's look at how that works.
+> **🏆 Challenge**
+>
+> Can you make the example's alert say `"Hello world!"` instead?
 
-We declare a state's **events** under the property `on`, an object where we can define individual events as key value pairs. We call the key the event's **name** and the value the event's **handler**.
+## Defining and Sending Events
 
-In our case, we've created a single event named `"CLICKED"` that we're handling with a function that opens the alert.
+In a state's configuration, you can define events under the property `on`. This property holds an object with individual events defined as properties. We call the property's key the event's **name** and its value the event's **handler**.
 
 ```jsx
 on: {
@@ -18,6 +20,38 @@ on: {
 },
 ```
 
-> 🏆 Challenge
->
-> In the example at the top of this article, can you make the alert say `"Hello world!"` instead?
+Next, we use the state's `send` method to **send** an event's name to the state. If the state has an event with a name that matches the name we've sent, it will trigger the event and run its handler.
+
+```jsx
+<button onClick={() => state.send("CLICKED")}>Click here!</button>
+```
+
+In our example, we've created a single event named `"CLICKED"` that we're handling with a function that opens the alert. Each time that a user clicks the button, we're calling the `send` method and sending `"CLICKED"` to the state. This triggers the event and runs its handler that opens the alert.
+
+## Defining Event Handlers
+
+You can define an event handler in several different ways. As we just learned, you can handle an event using a regular function. In State Designer, we call this function an **action**—and we'll learn more about actions in a later article.
+
+```jsx
+CLICKED: () => window.alert("I'm an action!")
+```
+
+You can also handle an event with an **event handler object**. This object can have many properties, such as `do`, `to`, `if`, and `unless`, that work together to determine what happens when the event handler runs. We'll learn about all of these properties in later articles.
+
+```jsx
+CLICKED: {
+  do: () => window.alert("I'm an action!"),
+}
+```
+
+Finally, you can also define an event handler as an array that contains actions, event handler objects, or a mix of both. When the event runs, each item in the array will run one after the next.
+
+```jsx
+CLICKED: [
+  () => window.alert("I'll run first!"),
+  () => window.alert("I'll run second!"),
+  {
+    do: () => window.alert("I'll run third!"),
+  },
+]
+```

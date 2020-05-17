@@ -32,7 +32,7 @@ export default ({ children }) => {
             <div
               sx={{
                 display: [null, "flex"],
-                mt: [5, 0],
+                mt: [7, 0],
               }}
             >
               <Sidenav
@@ -48,7 +48,7 @@ export default ({ children }) => {
                   width: "100%",
                   overflow: "hidden",
                   mb: 2,
-                  pt: [5, 3],
+                  pt: [5, 5],
                 }}
               >
                 {children}

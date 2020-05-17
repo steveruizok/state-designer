@@ -1,50 +1,54 @@
 # React Hook
 
-If a React project, you can use the `useStateDesigner` hook in one of two ways: either to subscribe a component to an external state's updates, or else to create a new state _inside of_ the component and subscribe to its updates.
+In the last article, we learned about responding to a state's updates through the state's `onUpdate` method. That's fine for a regular JavaScript project—and we could use this method in a React project, too. However, to make things easier, State Designer's [React package](/docs/usage/react) includes a hook named <b>`useStateDesigner`</b> that does most of the work for us.
 
-## External State
+## Global and Local States
 
-To subscribe to an external state, create your state outside of the component using `createStateDesigner` and then pass it to the `useStateDesigner` hook.
+The `useStateDesigner` hook is designed to work in two different ways:
 
-```jsx
-import { createStateDesigner } from "@state-designer/core"
-import { useStateDesigner } from "@state-designer/react"
+1.  If you pass it a **state** that you've created with `createStateDesigner`, the hook will subscribe the component to the state's updates.
 
-const state = createStateDesigner({ data: { count: 1 } })
+    ```jsx
+    import { createStateDesigner } from "@state-designer/core"
+    import { useStateDesigner } from "@state-designer/react"
 
-function Example() {
-  // highlight-next-line
-  const update = useStateDesigner(state)
+    const state = createStateDesigner({ data: { count: 1 } })
 
-  return <h1>{update.data.count}</h1>
-}
-```
+    function Example() {
+      // highlight-next-line
+      const update = useStateDesigner(state)
 
-This will subscribe the component to the state's updates: any time the state updates, the component will update, too. If the component unmounts, then it will unsubscribe automatically.
+      return <h1>{update.data.count}</h1>
+    }
+    ```
 
-> **Tip:** You can use this pattern to subscribe any number of components to the same state. In this way, you can easily create **global** states that drive changes to many different components.
+2.  If you pass it a **configuration object**, the hook will create a new state and then subscribe the component to the state's updates.
 
-## Internal State
+    ```jsx
+    import { createStateDesigner } from "@state-designer/core"
+    import { useStateDesigner } from "@state-designer/react"
 
-To create an internal state and subscribe to its updates, pass a configuration object directly to the `useStateDesigner` hook.
+    function Example() {
+      // highlight-next-line
+      const update = useStateDesigner({ data: { count: 1 } })
 
-```js
-import { createStateDesigner } from "@state-designer/core"
-import { useStateDesigner } from "@state-designer/react"
+      return <h1>{state.data.count}</h1>
+    }
+    ```
 
-function Example() {
-  // highlight-next-line
-  const update = useStateDesigner({ data: { count: 1 } })
+In either case, any time the state updates, then the component will update, too.
 
-  return <h1>{state.data.count}</h1>
-}
-```
+## What's the difference?
 
-Just as with an external state, updating the state will also update the component, ensuring that the two stay permanently in sync. Unmounting a component with an internal state will destroy that state.
+You can use the first pattern to subscribe multiple components to the same state. In this way, you can use State Designer to create a **global state** that will drive updates to many components across your project.
 
-> **Tip:** Internal states are unique to each instance of a component. This is useful for creating reusable **local** states.
+You can use the second pattern to create a **local state** for each instance of a particular component. This pattern is useful for inputs, buttons, and other components that may appear many times in your project but that should each maintain an independent state.
 
-For the rest of this guide, we'll use the internal state pattern as we learn more about creating states with State Designer. If you'd like to learn more about the `useStateDesigner` hook, see its documentation [here](/docs/api/useStateDesigner).
+> **Tip:** While we'll use the local state pattern for the rest of this guide, remember that the configuration objects work exactly the same in both cases.
+
+To learn more about the `useStateDesigner` hook, see [this article](/docs/api/useStateDesigner) in the API section.
+
+In the next article, we'll learn to trigger a state's updates by sending it events.
 
 <PageLinks
   backTo={"/docs/learn/updates"}

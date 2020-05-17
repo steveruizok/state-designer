@@ -12,14 +12,18 @@ const styles = {
   fontFamily: "body",
   fontWeight: 2,
   "&.active": {
-    color: "primary"
+    color: "primary",
   },
   "&.visited": {
-    color: "primary"
+    color: "primary",
   },
   "&:hover": {
-    textDecoration: "underline"
-  }
+    textDecoration: "underline",
+  },
+  "& code": {
+    fontSize: 1,
+    color: "text",
+  },
 }
 
 export default ({ href, children, ...props }) => {

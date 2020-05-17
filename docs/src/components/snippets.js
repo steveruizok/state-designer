@@ -2,19 +2,30 @@ export const intro = `<button onClick={() => window.alert("Hey!")}>
   Click here!
 </button>`
 
+// Hook
+export const hook = `function Example() {
+  const update = useStateDesigner({
+    data: { count: 1 }
+  })
+
+  return (
+    <h1>{update.data.count}</h1>
+  )
+}`
+
 // Config
 
 // Updates
 
 export const events = `function Example() {
-  const { send } = useStateDesigner({
+  const state = useStateDesigner({
     on: {
-      CLICKED: () => window.alert("Hello world!")
+      CLICKED: () => window.alert("Hi!")
     },
   })
 
   return (
-    <button onClick={() => send("CLICKED")}>
+    <button onClick={() => state.send("CLICKED")}>
       Click here!
     </button>
   )

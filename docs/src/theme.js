@@ -9,6 +9,7 @@ const heading = {
     color: "inherit",
     textDecoration: "none",
   },
+  display: "inline-block",
 }
 
 export default {
@@ -16,9 +17,10 @@ export default {
   breakpoints: ["52em", "90em", "100em"],
   colors: {
     text: "#000",
+    lowText: "#2d2d2d",
     code: "#272727",
-    codeBg: "#f6f8fa",
-    codeHl: "#ebecee",
+    codeBg: "#eff1f5",
+    codeHl: "#eff1f5",
     muted: "#f6f8fa",
     background: "#fff",
     primary: "#3333ff",
@@ -35,23 +37,23 @@ export default {
     heading: "'Fira Sans', sans-serif",
     monospace: "'Fira Code', monospace",
   },
-  fontSizes: [12, 15, 16, 18, 22, 24, 32, 44, 56],
+  fontSizes: [12, 14, 16, 18, 22, 24, 32, 44, 56],
   fontWeights: {
     body: "400",
     quote: "400",
-    heading: "800",
     bold: "600",
+    heading: "800",
   },
   lineHeights: {
     body: 1.8,
     heading: 1.25,
+    code: 1.8,
   },
   textStyles: {
     heading,
     display: {
       variant: "textStyles.heading",
       fontSize: [7, 7, 8],
-      mt: 3,
     },
   },
   borderStyles: {
@@ -69,33 +71,40 @@ export default {
       maxWidth: 1024,
     },
     root: {
-      fontFamily: "'IBM Plex Sans', sans-serif",
+      fontFamily: "body",
       lineHeight: "body",
       fontWeight: "body",
-      fontSize: 3,
+      fontSize: 2,
     },
     h1: {
       variant: "textStyles.display",
+      mt: 0,
+      mb: 3,
     },
     h2: {
       variant: "textStyles.heading",
       fontSize: 5,
+      mt: 4,
     },
     h3: {
       variant: "textStyles.heading",
       fontSize: 4,
+      mt: 3,
     },
     h4: {
       variant: "textStyles.heading",
       fontSize: 3,
+      mt: 3,
     },
     h5: {
       variant: "textStyles.heading",
       fontSize: 2,
+      mt: 3,
     },
     h6: {
       variant: "textStyles.heading",
-      fontSize: 1,
+      fontSize: 2,
+      mt: 3,
     },
     a: {
       color: "primary",
@@ -115,7 +124,7 @@ export default {
       fontFamily: "quote",
       fontWeight: "quote",
       fontSize: 2,
-      bg: "codeBg",
+      bg: "#f9fafb",
       px: 4,
       py: 2,
       "& code": {
@@ -133,9 +142,11 @@ export default {
       fontFamily: "monospace",
       fontSize: 1,
       p: 3,
+      my: 4,
       borderRadius: 4,
       overflow: "scroll",
       scroll: "auto",
+      lineHeight: "code",
       code: {
         color: "inherit",
         bg: "inherit",
@@ -148,13 +159,12 @@ export default {
     },
     code: {
       fontFamily: "monospace",
-      fontSize: 2,
-      color: "code",
-      bg: "codeBg",
-      fontWeight: 500,
-      // fontSize: 1,
-      // border: '1px solid #efefef',
+      fontSize: "inherit",
+      color: "text",
+      bg: "muted",
       px: 1,
+      fontWeight: "inherit",
+      letterSpacing: -0.2,
       borderRadius: 4,
     },
     table: {
@@ -202,7 +212,7 @@ export default {
   prism: {
     [[".gatsby-highlight-code-line"]]: {
       display: "block",
-      fontWeight: 600,
+      color: "text",
       mx: -4,
       px: 4,
       backgroundColor: "codeHl",

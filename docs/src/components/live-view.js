@@ -13,9 +13,6 @@ import * as snippets from "./snippets"
 export const isBrowser = () => typeof window !== "undefined"
 
 const LiveView = ({ snippet = "" }) => {
-  const isDark = false
-  const border = isDark ? "1px solid #333" : "1px solid #ced4de"
-
   const [updates, setUpdates] = React.useState(0)
   const [code, setCode] = React.useState(snippets[snippet])
 
@@ -24,7 +21,9 @@ const LiveView = ({ snippet = "" }) => {
   }
 
   function resetCode(code) {
-    isBrowser() && window.setItem(`live_view_${snippet}`, snippets[snippet])
+    isBrowser() &&
+      window.localStorage.setItem(`live_view_${snippet}`, snippets[snippet])
+    setUpdates(updates + 1)
     setCode(snippets[snippet])
   }
 
@@ -38,14 +37,14 @@ const LiveView = ({ snippet = "" }) => {
         setCode(localCode)
       }
     }
-  }, [])
+  }, [snippet])
 
   return (
     <div
-      className={`live-view ${isDark ? "dark" : "light"}`}
+      className={`live-view light`}
       key={updates}
       style={{
-        border,
+        border: "1px solid #d8dde4",
         borderRadius: 4,
         overflow: "hidden",
         marginTop: "1.5em",
@@ -65,45 +64,40 @@ const LiveView = ({ snippet = "" }) => {
           overflowX: "scroll",
         }}
       >
+        <LivePreview
+          style={{
+            padding: "32px 16px",
+          }}
+        ></LivePreview>
         <div style={{ position: "relative" }}>
           <button
             className="small"
-            style={{ position: "absolute", top: 4, right: 4 }}
+            style={{ position: "absolute", top: 4, right: 4, zIndex: 8888 }}
             onClick={resetCode}
           >
             Reset
           </button>
-          <LivePreview
+          <LiveEditor
             style={{
-              padding: "32px 16px",
-              backgroundColor: isDark ? "rgba(255, 255, 255, .025" : "#fff",
+              borderTop: "1px solid #d8dde4",
+              overflowX: "scroll",
+              backgroundColor: "#f6f8fa",
+              tabSize: 2,
+              fontFamily: "'Fira Code', monospace",
+              fontWeight: 500,
+              fontSize: 14,
+              overflow: "scroll",
+              scroll: "auto",
             }}
-          ></LivePreview>
+          />
         </div>
-        <LiveEditor
-          style={{
-            borderTop: border,
-            overflowX: "scroll",
-            backgroundColor: isDark
-              ? "rgba(255, 255, 255, .025"
-              : "rgba(0,0,0, .025",
-
-            tabSize: 2,
-            fontFamily: "'Fira Code', monospace",
-            fontWeight: 500,
-            fontSize: 14,
-            borderRadius: 4,
-            overflow: "scroll",
-            scroll: "auto",
-          }}
-        />
         <LiveError
           style={{
             fontSize: 12,
             margin: 0,
             padding: 16,
-            borderTop: border,
-            backgroundColor: isDark ? "#352226" : "#fbf7f8",
+            borderTop: "1px solid #d8dde4",
+            backgroundColor: "#fbf7f8",
           }}
         />
       </LiveProvider>
