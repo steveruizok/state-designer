@@ -15,18 +15,18 @@ createStateDesigner({
     playing: {
       // highlight-start
       on: {
-        PRESSED_STOP: { to: "stopped" }
-      }
+        PRESSED_STOP: { to: "stopped" },
+      },
       // highlight-end
     },
     stopped: {
       // highlight-start
       on: {
-        PRESSED_PLAY: { to: "playing" }
-      }
+        PRESSED_PLAY: { to: "playing" },
+      },
       // highlight-end
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -43,19 +43,19 @@ createStateDesigner({
     playing: {
       // highlight-start
       onEnter: {
-        do: () => console.log("Entered playing!")
+        do: () => console.log("Entered playing!"),
       },
       // highlight-end
       on: {
-        PRESSED_STOP: { to: "stopped" }
-      }
+        PRESSED_STOP: { to: "stopped" },
+      },
     },
     stopped: {
       on: {
-        PRESSED_PLAY: { to: "playing" }
-      }
-    }
-  }
+        PRESSED_PLAY: { to: "playing" },
+      },
+    },
+  },
 })
 ```
 
@@ -73,20 +73,20 @@ createStateDesigner({
   states: {
     playing: {
       on: {
-        PRESSED_STOP: { to: "stopped" }
-      }
+        PRESSED_STOP: { to: "stopped" },
+      },
     },
     stopped: {
       // highlight-start
       onExit: {
-        do: () => console.log("Leaving stopped!")
+        do: () => console.log("Leaving stopped!"),
       },
       // highlight-end
       on: {
-        PRESSED_PLAY: { to: "playing" }
-      }
-    }
-  }
+        PRESSED_PLAY: { to: "playing" },
+      },
+    },
+  },
 })
 ```
 
@@ -102,21 +102,21 @@ An event handled whenever the machine handles any other event while the state is
 createStateDesigner({
   data: {
     count: 0,
-    changes: 0
+    changes: 0,
   },
   states: {
     reading: {
       // highlight-start
       onEvent: {
-        do: data => data.changes++
+        do: (data) => data.changes++,
       },
       // highlight-end
       on: {
-        CLICKED_MINUS: { do: data => data.count-- },
-        CLICKED_PLUS: { do: data => data.count++ }
-      }
-    }
-  }
+        CLICKED_MINUS: { do: (data) => data.count-- },
+        CLICKED_PLUS: { do: (data) => data.count++ },
+      },
+    },
+  },
 })
 ```
 
@@ -132,21 +132,21 @@ createStateDesigner({
   states: {
     idle: {
       on: {
-        LOAD_DATA: { to: "loading" }
-      }
+        LOAD_DATA: { to: "loading" },
+      },
     },
     loading: {
       // highlight-start
       async: {
         await: () => fetch("https://dog.ceo/api/breeds/image/random"),
         onResolve: { to: "success" },
-        onReject: { to: "error" }
-      }
+        onReject: { to: "error" },
+      },
       // highlight-end
     },
     success: {},
-    error: {}
-  }
+    error: {},
+  },
 })
 ```
 
@@ -165,17 +165,17 @@ createStateDesigner({
       initial: "dim",
       states: {
         dim: {
-          on: { BRIGHTENED: { to: "normal" } }
+          on: { BRIGHTENED: { to: "normal" } },
         },
         bright: {
-          on: { DIMMED: { to: "dim" } }
-        }
-      }
+          on: { DIMMED: { to: "dim" } },
+        },
+      },
     },
     turned_off: {
-      on: { TOGGLED: { to: "turned_on" } }
-    }
-  }
+      on: { TOGGLED: { to: "turned_on" } },
+    },
+  },
 })
 ```
 
@@ -192,18 +192,18 @@ createStateDesigner({
       // highlight-start
       states: {
         dim: {
-          on: { BRIGHTENED: { to: "normal" } }
+          on: { BRIGHTENED: { to: "normal" } },
         },
         bright: {
-          on: { DIMMED: { to: "dim" } }
-        }
-      }
+          on: { DIMMED: { to: "dim" } },
+        },
+      },
       // highlight-end
     },
     turned_off: {
-      on: { TOGGLED: { to: "turned_on" } }
-    }
-  }
+      on: { TOGGLED: { to: "turned_on" } },
+    },
+  },
 })
 ```
 
