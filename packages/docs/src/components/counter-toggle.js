@@ -1,5 +1,5 @@
 import React from "react"
-import { useStateDesigner } from "state-designer"
+import { useStateDesigner } from "@state-designer/react"
 
 function CounterToggleReact() {
   const [count, setCount] = React.useState(0)
