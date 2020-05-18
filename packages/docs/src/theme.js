@@ -37,7 +37,7 @@ export default {
     heading: "'Fira Sans', sans-serif",
     monospace: "'Fira Code', monospace",
   },
-  fontSizes: [12, 14, 16, 18, 22, 24, 32, 44, 56],
+  fontSizes: [12, 15, 17, 18, 22, 24, 32, 44, 56],
   fontWeights: {
     body: "400",
     quote: "400",
@@ -45,15 +45,15 @@ export default {
     heading: "800",
   },
   lineHeights: {
-    body: 1.8,
+    body: 1.7,
     heading: 1.25,
-    code: 1.8,
+    code: 1.65,
   },
   textStyles: {
     heading,
     display: {
       variant: "textStyles.heading",
-      fontSize: [7, 7, 8],
+      fontSize: [7, 8, 8],
     },
   },
   borderStyles: {
@@ -74,7 +74,7 @@ export default {
       fontFamily: "body",
       lineHeight: "body",
       fontWeight: "body",
-      fontSize: 2,
+      fontSize: [3, 2],
     },
     h1: {
       variant: "textStyles.display",
@@ -85,26 +85,31 @@ export default {
       variant: "textStyles.heading",
       fontSize: 5,
       mt: 4,
+      mb: 2,
     },
     h3: {
       variant: "textStyles.heading",
       fontSize: 4,
       mt: 3,
+      mb: 2,
     },
     h4: {
       variant: "textStyles.heading",
       fontSize: 3,
       mt: 3,
+      mb: 2,
     },
     h5: {
       variant: "textStyles.heading",
       fontSize: 2,
       mt: 3,
+      mb: 2,
     },
     h6: {
       variant: "textStyles.heading",
       fontSize: 2,
       mt: 3,
+      mb: 2,
     },
     a: {
       color: "primary",
@@ -133,6 +138,9 @@ export default {
       "& pre": {
         bg: "codeHl",
       },
+    },
+    img: {
+      my: 5,
     },
     pre: {
       ...prismTheme,

@@ -3,7 +3,7 @@ import { jsx } from "theme-ui"
 import { Link } from "gatsby"
 import isAbsoluteURL from "is-absolute-url"
 
-export default ({ href, children, silent = false, ...props }) => {
+export default ({ href, style, children, silent = false, ...props }) => {
   const isExternal = isAbsoluteURL(href || "")
 
   const styles = {
@@ -11,7 +11,7 @@ export default ({ href, children, silent = false, ...props }) => {
     px: 0,
     color: silent ? "text" : "primary",
     textDecoration: "none",
-    fontSize: 2,
+    fontSize: 3,
     fontFamily: "heading",
     fontWeight: "bold",
     "&.active": {
@@ -23,6 +23,7 @@ export default ({ href, children, silent = false, ...props }) => {
     "&:hover": {
       textDecoration: "underline",
     },
+    ...style,
   }
 
   if (isExternal) {

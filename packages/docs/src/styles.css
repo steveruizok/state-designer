@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@0,400;0,500;&family=Fira+Sans:ital,wght@0,400;0,500;0,700;0,900;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Fira+Sans:ital,wght@0,400;0,500;0,800;1,400;1,500&display=swap");
 
 body {
   background-color: #fff !important;
@@ -35,6 +35,14 @@ body {
   font-family: "Fira Sans", sans-serif;
 }
 
+.live-view.container {
+  background-color: #fefeff;
+  padding: 1em;
+  width: fit-content;
+  border-radius: 1em;
+  border: 1px solid #d8dde4;
+}
+
 .live-view button {
   font-size: 16px;
   border-radius: 4px;
@@ -69,6 +77,10 @@ body {
   box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
 }
 
+.live-view button:disabled {
+  opacity: 0.35;
+}
+
 .live-view button.small {
   font-size: 14px;
   border-radius: 4px;
@@ -96,11 +108,23 @@ body {
   background-color: #fff;
 }
 
+.live-view .button-group {
+  display: flex;
+  margin-bottom: 1em;
+}
+
+.live-view .button-group > * {
+  margin-right: 1em;
+}
+.live-view .button-group > *:last-of-type() {
+  margin-right: 0px;
+}
+
 .live-view h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
+.live-view h2,
+.live-view h3,
+.live-view h4,
+.live-view h5,
+.live-view h6 {
+  margin: 0.5em 0em;
 }

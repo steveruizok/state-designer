@@ -31,6 +31,25 @@ export const events = `function Example() {
   )
 }`
 
+export const eventHandlers = `function Example() {
+  const state = useStateDesigner({
+    on: {
+      CLICKED: [
+        () => window.alert("I'll run first!"),
+        {
+          do: () => window.alert("I'll run second!"),
+        }
+      ]
+    },
+  })
+
+  return (
+    <button onClick={() => state.send("CLICKED")}>
+      Click here!
+    </button>
+  )
+}`
+
 export const data = `function Example() {
   const { data } = useStateDesigner({
     data: {

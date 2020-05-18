@@ -28,30 +28,11 @@ Next, we use the state's `send` method to **send** an event's name to the state.
 
 In our example, we've created a single event named `"CLICKED"` that we're handling with a function that opens the alert. Each time that a user clicks the button, we're calling the `send` method and sending `"CLICKED"` to the state. This triggers the event and runs its handler that opens the alert.
 
-## Defining Event Handlers
+In the next article, we'll take a closer look at event handlers.
 
-You can define an event handler in several different ways. As we just learned, you can handle an event using a regular function. In State Designer, we call this function an **action**—and we'll learn more about actions in a later article.
-
-```jsx
-CLICKED: () => window.alert("I'm an action!")
-```
-
-You can also handle an event with an **event handler object**. This object can have many properties, such as `do`, `to`, `if`, and `unless`, that work together to determine what happens when the event handler runs. We'll learn about all of these properties in later articles.
-
-```jsx
-CLICKED: {
-  do: () => window.alert("I'm an action!"),
-}
-```
-
-Finally, you can also define an event handler as an array that contains actions, event handler objects, or a mix of both. When the event runs, each item in the array will run one after the next.
-
-```jsx
-CLICKED: [
-  () => window.alert("I'll run first!"),
-  () => window.alert("I'll run second!"),
-  {
-    do: () => window.alert("I'll run third!"),
-  },
-]
-```
+<PageLinks
+  backTo={"/docs/learn/react-hook"}
+  back={"React Hook"}
+  nextTo={"/docs/learn/event-handlers"}
+  next={"Event Handlers"}
+/>

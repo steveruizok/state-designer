@@ -6,6 +6,7 @@ import kebabCase from "lodash-es/kebabCase"
 import { GoMarkGithub } from "react-icons/go"
 import { FaTwitter } from "react-icons/fa"
 import LiveView from "./components/live-view"
+import { CounterToggle } from "./components/counter-toggle"
 
 function Heading1(props) {
   if (typeof props.children === "string") {
@@ -109,4 +110,5 @@ export default {
   TwitterIcon: FaTwitter,
   LiveView,
   PageLinks,
+  CounterToggle,
 }

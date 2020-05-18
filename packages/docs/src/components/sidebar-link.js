@@ -8,7 +8,7 @@ const styles = {
   mx: 0,
   color: "text",
   textDecoration: "none",
-  fontSize: 2,
+  fontSize: [4, 1],
   fontFamily: "body",
   fontWeight: 2,
   "&.active": {
@@ -21,7 +21,7 @@ const styles = {
     textDecoration: "underline",
   },
   "& code": {
-    fontSize: 1,
+    fontSize: [4, 1],
     color: "text",
   },
 }

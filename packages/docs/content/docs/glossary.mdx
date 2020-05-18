@@ -39,7 +39,7 @@ When a [state](#state) is active, the machine [is in](#is-in) that state. A stat
 
 ## Async
 
-## Auto Event
+...
 
 ## Branch State
 
@@ -73,7 +73,11 @@ In the example above, the `selected` state is a branch state. When `selected` be
 
 ## Condition
 
+...
+
 ## Configuration
+
+...
 
 ## Data
 
@@ -83,37 +87,47 @@ A value stored in a machine. It is (optionally) created through the `data` prope
 const machine = createStateDesigner({
   // highlight-start
   data: {
-    count: 0
+    count: 0,
   },
   // highlight-end
   on: {
     PLUS_CLICKED: {
       if: "belowMax",
-      do: "incrementCount"
-    }
+      do: "incrementCount",
+    },
   },
   actions: {
     incrementCount(data) {
       data.count++
-    }
+    },
   },
   conditions: {
     belowMax(data) {
       return data.count < 10
-    }
-  }
+    },
+  },
 })
 ```
 
 ## Event
 
+...
+
 ## Event Handler
+
+...
 
 ## If
 
+...
+
 ## IfAny
 
+...
+
 ## Inactive
+
+...
 
 ## Initial State
 
@@ -121,13 +135,23 @@ An initial state is a [state](#state) that will become active when its parent st
 
 ## isIn
 
+...
+
 ## Machine
+
+...
 
 ## onEnter
 
+...
+
 ## onEvent
 
+...
+
 ## onExit
+
+...
 
 ## Parallel State
 
@@ -145,28 +169,28 @@ const machine = createStateDesigner({
           initial: "inactive",
           states: {
             inactive: {
-              on: { TOGGLE_ITALIC: { to: "active" } }
+              on: { TOGGLE_ITALIC: { to: "active" } },
             },
             active: {
-              on: { TOGGLE_ITALIC: { to: "inactive" } }
-            }
-          }
+              on: { TOGGLE_ITALIC: { to: "inactive" } },
+            },
+          },
         },
         bold: {
           initial: "inactive",
           states: {
             inactive: {
-              on: { TOGGLE_BOLD: { to: "active" } }
+              on: { TOGGLE_BOLD: { to: "active" } },
             },
             active: {
-              on: { TOGGLE_BOLD: { to: "inactive" } }
-            }
-          }
-        }
-      }
-    }
+              on: { TOGGLE_BOLD: { to: "inactive" } },
+            },
+          },
+        },
+      },
+    },
     // highlight-end
-  }
+  },
 })
 ```
 
@@ -178,11 +202,19 @@ In the example above, the `selected` state is a parallel state.
 
 ## Previous
 
+...
+
 ## Restore
+
+...
 
 ## Result
 
+...
+
 ## Send
+
+...
 
 ## State
 
@@ -198,13 +230,13 @@ const machine = createStateDesigner({
   states: {
     // highlight-start
     idle: {
-      on: { DRAG_START: { to: "dragging" } }
+      on: { DRAG_START: { to: "dragging" } },
     },
     dragging: {
-      on: { DRAG_END: { to: "idle" } }
-    }
+      on: { DRAG_END: { to: "idle" } },
+    },
     // highlight-end
-  }
+  },
 })
 ```
 
@@ -212,9 +244,15 @@ In the example above, both `idle` and `dragging` are states.
 
 ## State Tree
 
+...
+
 ## Transition
 
+...
+
 ## Unless
+
+...
 
 ## Update
 
@@ -227,19 +265,21 @@ const machine = createStateDesigner({
   states: {
     // highlight-start
     inactive: {
-      on: { TOGGLE: { do: "incrementChanges", to: "active" } }
+      on: { TOGGLE: { do: "incrementChanges", to: "active" } },
     },
     active: {
-      on: { TOGGLE: { to: "inactive" } }
-    }
+      on: { TOGGLE: { to: "inactive" } },
+    },
     // highlight-end
   },
   actions: {
     incrementChanges(data) {
       data.changes++
-    }
-  }
+    },
+  },
 })
 ```
 
 ## Wait
+
+...

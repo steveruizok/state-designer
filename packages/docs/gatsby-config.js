@@ -10,6 +10,27 @@ module.exports = {
     "gatsby-plugin-react-helmet",
     "gatsby-plugin-typescript",
     "gatsby-plugin-redirects",
+    `gatsby-plugin-sharp`,
+    `gatsby-remark-images`,
+    {
+      resolve: "gatsby-plugin-mdx",
+      options: {
+        plugins: [`gatsby-remark-images`],
+        extensions: [".md", ".mdx"],
+        gatsbyRemarkPlugins: [
+          "gatsby-remark-smartypants",
+          "gatsby-remark-prismjs",
+          "remark-slug",
+          "remark-emoji",
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              maxWidth: 1200,
+            },
+          },
+        ],
+      },
+    },
     {
       resolve: `gatsby-plugin-modal-routing`,
       options: {
@@ -26,21 +47,9 @@ module.exports = {
       },
     },
     {
-      resolve: "gatsby-plugin-mdx",
-      options: {
-        extensions: [".md", ".mdx"],
-        gatsbyRemarkPlugins: [
-          "gatsby-remark-smartypants",
-          "gatsby-remark-prismjs",
-          "remark-slug",
-          "remark-emoji",
-        ],
-      },
-    },
-    {
       resolve: "gatsby-source-filesystem",
       options: {
-        path: "content",
+        path: `${__dirname}/content`,
         name: "content",
       },
     },

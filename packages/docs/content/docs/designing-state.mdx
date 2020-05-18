@@ -1,0 +1,43 @@
+# State
+
+This article is let's get familiar with the problem that it solves.
+
+## What is State?
+
+All user interfaces depend on some sort of information. This information can change when things happen, so we use the term **state** to refer to the information's current version.
+
+In its most simple terms, a user interface needs to do three things:
+
+1. Show the current state to the user
+2. Respond to events by changing the state
+
+Sounds simple enough. When it's done right, a user interface can feel very simple indeed. However, getting it right is often very hard to do.
+
+## Why is State Hard?
+
+In the past, the most difficult part of building a user interface was making sure that the user would always "see" the latest state. In recent years, tools and frameworks such as React and Vue have essentially solved this problem for us: whatever our state is, we can be confident that our user interface will stay in sync as the state changes.
+
+While this makes the job much easier, we're still left with problem of actually _designing_ the state. This involves answering several critical questions:
+
+- What information matters to the user interface?
+- What events can occur, and under what circumstances?
+- How should these events change the state?
+
+These are _design_ problems: creative decisions about how the user interface should function.
+
+However, on the other side of these design problems are equally tricky _implementation_ problems.
+
+- How do I represent the state in code?
+- How do I get the most recent version of the state?
+- Where should I put the logic surrounding events?
+- How do I actually make changes to the state?
+
+At present, both of these problems—the user interface's functional design and its implementation—are almost always performed together in code. However, the code we use to _implement_ state management is often very poorly suited for _designing_ state.
+
+This under-tooling can lead to a painful design process, difficult bugs in a state's logic, and a resulting state that can exist only in its implementation—never charted, visualized, or represented abstractly.
+
+## Treating State as a Design Problem
+
+Like other state management libraries, State Designer provides a reliable, flexible and effective way of implementing state in a JavaScript or TypeScript project. However, unlike most tools, it was built from the start to treat state as a _design_ problem, and you'll find its API tuned specifically to design concerns.
+
+To start learning State Designer, read the [guide](/docs/learn/intro).

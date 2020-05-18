@@ -16,7 +16,11 @@ export default ({ backTo, back, nextTo, next }) => {
       }}
     >
       {back && <NavLink href={backTo}>« Back to {back}</NavLink>}
-      {next && <NavLink href={nextTo}>Continue to {next} »</NavLink>}
+      {next && (
+        <NavLink style={{ textAlign: "right" }} href={nextTo}>
+          Continue to {next} »
+        </NavLink>
+      )}
     </Flex>
   )
 }
