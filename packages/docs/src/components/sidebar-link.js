@@ -5,24 +5,29 @@ import isAbsoluteURL from "is-absolute-url"
 
 const styles = {
   display: "block",
-  mx: 0,
+  mx: -2,
+  px: 2,
+  py: 0,
+  borderRadius: 4,
+  lineHeight: 2,
   color: "text",
   textDecoration: "none",
   fontSize: [4, 1],
   fontFamily: "body",
   fontWeight: 2,
+  color: "code",
   "&.active": {
-    color: "primary",
+    color: "text",
+    backgroundColor: "muted",
   },
-  "&.visited": {
-    color: "primary",
-  },
+  "&.visited": {},
   "&:hover": {
-    textDecoration: "underline",
+    color: "text",
+    backgroundColor: "muted",
   },
   "& code": {
-    fontSize: [4, 1],
-    color: "text",
+    mx: -1,
+    fontSize: [4, 0],
   },
 }
 

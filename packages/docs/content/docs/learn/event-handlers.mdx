@@ -1,20 +1,22 @@
-# Event Handlers
+# Handlers
+
+Event handlers are your way of deciding what should happen when an event is triggered. Each time an event triggers, it will be handled according to what you've defined in the state's configuration object.
+
+## Actions
 
 You can define an event handler in several different ways. As we learned in the last article, you can handle an event using a regular function. In State Designer, we call this function an **action**—and we'll learn more about actions in a later article.
 
-```jsx
-CLICKED: () => window.alert("I'm an action!")
-```
+<LiveView snippet={"eventHandlersActions"} />
+
+## Objects
 
 You can also handle an event with an **event handler object**. This object can have many properties, such as `do`, `to`, `if`, and `unless`, that can work together to determine what happens when the event handler runs. We'll learn about these properties in later articles, too.
 
-```jsx
-CLICKED: {
-  do: () => window.alert("I'm an action!"),
-}
-```
+<LiveView snippet={"eventHandlersObjects"} />
 
-Finally, you can also define an event handler as an **array** that contains actions, event handler objects, or a mix of both. When the event runs, each item in the array will run in order.
+## Arrays
+
+Finally, you can also define an event handler as an **array** that contains either actions, event handler objects, or a mix of both. When the event runs, each item in the array will run in order.
 
 <LiveView snippet={"eventHandlers"} />
 
@@ -22,7 +24,9 @@ Finally, you can also define an event handler as an **array** that contains acti
 >
 > Can you add a third alert to the example's `"CLICKED"` event?
 
-Alright, that's probably more than enough alerts for one guide. Now that we know how event handlers work, we can start handling some real events. In the next article, we'll get into State Designer's most powerful feature: **states**.
+---
+
+Okay, that's probably more than enough alerts for one guide. Now that we know a little about how event handlers work, we can start handling some real events. In the next article, we'll get into State Designer's most powerful feature: **states**.
 
 <PageLinks
   backTo={"/docs/learn/events"}

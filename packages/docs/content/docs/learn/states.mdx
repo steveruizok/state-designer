@@ -1,18 +1,26 @@
 # States
 
-...
+When describing a user interface, we often use terms like "stopped", "playing", or "paused" to describe the different ways that the interface can be. If we wrote down all of these possible ways for a given interface, we would end up with a list of **states**, each of which might be active or inactive at a given moment.
 
-<LiveView snippet={"intro"} />
+In State Designer, we can define these states in our state's configuration object. We can use them to determine how our user interface looks, and we can use them to organize our events, too.
+
+## Which states are active?
+
+Let's again start with something simple.
+
+<LiveView snippet={"statesToggle"} />
 
 > 🏆 **Challenge**
 >
-> ...?
+> Can you change the code so that the checkbox is checked?
+
+---
 
 ...
 
 <PageLinks
   backTo={"/docs/learn/event-handlers"}
-  back={"Event Handlers"}
+  back={"Handlers"}
   nextTo={"/docs/learn/transitions"}
   next={"Transitions"}
 />

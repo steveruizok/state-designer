@@ -2,6 +2,27 @@ export const intro = `<button onClick={() => window.alert("Hey!")}>
   Click here!
 </button>`
 
+// State
+
+export const state = `function Example() {
+  const state = useStateDesigner({ 
+    data: { count: 0 },
+  })
+
+  return <h1>{state.data.count}</h1>
+}`
+
+export const stateCounter = `function Example() {
+  const state = useStateDesigner(counter)
+
+  return (
+    <div>
+     <h1>{state.data.count}</h1>
+     <button onClick={() => state.send("INCREASED")}>+1</button>
+    </div>
+  )
+}`
+
 // Hook
 export const hook = `function Example() {
   const update = useStateDesigner({
@@ -49,6 +70,55 @@ export const eventHandlers = `function Example() {
     </button>
   )
 }`
+
+export const eventHandlersActions = `function Example() {
+  const state = useStateDesigner({
+    on: {
+      CLICKED: () => window.alert("I'm an action!"),
+    },
+  })
+
+  return (
+    <button onClick={() => state.send("CLICKED")}>
+      Click here!
+    </button>
+  )
+}`
+
+export const eventHandlersObjects = `function Example() {
+  const state = useStateDesigner({
+    on: {
+      CLICKED: {
+        if: () => Math.random() > .5,
+        do: () => window.alert("Heads!"),
+        elseDo: () => window.alert("Tails!")
+      },
+    },
+  })
+
+  return (
+    <button onClick={() => state.send("CLICKED")}>
+      Flip a Coin!
+    </button>
+  )
+}`
+
+// States
+
+export const statesToggle = `function Toggle() {
+  const { isIn } = useStateDesigner({
+    initial: "inactive",
+    states: {
+      active: {},
+      inactive: {}
+    }
+  })
+
+  return (
+    <input type="checkbox" checked={isIn("active")}/>
+  )
+}`
+// Data
 
 export const data = `function Example() {
   const { data } = useStateDesigner({

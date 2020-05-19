@@ -1,8 +1,12 @@
 # Events
 
-In State Designer, **events** are our way of making things happen. You can send events to a state in order to make changes to the state and trigger updates.
+In State Designer, **events** are our way of making things happen. You can **send** events to a state in order to make changes to the state and trigger updates.
 
-Let's start with something simple. In the example below, click on the button to open an alert.
+## Making Things Happen
+
+Let's start with something simple.
+
+In the example below, click on the button to open an alert.
 
 <LiveView snippet={"events"} />
 
@@ -10,9 +14,11 @@ Let's start with something simple. In the example below, click on the button to 
 >
 > Can you make the example's alert say `"Hello world!"` instead?
 
-## Defining and Sending Events
+Now let's look closer at how that works.
 
-In a state's configuration, you can define events under the property `on`. This property holds an object with individual events defined as properties. We call the property's key the event's **name** and its value the event's **handler**.
+### Defining Events
+
+In a state's configuration, you can define events under the property `on`. This property holds an object where individual events are defined as properties. We call the property's key the event's **name** and its value the event's **handler**.
 
 ```jsx
 on: {
@@ -20,19 +26,25 @@ on: {
 },
 ```
 
-Next, we use the state's `send` method to **send** an event's name to the state. If the state has an event with a name that matches the name we've sent, it will trigger the event and run its handler.
+In our example, we've created a single event named `"CLICKED"` that we're handling with a function that opens the alert.
+
+### Sending Events
+
+Next, we call the state's `send` method with the name of the event that's just happened. If the state's events include an event with the same name, then it will trigger that event and run its handler.
 
 ```jsx
 <button onClick={() => state.send("CLICKED")}>Click here!</button>
 ```
 
-In our example, we've created a single event named `"CLICKED"` that we're handling with a function that opens the alert. Each time that a user clicks the button, we're calling the `send` method and sending `"CLICKED"` to the state. This triggers the event and runs its handler that opens the alert.
+In our example, each time that a user clicks the button, we're sending in the name `"CLICKED"`. This triggers the `"CLICKED"` event that we've defined in our state's configuration object, running its handler and opening the alert.
 
-In the next article, we'll take a closer look at event handlers.
+---
+
+In the next article, we'll take a closer look at event handlers and learn more about what we can do when an event is triggered.
 
 <PageLinks
-  backTo={"/docs/learn/react-hook"}
-  back={"React Hook"}
+  backTo={"/docs/learn/state"}
+  back={"State"}
   nextTo={"/docs/learn/event-handlers"}
-  next={"Event Handlers"}
+  next={"Handlers"}
 />

@@ -2,6 +2,7 @@
 import { useState, useRef } from "react"
 import { Global } from "@emotion/core"
 import { Styled, Box, Container, jsx, useThemeUI } from "theme-ui"
+import { motion } from "framer-motion"
 
 import Footer from "./footer"
 import Header from "./header"
@@ -41,7 +42,9 @@ export default ({ children }) => {
                 sx={{ display: [null, "block"] }}
                 onClick={() => setMenuOpen(!menuOpen)}
               />
-              <div
+              <motion.div
+                initial={{ y: -16, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
                 sx={{
                   pl: [3, 0],
                   pr: [3, 4],
@@ -53,7 +56,7 @@ export default ({ children }) => {
               >
                 {children}
                 <Footer />
-              </div>
+              </motion.div>
             </div>
           </Container>
         </main>

@@ -32,6 +32,7 @@
     "@types/react-dom": "^16.8.5",
     "@types/react-helmet": "^5.0.8",
     "@types/react-icons": "^3.0.0",
+    "framer-motion": "^1.11.0",
     "gatsby-plugin-manifest": "^2.2.4",
     "gatsby-plugin-mdx": "^1.2.7",
     "gatsby-plugin-meta-redirect": "^1.1.1",

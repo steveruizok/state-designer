@@ -1,24 +1,32 @@
 # State
 
-In State Designer, we can create a **state** by passing a configuration object—or **config**—to the `createStateDesigner` function.
+At the heart of State Designer is the **state**. A state stores information about a user interface and controls how and when that information should change. It also provides tools to help you use the state in your project.
 
-```js
-import { createStateDesigner } from "@state-designer/core"
+## Creating a State
 
-const state = createStateDesigner({ data: { count: 1 } })
+In a React project, the easiest way to create a state is to pass a **configuration object** to the `useStateDesigner` hook. This hook is exported from the `@state-designer/react` package.
+
+```jsx
+import { useStateDesigner } from "@state-designer/react"
 ```
 
-The config object will contain everything about the state: its events, initial data, a tree of child states, and collections of re-usable functions. We'll learn about all of these parts in the following articles.
+<LiveView snippet="state" />
 
-Complex states can become quite large. To help you keep your config on track, the `createStateDesigner` function offers TypeScript support in editors that support it.
+This configuration object will contain everything about the state: its initial data, events, child states, and collections. We'll learn about all of these parts in the following articles.
 
-> **Tip:** To create a config separately without losing this type support, use the `createConfig` function. [Learn more](/docs/api/createConfig).
+> 🏆 **Challenge**
+>
+> Can you change the example's code so that the count starts at 10?
 
-A state wouldn't be worth much if it couldn't change. In the next article, we'll learn to subscribe to a state's updates when they happen.
+For more on creating states, see the API documentation for [`useStateDesigner`](/docs/api/useStateDesigner) and [`createStateDesigner`](/docs/api/createStateDesigner).
+
+---
+
+In the next article, we'll learn to make changes to the state with events.
 
 <PageLinks
   backTo={"/docs/learn/intro"}
   back={"Intro"}
-  nextTo={"/docs/learn/updates"}
-  next={"Updates"}
+  nextTo={"/docs/learn/events"}
+  next={"Events"}
 />

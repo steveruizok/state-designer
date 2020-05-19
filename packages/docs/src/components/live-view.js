@@ -10,11 +10,19 @@ import lightTheme from "prism-react-renderer/themes/github"
 
 import * as snippets from "./snippets"
 
+const counter = createConfig({
+  data: { count: 0 },
+  on: {
+    INCREASED: (data) => data.count++,
+    DECREASED: (data) => data.count--,
+  },
+})
+
 export const isBrowser = () => typeof window !== "undefined"
 
 const LiveView = ({ snippet = "" }) => {
   const [updates, setUpdates] = React.useState(0)
-  const [code, setCode] = React.useState(snippets[snippet])
+  const [code, setCode] = React.useState(snippets[snippet] || snippet)
 
   function saveCodeToLocalStorage(code) {
     isBrowser() && window.localStorage.setItem(`live_view_${snippet}`, code)
@@ -59,12 +67,13 @@ const LiveView = ({ snippet = "" }) => {
           saveCodeToLocalStorage(c)
           return c
         }}
-        scope={{ useStateDesigner, createStateDesigner, createConfig }}
+        scope={{ useStateDesigner, createStateDesigner, createConfig, counter }}
         style={{
           overflowX: "scroll",
         }}
       >
         <LivePreview
+          className="container"
           style={{
             padding: "32px 16px",
           }}
