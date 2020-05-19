@@ -1,4 +1,4 @@
-export const intro = `<button onClick={() => window.alert("Hey!")}>
+export const intro = `<button onClick={() => alert("Hey!")}>
   Click here!
 </button>`
 
@@ -41,7 +41,7 @@ export const hook = `function Example() {
 export const events = `function Example() {
   const state = useStateDesigner({
     on: {
-      CLICKED: () => window.alert("Hi!")
+      CLICKED: () => alert("Hi!")
     },
   })
 
@@ -56,9 +56,9 @@ export const eventHandlers = `function Example() {
   const state = useStateDesigner({
     on: {
       CLICKED: [
-        () => window.alert("I'll run first!"),
+        () => alert("I'll run first!"),
         {
-          do: () => window.alert("I'll run second!"),
+          do: () => alert("I'll run second!"),
         }
       ]
     },
@@ -74,7 +74,7 @@ export const eventHandlers = `function Example() {
 export const eventHandlersActions = `function Example() {
   const state = useStateDesigner({
     on: {
-      CLICKED: () => window.alert("I'm an action!"),
+      CLICKED: () => alert("I'm an action!"),
     },
   })
 
@@ -90,8 +90,8 @@ export const eventHandlersObjects = `function Example() {
     on: {
       CLICKED: {
         if: () => Math.random() > .5,
-        do: () => window.alert("Heads!"),
-        elseDo: () => window.alert("Tails!")
+        do: () => alert("Heads!"),
+        elseDo: () => alert("Tails!")
       },
     },
   })

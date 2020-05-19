@@ -10,6 +10,12 @@ import lightTheme from "prism-react-renderer/themes/github"
 
 import * as snippets from "./snippets"
 
+// function alert(message) {
+//   if (window !== undefined) {
+//     window.alert(message)
+//   }
+// }
+
 const counter = createConfig({
   data: { count: 0 },
   on: {
