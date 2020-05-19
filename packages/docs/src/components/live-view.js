@@ -78,12 +78,6 @@ const LiveView = ({ snippet = "" }) => {
           overflowX: "scroll",
         }}
       >
-        <LivePreview
-          className="container"
-          style={{
-            padding: "32px 16px",
-          }}
-        ></LivePreview>
         <div style={{ position: "relative" }}>
           <button
             className="small"
@@ -92,20 +86,26 @@ const LiveView = ({ snippet = "" }) => {
           >
             Reset
           </button>
-          <LiveEditor
+          <LivePreview
+            className="container"
             style={{
-              borderTop: "1px solid #d8dde4",
-              overflowX: "scroll",
-              backgroundColor: "#f6f8fa",
-              tabSize: 2,
-              fontFamily: "'Fira Code', monospace",
-              fontWeight: 500,
-              fontSize: 14,
-              overflow: "scroll",
-              scroll: "auto",
+              padding: "32px 16px",
             }}
-          />
+          ></LivePreview>
         </div>
+        <LiveEditor
+          style={{
+            borderTop: "1px solid #d8dde4",
+            overflowX: "scroll",
+            backgroundColor: "#f6f8fa",
+            tabSize: 2,
+            fontFamily: "'Fira Code', monospace",
+            fontWeight: 500,
+            fontSize: 14,
+            overflow: "scroll",
+            scroll: "auto",
+          }}
+        />
         <LiveError
           style={{
             fontSize: 12,
