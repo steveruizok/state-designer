@@ -337,6 +337,7 @@ export function createStateDesigner<
     StateTree.activateState(
       core.stateTree,
       pathDown,
+      beforeActive,
       isPreviousTransition || isRestoreTransition,
       isRestoreTransition
     )
@@ -350,7 +351,7 @@ export function createStateDesigner<
     )
 
     // Get an array of states that have become active
-    const activatedStates = afterActive.filter(
+    const newlyActivatedStates = afterActive.filter(
       (state) => !beforeActive.includes(state)
     )
 
@@ -388,7 +389,7 @@ export function createStateDesigner<
     // - handle onEnter events
     // - bail if we've transitioned
 
-    for (let state of activatedStates) {
+    for (let state of newlyActivatedStates) {
       const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {

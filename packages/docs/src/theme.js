@@ -46,6 +46,7 @@ export default {
     heading: "800",
   },
   lineHeights: {
+    tight: 1.35,
     body: 1.7,
     heading: 1.25,
     code: 1.65,
@@ -73,7 +74,7 @@ export default {
     },
     root: {
       fontFamily: "body",
-      lineHeight: "body",
+      lineHeight: ["tight", "body"],
       fontWeight: "body",
       fontSize: [3, 2],
     },
@@ -91,7 +92,7 @@ export default {
     h3: {
       variant: "textStyles.heading",
       fontSize: 4,
-      mt: 3,
+      mt: 4,
       mb: 2,
     },
     h4: {
@@ -169,12 +170,14 @@ export default {
     code: {
       fontFamily: "monospace",
       fontSize: 1,
-      color: "text",
       bg: "muted",
       px: 1,
       fontWeight: "code",
       letterSpacing: -0.2,
       borderRadius: 4,
+      a: {
+        color: "primary",
+      },
     },
     table: {
       width: "100%",
@@ -205,8 +208,7 @@ export default {
       border: 0,
       borderBottom: (theme) => `1px solid ${theme.colors.gray}`,
       ml: 0,
-      width: "23%",
-      my: 6,
+      my: 5,
     },
     ul: {
       my: 2,

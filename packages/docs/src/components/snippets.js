@@ -41,12 +41,12 @@ export const hook = `function Example() {
 export const events = `function Example() {
   const state = useStateDesigner({
     on: {
-      CLICKED: () => alert("Hi!")
+      OPENED_ALERT: () => alert("Hi!")
     },
   })
 
   return (
-    <button onClick={() => state.send("CLICKED")}>
+    <button onClick={() => state.send("OPENED_ALERT")}>
       Click here!
     </button>
   )
@@ -106,18 +106,167 @@ export const eventHandlersObjects = `function Example() {
 // States
 
 export const statesToggle = `function Toggle() {
-  const { isIn } = useStateDesigner({
-    initial: "inactive",
+  const state = useStateDesigner({
+    initial: "unchecked",
     states: {
-      active: {},
-      inactive: {}
+      checked: {},
+      unchecked: {}
     }
   })
 
   return (
-    <input type="checkbox" checked={isIn("active")}/>
+    <input type="checkbox" checked={state.isIn("checked")}/>
   )
 }`
+
+export const statesToggleSend = `function Toggle() {
+  const state = useStateDesigner({
+    initial: "unchecked",
+    states: {
+      checked: {},
+      unchecked: {}
+    },
+    on: {
+      CHECKED: { to: "checked" },
+      UNCHECKED: { to: "unchecked" },
+    }
+  })
+
+  return (
+    <div>
+     <input type="checkbox" checked={state.isIn("checked")}/>
+     <button onClick={() => state.send("CHECKED")}>Check</button>
+     <button onClick={() => state.send("UNCHECKED")}>Uncheck</button>
+    </div>
+  )
+}`
+
+export const statesToggleEvents = `function Toggle() {
+  const state = useStateDesigner({
+    initial: "unchecked",
+    states: {
+      checked: {
+        on: { 
+          TOGGLED: { to: "unchecked" } 
+        }
+      },
+      unchecked: {
+        on: { 
+          TOGGLED: { to: "checked" } 
+        }
+      }
+    },
+  })
+
+  return (
+    <input 
+      type="checkbox" 
+      checked={state.isIn("checked")} 
+      onClick={() => state.send("TOGGLED")}
+    />
+  )
+}`
+
+export const statesToggleWhenIn = `function Toggle() {
+  const state = useStateDesigner({ ...toggle })
+
+  const label = state.whenIn({
+    checked: "Turn off",
+    unchecked: "Turn on",
+  })
+
+  return (
+    <button onClick={() => state.send("TOGGLED")}>{label}</button>
+  )
+}`
+
+export const statesNestedToggle = `function HoverToggle() {
+  const state = useStateDesigner({
+    initial: "unchecked",
+    states: {
+      unchecked: { 
+        on: { TOGGLED: { to: "checked" } },
+        initial: "normal",
+        states: {
+          normal: { 
+            on: { TOGGLE_STYLE: { to: "bold" } } 
+          },
+          bold: { 
+            on: { TOGGLE_STYLE: { to: "normal" } } 
+          },
+        },
+      },
+      checked: {
+        on: { TOGGLED: { to: "unchecked" } },
+        initial: "hovered",
+        states: {
+          hovered: { 
+            on: { HOVERED_OUT: { to: "unhovered" } } 
+          },
+          unhovered: { 
+            on: { HOVERED_IN: { to: "hovered" } } 
+          },
+        },
+      },
+    },
+  })
+
+  return (
+    <button 
+      onMouseEnter={() => state.send("HOVERED_IN")}
+      onMouseLeave={() => state.send("HOVERED_OUT")}
+      onClick={() => state.send("TOGGLED")}
+    >
+      {state.whenIn({
+        checked: "Turn off",
+        unchecked: "Turn on",
+        hovered: "—hovered!",
+        unhovered: "—not hovered!"
+      })}
+    </button>
+  )
+}`
+
+export const statesParallel = `function Toggle() {
+  const state = useStateDesigner({
+    states: {
+      weight: {
+        initial: "normal",
+        states: {
+          normal: { 
+            on: { TOGGLE_STYLE: { to: "bold" } } 
+          },
+          bold: { 
+            on: { TOGGLE_STYLE: { to: "normal" } } 
+          },
+        },
+      },
+      decoration: {
+        initial: "none",
+        states: {
+          none: { 
+            on: { TOGGLE_DECORATION: { to: "underline" } } 
+          },
+          underline: { 
+            on: { TOGGLE_DECORATION: { to: "none" } } 
+          },
+        },
+      }
+    }
+  })
+
+  const fontWeight = state.whenIn({normal: "normal", bold: "bold"})
+  const textDecoration = state.whenIn({none: "none", underline: "underline"})
+
+  return (
+    <div>
+      <h2 style={{ fontWeight, textDecoration }}>Hello World!</h2>
+      <button onClick={() => state.send("TOGGLE_STYLE")}>B</button>
+      <button onClick={() => state.send("TOGGLE_DECORATION")}>U</button>
+    </div>
+  )
+}`
+
 // Data
 
 export const data = `function Example() {

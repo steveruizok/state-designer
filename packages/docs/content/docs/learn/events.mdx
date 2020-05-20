@@ -1,12 +1,6 @@
 # Events
 
-In State Designer, **events** are our way of making things happen. You can **send** events to a state in order to make changes to the state and trigger updates.
-
-## Making Things Happen
-
-Let's start with something simple.
-
-In the example below, click on the button to open an alert.
+You can use **events** to make things happen in your state.
 
 <LiveView snippet={"events"} />
 
@@ -14,33 +8,35 @@ In the example below, click on the button to open an alert.
 >
 > Can you make the example's alert say `"Hello world!"` instead?
 
-Now let's look closer at how that works.
+In State Designer, the states you design are driven by events. You can configure your state to respond to an event by making a change to the state or firing off some other side effect. An event can be caused by anything you like: a user interaction like a click or key press, a timer ticking, or even a message from some other state.
 
 ### Defining Events
 
-In a state's configuration, you can define events under the property `on`. This property holds an object where individual events are defined as properties. We call the property's key the event's **name** and its value the event's **handler**.
+To define an event, add it as a property of your state's `on` object.
 
 ```jsx
 on: {
-  CLICKED: () => alert("Hi!")
+  OPENED_ALERT: () => alert("Hi!")
 },
 ```
 
-In our example, we've created a single event named `"CLICKED"` that we're handling with a function that opens the alert.
+An event has two parts: its **name** and its **handler**.
 
-### Sending Events
+In our example, we've created an event named `"OPENED_ALERT"`. Its handler is a function that will open an alert.
 
-Next, we call the state's `send` method with the name of the event that's just happened. If the state's events include an event with the same name, then it will trigger that event and run its handler.
+### Triggering Events with Send
+
+To trigger an event, call your state's `send` method with event's name.
 
 ```jsx
-<button onClick={() => state.send("CLICKED")}>Click here!</button>
+<button onClick={() => state.send("OPENED_ALERT")}>Click here!</button>
 ```
 
-In our example, each time that a user clicks the button, we're sending in the name `"CLICKED"`. This triggers the `"CLICKED"` event that we've defined in our state's configuration object, running its handler and opening the alert.
+In our example, each time that a user clicks the button, we send `"OPENED_ALERT"` to the state. This triggers the state's event named `"OPENED_ALERT"`. Triggering the event runs its handler and its handler opens the alert.
 
----
+> **Tip:** As you build a user interface, you'll often find that several interactions will all produce the same event. For this reason, it's better to name events after _what_ the user did (opened an alert) rather than _how_ they did it (clicked a button). Otherwise, you might end up with key presses sending events named `"CLICKED"`!
 
-In the next article, we'll take a closer look at event handlers and learn more about what we can do when an event is triggered.
+In the next article, we'll take a closer look at event handlers and learn more about what else we can do when an event is triggered.
 
 <PageLinks
   backTo={"/docs/learn/state"}

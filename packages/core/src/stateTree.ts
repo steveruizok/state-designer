@@ -52,6 +52,7 @@ export function getActiveStates<D = any>(state: S.State<D>) {
 export function activateState<D = any>(
   state: S.State<D>,
   path: string[],
+  beforeActive: S.State<D>[],
   previous: boolean,
   restore: boolean
 ): void {
@@ -70,7 +71,7 @@ export function activateState<D = any>(
   // Don't worry about history.
   if (isUndefined(state.initial)) {
     for (let childState of Object.values(state.states)) {
-      activateState(childState, path, restore, restore)
+      activateState(childState, path, beforeActive, restore, restore)
     }
     return
   }
@@ -93,14 +94,14 @@ export function activateState<D = any>(
 
       for (let childState of Object.values(state.states)) {
         if (childState.name === prev) {
-          activateState(childState, path, restore, restore)
+          activateState(childState, path, beforeActive, restore, restore)
         }
       }
     } else {
       // Activating previous but no history left — activate previous
       for (let childState of childStates) {
         if (childState.name === state.history[0]) {
-          activateState(childState, path, restore, restore)
+          activateState(childState, path, beforeActive, restore, restore)
         }
       }
     }
@@ -109,15 +110,25 @@ export function activateState<D = any>(
     for (let childState of childStates) {
       if (childState.name === path[0]) {
         state.history.push(childState.name)
-        activateState(childState, path, previous, restore)
+        activateState(childState, path, beforeActive, previous, restore)
       }
     }
   } else {
-    // Not activating previous, not in path — activate initial
-    for (let childState of Object.values(state.states)) {
-      if (childState.name === state.initial) {
-        state.history.push(childState.name)
-        activateState(childState, path, false, false)
+    // Not activating previous, not in path
+    if (beforeActive.includes(state)) {
+      // but previously active... so restore this branch
+      for (let childState of Object.values(state.states)) {
+        if (childState.name === state.history[state.history.length - 1]) {
+          activateState(childState, path, beforeActive, previous, restore)
+        }
+      }
+    } else {
+      // Not activating previous, not in path — activate initial
+      for (let childState of Object.values(state.states)) {
+        if (childState.name === state.initial) {
+          state.history.push(childState.name)
+          activateState(childState, path, beforeActive, false, false)
+        }
       }
     }
   }

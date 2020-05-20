@@ -2,27 +2,27 @@
 
 At the heart of State Designer is the **state**. A state stores information about a user interface and controls how and when that information should change. It also provides tools to help you use the state in your project.
 
-## Creating a State
-
-In a React project, the easiest way to create a state is to pass a **configuration object** to the `useStateDesigner` hook. This hook is exported from the `@state-designer/react` package.
-
-```jsx
-import { useStateDesigner } from "@state-designer/react"
-```
-
 <LiveView snippet="state" />
-
-This configuration object will contain everything about the state: its initial data, events, child states, and collections. We'll learn about all of these parts in the following articles.
 
 > 🏆 **Challenge**
 >
 > Can you change the example's code so that the count starts at 10?
 
-For more on creating states, see the API documentation for [`useStateDesigner`](/docs/api/useStateDesigner) and [`createStateDesigner`](/docs/api/createStateDesigner).
+### Creating a State
 
----
+To create a state, pass a **configuration** object to the [`useStateDesigner`](/docs/api/useStateDesigner) hook.
 
-In the next article, we'll learn to make changes to the state with events.
+```jsx
+const state = useStateDesigner({
+  data: { count: 0 },
+})
+```
+
+A state's configuration contains everything about the state: its initial data and all of its events, child states, and collections. We'll learn about each part of a state's configuration in the following articles.
+
+> **Tip:** If you want to use the same state with more than one component, you can create a state with the [`createStateDesigner`](/docs/api/useStateDesigner) function, then pass the state to the `useStateDesigner` hook. To learn more, check out the [`useStateDesigner`](/docs/api/useStateDesigner) article.
+
+In the next article, we'll learn how to configure a state to respond to events.
 
 <PageLinks
   backTo={"/docs/learn/intro"}

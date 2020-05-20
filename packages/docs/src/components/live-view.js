@@ -1,3 +1,5 @@
+/** @jsx jsx */
+import { jsx } from "theme-ui"
 import * as React from "react"
 
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live"
@@ -21,6 +23,22 @@ const counter = createConfig({
   on: {
     INCREASED: (data) => data.count++,
     DECREASED: (data) => data.count--,
+  },
+})
+
+const toggle = createConfig({
+  initial: "unchecked",
+  states: {
+    checked: {
+      on: {
+        TOGGLED: { to: "unchecked" },
+      },
+    },
+    unchecked: {
+      on: {
+        TOGGLED: { to: "checked" },
+      },
+    },
   },
 })
 
@@ -57,12 +75,14 @@ const LiveView = ({ snippet = "" }) => {
     <div
       className={`live-view light`}
       key={updates}
-      style={{
+      sx={{
         border: "1px solid #d8dde4",
         borderRadius: 4,
         overflow: "hidden",
         marginTop: "1.5em",
         marginBottom: "2em",
+        fontWeight: "code",
+        fontSize: [16, 14],
       }}
     >
       <LiveProvider
@@ -73,7 +93,13 @@ const LiveView = ({ snippet = "" }) => {
           saveCodeToLocalStorage(c)
           return c
         }}
-        scope={{ useStateDesigner, createStateDesigner, createConfig, counter }}
+        scope={{
+          useStateDesigner,
+          createStateDesigner,
+          createConfig,
+          toggle,
+          counter,
+        }}
         style={{
           overflowX: "scroll",
         }}
@@ -94,16 +120,17 @@ const LiveView = ({ snippet = "" }) => {
           ></LivePreview>
         </div>
         <LiveEditor
-          style={{
+          sx={{
             borderTop: "1px solid #d8dde4",
             overflowX: "scroll",
             backgroundColor: "#f6f8fa",
             tabSize: 2,
-            fontFamily: "'Fira Code', monospace",
-            fontWeight: 500,
-            fontSize: 14,
             overflow: "scroll",
             scroll: "auto",
+          }}
+          style={{
+            fontFamily: "'Fira Code', monospace",
+            fontWeight: 500,
           }}
         />
         <LiveError

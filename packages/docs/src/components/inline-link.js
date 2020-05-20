@@ -22,7 +22,7 @@ export default ({ href, children, ...props }) => {
     <Link
       {...props}
       sx={{ color: isModal ? "#FF0000 !important" : undefined }}
-      to={to} 
+      to={to}
       asModal={isModal}
     >
       {children}
