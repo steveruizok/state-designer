@@ -2,8 +2,6 @@
 
 At the heart of State Designer is the **state**. A state stores information about a user interface and controls how and when that information should change. It also provides tools to help you use the state in your project.
 
-<LiveView snippet="state" />
-
 > 🏆 **Challenge**
 >
 > Can you change the example's code so that the count starts at 10?
@@ -12,11 +10,7 @@ At the heart of State Designer is the **state**. A state stores information abou
 
 To create a state, pass a **configuration** object to the [`useStateDesigner`](/docs/api/useStateDesigner) hook.
 
-```jsx
-const state = useStateDesigner({
-  data: { count: 0 },
-})
-```
+<LiveView snippet="state" />
 
 A state's configuration contains everything about the state: its initial data and all of its events, child states, and collections. We'll learn about each part of a state's configuration in the following articles.
 

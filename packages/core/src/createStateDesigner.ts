@@ -31,7 +31,10 @@ export function createStateDesigner<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
->(config: S.Config<D, R, C, A, Y, T, V>): S.StateDesigner<D, R, C, A, Y, T, V> {
+>(
+  config: S.Config<D, R, C, A, Y, T, V>,
+  verbose?: (message: string, type: S.VerboseType) => any
+): S.StateDesigner<D, R, C, A, Y, T, V> {
   /* ------------------ Mutable Data ------------------ */
 
   // Current (internal data state)
@@ -79,6 +82,14 @@ export function createStateDesigner<
     return update
   }
 
+  /* -------------------- Debugging ------------------- */
+
+  function vlog(message: string, type: S.VerboseType) {
+    if (verbose) {
+      verbose(`${new Date().toLocaleTimeString()} — ${message}`, type)
+    }
+  }
+
   /* ------------------ Subscriptions ----------------- */
 
   // A set of subscription callbacks. The subscribe function
@@ -107,6 +118,7 @@ export function createStateDesigner<
 
   // Call each subscriber callback with the state's current update
   function notifySubscribers() {
+    vlog(`Notifying subsribers.`, S.VerboseType.Notification)
     core.values = getValues(core.data)
     core.active = StateTree.getActiveStates(core.stateTree)
     subscribers.forEach((subscriber) => subscriber(core))
@@ -139,7 +151,14 @@ export function createStateDesigner<
     state: S.State<D>,
     sent: S.Event
   ): Promise<void> {
+    vlog(
+      `Testing event ${sent.event} in ${state.name}.`,
+      S.VerboseType.EventHandler
+    )
+
     if (state.active) {
+      vlog(`Found event state's events.`, S.VerboseType.EventHandler)
+
       const activeChildren = Object.values(state.states).filter(
         (state) => state.active
       )
@@ -148,12 +167,14 @@ export function createStateDesigner<
 
       // Run event handler, if present
       if (!isUndefined(eventHandler)) {
+        vlog(`Running event handlers.`, S.VerboseType.EventHandler)
         await runOnThreadEventHandler(eventHandler)
         if (update.didTransition) return
       }
 
       // Run onEvent, if present
       if (!isUndefined(state.onEvent)) {
+        vlog(`Running onEvent in ${state.name}.`, S.VerboseType.EventHandler)
         await runOnThreadEventHandler(state.onEvent)
         if (update.didTransition) return
       }
@@ -218,8 +239,11 @@ export function createStateDesigner<
           }
 
           if (passedConditions) {
+            vlog("Passed conditions.", S.VerboseType.Condition)
+
             // Actions
             if (item.do.length > 0) {
+              vlog("Running actions.", S.VerboseType.Action)
               localUpdate.didAction = true
 
               for (let action of item.do) {
@@ -248,8 +272,11 @@ export function createStateDesigner<
               break
             }
           } else {
+            vlog("Conditions failed.", S.VerboseType.Condition)
+
             // Else Actions
             if (item.elseDo.length > 0) {
+              vlog("Running else actions.", S.VerboseType.Action)
               localUpdate.didAction = true
 
               for (let action of item.elseDo) {
@@ -283,6 +310,7 @@ export function createStateDesigner<
     )
 
     if (!isUndefined(localUpdate.send)) {
+      vlog("Sending event from event handler.", S.VerboseType.EventHandler)
       send(localUpdate.send.event, localUpdate.send.payload)
     }
 
@@ -296,6 +324,7 @@ export function createStateDesigner<
 
   async function runTransition(targetFn: S.EventFn<D, string>) {
     let path = targetFn(current.data, current.payload, current.result)
+    vlog(`Transitioning to ${path}.`, S.VerboseType.Transition)
 
     // Is this a restore transition?
 
@@ -363,13 +392,20 @@ export function createStateDesigner<
     // - bail if we've transitioned
 
     deactivatedStates.forEach((state) => {
+      vlog(`Deactivating ${state.path}.`, S.VerboseType.State)
+
       const { interval, animationFrame } = state.times
       if (!isUndefined(interval)) {
+        vlog(`Clearing interval on ${state.path}.`, S.VerboseType.RepeatEvent)
         clearInterval(interval)
         state.times.interval = undefined
       }
 
       if (!isUndefined(animationFrame)) {
+        vlog(
+          `Clearing animation frame on ${state.path}.`,
+          S.VerboseType.RepeatEvent
+        )
         cancelAnimationFrame(animationFrame)
         state.times.animationFrame = undefined
       }
@@ -379,6 +415,10 @@ export function createStateDesigner<
       const { onExit } = state
 
       if (!isUndefined(onExit)) {
+        vlog(
+          `Running onExit event on ${state.path}.`,
+          S.VerboseType.TransitionEvent
+        )
         await runOnThreadEventHandler(onExit)
         if (update.transitions > currentTransitions) return
       }
@@ -390,6 +430,7 @@ export function createStateDesigner<
     // - bail if we've transitioned
 
     for (let state of newlyActivatedStates) {
+      vlog(`Activating ${state.path}.`, S.VerboseType.State)
       const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
@@ -401,8 +442,13 @@ export function createStateDesigner<
 
         if (delay === undefined) {
           // Run on every animation frame
+          vlog(
+            `Starting repeat using animation frame.`,
+            S.VerboseType.RepeatEvent
+          )
 
           const loop = async (now: number) => {
+            vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             const interval = now - lastTime
             elapsed += interval
             setCurrent({ result: { interval, elapsed } })
@@ -420,12 +466,18 @@ export function createStateDesigner<
 
           state.times.animationFrame = requestAnimationFrame(loop)
         } else {
-          let lastTime = Date.now()
           // Run on provided delay amount
+          let lastTime = Date.now()
 
           const s = delay(current.data, current.payload, current.result)
 
+          vlog(
+            `Starting repeat using delay of ${s}.`,
+            S.VerboseType.RepeatEvent
+          )
+
           state.times.interval = setInterval(async () => {
+            vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             now = Date.now()
             const interval = now - lastTime
             elapsed += interval
@@ -442,13 +494,16 @@ export function createStateDesigner<
       }
 
       if (!isUndefined(onEnter)) {
+        vlog(`Running onEnter event.`, S.VerboseType.TransitionEvent)
         await runOnThreadEventHandler(onEnter)
         if (update.transitions > currentTransitions) return
       }
 
       if (!isUndefined(async)) {
+        vlog(`Running async event.`, S.VerboseType.AsyncEvent)
         async.await(current.data, current.payload, current.result).then(
           async (result) => {
+            vlog(`Async resolved.`, S.VerboseType.AsyncEvent)
             setCurrent({ result })
             const localUpdate = await runOffThreadEventHandler(async.onResolve)
             if (localUpdate.didAction || localUpdate.didTransition) {
@@ -456,6 +511,7 @@ export function createStateDesigner<
             }
           },
           async (result) => {
+            vlog(`Async rejected.`, S.VerboseType.AsyncEvent)
             if (!isUndefined(async.onReject)) {
               setCurrent({ result })
               const localUpdate = await runOffThreadEventHandler(async.onReject)
@@ -478,6 +534,8 @@ export function createStateDesigner<
   async function processSendQueue(): Promise<
     S.StateDesigner<D, R, C, A, Y, T, V>
   > {
+    vlog(`Processing next in queue.`, S.VerboseType.Queue)
+
     setUpdate({
       didAction: false,
       didTransition: false,
@@ -486,6 +544,8 @@ export function createStateDesigner<
     const next = sendQueue.shift()
 
     if (isUndefined(next)) {
+      vlog(`Queue is empty, resolving.`, S.VerboseType.Queue)
+
       setUpdate({
         process: undefined,
         transitions: 0,
@@ -493,6 +553,8 @@ export function createStateDesigner<
 
       return core
     } else {
+      vlog(`Running next item in send queue.`, S.VerboseType.Queue)
+
       setCurrent({
         payload: next.payload,
         result: undefined,
@@ -554,6 +616,7 @@ export function createStateDesigner<
     eventName: string,
     payload?: any
   ): Promise<S.StateDesigner<D, R, C, A, Y, T, V>> {
+    vlog(`Received event ${eventName}.`, S.VerboseType.Event)
     sendQueue.push({ event: eventName, payload })
     return update.process ? update.process : processSendQueue()
   }

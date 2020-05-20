@@ -128,6 +128,22 @@ export type AsyncEventHandlerConfig<D, R, C, A, Y, T> = {
   onReject?: EventHandlerConfig<D, R, C, A, T>
 }
 
+// Verbose Logging Types
+
+export enum VerboseType {
+  Condition = "condition",
+  Action = "action",
+  Event = "event",
+  State = "state",
+  AsyncEvent = "asyncEvent",
+  TransitionEvent = "transitionEvent",
+  RepeatEvent = "repeatEvent",
+  Transition = "transition",
+  Notification = "notification",
+  EventHandler = "eventHandler",
+  Queue = "queue",
+}
+
 // State
 
 export interface State<D> {
