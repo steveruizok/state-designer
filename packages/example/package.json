@@ -1,5 +1,5 @@
 {
-  "name": "tetris-tutorial-script",
+  "name": "state-designer-tetris-example",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
