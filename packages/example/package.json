@@ -1,10 +1,10 @@
 {
   "name": "state-designer-tetris-example",
-  "version": "0.1.0",
+  "version": "1.1.20",
   "private": true,
   "dependencies": {
-    "@state-designer/core": "^1.1.15",
-    "@state-designer/react": "^1.1.19",
+    "@state-designer/core": "^1.1.20",
+    "@state-designer/react": "^1.1.20",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
