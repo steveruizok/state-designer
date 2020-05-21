@@ -110,22 +110,21 @@ export function getStateTreeFromConfig<
    * Convert an event handler item config into an event handler item.
    * @param itemCfg
    */
-  function getEventHandlerItem(
-    itemCfg: S.EventHandlerItemConfig<D, R, C, A, T>
-  ): S.EventHandlerItem<D> {
+  function getEventHandlerObject(
+    itemCfg: S.EventHandlerObjectConfig<D, R, C, A, T>
+  ): S.EventHandlerObject<D> {
     return {
       get: getResults(itemCfg.get),
       if: getConditions(itemCfg.if),
       unless: getConditions(itemCfg.unless),
       ifAny: getConditions(itemCfg.ifAny),
       do: getActions(itemCfg.do),
-      elseDo: getActions(itemCfg.elseDo),
+      secretlyDo: getActions(itemCfg.secretlyDo),
       to: castToFunction(itemCfg.to),
-      elseTo: castToFunction(itemCfg.elseTo),
       send: getSend(itemCfg.send),
-      elseSend: getSend(itemCfg.elseSend),
       wait: getTime(itemCfg.wait),
       break: castToFunction(itemCfg.break),
+      else: itemCfg.else ? getEventHandler(itemCfg.else) : undefined,
     }
   }
 
@@ -143,14 +142,14 @@ export function getStateTreeFromConfig<
             throw new Error("Actions is undefined!")
           } else {
             const eventFn = config.actions && config.actions[eventHandler]
-            return getEventHandlerItem({ do: eventFn })
+            return getEventHandlerObject({ do: eventFn })
           }
         }
         case "function": {
-          return getEventHandlerItem({ do: eventHandler })
+          return getEventHandlerObject({ do: eventHandler })
         }
         default: {
-          return getEventHandlerItem(eventHandler)
+          return getEventHandlerObject(eventHandler)
         }
       }
     })

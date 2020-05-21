@@ -37,30 +37,6 @@ export function createStateDesigner<
 ): S.StateDesigner<D, R, C, A, Y, T, V> {
   /* ------------------ Mutable Data ------------------ */
 
-  // Current (internal data state)
-
-  type Current = {
-    data: D
-    payload: any
-    result: any
-  }
-
-  let current: Current = {
-    data: config.data as D,
-    payload: undefined,
-    result: undefined,
-  }
-
-  function setCurrent(changes: Partial<Current>) {
-    current = produce(current, (draft) => {
-      Object.assign(draft, changes)
-    })
-
-    core.data = current.data
-
-    return current
-  }
-
   // Update (internal update state)
 
   type Update = {
@@ -128,8 +104,12 @@ export function createStateDesigner<
 
   // Run event handler that updates the global `updates` object,
   // useful for (more or less) synchronous events
-  async function runOnThreadEventHandler(eventHandler: S.EventHandler<D>) {
-    const localUpdate = await runEventHandler(eventHandler)
+  async function runOnThreadEventHandler(
+    eventHandler: S.EventHandler<D>,
+    payload: any = undefined,
+    result: any = undefined
+  ) {
+    const localUpdate = await runEventHandler(eventHandler, payload, result)
     if (localUpdate.didAction) setUpdate({ didAction: true })
     if (localUpdate.didTransition) setUpdate({ didTransition: true })
     return update
@@ -138,8 +118,12 @@ export function createStateDesigner<
   // Run event handler that only returns a local `updates` object,
   // useful in handling delayed events, repeats, etc; so that they don't
   // interfere with "on thread" event handling.
-  async function runOffThreadEventHandler(eventHandler: S.EventHandler<D>) {
-    const localUpdate = await runEventHandler(eventHandler)
+  async function runOffThreadEventHandler(
+    eventHandler: S.EventHandler<D>,
+    payload: any = undefined,
+    result: any = undefined
+  ) {
+    const localUpdate = await runEventHandler(eventHandler, payload, result)
     return localUpdate
   }
 
@@ -168,14 +152,14 @@ export function createStateDesigner<
       // Run event handler, if present
       if (!isUndefined(eventHandler)) {
         vlog(`Running event handlers.`, S.VerboseType.EventHandler)
-        await runOnThreadEventHandler(eventHandler)
+        await runOnThreadEventHandler(eventHandler, sent.payload, undefined)
         if (update.didTransition) return
       }
 
       // Run onEvent, if present
       if (!isUndefined(state.onEvent)) {
         vlog(`Running onEvent in ${state.name}.`, S.VerboseType.EventHandler)
-        await runOnThreadEventHandler(state.onEvent)
+        await runOnThreadEventHandler(state.onEvent, sent.payload, undefined)
         if (update.didTransition) return
       }
       // Run event on states
@@ -189,7 +173,9 @@ export function createStateDesigner<
   }
 
   async function runEventHandler(
-    eventHandler: S.EventHandler<D>
+    eventHandler: S.EventHandler<D>,
+    payload: any = undefined,
+    result: any = undefined
   ): Promise<{
     didTransition: boolean
     didAction: boolean
@@ -197,117 +183,110 @@ export function createStateDesigner<
     let localUpdate = {
       didAction: false,
       didTransition: false,
+      didElse: false,
       send: undefined as S.Event | undefined,
       transition: undefined as S.EventFn<D, string> | undefined,
+      else: undefined as S.EventHandler<D> | undefined,
     }
 
     // TODO: Make sure off-thread event handlers don't mutate current.
-    setCurrent(
-      await produce(current, async (c) => {
-        for (let item of eventHandler) {
-          // Results
-          for (let resu of item.get) {
-            c.result = resu(c.data as D, c.payload, c.result)
-          }
 
-          // Conditions
-          let passedConditions = true
+    for (let item of eventHandler) {
+      // Results
+      for (let resu of item.get) {
+        result = resu(core.data as D, payload, result)
+      }
 
-          if (passedConditions && item.if.length > 0) {
-            passedConditions = item.if.every((cond) =>
-              cond(c.data as D, c.payload, c.result)
-            )
-          }
+      // Conditions
+      let passedConditions = true
 
-          if (passedConditions && item.unless.length > 0) {
-            passedConditions = item.unless.every(
-              (cond) => !cond(c.data as D, c.payload, c.result)
-            )
-          }
+      if (passedConditions && item.if.length > 0) {
+        passedConditions = item.if.every((cond) =>
+          cond(core.data as D, payload, result)
+        )
+      }
 
-          if (passedConditions && item.ifAny.length > 0) {
-            passedConditions = item.ifAny.some((cond) =>
-              cond(c.data as D, c.payload, c.result)
-            )
-          }
+      if (passedConditions && item.unless.length > 0) {
+        passedConditions = item.unless.every(
+          (cond) => !cond(core.data as D, payload, result)
+        )
+      }
 
-          if (item.wait) {
-            const s = item.wait(c.data as D, c.payload, c.result)
-            await new Promise((resolve) =>
-              setTimeout(() => resolve(), s * 1000)
-            )
-          }
+      if (passedConditions && item.ifAny.length > 0) {
+        passedConditions = item.ifAny.some((cond) =>
+          cond(core.data as D, payload, result)
+        )
+      }
 
-          if (passedConditions) {
-            vlog("Passed conditions.", S.VerboseType.Condition)
+      if (item.wait) {
+        const s = item.wait(core.data as D, payload, result)
+        await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
+      }
 
-            // Actions
-            if (item.do.length > 0) {
-              vlog("Running actions.", S.VerboseType.Action)
-              localUpdate.didAction = true
+      if (passedConditions) {
+        vlog("Passed conditions.", S.VerboseType.Condition)
 
-              for (let action of item.do) {
-                action(c.data as D, c.payload, c.result)
-              }
+        // Actions
+        if (item.do.length > 0) {
+          vlog("Running actions.", S.VerboseType.Action)
+          localUpdate.didAction = true
+
+          core.data = await produce(core.data, async (draft) => {
+            for (let action of item.do) {
+              action(draft as D, payload, result)
             }
+          })
+        }
 
-            // Send
-            if (!isUndefined(item.send)) {
-              localUpdate.send = item.send(c.data as D, c.payload, c.result)
-            }
+        // Secret Actions (does not trigger an update)
+        if (item.secretlyDo.length > 0) {
+          vlog("Running actions.", S.VerboseType.SecretAction)
 
-            // Transitions
-            if (!isUndefined(item.to)) {
-              if (update.transitions > 200) {
-                if (__DEV__) {
-                  throw Error("Stuck in a loop! Bailing.")
-                } else {
-                  return
-                }
-              }
-
-              setUpdate({ transitions: update.transitions++ })
-              localUpdate.didTransition = true
-              localUpdate.transition = item.to
-              break
-            }
-          } else {
-            vlog("Conditions failed.", S.VerboseType.Condition)
-
-            // Else Actions
-            if (item.elseDo.length > 0) {
-              vlog("Running else actions.", S.VerboseType.Action)
-              localUpdate.didAction = true
-
-              for (let action of item.elseDo) {
-                action(c.data as D, c.payload, c.result)
-              }
-            }
-
-            // Else Send
-            if (!isUndefined(item.elseSend)) {
-              localUpdate.send = item.elseSend(c.data as D, c.payload, c.result)
-            }
-
-            // Else Transitions
-            if (!isUndefined(item.elseTo)) {
-              if (update.transitions > 200) {
-                if (__DEV__) {
-                  throw Error("Stuck in a loop! Bailing.")
-                } else {
-                  return
-                }
-              }
-
-              setUpdate({ transitions: update.transitions++ })
-              localUpdate.didTransition = true
-              localUpdate.transition = item.elseTo
-              break
-            }
+          for (let action of item.secretlyDo) {
+            action(core.data as D, payload, result)
           }
         }
-      })
-    )
+
+        // Send
+        if (!isUndefined(item.send)) {
+          localUpdate.send = item.send(core.data as D, payload, result)
+        }
+
+        // Transitions
+        if (!isUndefined(item.to)) {
+          if (update.transitions > 200) {
+            if (__DEV__) {
+              throw Error("Stuck in a loop! Bailing.")
+            } else {
+              break
+            }
+          }
+
+          setUpdate({ transitions: update.transitions++ })
+          localUpdate.didTransition = true
+          localUpdate.transition = item.to
+        }
+      } else {
+        vlog("Conditions failed.", S.VerboseType.Condition)
+
+        if (!isUndefined(item.else)) {
+          localUpdate.else = item.else
+        }
+      }
+
+      if (!isUndefined(localUpdate.else)) {
+        const elseUpdate = await runOnThreadEventHandler(
+          localUpdate.else,
+          payload,
+          result
+        )
+
+        if (elseUpdate.didAction) localUpdate.didAction = true
+        if (elseUpdate.didTransition) localUpdate.didTransition = true
+      }
+
+      if (localUpdate.didTransition) break
+    }
 
     if (!isUndefined(localUpdate.send)) {
       vlog("Sending event from event handler.", S.VerboseType.EventHandler)
@@ -322,8 +301,12 @@ export function createStateDesigner<
     return localUpdate
   }
 
-  async function runTransition(targetFn: S.EventFn<D, string>) {
-    let path = targetFn(current.data, current.payload, current.result)
+  async function runTransition(
+    targetFn: S.EventFn<D, string>,
+    payload: any = undefined,
+    result: any = undefined
+  ) {
+    let path = targetFn(core.data, payload, result)
     vlog(`Transitioning to ${path}.`, S.VerboseType.Transition)
 
     // Is this a restore transition?
@@ -419,7 +402,7 @@ export function createStateDesigner<
           `Running onExit event on ${state.path}.`,
           S.VerboseType.TransitionEvent
         )
-        await runOnThreadEventHandler(onExit)
+        await runOnThreadEventHandler(onExit, payload, result)
         if (update.transitions > currentTransitions) return
       }
     }
@@ -451,11 +434,13 @@ export function createStateDesigner<
             vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             const interval = now - lastTime
             elapsed += interval
-            setCurrent({ result: { interval, elapsed } })
 
             lastTime = now
 
-            const localUpdate = await runOffThreadEventHandler(event)
+            const localUpdate = await runOffThreadEventHandler(event, payload, {
+              interval,
+              elapsed,
+            })
 
             if (localUpdate.didAction || localUpdate.didTransition) {
               notifySubscribers()
@@ -469,7 +454,7 @@ export function createStateDesigner<
           // Run on provided delay amount
           let lastTime = Date.now()
 
-          const s = delay(current.data, current.payload, current.result)
+          const s = delay(core.data, payload, result)
 
           vlog(
             `Starting repeat using delay of ${s}.`,
@@ -481,10 +466,12 @@ export function createStateDesigner<
             now = Date.now()
             const interval = now - lastTime
             elapsed += interval
-            setCurrent({ result: { interval, elapsed } })
             lastTime = now
 
-            const localUpdate = await runOffThreadEventHandler(event)
+            const localUpdate = await runOffThreadEventHandler(event, payload, {
+              interval,
+              elapsed,
+            })
 
             if (localUpdate.didAction || localUpdate.didTransition) {
               notifySubscribers()
@@ -495,29 +482,35 @@ export function createStateDesigner<
 
       if (!isUndefined(onEnter)) {
         vlog(`Running onEnter event.`, S.VerboseType.TransitionEvent)
-        await runOnThreadEventHandler(onEnter)
+        await runOnThreadEventHandler(onEnter, payload, result)
         if (update.transitions > currentTransitions) return
       }
 
       if (!isUndefined(async)) {
         vlog(`Running async event.`, S.VerboseType.AsyncEvent)
-        async.await(current.data, current.payload, current.result).then(
-          async (result) => {
+        async.await(core.data, payload, result).then(
+          async (resolved) => {
             vlog(`Async resolved.`, S.VerboseType.AsyncEvent)
-            setCurrent({ result })
-            const localUpdate = await runOffThreadEventHandler(async.onResolve)
-            if (localUpdate.didAction || localUpdate.didTransition) {
+            const localUpdate = await runOffThreadEventHandler(
+              async.onResolve,
+              payload,
+              resolved
+            )
+
+            if (localUpdate.didAction || localUpdate.didTransition)
               notifySubscribers()
-            }
           },
-          async (result) => {
+          async (rejected) => {
             vlog(`Async rejected.`, S.VerboseType.AsyncEvent)
             if (!isUndefined(async.onReject)) {
-              setCurrent({ result })
-              const localUpdate = await runOffThreadEventHandler(async.onReject)
-              if (localUpdate.didAction || localUpdate.didTransition) {
+              const localUpdate = await runOffThreadEventHandler(
+                async.onReject,
+                payload,
+                rejected
+              )
+
+              if (localUpdate.didAction || localUpdate.didTransition)
                 notifySubscribers()
-              }
             }
           }
         )
@@ -554,11 +547,6 @@ export function createStateDesigner<
       return core
     } else {
       vlog(`Running next item in send queue.`, S.VerboseType.Queue)
-
-      setCurrent({
-        payload: next.payload,
-        result: undefined,
-      })
 
       // Handle the event and set the current handleEventOnState
       // promise, which will hold any additional sent events
@@ -667,30 +655,20 @@ export function createStateDesigner<
    * @param payload A payload of any type
    * @public
    */
-  function can(eventName: string, payload?: any): boolean {
-    let local: Current = {
-      data: current.data,
-      payload,
-      result: undefined as any,
-    }
-
+  function can(eventName: string, payload?: any, result?: any): boolean {
     return !isUndefined(
       core.active.find((state) => {
         const eventHandler = state.on[eventName]
 
         if (!isUndefined(eventHandler)) {
           for (let item of eventHandler) {
-            local = produce(local, (l) => {
-              l.result = undefined
-            })
-
             // Result
 
-            local = produce(local, (l) => {
-              for (let resu of item.get) {
-                l.result = resu(l.data as D, l.payload, l.result)
-              }
-            })
+            result = undefined
+
+            for (let resu of item.get) {
+              result = resu(core.data as D, payload, result)
+            }
 
             // Conditions
 
@@ -698,25 +676,23 @@ export function createStateDesigner<
 
             if (passedConditions && item.if.length > 0) {
               passedConditions = item.if.every((cond) =>
-                cond(local.data, local.payload, local.result)
+                cond(core.data, payload, result)
               )
             }
 
             if (passedConditions && item.unless.length > 0) {
               passedConditions = item.unless.every(
-                (cond) => !cond(local.data, local.payload, local.result)
+                (cond) => !cond(core.data, payload, result)
               )
             }
 
             if (passedConditions && item.ifAny.length > 0) {
               passedConditions = item.ifAny.some((cond) =>
-                cond(local.data, local.payload, local.result)
+                cond(core.data, payload, result)
               )
             }
 
-            if (passedConditions) {
-              return true
-            }
+            if (passedConditions) return true
           }
         }
 
@@ -803,7 +779,7 @@ export function createStateDesigner<
 
   const core = {
     id,
-    data: config.data as D,
+    data: produce(config.data, (d) => d) as D,
     active: StateTree.getActiveStates(_stateTree),
     stateTree: _stateTree,
     send,

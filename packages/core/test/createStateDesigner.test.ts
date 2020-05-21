@@ -185,6 +185,70 @@ describe("createStateDesigner", () => {
 
   // Does WhenIn work?
 
+  // Do else event handlers work?
+
+  // Do initial active states work?
+  it("Should support else event handlers.", async (done) => {
+    const state = createStateDesigner({
+      data: { count: 0 },
+      on: {
+        SOME_EVENT: {
+          if: "atMin",
+          do: ["incrementByOne", "incrementByOne"],
+          else: {
+            unless: "atMax",
+            do: "incrementByOne",
+            else: "reset",
+          },
+        },
+      },
+      conditions: {
+        atMin: (data) => data.count === 0,
+        atMax: (data) => data.count === 5,
+      },
+      actions: {
+        incrementByOne: (data) => data.count++,
+        reset: (data) => (data.count = 0),
+      },
+    })
+
+    expect(state.data.count).toBe(0) // Start at zero
+    await state.send("SOME_EVENT")
+    expect(state.data.count).toBe(2) // When zero, adds two
+    await state.send("SOME_EVENT")
+    expect(state.data.count).toBe(3) // When less than max, adds one
+    await state.send("SOME_EVENT") // 4
+    await state.send("SOME_EVENT") // 5
+    await state.send("SOME_EVENT") // When at max, resets to zero
+    expect(state.data.count).toBe(0)
+
+    const ugly = createStateDesigner({
+      data: { count: 0 },
+      on: {
+        SOME_EVENT: {
+          if: () => false,
+          else: {
+            if: () => false,
+            else: {
+              if: () => false,
+              else: {
+                if: () => false,
+                else: {
+                  if: () => false,
+                  else: (data) => (data.count = 5),
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+    expect(ugly.data.count).toBe(0)
+    await ugly.send("SOME_EVENT")
+    expect(ugly.data.count).toBe(5)
+    done()
+  })
+
   // Do value types work?
   const stateB = createStateDesigner({
     data: { count: 0 },

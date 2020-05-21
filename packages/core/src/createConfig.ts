@@ -20,8 +20,8 @@ export function createConfig<
     createEventHandlerConfig: (
       eventHandlerConfig: S.EventHandlerConfig<D, R, C, A, T>
     ) => eventHandlerConfig,
-    createEventHandlerItemConfig: (
-      eventHandlerItemConfig: S.EventHandlerItemConfig<D, R, C, A, T>
+    createEventHandlerObjectConfig: (
+      eventHandlerItemConfig: S.EventHandlerObjectConfig<D, R, C, A, T>
     ) => eventHandlerItemConfig,
     createAsyncEventHandlerConfig: (
       asyncEventHandlerConfig: S.AsyncEventHandlerConfig<D, R, C, A, Y, T>

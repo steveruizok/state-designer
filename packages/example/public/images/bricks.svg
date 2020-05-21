@@ -1,0 +1,13 @@
+<svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="8" height="6" fill="#8B956D"/>
+<path d="M8 0.5H0" stroke="#404040"/>
+<path d="M8 3.5H0" stroke="#404040"/>
+<rect y="1" width="1" height="1" fill="#C4C4C4"/>
+<rect x="2" y="4" width="1" height="1" fill="#C4C4C4"/>
+<rect x="6" y="4" width="1" height="1" fill="#C4C4C4"/>
+<rect x="4" y="1" width="1" height="1" fill="#C4C4C4"/>
+<line x1="3.5" y1="1" x2="3.5" y2="4" stroke="#404040"/>
+<line x1="7.5" x2="7.5" y2="4" stroke="#404040"/>
+<line x1="5.5" y1="3" x2="5.5" y2="6" stroke="#404040"/>
+<line x1="1.5" y1="3" x2="1.5" y2="6" stroke="#404040"/>
+</svg>

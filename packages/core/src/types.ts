@@ -64,45 +64,78 @@ export type Break<D> = EventFn<D, boolean>
 
 export type BreakConfig<D> = boolean | EventFn<D, boolean>
 
-// Event Handler Item
+// Event Handler Object
 
-export type EventHandlerItem<D> = {
+export type EventHandlerObject<D> = {
   get: Result<D>[]
   if: Condition<D>[]
   unless: Condition<D>[]
   ifAny: Condition<D>[]
   do: Action<D>[]
-  // secretlyDo:
-  elseDo: Action<D>[]
+  secretlyDo: Action<D>[]
   to?: Target<D>
-  elseTo?: Target<D>
   send?: Send<D>
-  elseSend?: Send<D>
   wait?: Time<D>
   break?: Break<D>
+  else?: EventHandler<D>
 }
 
-export type EventHandlerItemConfig<D, R, C, A, T> = {
+/**
+ * What to do when an event is triggered. You can define an event as an array of these objects.
+ */
+export type EventHandlerObjectConfig<D, R, C, A, T> = {
+  /**
+   * The result(s) to compute before running conditions or actions. The returned value will be available as the third argument to event handler functions, such as conditions, actions, and further restults.
+   */
   get?: MaybeArray<ResultConfig<D, R>>
+  /**
+   * The condition(s) that must all be true in order for this event handler object to run.
+   */
   if?: MaybeArray<ConditionConfig<D, C>>
+  /**
+   * The condition(s) that must be all be false in order for this event handler object to run.
+   */
   unless?: MaybeArray<ConditionConfig<D, C>>
+  /**
+   * The condition(s) of which at least one must be true in order for this event handler object to run.
+   */
   ifAny?: MaybeArray<ConditionConfig<D, C>>
+  /**
+   * The action(s) to perform. These actions can mutate the data property. Note: Defining actions will cause this event to trigger an update.
+   */
   do?: MaybeArray<ActionConfig<D, A>>
-  elseDo?: MaybeArray<ActionConfig<D, A>>
+  /**
+   * The "secret" action(s) to perform. These actions cannot mutate the data property. Note: Defining "secret" actions will NOT cause this event to trigger an update.
+   */
+  secretlyDo?: MaybeArray<ActionConfig<D, A>>
+  /**
+   * A transition target: either a state's name or path. Defining a target will cause this event to trigger an update.
+   */
   to?: TargetConfig<D>
-  elseTo?: TargetConfig<D>
+  /**
+   * An event name and (optionally) payload to send to the state.
+   */
   send?: SendConfig<D>
-  elseSend?: SendConfig<D>
+  /**
+   * A delay (in seconds) to wait before running this handler object.
+   */
   wait?: TimeConfig<D, T>
+  /**
+   * Whether this item should stop the event's other handlers objects from running.
+   */
   break?: BreakConfig<D>
+  /**
+   * An event handler to run instead if this event handler object did not pass its conditions.
+   */
+  else?: EventHandlerConfig<D, R, C, A, T>
 }
 
 // Event Handler
 
-export type EventHandler<D> = Array<EventHandlerItem<D>>
+export type EventHandler<D> = Array<EventHandlerObject<D>>
 
 export type EventHandlerConfig<D, R, C, A, T> = MaybeArray<
-  ActionConfig<D, A> | EventHandlerItemConfig<D, R, C, A, T>
+  ActionConfig<D, A> | EventHandlerObjectConfig<D, R, C, A, T>
 >
 
 export type RepeatEventHandler<D> = {
@@ -133,6 +166,7 @@ export type AsyncEventHandlerConfig<D, R, C, A, Y, T> = {
 export enum VerboseType {
   Condition = "condition",
   Action = "action",
+  SecretAction = "secretAction",
   Event = "event",
   State = "state",
   AsyncEvent = "asyncEvent",
@@ -209,9 +243,9 @@ export interface ConfigWithHelpers<
   createEventHandlerConfig: (
     config: EventHandlerConfig<D, R, C, A, T>
   ) => EventHandlerConfig<D, R, C, A, T>
-  createEventHandlerItemConfig: (
-    config: EventHandlerItemConfig<D, R, C, A, T>
-  ) => EventHandlerItemConfig<D, R, C, A, T>
+  createEventHandlerObjectConfig: (
+    config: EventHandlerObjectConfig<D, R, C, A, T>
+  ) => EventHandlerObjectConfig<D, R, C, A, T>
   createAsyncEventHandlerConfig: (
     config: AsyncEventHandlerConfig<D, R, C, A, Y, T>
   ) => AsyncEventHandlerConfig<D, R, C, A, Y, T>
