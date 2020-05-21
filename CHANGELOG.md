@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.20
+
+- Removes `elseTo`, `elseDo`, and `elseSend`. Introduces `else`, which takes an event handler. This allows event handlers to nest infinitely, if you're intro that kind of thing.
+- Adds debugging callback as second argument of `createStateDesigner`. The callback will receive a LOT of messages, but you can switch on the callback's second argument (a string like "async events" or "actions") to only log out the messages that matter to you.
+- Adds the `secretlyDo` option. Run an action without causing the state to update. (Normally, running a `do` action or transition will trigger an update.) Useful when working with animation libraries in React, such as Framer Motion, that use alternative data flow.
+
+```jsx
+const mouseX = React.useRef(0)
+const { send } = useStateDesigner({
+  on: {
+    MOUSE_MOVED: {
+      secretlyDo: (data, payload) => (mouseX.current = payload),
+    },
+  },
+})
+```
+
 ## 1.1.18
 
 - Adds `isInAny` helper.
