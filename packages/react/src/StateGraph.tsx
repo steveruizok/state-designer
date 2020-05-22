@@ -1,5 +1,6 @@
 import * as React from "react"
-import { S, useStateDesigner } from "@state-designer/react"
+import { S } from "@state-designer/core"
+import { useStateDesigner } from "./useStateDesigner"
 
 const EventList: React.FC<{
   state: S.State<any>
