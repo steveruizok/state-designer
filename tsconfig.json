@@ -5,7 +5,9 @@
     "baseUrl": "./",
     "paths": {
       "@state-designer/*": ["packages/*/src"],
-      "state-designer": ["packages/state-designer/src"]
+      "state-designer": ["packages/state-designer/src"],
+      "example": ["packages/example/src"],
+      "docs": ["packages/docs/src"]
     },
     "allowJs": true,
     "allowSyntheticDefaultImports": true,

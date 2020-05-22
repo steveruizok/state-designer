@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useStateDesigner, S, StateGraph } from "@state-designer/react"
+import { useStateDesigner, StateGraph } from "@state-designer/react"
 import game from "../game"
 
 const Stats: React.FC = () => {
