@@ -225,7 +225,7 @@ describe("createStateDesigner", () => {
     const ugly = createStateDesigner({
       data: { count: 0 },
       on: {
-        SOME_EVENT: {
+        SOME_UGLY_EVENT: {
           if: () => false,
           else: {
             if: () => false,
@@ -243,6 +243,7 @@ describe("createStateDesigner", () => {
         },
       },
     })
+
     expect(ugly.data.count).toBe(0)
     await ugly.send("SOME_EVENT")
     expect(ugly.data.count).toBe(5)

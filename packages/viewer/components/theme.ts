@@ -78,7 +78,7 @@ export default {
         marginBottom: 0,
       },
     },
-    eventHandlerItem: {
+    EventHandlerObject: {
       // padding: 1,
       // backgroundColor: "rgba(255, 255, 255, .05)",
     },

@@ -288,6 +288,7 @@ export function createStateDesigner<
       if (localUpdate.didTransition) break
     }
 
+    // If we have a send, add that to the send queue
     if (!isUndefined(localUpdate.send)) {
       vlog("Sending event from event handler.", S.VerboseType.EventHandler)
       send(localUpdate.send.event, localUpdate.send.payload)
@@ -295,7 +296,7 @@ export function createStateDesigner<
 
     // If we made a transition, run that transition
     if (!isUndefined(localUpdate.transition)) {
-      await runTransition(localUpdate.transition)
+      await runTransition(localUpdate.transition, payload, result)
     }
 
     return localUpdate

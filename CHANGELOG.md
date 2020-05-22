@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.21
+
+- Fixes bug where payloads were not preserved following transitions.
+
 ## 1.1.20
 
 - Removes `elseTo`, `elseDo`, and `elseSend`. Introduces `else`, which takes an event handler. This allows event handlers to nest infinitely, if you're intro that kind of thing.

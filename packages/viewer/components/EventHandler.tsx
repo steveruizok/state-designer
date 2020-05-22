@@ -1,6 +1,6 @@
 import * as React from "react"
 import { S } from "@state-designer/core"
-import { EventHandlerItem } from "./EventHandlerItem"
+import { EventHandlerObject } from "./EventHandlerObject"
 
 import { Styled } from "theme-ui"
 import { Card, Heading } from "@theme-ui/components"
@@ -16,12 +16,12 @@ export const EventHandler: React.FC<{
         <Styled.ul>
           {eventHandler.map((item, i) => (
             <Styled.li key={i}>
-              <EventHandlerItem item={item} />
+              <EventHandlerObject item={item} />
             </Styled.li>
           ))}
         </Styled.ul>
       ) : (
-        <EventHandlerItem item={eventHandler[0]} />
+        <EventHandlerObject item={eventHandler[0]} />
       )}
       {children}
     </Card>

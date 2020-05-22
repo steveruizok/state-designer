@@ -24,6 +24,14 @@
   - [x] Waits
 - [x] Transitions
 
+  - [ ] Multiple Parallel Transitions?
+
+  ```js
+  {
+    to: ["bold.disabled", "italic.disabled"]
+  }
+  ```
+
   - [x] direct (`target`)
   - [x] deep (`parent.target`)
   - [x] previous (`.previous`)
