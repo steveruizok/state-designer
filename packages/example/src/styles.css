@@ -55,3 +55,11 @@ body {
 .Stats {
   margin: 16px;
 }
+
+li[data-active="true"] {
+  color: var(--gb-accent);
+}
+
+li[data-active="false"] {
+  color: #000;
+}

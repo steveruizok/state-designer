@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.22
+
+- Restores `default` option in `whenIn`. If none of the other provided state paths are active, the `default` option will be used instead.
+- Adds StateGraph component to `@state-designer/react` package. Pass this a state and it will display the state's tree and available events. Comes unstyled, but includes classNames for styling—including `data-active` for state items.
+
 ## 1.1.21
 
 - Fixes bug where payloads were not preserved following transitions.

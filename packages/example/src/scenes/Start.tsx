@@ -2,7 +2,7 @@ import * as React from "react"
 import { useStateDesigner } from "@state-designer/react"
 import { motion, useMotionValue } from "framer-motion"
 
-const Start: React.FC<{}> = () => {
+const Follower: React.FC<{}> = () => {
   const x = useMotionValue(0)
   const { send } = useStateDesigner({
     on: {
@@ -32,6 +32,42 @@ const Start: React.FC<{}> = () => {
       >
         hi
       </motion.div>
+    </div>
+  )
+}
+
+const WhileTest: React.FC<{}> = () => {
+  const { send, whenIn } = useStateDesigner({
+    initial: "notToggled",
+    states: {
+      toggled: {
+        on: {
+          TOGGLE: { to: "notToggled" },
+        },
+      },
+      notToggled: {
+        on: {
+          TOGGLE: { to: "toggled" },
+        },
+      },
+    },
+  })
+
+  return (
+    <button onClick={() => send("TOGGLE")}>
+      {whenIn({
+        toggled: "Toggled!",
+        default: "Not toggled!",
+      })}
+    </button>
+  )
+}
+
+const Start: React.FC<{}> = () => {
+  return (
+    <div>
+      <WhileTest />
+      <Follower />
     </div>
   )
 }

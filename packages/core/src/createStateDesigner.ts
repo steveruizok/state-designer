@@ -737,6 +737,12 @@ export function createStateDesigner<
       }
     })
 
+    if (entries.length === 0) {
+      if (!isUndefined(paths.default)) {
+        entries.push(["default", paths.default])
+      }
+    }
+
     let returnValue = initial
 
     entries.forEach(
