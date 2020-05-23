@@ -7,7 +7,7 @@ const Follower: React.FC<{}> = () => {
   const { send } = useStateDesigner({
     on: {
       MOUSE_MOVED: {
-        secretlyDo: (data, payload) => {
+        secretlyDo: (_, payload) => {
           x.set(payload)
         },
       },

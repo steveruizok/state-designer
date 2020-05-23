@@ -8,6 +8,8 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "umd:main": "dist/state-designer.umd.production.js",
+  "module": "dist/state-designer.esm.js",
   "files": [
     "dist"
   ],
@@ -16,24 +18,20 @@
   },
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build --tsconfig ./tsconfig.build.json",
-    "test": "tsdx test --passWithNoTests",
-    "start-test": "tsdx test --watch",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build --tsconfig ./tsconfig.build.json"
+    "prebuild": "rimraf dist",
+    "build": "cross-env NODE_ENV=production tsdx build --format=cjs,esm,umd",
+    "prepublish": "npm run build",
+    "start-test": "tsdx test -- --watchAll",
+    "test": "tsdx test --env=jsdom",
+    "lint": "tsdx lint"
   },
   "peerDependencies": {
     "react": ">=16"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
-  "module": "dist/state-designer.esm.js",
   "devDependencies": {
     "@types/react": "^16.9.35",
     "@types/react-dom": "^16.9.8",
+    "cross-env": "^7.0.2",
     "husky": "^4.2.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -44,5 +42,10 @@
   "dependencies": {
     "@state-designer/core": "^1.1.22",
     "@state-designer/react": "^1.1.23"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
   }
 }

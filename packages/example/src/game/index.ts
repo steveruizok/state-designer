@@ -173,7 +173,7 @@ const game = createStateDesigner({
     },
   },
   conditions: {
-    matrixHasCompletedLines(data, _, lines: number[]) {
+    matrixHasCompletedLines(_, __, lines: number[]) {
       return lines.length > 0
     },
     pieceWillFitInMatrix(data, _, piece: Tetris.Piece) {

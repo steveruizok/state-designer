@@ -8,6 +8,8 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "umd:main": "dist/core.umd.production.js",
+  "module": "dist/core.esm.js",
   "files": [
     "dist"
   ],
@@ -16,27 +18,18 @@
   },
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build --tsconfig ./tsconfig.build.json",
-    "start-test": "tsdx test --watchAll",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build --tsconfig ./tsconfig.build.json"
+    "prebuild": "rimraf dist",
+    "build": "cross-env NODE_ENV=production tsdx build --format=cjs,esm,umd",
+    "prepublish": "npm run build",
+    "start-test": "tsdx test -- --watchAll",
+    "test": "tsdx test --env=jsdom",
+    "lint": "tsdx lint"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
-  "jest": {
-    "globals": {
-      "__DEV__": true
-    }
-  },
-  "module": "dist/core.esm.js",
   "devDependencies": {
     "@types/lodash": "^4.14.150",
     "@types/lodash-es": "^4.17.3",
     "@types/object.fromentries": "^2.0.0",
+    "cross-env": "^7.0.2",
     "husky": "^4.2.5",
     "tsdx": "^0.13.2",
     "tslib": "^1.11.2",
@@ -48,5 +41,15 @@
     "lodash-es": "^4.17.15",
     "object.entries": "^1.1.1",
     "object.fromentries": "^2.0.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "jest": {
+    "globals": {
+      "__DEV__": true
+    }
   }
 }
