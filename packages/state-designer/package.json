@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.1.23",
+  "version": "1.1.24",
   "description": "A state management library.",
   "author": "steveruizok",
   "repository": "https://github.com/steveruizok/state-designer",
@@ -40,8 +40,8 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@state-designer/core": "^1.1.22",
-    "@state-designer/react": "^1.1.23"
+    "@state-designer/core": "1.1.24",
+    "@state-designer/react": "1.1.24"
   },
   "husky": {
     "hooks": {
