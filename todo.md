@@ -4,7 +4,7 @@
 
 - [x] createConfig
   - [x] TypeScript helper methods
-- [x] createStateDesigner
+- [x] createStateDesign
 - [x] Data
 - [x] States
   - [x] Nested states
@@ -57,7 +57,7 @@
 
 ## React
 
-- [x] useStateDesigner
+- [x] useStateDesign
   - [x] with config
   - [x] with state designer
 - [ ] Testing

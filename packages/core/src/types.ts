@@ -274,11 +274,11 @@ export type SubscriberFn<
   Y extends Record<string, Async<D>> = any,
   T extends Record<string, Time<D>> = any,
   V extends Record<string, Value<D>> = any
-> = (update: StateDesigner<D, R, C, A, Y, T, V>) => void
+> = (update: StateDesign<D, R, C, A, Y, T, V>) => void
 
-// State Designer
+// State Design
 
-export interface StateDesigner<
+export interface StateDesign<
   D,
   R extends Record<string, Result<D>>,
   C extends Record<string, Condition<D>>,
@@ -296,7 +296,7 @@ export interface StateDesigner<
   send: (
     eventName: string,
     payload?: any
-  ) => Promise<StateDesigner<D, R, C, A, Y, T, V>>
+  ) => Promise<StateDesign<D, R, C, A, Y, T, V>>
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
   isInAny: (...paths: string[]) => boolean
@@ -311,6 +311,6 @@ export interface StateDesigner<
     initial?: any
   ) => any
   getConfig: () => Config<D, R, C, A, Y, T, V>
-  clone: () => StateDesigner<D, R, C, A, Y, T, V>
+  clone: () => StateDesign<D, R, C, A, Y, T, V>
   values: Values<D, V>
 }

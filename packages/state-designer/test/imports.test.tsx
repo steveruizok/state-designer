@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-import { createConfig, createStateDesigner, useStateDesigner } from "../src"
+import { createConfig, createStateDesign, useStateDesign } from "../src"
 
 const config = createConfig({
   data: { count: 0 },
@@ -10,7 +10,7 @@ const config = createConfig({
   },
 })
 
-const state = createStateDesigner(config)
+const state = createStateDesign(config)
 
 describe("createConfig", () => {
   it("Should create a config.", () => {
@@ -18,16 +18,16 @@ describe("createConfig", () => {
   })
 })
 
-describe("createStateDesigner", () => {
+describe("createStateDesign", () => {
   it("Should create a state.", () => {
     expect(state).toBeTruthy()
   })
 })
 
-describe("useStateDesigner", () => {
+describe("useStateDesign", () => {
   it("should support the hook.", () => {
     const App = () => {
-      const { data, send } = useStateDesigner(state)
+      const { data, send } = useStateDesign(state)
 
       return (
         <div>

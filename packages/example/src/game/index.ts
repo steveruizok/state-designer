@@ -1,7 +1,7 @@
 import range from "lodash-es/range"
 import cloneDeep from "lodash-es/cloneDeep"
 import sample from "lodash-es/sample"
-import { createStateDesigner } from "@state-designer/core"
+import { createStateDesign } from "@state-designer/core"
 
 import * as Tetris from "./types"
 import * as Static from "./static"
@@ -38,7 +38,7 @@ const initialData: Tetris.Data = {
   level: 0,
 }
 
-const game = createStateDesigner({
+const game = createStateDesign({
   data: initialData,
   initial: "playing",
   states: {

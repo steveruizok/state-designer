@@ -5,7 +5,7 @@ export const intro = `<button onClick={() => alert("Hey!")}>
 // State
 
 export const state = `function Example() {
-  const state = useStateDesigner({ 
+  const state = useStateDesign({ 
     data: { count: 0 },
   })
 
@@ -13,7 +13,7 @@ export const state = `function Example() {
 }`
 
 export const stateCounter = `function Example() {
-  const state = useStateDesigner(counter)
+  const state = useStateDesign(counter)
 
   return (
     <div>
@@ -25,7 +25,7 @@ export const stateCounter = `function Example() {
 
 // Hook
 export const hook = `function Example() {
-  const update = useStateDesigner({
+  const update = useStateDesign({
     data: { count: 1 }
   })
 
@@ -39,7 +39,7 @@ export const hook = `function Example() {
 // Updates
 
 export const events = `function Example() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     on: {
       OPENED_ALERT: () => alert("Hi!")
     },
@@ -53,7 +53,7 @@ export const events = `function Example() {
 }`
 
 export const eventHandlers = `function Example() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     on: {
       CLICKED: [
         () => alert("I'll run first!"),
@@ -72,7 +72,7 @@ export const eventHandlers = `function Example() {
 }`
 
 export const eventHandlersActions = `function Example() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     on: {
       CLICKED: () => alert("I'm an action!"),
     },
@@ -86,7 +86,7 @@ export const eventHandlersActions = `function Example() {
 }`
 
 export const eventHandlersObjects = `function Example() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     on: {
       CLICKED: {
         if: () => Math.random() > .5,
@@ -106,7 +106,7 @@ export const eventHandlersObjects = `function Example() {
 // States
 
 export const statesToggle = `function Toggle() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     initial: "unchecked",
     states: {
       checked: {},
@@ -120,7 +120,7 @@ export const statesToggle = `function Toggle() {
 }`
 
 export const statesToggleSend = `function Toggle() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     initial: "unchecked",
     states: {
       checked: {},
@@ -142,7 +142,7 @@ export const statesToggleSend = `function Toggle() {
 }`
 
 export const statesToggleEvents = `function Toggle() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     initial: "unchecked",
     states: {
       checked: {
@@ -168,7 +168,7 @@ export const statesToggleEvents = `function Toggle() {
 }`
 
 export const statesToggleWhenIn = `function Toggle() {
-  const state = useStateDesigner({ ...toggle })
+  const state = useStateDesign({ ...toggle })
 
   const label = state.whenIn({
     checked: "Turn off",
@@ -181,7 +181,7 @@ export const statesToggleWhenIn = `function Toggle() {
 }`
 
 export const statesNestedToggle = `function HoverToggle() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     initial: "unchecked",
     states: {
       unchecked: { 
@@ -228,7 +228,7 @@ export const statesNestedToggle = `function HoverToggle() {
 }`
 
 export const statesParallel = `function Toggle() {
-  const state = useStateDesigner({
+  const state = useStateDesign({
     states: {
       weight: {
         initial: "normal",
@@ -270,7 +270,7 @@ export const statesParallel = `function Toggle() {
 // Data
 
 export const data = `function Example() {
-  const { data } = useStateDesigner({
+  const { data } = useStateDesign({
     data: {
       value: 0,
     },
@@ -282,7 +282,7 @@ export const data = `function Example() {
 }`
 
 export const actions = `function Example() {
-  const { data, send } = useStateDesigner({
+  const { data, send } = useStateDesign({
     data: {
       value: 0,
     },
@@ -304,7 +304,7 @@ export const actions = `function Example() {
 }`
 
 export const values = `function Example() {
-  const { data, send, values } = useStateDesigner({
+  const { data, send, values } = useStateDesign({
     data: {
       value: 0,
     },
@@ -330,7 +330,7 @@ export const values = `function Example() {
 }`
 
 export const conditions = `function Example() {
-  const { data, send, values } = useStateDesigner({
+  const { data, send, values } = useStateDesign({
     data: {
       value: 0,
     },

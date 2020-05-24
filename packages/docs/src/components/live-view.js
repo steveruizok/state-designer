@@ -5,8 +5,8 @@ import * as React from "react"
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live"
 import {
   createConfig,
-  createStateDesigner,
-  useStateDesigner,
+  createStateDesign,
+  useStateDesign,
 } from "@state-designer/react"
 import lightTheme from "prism-react-renderer/themes/github"
 
@@ -94,8 +94,8 @@ const LiveView = ({ snippet = "" }) => {
           return c
         }}
         scope={{
-          useStateDesigner,
-          createStateDesigner,
+          useStateDesign,
+          createStateDesign,
           createConfig,
           toggle,
           counter,

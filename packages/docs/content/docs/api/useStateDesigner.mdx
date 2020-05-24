@@ -1,26 +1,26 @@
-# useStateDesigner
+# useStateDesign
 
 ```ts
-useStateDesigner(source: state | config, dependencies?: any[]): state
+useStateDesign(source: state | config, dependencies?: any[]): state
 ```
 
-The `useStateDesigner` hook will subscribe a component to a state's updates. Any time the state updates, so will the component.
+The `useStateDesign` hook will subscribe a component to a state's updates. Any time the state updates, so will the component.
 
 You can use the hook in two different ways, depending on whether you want to subscribe a component to existing state or to a new state created just for the component.
 
 ## External State Pattern
 
-If you pass `useStateDesigner` a **state** that you've created somewhere else (such as with [`createStateDesigner`](/docs/api/createStateDesigner)) then the hook will subscribe the component to the state's updates.
+If you pass `useStateDesign` a **state** that you've created somewhere else (such as with [`createStateDesign`](/docs/api/createStateDesign)) then the hook will subscribe the component to the state's updates.
 
 ```jsx
-import { createStateDesigner } from "@state-designer/core"
-import { useStateDesigner } from "@state-designer/react"
+import { createStateDesign } from "@state-designer/core"
+import { useStateDesign } from "@state-designer/react"
 
-const counter = createStateDesigner({ data: { count: 1 } })
+const counter = createStateDesign({ data: { count: 1 } })
 
 function Example() {
   // highlight-next-line
-  const state = useStateDesigner(counter)
+  const state = useStateDesign(counter)
   return <h1>{state.data.count}</h1>
 }
 ```
@@ -31,15 +31,15 @@ You can use this pattern to subscribe multiple components all to the same state.
 
 ## Internal State Pattern
 
-You can also pass `useStateDesigner` a **configuration object** instead. In this case, the hook will use the config to create a _new_ state and then subscribe to its updates.
+You can also pass `useStateDesign` a **configuration object** instead. In this case, the hook will use the config to create a _new_ state and then subscribe to its updates.
 
 ```jsx
-import { createStateDesigner } from "@state-designer/core"
-import { useStateDesigner } from "@state-designer/react"
+import { createStateDesign } from "@state-designer/core"
+import { useStateDesign } from "@state-designer/react"
 
 function Example() {
   // highlight-next-line
-  const state = useStateDesigner({ data: { count: 1 } })
+  const state = useStateDesign({ data: { count: 1 } })
   return <h1>{state.data.count}</h1>
 }
 ```
@@ -48,12 +48,12 @@ This pattern is useful for inputs, buttons, and other reusable components that e
 
 ### Dependencies
 
-If you're using the internal state pattern, you can pass the `useStateDesigner` hook a second argument: an array of dependencies. If the hook finds changes in these dependencies between renders, it will rebuild a new state based on the current config.
+If you're using the internal state pattern, you can pass the `useStateDesign` hook a second argument: an array of dependencies. If the hook finds changes in these dependencies between renders, it will rebuild a new state based on the current config.
 
 ```jsx
 function Counter({ count = 1 }) {
   // highlight-next-line
-  const state = useStateDesigner(
+  const state = useStateDesign(
     {
       data: { count },
       on: { CLICKED: (data) => data.count++ },
@@ -71,7 +71,7 @@ That this is a rather heavy-handed solution and may not be appropriate for compl
 ```jsx
 function Counter({ count = 1 }) {
   // highlight-next-line
-  const state = useStateDesigner({
+  const state = useStateDesign({
     data: {
       count,
       hovers: 0,
@@ -99,7 +99,7 @@ In most cases, you can use props to pass down parts of a state to a component's 
 
 ```jsx
 function Parent() {
-  const { data } = useStateDesigner({ ... })
+  const { data } = useStateDesign({ ... })
   return <Child someProp={data.foo}/>
 }
 
@@ -112,7 +112,7 @@ You might also want to pass down the state's `send` method. This method is stabl
 
 ```jsx
 function Parent() {
-  const { send } = useStateDesigner({ ... })
+  const { send } = useStateDesign({ ... })
   return <Child send={send}/>
 }
 
@@ -129,26 +129,26 @@ You may sometimes want to subscribe a component's child directly to same state a
 import counter from "./counter"
 
 function Parent() {
-  const { data } = useStateDesigner(counter)
+  const { data } = useStateDesign(counter)
   return <Child />
 }
 
 function Child(props) {
-  const { send } = useStateDesigner(counter)
+  const { send } = useStateDesign(counter)
   return <button onClick={() => send("SOME_EVENT")} />
 }
 ```
 
-You can subscribe a component to its parent's internal state, too. When using the internal state pattern, pass down the state returned by the `useStateDesigner` hook. Other components can then subscribe to this state using the external state pattern.
+You can subscribe a component to its parent's internal state, too. When using the internal state pattern, pass down the state returned by the `useStateDesign` hook. Other components can then subscribe to this state using the external state pattern.
 
 ```jsx
 function Parent() {
-  const localState = useStateDesigner({ ... })
+  const localState = useStateDesign({ ... })
   return <Child state={localState}/>
 }
 
 function Child({ state }) {
-  const { send } = useStateDesigner(state)
+  const { send } = useStateDesign(state)
   return <button onClick={() => send("SOME_EVENT")} />
 }
 ```
@@ -157,4 +157,4 @@ function Child({ state }) {
 
 ## Note on Mutability
 
-The state returned from `useStateDesigner` is a mix of immutable and mutable data. Each update returned from the hook is a new object comprised of the source state's immutable `data`, `active`, and `stateTree` properties, together with the source state's original stable methods, such as `send`, `isIn`, and `onUpdate`.
+The state returned from `useStateDesign` is a mix of immutable and mutable data. Each update returned from the hook is a new object comprised of the source state's immutable `data`, `active`, and `stateTree` properties, together with the source state's original stable methods, such as `send`, `isIn`, and `onUpdate`.

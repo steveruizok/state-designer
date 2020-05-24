@@ -1,13 +1,13 @@
 # State
 
-At the heart of State Designer is the **state**. In this guide, we'll use the `useStateDesigner` hook to learn about creating and configuring states in a React project.
+At the heart of State Designer is the **state**. In this guide, we'll use the `useStateDesign` hook to learn about creating and configuring states in a React project.
 
 ## Creating a State
 
-The easiest way to create a state in a React project is to pass a **configuration object** to the `useStateDesigner` hook. This hook is exported from the `@state-designer/react` package.
+The easiest way to create a state in a React project is to pass a **configuration object** to the `useStateDesign` hook. This hook is exported from the `@state-designer/react` package.
 
 ```jsx
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesign } from "@state-designer/react"
 ```
 
 <LiveView snippet="state" />
@@ -20,12 +20,12 @@ This configuration object will contain everything about the state: its initial d
 
 ## Shared States
 
-You can also create a state outside of a component by passing a configuration object to the `createStateDesigner` function.
+You can also create a state outside of a component by passing a configuration object to the `createStateDesign` function.
 
 ```jsx
-import { createStateDesigner, useStateDesigner } from "@state-designer/react"
+import { createStateDesign, useStateDesign } from "@state-designer/react"
 
-const counter = createStateDesigner({
+const counter = createStateDesign({
   data: { count: 0 },
   on: {
     INCREASED: (data) => data.count++,
@@ -34,7 +34,7 @@ const counter = createStateDesigner({
 })
 ```
 
-You can then pass this state to a component's `useStateDesigner` hook. In this way, you can subscribe many different components to the same external state.
+You can then pass this state to a component's `useStateDesign` hook. In this way, you can subscribe many different components to the same external state.
 
 <LiveView snippet="stateCounter" />
 
@@ -42,7 +42,7 @@ You can then pass this state to a component's `useStateDesigner` hook. In this w
 >
 > Can you add a second button that decreases the count?
 
-For more on creating states, see the API documentation for [`useStateDesigner`](/docs/api/useStateDesigner) and [`createStateDesigner`](/docs/api/createStateDesigner).
+For more on creating states, see the API documentation for [`useStateDesign`](/docs/api/useStateDesign) and [`createStateDesign`](/docs/api/createStateDesign).
 
 <PageLinks
   backTo={"/docs/learn/intro"}

@@ -23,7 +23,7 @@ enableAllPlugins()
  * @param config
  * @public
  */
-export function createStateDesigner<
+export function createStateDesign<
   D,
   R extends Record<string, S.Result<D>>,
   C extends Record<string, S.Condition<D>>,
@@ -34,13 +34,13 @@ export function createStateDesigner<
 >(
   config: S.Config<D, R, C, A, Y, T, V>,
   verbose?: (message: string, type: S.VerboseType) => any
-): S.StateDesigner<D, R, C, A, Y, T, V> {
+): S.StateDesign<D, R, C, A, Y, T, V> {
   /* ------------------ Mutable Data ------------------ */
 
   // Update (internal update state)
 
   type Update = {
-    process: Promise<S.StateDesigner<D, R, C, A, Y, T, V>> | void
+    process: Promise<S.StateDesign<D, R, C, A, Y, T, V>> | void
     transitions: number
     didTransition: boolean
     didAction: boolean
@@ -526,7 +526,7 @@ export function createStateDesigner<
   const sendQueue: S.Event[] = []
 
   async function processSendQueue(): Promise<
-    S.StateDesigner<D, R, C, A, Y, T, V>
+    S.StateDesign<D, R, C, A, Y, T, V>
   > {
     vlog(`Processing next in queue.`, S.VerboseType.Queue)
 
@@ -575,7 +575,7 @@ export function createStateDesigner<
    * @param callbackFn
    * @public
    * @example
-   * const state = createStateDesigner({ ... })
+   * const state = createStateDesign({ ... })
    * const cancelUpdates = state.onUpdate((update) => { ... })
    * if (allDone) cancelUpdates()
    *
@@ -604,7 +604,7 @@ export function createStateDesigner<
   async function send(
     eventName: string,
     payload?: any
-  ): Promise<S.StateDesigner<D, R, C, A, Y, T, V>> {
+  ): Promise<S.StateDesign<D, R, C, A, Y, T, V>> {
     vlog(`Received event ${eventName}.`, S.VerboseType.Event)
     sendQueue.push({ event: eventName, payload })
     return update.process ? update.process : processSendQueue()
@@ -775,7 +775,7 @@ export function createStateDesigner<
   }
 
   function clone() {
-    return createStateDesigner(config)
+    return createStateDesign(config)
   }
 
   /* --------------------- Kickoff -------------------- */

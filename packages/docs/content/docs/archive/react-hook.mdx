@@ -1,22 +1,22 @@
 # React Hook
 
-In the last article, we learned about responding to a state's updates through the state's `onUpdate` method. That's fine for a regular JavaScript project—and we could use this method in a React project, too. However, to make things easier, State Designer's [React package](/docs/usage/react) includes a hook named <b>`useStateDesigner`</b> that does most of the work for us.
+In the last article, we learned about responding to a state's updates through the state's `onUpdate` method. That's fine for a regular JavaScript project—and we could use this method in a React project, too. However, to make things easier, State Designer's [React package](/docs/usage/react) includes a hook named <b>`useStateDesign`</b> that does most of the work for us.
 
 ## Global and Local States
 
-The `useStateDesigner` hook is designed to work in two different ways:
+The `useStateDesign` hook is designed to work in two different ways:
 
-1.  If you pass it a **state** that you've created with `createStateDesigner`, the hook will subscribe the component to the state's updates.
+1.  If you pass it a **state** that you've created with `createStateDesign`, the hook will subscribe the component to the state's updates.
 
     ```jsx
-    import { createStateDesigner } from "@state-designer/core"
-    import { useStateDesigner } from "@state-designer/react"
+    import { createStateDesign } from "@state-designer/core"
+    import { useStateDesign } from "@state-designer/react"
 
-    const state = createStateDesigner({ data: { count: 1 } })
+    const state = createStateDesign({ data: { count: 1 } })
 
     function Example() {
       // highlight-next-line
-      const update = useStateDesigner(state)
+      const update = useStateDesign(state)
 
       return <h1>{update.data.count}</h1>
     }
@@ -25,12 +25,12 @@ The `useStateDesigner` hook is designed to work in two different ways:
 2.  If you pass it a **configuration object**, the hook will create a new state and then subscribe the component to the state's updates.
 
     ```jsx
-    import { createStateDesigner } from "@state-designer/core"
-    import { useStateDesigner } from "@state-designer/react"
+    import { createStateDesign } from "@state-designer/core"
+    import { useStateDesign } from "@state-designer/react"
 
     function Example() {
       // highlight-next-line
-      const update = useStateDesigner({ data: { count: 1 } })
+      const update = useStateDesign({ data: { count: 1 } })
 
       return <h1>{state.data.count}</h1>
     }
@@ -46,7 +46,7 @@ You can use the second pattern to create a **local state** for each instance of 
 
 > **Tip:** While we'll use the local state pattern for the rest of this guide, remember that the configuration objects work exactly the same in both cases.
 
-To learn more about the `useStateDesigner` hook, see [this article](/docs/api/useStateDesigner) in the API section.
+To learn more about the `useStateDesign` hook, see [this article](/docs/api/useStateDesign) in the API section.
 
 In the next article, we'll learn to trigger a state's updates by sending it events.
 

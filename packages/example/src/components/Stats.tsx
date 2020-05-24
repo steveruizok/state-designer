@@ -1,9 +1,9 @@
 import * as React from "react"
-import { useStateDesigner, StateGraph } from "@state-designer/react"
+import { useStateDesign, StateGraph } from "@state-designer/react"
 import game from "../game"
 
 const Stats: React.FC = () => {
-  const { data } = useStateDesigner(game)
+  const { data } = useStateDesign(game)
 
   // const active = getActive(stateTree)
 

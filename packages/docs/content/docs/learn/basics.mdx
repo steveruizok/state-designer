@@ -4,17 +4,17 @@ In this article, you'll learn the basics of State Designer: how to create a stat
 
 ## Creating a State
 
-In State Designer, we create a **state** by passing a configuration object—or **config**—to the `createStateDesigner` function.
+In State Designer, we create a **state** by passing a configuration object—or **config**—to the `createStateDesign` function.
 
 ```js
-import { createStateDesigner } from "@state-designer/core"
+import { createStateDesign } from "@state-designer/core"
 
-const state = createStateDesigner({ data: { count: 1 } })
+const state = createStateDesign({ data: { count: 1 } })
 ```
 
 The config object will contain everything about the state: its events, initial data, a tree of child states, and collections of re-usable functions. We'll learn about all of these parts in the following articles.
 
-> **Tip:** Complex states can become quite large. To help you keep your config on track, the `createStateDesigner` function offers TypeScript support throughout the object. To create a config separately without losing this type support, use the `createConfig` function. [Learn more](/docs/api/createConfig).
+> **Tip:** Complex states can become quite large. To help you keep your config on track, the `createStateDesign` function offers TypeScript support throughout the object. To create a config separately without losing this type support, use the `createConfig` function. [Learn more](/docs/api/createConfig).
 
 ## Updates
 
@@ -32,34 +32,34 @@ The state will call this function each time it updates. In the body of the funct
 
 ## In React
 
-If you're using React, you can use the `useStateDesigner` hook to subscribe a component to a state's updates. You have two options:
+If you're using React, you can use the `useStateDesign` hook to subscribe a component to a state's updates. You have two options:
 
-You can create your state using `createStateDesigner` and pass it into the `useStateDesigner` hook.
+You can create your state using `createStateDesign` and pass it into the `useStateDesign` hook.
 
 ```js
-import { createStateDesigner } from "@state-designer/core"
-import { useStateDesigner } from "@state-designer/react"
+import { createStateDesign } from "@state-designer/core"
+import { useStateDesign } from "@state-designer/react"
 
 // highlight-next-line
-const state = createStateDesigner({ data: { count: 1 } })
+const state = createStateDesign({ data: { count: 1 } })
 
 function Example() {
   // highlight-next-line
-  const update = useStateDesigner(state)
+  const update = useStateDesign(state)
 
   return <h1>{state.data.count}</h1>
 }
 ```
 
-Alternatively, you can pass a configuration object directly to the `useStateDesigner` hook. This will create a new state and subscribe to its changes.
+Alternatively, you can pass a configuration object directly to the `useStateDesign` hook. This will create a new state and subscribe to its changes.
 
 ```js
-import { createStateDesigner } from "@state-designer/core"
-import { useStateDesigner } from "@state-designer/react"
+import { createStateDesign } from "@state-designer/core"
+import { useStateDesign } from "@state-designer/react"
 
 function Example() {
   // highlight-next-line
-  const update = useStateDesigner({ data: { count: 1 } })
+  const update = useStateDesign({ data: { count: 1 } })
 
   return <h1>{state.data.count}</h1>
 }
@@ -69,7 +69,7 @@ Each option has its benefits:
 
 If you create a state outside of a component, you can subscribe any number of components to the same state. This is useful for creating **global** states.
 
-If you create a state inside of a component, by passing the config directly to the `useStateDesigner` hook, then this state is unique to the component instance. This is useful for creating reusable **local** states.
+If you create a state inside of a component, by passing the config directly to the `useStateDesign` hook, then this state is unique to the component instance. This is useful for creating reusable **local** states.
 
 <LiveView snippet={"config"} />
 

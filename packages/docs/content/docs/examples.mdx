@@ -2,19 +2,19 @@
 
 ```jsx
 import React from "react"
-import { useStateDesigner } from "state-designer"
+import { useStateDesign } from "state-designer"
 
 function Counter() {
-  const { send, whenIn } = createStateDesigner({
+  const { send, whenIn } = createStateDesign({
     initial: "inactive",
     states: {
       inactive: {
-        on: { TOGGLED: { to: "active" } }
+        on: { TOGGLED: { to: "active" } },
       },
       active: {
-        on: { TOGGLED: { to: "inactive" } }
-      }
-    }
+        on: { TOGGLED: { to: "inactive" } },
+      },
+    },
   })
 
   return (
@@ -23,7 +23,7 @@ function Counter() {
         onClick={() => send("TOGGLED")}
         style={whenIn({
           inactive: { background: "#fff" },
-          active: { background: "#ccc" }
+          active: { background: "#ccc" },
         })}
       >
         Toggle
@@ -37,17 +37,17 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesigner } from "state-designer"
+import { useStateDesign } from "state-designer"
 
 function Counter() {
-  const { data, send } = createStateDesigner({
+  const { data, send } = createStateDesign({
     data: {
-      count: 0
+      count: 0,
     },
     on: {
-      PLUS_CLICKED: data => data.count++,
-      MINUS_CLICKED: data => data.count--
-    }
+      PLUS_CLICKED: (data) => data.count++,
+      MINUS_CLICKED: (data) => data.count--,
+    },
   })
 
   return (
@@ -64,10 +64,10 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesigner } from "state-designer"
+import { useStateDesign } from "state-designer"
 
 function Counter() {
-  const { data, send } = createStateDesigner({
+  const { data, send } = createStateDesign({
     data: {
       min: 0,
       max: 10
@@ -112,10 +112,10 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesigner } from "state-designer"
+import { useStateDesign } from "state-designer"
 
 function Counter() {
-  const { data, send, whenIn } = createStateDesigner({
+  const { data, send, whenIn } = createStateDesign({
     data: {
       min: 0,
       max: 10
@@ -171,10 +171,10 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesigner } from "state-designer"
+import { useStateDesign } from "state-designer"
 
 function Counter() {
-  const { data, send } = createStateDesigner({
+  const { data, send } = createStateDesign({
     data: {
       min: 0,
       max: 10

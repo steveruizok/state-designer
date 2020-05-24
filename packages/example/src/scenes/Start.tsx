@@ -1,10 +1,10 @@
 import * as React from "react"
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesign } from "@state-designer/react"
 import { motion, useMotionValue } from "framer-motion"
 
 const Follower: React.FC<{}> = () => {
   const x = useMotionValue(0)
-  const { send } = useStateDesigner({
+  const { send } = useStateDesign({
     on: {
       MOUSE_MOVED: {
         secretlyDo: (_, payload) => {
@@ -37,7 +37,7 @@ const Follower: React.FC<{}> = () => {
 }
 
 const WhileTest: React.FC<{}> = () => {
-  const { send, whenIn } = useStateDesigner({
+  const { send, whenIn } = useStateDesign({
     initial: "notToggled",
     states: {
       toggled: {

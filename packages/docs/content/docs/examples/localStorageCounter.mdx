@@ -2,7 +2,7 @@
 
 ```tsx
 import React from "react"
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesign } from "@state-designer/react"
 
 function saveCounterData(data) {
   const string = JSON.stringify(data)
@@ -15,7 +15,7 @@ function localCounterData() {
 }
 
 export function Counter({ id, onClick }) {
-  const { data, send, onUpdate } = useStateDesigner({
+  const { data, send, onUpdate } = useStateDesign({
     data: localCounterData() || { count: 0 },
     on: {
       CLICKED: (data) => data.count++,

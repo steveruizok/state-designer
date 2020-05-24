@@ -26,7 +26,7 @@ Using State Designer involves three steps:
 
 ### 1. Creating a State
 
-To create a new **state**, call the `createStateDesigner` function and pass it a **configuration object**.
+To create a new **state**, call the `createStateDesign` function and pass it a **configuration object**.
 
 A configuration object defines everything about the state:
 
@@ -35,7 +35,7 @@ A configuration object defines everything about the state:
 - how its **child states** are organized
 
 ```js
-const state = createStateDesigner({
+const state = createStateDesign({
   data: { items: 0 },
   on: {
     ADDED_ITEM: {
@@ -89,10 +89,10 @@ document.getElementById("plus_two_button").onclick = () => {
 [![Edit state-designer-vanilla-example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/adoring-nightingale-g7ch1?fontsize=14&hidenavigation=1&theme=dark)
 
 ```js
-import { createStateDesigner } from "@state-designer/core"
+import { createStateDesign } from "@state-designer/core"
 
 // Create state
-const state = createStateDesigner({
+const state = createStateDesign({
   data: { items: 0 },
   on: {
     ADDED_ITEMS: {
@@ -120,12 +120,12 @@ document.getElementById("plus_two_button").onclick = () => {
 
 ## API
 
-### `createStateDesigner`
+### `createStateDesign`
 
 Creates a new state from a configuration object.
 
 ```ts
-const state = createStateDesigner({
+const state = createStateDesign({
   data: { items: 0 },
   on: {
     CLICKED_PLUS: "increment",
@@ -153,7 +153,7 @@ const config = createConfig({
   },
 })
 
-const state = createStateDesigner(config)
+const state = createStateDesign(config)
 ```
 
 | Helper                         | Description                               |

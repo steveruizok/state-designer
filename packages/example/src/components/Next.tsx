@@ -1,12 +1,12 @@
 import * as React from "react"
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesign } from "@state-designer/react"
 import game from "../game"
 
 import Container from "./Matrix/Container"
 import NextPiece from "./Matrix/NextPiece"
 
 const Next: React.FC<{}> = () => {
-  const { data } = useStateDesigner(game)
+  const { data } = useStateDesign(game)
   const { next } = data
 
   return (

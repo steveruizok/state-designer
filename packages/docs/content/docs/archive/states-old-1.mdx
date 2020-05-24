@@ -9,7 +9,7 @@ States serve two purposes: they allow events to be disabled
 An object containing the state's events.
 
 ```jsx
-createStateDesigner({
+createStateDesign({
   initial: "stopped",
   states: {
     playing: {
@@ -37,7 +37,7 @@ If the machine receives a corresponding event while the state is active, then th
 An event handled when the state becomes active.
 
 ```jsx
-createStateDesigner({
+createStateDesign({
   initial: "stopped",
   states: {
     playing: {
@@ -68,7 +68,7 @@ In the example above, the machine will log `"Entered playing!"` to the console a
 An event handled when the state is de-activated.
 
 ```jsx
-createStateDesigner({
+createStateDesign({
   initial: "stopped",
   states: {
     playing: {
@@ -99,7 +99,7 @@ In the example above, the machine will log `"Leaving stopped!"` to the console a
 An event handled whenever the machine handles any other event while the state is active.
 
 ```jsx
-createStateDesigner({
+createStateDesign({
   data: {
     count: 0,
     changes: 0,
@@ -127,7 +127,7 @@ In the example above, the machine will increment `data.changes` each time it rec
 An asynchonous event to handle when the state becomes active.
 
 ```jsx
-createStateDesigner({
+createStateDesign({
   initial: "idle",
   states: {
     idle: {
@@ -157,7 +157,7 @@ In the example above, when the machine enters the _loading_ state, it will attem
 The name of a state's initial child state.
 
 ```jsx
-createStateDesigner({
+createStateDesign({
   initial: "turned_off",
   states: {
     turned_on: {
@@ -184,7 +184,7 @@ createStateDesigner({
 An object containing the state's child states.
 
 ```jsx
-createStateDesigner({
+createStateDesign({
   initial: "turned_off",
   states: {
     turned_on: {

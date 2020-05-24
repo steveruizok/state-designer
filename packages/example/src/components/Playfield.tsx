@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesign } from "@state-designer/react"
 import game from "../game"
 
 import Container from "./Matrix/Container"
@@ -8,7 +8,7 @@ import GhostPiece from "./Matrix/GhostPiece"
 import Cell from "./Matrix/Cell"
 
 const Playfield: React.FC<{}> = () => {
-  const { data } = useStateDesigner(game)
+  const { data } = useStateDesign(game)
   const { matrix, falling, ghost } = data
 
   return (

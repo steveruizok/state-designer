@@ -42,10 +42,10 @@ Your exact usage will depend on your framework:
 
 ```jsx
 import React from "react"
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesign } from "@state-designer/react"
 
 function App() {
-  const { data, send, can, whenIn } = useStateDesigner({
+  const { data, send, can, whenIn } = useStateDesign({
     data: { count: 1 },
     initial: "inactive",
     states: {

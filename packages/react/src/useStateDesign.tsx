@@ -1,6 +1,6 @@
 import { isUndefined, pick } from "lodash"
 import * as React from "react"
-import { createStateDesigner, S } from "@state-designer/core"
+import { createStateDesign, S } from "@state-designer/core"
 
 const emptyArray: any[] = []
 
@@ -10,10 +10,10 @@ const emptyArray: any[] = []
 
 /**
  * Subscribe a component to an existing state, or to a new one created from the provided configuration.
- * @param config A configuration object for a new state — or a state returned from createStateDesigner.
+ * @param config A configuration object for a new state — or a state returned from createStateDesign.
  * @param dependencies (optional) An array of dependencies that, when changed, will rebuild a new state from the provided config.
  */
-export function useStateDesigner<
+export function useStateDesign<
   D extends unknown,
   R extends Record<string, S.Result<D>>,
   C extends Record<string, S.Condition<D>>,
@@ -22,20 +22,20 @@ export function useStateDesigner<
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
 >(
-  config: S.Config<D, R, C, A, Y, T, V> | S.StateDesigner<D, R, C, A, Y, T, V>,
+  config: S.Config<D, R, C, A, Y, T, V> | S.StateDesign<D, R, C, A, Y, T, V>,
   dependencies: any[] = emptyArray
-): S.StateDesigner<D, R, C, A, Y, T, V> {
+): S.StateDesign<D, R, C, A, Y, T, V> {
   // Store a state — either as provided or new from config,
   // and, if given a config, re-create the state when dependencies change
-  const state: S.StateDesigner<D, R, C, A, Y, T, V> = React.useMemo(() => {
-    return isUndefined((config as S.StateDesigner<D, R, C, A, Y, T, V>).send)
-      ? createStateDesigner(config)
-      : (config as S.StateDesigner<D, R, C, A, Y, T, V>)
+  const state: S.StateDesign<D, R, C, A, Y, T, V> = React.useMemo(() => {
+    return isUndefined((config as S.StateDesign<D, R, C, A, Y, T, V>).send)
+      ? createStateDesign(config)
+      : (config as S.StateDesign<D, R, C, A, Y, T, V>)
   }, dependencies)
 
   // Keep subscription updates in state
   const [current, setCurrent] = React.useState<
-    S.StateDesigner<D, R, C, A, Y, T, V>
+    S.StateDesign<D, R, C, A, Y, T, V>
   >(state)
 
   // Subscribe to changes — and resubscribe when dependencies change.

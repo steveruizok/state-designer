@@ -11,25 +11,25 @@ In complex machines, an event or transition may cause several auto events to fir
 The `onEnter` auto event has the same API as a normal event. It is handled automatically as soon as a state switches from inactive to active.
 
 ```js
-createStateDesigner({
+createStateDesign({
   initial: "stopped",
   states: {
     stopped: {
       on: {
-        PLAY_PRESSED: { to: "playing" }
-      }
+        PLAY_PRESSED: { to: "playing" },
+      },
     },
     playing: {
       // highlight-start
       onEnter: {
-        do: () => console.log("Now entering the playing state!")
+        do: () => console.log("Now entering the playing state!"),
       },
       // highlight-end
       on: {
-        STOP_PRESSED: { to: "stopped" }
-      }
-    }
-  }
+        STOP_PRESSED: { to: "stopped" },
+      },
+    },
+  },
 })
 ```
 
@@ -38,25 +38,25 @@ createStateDesigner({
 The `onExit` auto event is handled automatically as soon as a state switches from active to inactive. It has the same API as a normal event.
 
 ```js
-createStateDesigner({
+createStateDesign({
   initial: "stopped",
   states: {
     stopped: {
       on: {
-        PLAY_PRESSED: { to: "playing" }
-      }
+        PLAY_PRESSED: { to: "playing" },
+      },
     },
     playing: {
       // highlight-start
       onExit: {
-        do: () => console.log("Now leaving the playing state!")
+        do: () => console.log("Now leaving the playing state!"),
       },
       // highlight-end
       on: {
-        STOP_PRESSED: { to: "stopped" }
-      }
-    }
-  }
+        STOP_PRESSED: { to: "stopped" },
+      },
+    },
+  },
 })
 ```
 
@@ -65,25 +65,25 @@ createStateDesigner({
 The `onExit` auto event is handled automatically as soon as a state switches from active to inactive. It has the same API as a normal event.
 
 ```js
-createStateDesigner({
+createStateDesign({
   initial: "stopped",
   states: {
     stopped: {
       on: {
-        PLAY_PRESSED: { to: "playing" }
-      }
+        PLAY_PRESSED: { to: "playing" },
+      },
     },
     playing: {
       // highlight-start
       onExit: {
-        do: () => console.log("Now leaving the playing state!")
+        do: () => console.log("Now leaving the playing state!"),
       },
       // highlight-end
       on: {
-        STOP_PRESSED: { to: "stopped" }
-      }
-    }
-  }
+        STOP_PRESSED: { to: "stopped" },
+      },
+    },
+  },
 })
 ```
 
@@ -94,30 +94,30 @@ The `onEvent` auto event is handled automatically if a `send` call triggered an 
 **Note:** the root state also supports `onEvent`.
 
 ```js
-createStateDesigner({
+createStateDesign({
   // highlight-start
   onEvent: {
-    do: () => console.log("Something changed in the root!")
+    do: () => console.log("Something changed in the root!"),
   },
   // highlight-end
   initial: "stopped",
   states: {
     stopped: {
       on: {
-        PLAY_PRESSED: { to: "playing" }
-      }
+        PLAY_PRESSED: { to: "playing" },
+      },
     },
     playing: {
       // highlight-start
       onEvent: {
-        do: () => console.log("Something changed in playing!")
+        do: () => console.log("Something changed in playing!"),
       },
       // highlight-end
       on: {
-        STOP_PRESSED: { to: "stopped" }
-      }
-    }
-  }
+        STOP_PRESSED: { to: "stopped" },
+      },
+    },
+  },
 })
 ```
 
@@ -135,30 +135,30 @@ The `onEventComplete` auto event is handled automatically if a `send` call trigg
 **Note:** the root state also supports `onEventComplete`.
 
 ```js
-createStateDesigner({
+createStateDesign({
   // highlight-start
   onEventComplete: {
-    do: () => console.log("Something changed in the root!")
+    do: () => console.log("Something changed in the root!"),
   },
   // highlight-end
   initial: "stopped",
   states: {
     stopped: {
       on: {
-        PLAY_PRESSED: { to: "playing" }
-      }
+        PLAY_PRESSED: { to: "playing" },
+      },
     },
     playing: {
       // highlight-start
       onEventComplete: {
-        do: () => console.log("Something changed in playing!")
+        do: () => console.log("Something changed in playing!"),
       },
       // highlight-end
       on: {
-        STOP_PRESSED: { to: "stopped" }
-      }
-    }
-  }
+        STOP_PRESSED: { to: "stopped" },
+      },
+    },
+  },
 })
 ```
 
@@ -177,25 +177,25 @@ The `repeat` auto event is handled automatically on an interval that begins when
 - `delay`, a number in seconds
 
 ```js
-createStateDesigner({
+createStateDesign({
   data: { currentTime: 0 },
   initial: "stopped",
   states: {
     stopped: {
-      on: { PLAY_PRESSED: { to: "playing" } }
+      on: { PLAY_PRESSED: { to: "playing" } },
     },
     playing: {
       // highlight-start
       repeat: {
         event: {
-          do: data => data.currentTime++
+          do: (data) => data.currentTime++,
         },
-        delay: 1
+        delay: 1,
       },
       // highlight-end
-      on: { STOP_PRESSED: { to: "stopped" } }
-    }
-  }
+      on: { STOP_PRESSED: { to: "stopped" } },
+    },
+  },
 })
 ```
 

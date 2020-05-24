@@ -1,10 +1,10 @@
-import { createStateDesigner } from "../src"
+import { createStateDesign } from "../src"
 import { state, config, counterConfig } from "./shared"
 
-describe("createStateDesigner", () => {
+describe("createStateDesign", () => {
   it("Should create a state.", () => {
-    expect(createStateDesigner({})).toBeTruthy()
-    expect(createStateDesigner(config)).toBeTruthy()
+    expect(createStateDesign({})).toBeTruthy()
+    expect(createStateDesign(config)).toBeTruthy()
 
     expect(state.stateTree).toBeTruthy()
     expect(state.active).toBeTruthy()
@@ -17,7 +17,7 @@ describe("createStateDesigner", () => {
   // Can I chain events?
 
   it("Should support chaining with then.", async (done) => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
 
     await counter
       .send("TOGGLED")
@@ -31,7 +31,7 @@ describe("createStateDesigner", () => {
   // Does the `isIn` helper work?
 
   it("Should support the isIn helper.", async (done) => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
     expect(counter.isIn("active")).toBeFalsy()
     expect(counter.isIn("inactive")).toBeTruthy()
     expect(counter.isIn("active", "inactive")).toBeFalsy()
@@ -40,7 +40,7 @@ describe("createStateDesigner", () => {
   })
 
   it("Should support the isInAny helper.", async (done) => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
     expect(counter.isIn("active")).toBeFalsy()
     expect(counter.isIn("inactive")).toBeTruthy()
     expect(counter.isInAny("active", "inactive")).toBeTruthy()
@@ -49,7 +49,7 @@ describe("createStateDesigner", () => {
   })
 
   it("Should support the isIn helper with transitions.", async (done) => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
     expect(counter.isIn("active")).toBeFalsy()
     expect(counter.isIn("inactive")).toBeTruthy()
     await counter.send("TOGGLED")
@@ -61,14 +61,14 @@ describe("createStateDesigner", () => {
   // Does the `can` helper work?
 
   it("Should support can helper.", async (done) => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
     expect(counter.can("CLICKED_PLUS")).toBeFalsy()
     expect(counter.can("TOGGLED")).toBeTruthy()
     done()
   })
 
   it("Should support can helper with transitions.", async (done) => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
     expect(counter.can("CLICKED_PLUS")).toBeFalsy()
     expect(counter.can("TOGGLED")).toBeTruthy()
     await counter.send("TOGGLED")
@@ -79,7 +79,7 @@ describe("createStateDesigner", () => {
 
   // Do initial active states work?
   it("Should support initial active states.", () => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
     expect(counter.isIn("inactive")).toBeTruthy()
     expect(counter.isIn("active")).toBeFalsy()
   })
@@ -126,7 +126,7 @@ describe("createStateDesigner", () => {
   // Do onExit events work?
 
   it("Should support onEnter and onExit events.", async (done) => {
-    const counter = createStateDesigner(counterConfig)
+    const counter = createStateDesign(counterConfig)
     expect(counter.data.activations).toBe(0)
     let update = await counter.send("TOGGLED")
     expect(update.data.activations).toBe(1)
@@ -140,7 +140,7 @@ describe("createStateDesigner", () => {
 
   // Does causing a transition prevent further updates?
   it("Should support onEnter and onExit events.", async (done) => {
-    const toggler = createStateDesigner({
+    const toggler = createStateDesign({
       initial: "inactive",
       data: {
         count: 0,
@@ -189,7 +189,7 @@ describe("createStateDesigner", () => {
 
   // Do initial active states work?
   it("Should support else event handlers.", async (done) => {
-    const state = createStateDesigner({
+    const state = createStateDesign({
       data: { count: 0 },
       on: {
         SOME_EVENT: {
@@ -222,7 +222,7 @@ describe("createStateDesigner", () => {
     await state.send("SOME_EVENT") // When at max, resets to zero
     expect(state.data.count).toBe(0)
 
-    const ugly = createStateDesigner({
+    const ugly = createStateDesign({
       data: { count: 0 },
       on: {
         SOME_UGLY_EVENT: {
@@ -253,7 +253,7 @@ describe("createStateDesigner", () => {
   })
 
   // Do value types work?
-  const stateB = createStateDesigner({
+  const stateB = createStateDesign({
     data: { count: 0 },
     values: {
       doubleCount(d) {

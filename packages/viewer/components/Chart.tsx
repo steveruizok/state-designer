@@ -1,13 +1,13 @@
 import * as React from "react"
-import { S, createStateDesigner } from "@state-designer/core"
-import { useStateDesigner } from "@state-designer/react"
+import { S, createStateDesign } from "@state-designer/core"
+import { useStateDesign } from "@state-designer/react"
 import { State } from "./State"
 import { Collection } from "./Collection"
 
 import { Styled } from "theme-ui"
 import { Heading, Box, Button, Flex, Card } from "@theme-ui/components"
 
-const state = createStateDesigner({
+const state = createStateDesign({
   data: { count: 0 },
   initial: "inactive",
   on: {
@@ -52,7 +52,7 @@ const state = createStateDesigner({
 })
 
 export const Chart: React.FC<{}> = () => {
-  const { data, send, can, whenIn, stateTree, getConfig } = useStateDesigner(
+  const { data, send, can, whenIn, stateTree, getConfig } = useStateDesign(
     state
   )
 

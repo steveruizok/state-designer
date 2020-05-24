@@ -1,4 +1,4 @@
-import { createConfig, createStateDesigner } from "../src"
+import { createConfig, createStateDesign } from "../src"
 
 export const config = createConfig({
   data: { count: 0 },
@@ -74,7 +74,7 @@ export const config = createConfig({
   },
 })
 
-export const state = createStateDesigner(config)
+export const state = createStateDesign(config)
 
 export const counterConfig = createConfig({
   data: { count: 1, activations: 0, deactivations: 0 },
@@ -108,4 +108,4 @@ export const counterConfig = createConfig({
   },
 })
 
-export const counter = createStateDesigner(counterConfig)
+export const counter = createStateDesign(counterConfig)
