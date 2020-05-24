@@ -4,9 +4,9 @@ import * as React from "react"
 
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live"
 import {
-  createConfig,
-  createStateDesign,
-  useStateDesign,
+  createDesign,
+  createState,
+  useStateDesigner,
 } from "@state-designer/react"
 import lightTheme from "prism-react-renderer/themes/github"
 
@@ -18,7 +18,7 @@ import * as snippets from "./snippets"
 //   }
 // }
 
-const counter = createConfig({
+const counter = createDesign({
   data: { count: 0 },
   on: {
     INCREASED: (data) => data.count++,
@@ -26,7 +26,7 @@ const counter = createConfig({
   },
 })
 
-const toggle = createConfig({
+const toggle = createDesign({
   initial: "unchecked",
   states: {
     checked: {
@@ -94,9 +94,9 @@ const LiveView = ({ snippet = "" }) => {
           return c
         }}
         scope={{
-          useStateDesign,
-          createStateDesign,
-          createConfig,
+          useStateDesigner,
+          createState,
+          createDesign,
           toggle,
           counter,
         }}

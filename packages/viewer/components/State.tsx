@@ -2,7 +2,7 @@ import * as React from "react"
 import { S } from "@state-designer/core"
 import { EventHandler } from "./EventHandler"
 import { EventFn } from "./EventFn"
-import { useStateDesign } from "@state-designer/react"
+import { useStateDesigner } from "@state-designer/react"
 
 import { Styled } from "theme-ui"
 import { Flex, IconButton, Heading, Card, Grid } from "@theme-ui/components"
@@ -27,7 +27,7 @@ export const State: React.FC<{ state: S.State<any>; initial: boolean }> = ({
 
   const hasEvents = hasAutoEvents || hasOnEvents
 
-  const { send, whenIn, isIn } = useStateDesign({
+  const { send, whenIn, isIn } = useStateDesigner({
     initial: "expanded",
     states: {
       expanded: { on: { TOGGLE: { to: "collapsed" } } },

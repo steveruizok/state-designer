@@ -26,7 +26,7 @@ Using State Designer involves three steps:
 
 ### 1. Creating a State
 
-To create a new **state**, call the `createStateDesign` function and pass it a **configuration object**.
+To create a new **state**, call the `createState` function and pass it a **configuration object**.
 
 A configuration object defines everything about the state:
 
@@ -35,7 +35,7 @@ A configuration object defines everything about the state:
 - how its **child states** are organized
 
 ```js
-const state = createStateDesign({
+const state = createState({
   data: { items: 0 },
   on: {
     ADDED_ITEM: {
@@ -89,10 +89,10 @@ document.getElementById("plus_two_button").onclick = () => {
 [![Edit state-designer-vanilla-example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/adoring-nightingale-g7ch1?fontsize=14&hidenavigation=1&theme=dark)
 
 ```js
-import { createStateDesign } from "@state-designer/core"
+import { createState } from "@state-designer/core"
 
 // Create state
-const state = createStateDesign({
+const state = createState({
   data: { items: 0 },
   on: {
     ADDED_ITEMS: {
@@ -120,12 +120,12 @@ document.getElementById("plus_two_button").onclick = () => {
 
 ## API
 
-### `createStateDesign`
+### `createState`
 
 Creates a new state from a configuration object.
 
 ```ts
-const state = createStateDesign({
+const state = createState({
   data: { items: 0 },
   on: {
     CLICKED_PLUS: "increment",
@@ -136,14 +136,14 @@ const state = createStateDesign({
 })
 ```
 
-### `createConfig`
+### `createDesign`
 
 > **Note:** This function only exists to provide additional type support in TypeScript projects and in testing where multiple states need to use the same configuration object.
 
 A helper function that creates a configuration object. The configuration provides several additional helpers for creating type-checked actions, events, and other parts of the object.
 
 ```ts
-const config = createConfig({
+const config = createDesign({
   data: { items: 0 },
   on: {
     CLICKED_PLUS: "increment",
@@ -153,7 +153,7 @@ const config = createConfig({
   },
 })
 
-const state = createStateDesign(config)
+const state = createState(config)
 ```
 
 | Helper                         | Description                               |

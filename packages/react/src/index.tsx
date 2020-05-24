@@ -1,5 +1,5 @@
-import { S, createConfig, createStateDesign } from "@state-designer/core"
-import { useStateDesign } from "./useStateDesign"
+import { S, createDesign, createState } from "@state-designer/core"
+import { useStateDesigner } from "./useStateDesigner"
 import { StateGraph } from "./StateGraph"
 
-export { S, createConfig, createStateDesign, useStateDesign, StateGraph }
+export { S, createDesign, createState, useStateDesigner, StateGraph }

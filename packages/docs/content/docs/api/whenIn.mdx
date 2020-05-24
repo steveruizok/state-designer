@@ -1,13 +1,13 @@
 # whenIn
 
-The `useStateDesign` hook returns a helper naemd `whenIn` that you can use to compose values based on the state's currently active states.
+The `useStateDesigner` hook returns a helper naemd `whenIn` that you can use to compose values based on the state's currently active states.
 
 ```jsx
 import React from "react"
-import { useStateDesign } from "state-designer"
+import { useStateDesigner } from "state-designer"
 
 export default function Example() {
-  const { send, whenIn } = useStateDesign({
+  const { send, whenIn } = useStateDesigner({
     initial: "cool",
     states: {
       cold: {},

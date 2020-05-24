@@ -5,7 +5,7 @@ When describing a user interface, we often use words like "stopped", "playing", 
 You can define these states in your state's configuration object.
 
 ```js
-const state = useStateDesign({
+const state = useStateDesigner({
   initial: "checked",
   states: {
     checked: {},
@@ -48,7 +48,7 @@ In the example above, we've set up the checkbox to send `"TOGGLED"` each time th
 
 ## Which States are Active?
 
-When you call `useStateDesign`, the hook will return several helper methods that you can use to determine which states are active and which are inactive.
+When you call `useStateDesigner`, the hook will return several helper methods that you can use to determine which states are active and which are inactive.
 
 ### isIn
 

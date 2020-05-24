@@ -1,4 +1,4 @@
-import { S, createConfig, createStateDesign } from "@state-designer/core"
-import { useStateDesign } from "@state-designer/react"
+import { S, createDesign, createState } from "@state-designer/core"
+import { useStateDesigner } from "@state-designer/react"
 
-export { S, createConfig, createStateDesign, useStateDesign }
+export { S, createDesign, createState, useStateDesigner }

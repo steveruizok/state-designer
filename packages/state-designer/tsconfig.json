@@ -21,7 +21,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "jsx": "react",
+    "jsx": "preserve",
     "esModuleInterop": true,
     "baseUrl": "./",
     "paths": {

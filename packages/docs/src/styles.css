@@ -132,3 +132,12 @@ body {
   /* font-family: Arial, Helvetica, sans-serif; */
   margin: 0 0 0.5em 0;
 }
+
+.live-view label {
+  display: flex;
+  align-items: center;
+}
+
+.live-view label > * {
+  margin-left: 4px;
+}

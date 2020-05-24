@@ -9,7 +9,7 @@ A function that receives the machine's current `data`, `payload`, and `result`, 
 Like other [collectable functions](#collection), you can define an action either in the machine's `actions` [collection](#collection) or inline. You can place an action in an [event handler](#event-handler) object under the `do` property, or else use an action in place of an event handler object.
 
 ```jsx
-const machine = createStateDesign({
+const machine = createState({
   data: { count: 0 },
   on: {
     MINUS_CLICKED: { do: "decrementCount" }
@@ -46,7 +46,7 @@ When a [state](#state) is active, the machine [is in](#is-in) that state. A stat
 A branch state is a [state](#state) that has child states **and** an [initial state](#initial-state). While a branch state is active, one (and only one) of its child states will be active.
 
 ```js
-const machine = createStateDesign({
+const machine = createState({
   initial: "idle",
   states: {
     idle: {
@@ -84,7 +84,7 @@ In the example above, the `selected` state is a branch state. When `selected` be
 A value stored in a machine. It is (optionally) created through the `data` property of a machine's [configuration](#configuration). The data's current value is passed to all [results](#results), [conditions](#conditions) and [actions](#actions) as those functions' first argument. You can mutate a machine's data using [actions](#actions). Any event that causes a data mutation will cause the machine to update.
 
 ```jsx
-const machine = createStateDesign({
+const machine = createState({
   // highlight-start
   data: {
     count: 0,
@@ -158,7 +158,7 @@ An initial state is a [state](#state) that will become active when its parent st
 A parallel state is a [state](#state) that has child states but no [initial state](#initial-state). While a parallel state is active, all of its child states will also be active.
 
 ```js
-const machine = createStateDesign({
+const machine = createState({
   initial: "idle",
   states: {
     idle: {},
@@ -225,7 +225,7 @@ In each update, a particular state may be either [active]("#active") or [inactiv
 A state may have child states. Whenever any of a state's child states becomes active, the parent state will also become active.
 
 ```js
-const machine = createStateDesign({
+const machine = createState({
   initial: "idle",
   states: {
     // highlight-start
@@ -259,7 +259,7 @@ In the example above, both `idle` and `dragging` are states.
 An update occurs whenever a machine transitions to a new state, and/or when an action has mutated the machine's data. Updates are "batched" so that an event that causes multiple transitions or actions will only cause a sinlge update.
 
 ```js
-const machine = createStateDesign({
+const machine = createState({
   data: { changes: 0 },
   initial: "inactive",
   states: {

@@ -10,7 +10,7 @@ import { produce, enableAllPlugins } from "immer"
 
 import * as S from "./types"
 import * as StateTree from "./stateTree"
-import { getStateTreeFromConfig } from "./getStateTreeFromConfig"
+import { getStateTreeFromDesign } from "./getStateTreeFromDesign"
 
 enableAllPlugins()
 
@@ -23,7 +23,7 @@ enableAllPlugins()
  * @param config
  * @public
  */
-export function createStateDesign<
+export function createState<
   D,
   R extends Record<string, S.Result<D>>,
   C extends Record<string, S.Condition<D>>,
@@ -32,15 +32,15 @@ export function createStateDesign<
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
 >(
-  config: S.Config<D, R, C, A, Y, T, V>,
+  config: S.Design<D, R, C, A, Y, T, V>,
   verbose?: (message: string, type: S.VerboseType) => any
-): S.StateDesign<D, R, C, A, Y, T, V> {
+): S.DesignedState<D, R, C, A, Y, T, V> {
   /* ------------------ Mutable Data ------------------ */
 
   // Update (internal update state)
 
   type Update = {
-    process: Promise<S.StateDesign<D, R, C, A, Y, T, V>> | void
+    process: Promise<S.DesignedState<D, R, C, A, Y, T, V>> | void
     transitions: number
     didTransition: boolean
     didAction: boolean
@@ -526,7 +526,7 @@ export function createStateDesign<
   const sendQueue: S.Event[] = []
 
   async function processSendQueue(): Promise<
-    S.StateDesign<D, R, C, A, Y, T, V>
+    S.DesignedState<D, R, C, A, Y, T, V>
   > {
     vlog(`Processing next in queue.`, S.VerboseType.Queue)
 
@@ -575,7 +575,7 @@ export function createStateDesign<
    * @param callbackFn
    * @public
    * @example
-   * const state = createStateDesign({ ... })
+   * const state = createState({ ... })
    * const cancelUpdates = state.onUpdate((update) => { ... })
    * if (allDone) cancelUpdates()
    *
@@ -604,7 +604,7 @@ export function createStateDesign<
   async function send(
     eventName: string,
     payload?: any
-  ): Promise<S.StateDesign<D, R, C, A, Y, T, V>> {
+  ): Promise<S.DesignedState<D, R, C, A, Y, T, V>> {
     vlog(`Received event ${eventName}.`, S.VerboseType.Event)
     sendQueue.push({ event: eventName, payload })
     return update.process ? update.process : processSendQueue()
@@ -770,19 +770,19 @@ export function createStateDesign<
    * Get the original config object (for debugging, mostly)
    * @public
    */
-  function getConfig() {
+  function getDesign() {
     return config
   }
 
   function clone() {
-    return createStateDesign(config)
+    return createState(config)
   }
 
   /* --------------------- Kickoff -------------------- */
 
   const id = "#" + (isUndefined(config.id) ? `state_${uniqueId()}` : config.id)
 
-  const _stateTree = getStateTreeFromConfig(config, id)
+  const _stateTree = getStateTreeFromDesign(config, id)
 
   const core = {
     id,
@@ -796,7 +796,7 @@ export function createStateDesign<
     whenIn,
     onUpdate,
     getUpdate,
-    getConfig,
+    getDesign,
     clone,
     values: getValues(config.data as D),
   }

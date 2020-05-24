@@ -85,8 +85,8 @@ export default {
     },
     h2: {
       variant: "textStyles.heading",
-      fontSize: 5,
-      mt: 4,
+      fontSize: 6,
+      mt: 5,
       mb: 2,
     },
     h3: {
@@ -219,7 +219,6 @@ export default {
     li: {
       mb: 2,
     },
-    p: {},
   },
   prism: {
     [[".gatsby-highlight-code-line"]]: {

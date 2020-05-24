@@ -1,6 +1,6 @@
 import * as React from "react"
 import { S } from "@state-designer/core"
-import { useStateDesign } from "./useStateDesign"
+import { useStateDesigner } from "./useStateDesigner"
 
 const EventList: React.FC<{
   state: S.State<any>
@@ -50,10 +50,10 @@ const StateNode: React.FC<{
 
 export const StateGraph: React.FC<
   {
-    state: S.StateDesign<any, any, any, any, any, any, any>
+    state: S.DesignedState<any, any, any, any, any, any, any>
   } & React.HTMLProps<HTMLDivElement>
 > = ({ state, ...rest }) => {
-  const { stateTree } = useStateDesign(state)
+  const { stateTree } = useStateDesigner(state)
 
   return (
     <div {...rest}>

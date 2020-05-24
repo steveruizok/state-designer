@@ -11,7 +11,7 @@ In complex machines, an event or transition may cause several auto events to fir
 The `onEnter` auto event has the same API as a normal event. It is handled automatically as soon as a state switches from inactive to active.
 
 ```js
-createStateDesign({
+createState({
   initial: "stopped",
   states: {
     stopped: {
@@ -38,7 +38,7 @@ createStateDesign({
 The `onExit` auto event is handled automatically as soon as a state switches from active to inactive. It has the same API as a normal event.
 
 ```js
-createStateDesign({
+createState({
   initial: "stopped",
   states: {
     stopped: {
@@ -65,7 +65,7 @@ createStateDesign({
 The `onExit` auto event is handled automatically as soon as a state switches from active to inactive. It has the same API as a normal event.
 
 ```js
-createStateDesign({
+createState({
   initial: "stopped",
   states: {
     stopped: {
@@ -94,7 +94,7 @@ The `onEvent` auto event is handled automatically if a `send` call triggered an 
 **Note:** the root state also supports `onEvent`.
 
 ```js
-createStateDesign({
+createState({
   // highlight-start
   onEvent: {
     do: () => console.log("Something changed in the root!"),
@@ -135,7 +135,7 @@ The `onEventComplete` auto event is handled automatically if a `send` call trigg
 **Note:** the root state also supports `onEventComplete`.
 
 ```js
-createStateDesign({
+createState({
   // highlight-start
   onEventComplete: {
     do: () => console.log("Something changed in the root!"),
@@ -177,7 +177,7 @@ The `repeat` auto event is handled automatically on an interval that begins when
 - `delay`, a number in seconds
 
 ```js
-createStateDesign({
+createState({
   data: { currentTime: 0 },
   initial: "stopped",
   states: {

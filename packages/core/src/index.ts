@@ -1,5 +1,5 @@
 import * as S from "./types"
-import { createConfig } from "./createConfig"
-import { createStateDesign } from "./createStateDesign"
+import { createDesign } from "./createDesign"
+import { createState } from "./createState"
 
-export { S, createConfig, createStateDesign }
+export { S, createDesign, createState }

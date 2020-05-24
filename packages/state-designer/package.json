@@ -48,5 +48,13 @@
       "pre-commit": "tsdx lint"
     }
   },
+  "env": {
+    "test": {
+      "presets": [
+        "@babel/preset-env",
+        "@babel/preset-react"
+      ]
+    }
+  },
   "gitHead": "d5a584fe21ed6450fa2e4df0aaf5f8d44938c4d3"
 }

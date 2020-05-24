@@ -1,13 +1,13 @@
 import * as React from "react"
-import { S, createStateDesign } from "@state-designer/core"
-import { useStateDesign } from "@state-designer/react"
+import { S, createState } from "@state-designer/core"
+import { useStateDesigner } from "@state-designer/react"
 import { State } from "./State"
 import { Collection } from "./Collection"
 
 import { Styled } from "theme-ui"
 import { Heading, Box, Button, Flex, Card } from "@theme-ui/components"
 
-const state = createStateDesign({
+const state = createState({
   data: { count: 0 },
   initial: "inactive",
   on: {
@@ -52,13 +52,13 @@ const state = createStateDesign({
 })
 
 export const Chart: React.FC<{}> = () => {
-  const { data, send, can, whenIn, stateTree, getConfig } = useStateDesign(
+  const { data, send, can, whenIn, stateTree, getDesign } = useStateDesigner(
     state
   )
 
-  const config = React.useMemo(() => {
-    return getConfig()
-  }, [getConfig])
+  const design = React.useMemo(() => {
+    return getDesign()
+  }, [getDesign])
 
   return (
     <Box>
@@ -90,17 +90,17 @@ export const Chart: React.FC<{}> = () => {
           <State state={stateTree} initial={true} />
         </Styled.li>
       </Styled.ul>
-      {config.results && (
-        <Collection name="results" collection={config.results} />
+      {design.results && (
+        <Collection name="results" collection={design.results} />
       )}
-      {config.conditions && (
-        <Collection name="conditions" collection={config.conditions} />
+      {design.conditions && (
+        <Collection name="conditions" collection={design.conditions} />
       )}
-      {config.actions && (
-        <Collection name="actions" collection={config.actions} />
+      {design.actions && (
+        <Collection name="actions" collection={design.actions} />
       )}
-      {config.asyncs && <Collection name="asyncs" collection={config.asyncs} />}
-      {config.times && <Collection name="times" collection={config.times} />}
+      {design.asyncs && <Collection name="asyncs" collection={design.asyncs} />}
+      {design.times && <Collection name="times" collection={design.times} />}
       <Styled.hr />
       <Styled.pre>{JSON.stringify(stateTree, null, 2)}</Styled.pre>
     </Box>

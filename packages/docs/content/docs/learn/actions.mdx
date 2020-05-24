@@ -4,11 +4,11 @@ Now that we know how to set `data` in our state's configuration and then use `da
 
 <LiveView snippet={"actions"} />
 
-In this example, we've added an event named `INCREASED` to our state. In our component's JSX, we're using the state's `send` method (returned from `useStateDesign`) to send the `INCREASED` event to the state each time that a user clicks the button.
+In this example, we've added an event named `INCREASED` to our state. In our component's JSX, we're using the state's `send` method (returned from `useStateDesigner`) to send the `INCREASED` event to the state each time that a user clicks the button.
 
 When the state receives an event with this name, it will run whatever event handler we have defined for that event. In our case, we're handling the event with an **action**—a function that receives the current `data` and can mutate it directly. That's it!
 
-Any event that causes an action to run will also cause the state to update. In React, this update will trigger a new render of any components that have subscribed to the state with `useStateDesign`.
+Any event that causes an action to run will also cause the state to update. In React, this update will trigger a new render of any components that have subscribed to the state with `useStateDesigner`.
 
 > **Note:** If this seems a little _too_ easy, rest assured: State Designer uses `immer` to power this part of the API. The `data` argument passed into an action is a mutable Draft of the state's otherwise immutable `data`. [Learn more](https://immerjs.github.io/immer/docs/introduction).
 

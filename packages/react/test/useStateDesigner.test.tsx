@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-import { createConfig, createStateDesign, useStateDesign } from "../"
+import { createDesign, createState, useStateDesigner } from "../"
 
 const configObject = {
   data: { count: 0 },
@@ -10,26 +10,26 @@ const configObject = {
   },
 }
 
-const config = createConfig(configObject)
+const config = createDesign(configObject)
 
-const state = createStateDesign(config)
+const state = createState(config)
 
-describe("createConfig", () => {
+describe("createDesign", () => {
   it("Should create a config.", () => {
     expect(config).toBeTruthy()
   })
 })
 
-describe("createStateDesign", () => {
+describe("createState", () => {
   it("Should create a state.", () => {
     expect(state).toBeTruthy()
   })
 })
 
-describe("useStateDesign", () => {
+describe("useStateDesigner", () => {
   it("Should create / subscribe to a local state from an external config.", () => {
     const CounterFromConfig = () => {
-      const { data, send } = useStateDesign(config)
+      const { data, send } = useStateDesigner(config)
 
       return (
         <div>
@@ -46,7 +46,7 @@ describe("useStateDesign", () => {
 
   it("Should create / subscribe to a local state from local config.", () => {
     const CounterFromLocalConfig = () => {
-      const { data, send } = useStateDesign(configObject)
+      const { data, send } = useStateDesigner(configObject)
 
       return (
         <div>
@@ -61,9 +61,9 @@ describe("useStateDesign", () => {
     ReactDOM.unmountComponentAtNode(div)
   })
 
-  it("Should subscribe to an external state (created by createStateDesign).", () => {
+  it("Should subscribe to an external state (created by createState).", () => {
     const CounterFromState = () => {
-      const { data, send } = useStateDesign(state)
+      const { data, send } = useStateDesigner(state)
 
       return (
         <div>
@@ -80,7 +80,7 @@ describe("useStateDesign", () => {
 
   it("Should subscribe multiple components to the same external state.", () => {
     const SharedCounterA = () => {
-      const { data, send } = useStateDesign(state)
+      const { data, send } = useStateDesigner(state)
 
       return (
         <div>
@@ -91,7 +91,7 @@ describe("useStateDesign", () => {
     }
 
     const SharedCounterB = () => {
-      const { data, send } = useStateDesign(state)
+      const { data, send } = useStateDesigner(state)
 
       return (
         <div>

@@ -5,7 +5,7 @@ export const intro = `<button onClick={() => alert("Hey!")}>
 // State
 
 export const state = `function Example() {
-  const state = useStateDesign({ 
+  const state = useStateDesigner({ 
     data: { count: 0 },
   })
 
@@ -13,7 +13,7 @@ export const state = `function Example() {
 }`
 
 export const stateCounter = `function Example() {
-  const state = useStateDesign(counter)
+  const state = useStateDesigner(counter)
 
   return (
     <div>
@@ -25,23 +25,21 @@ export const stateCounter = `function Example() {
 
 // Hook
 export const hook = `function Example() {
-  const update = useStateDesign({
+  const state = useStateDesigner({
     data: { count: 1 }
   })
 
   return (
-    <h1>{update.data.count}</h1>
+    <h1>{state.data.count}</h1>
   )
 }`
 
-// Config
-
 // Updates
 
-export const events = `function Example() {
-  const state = useStateDesign({
+export const namedEvents = `function Greeting() {
+  const state = useStateDesigner({
     on: {
-      OPENED_ALERT: () => alert("Hi!")
+      OPENED_ALERT: () => alert("👋👋👋")
     },
   })
 
@@ -52,8 +50,155 @@ export const events = `function Example() {
   )
 }`
 
+export const namedEventsActiveOnly = `function ActiveOnly() {
+  const state = useStateDesigner({
+    initial: "sunny",
+    states: {
+      sunny: {
+        on: { OPENED_ALERT: () => alert("☀️ It's sunny!") }
+      },
+      raining: {
+        on: { OPENED_ALERT: () => alert("🌧 It's raining!") }
+      },
+    },
+  })
+
+  return (
+    <button onClick={() => state.send("OPENED_ALERT")}>
+      Show me the weather!
+    </button>
+  )
+}`
+
+export const namedEventsParentChild = `function StateTreeEvents() {
+  const state = useStateDesigner({
+    on: { OPENED_ALERT: () => alert("I'll run first!")},
+    initial: "child",
+    states: {
+      child: {
+        on: { OPENED_ALERT: () => alert("I'll run second!") },
+      },
+    },
+  })
+
+  return (
+    <button onClick={() => state.send("OPENED_ALERT")}>
+      Click here!
+    </button>
+  )
+}`
+
+export const namedEventsParentChildParallel = `function ParallelStateEvents() {
+  const state = useStateDesigner({
+    states: {
+      childA: {
+        on: { OPENED_ALERT: () => alert("I'll run first!") },
+      },
+      childB: {
+        on: { OPENED_ALERT: () => alert("I'll run second!") },
+      },
+    },
+  })
+
+  return (
+    <button onClick={() => state.send("OPENED_ALERT")}>
+      Click here!
+    </button>
+  )
+}`
+
+export const eventsBreakingChain = `function BreakingEventChain() {
+  const state = useStateDesigner({
+    states: {
+      parentA: {},
+      parentB: {
+        states: {
+          childA: {
+            on: { 
+              OPENED_ALERT: {
+                do: () => alert("I'll run first!"),
+                to: "parentA",
+              },
+            },
+          },
+          childB: {
+            on: { OPENED_ALERT: () => alert("I would have run second!") },
+          },
+        },
+      },
+    },
+  })
+
+  return (
+    <button onClick={() => state.send("OPENED_ALERT")}>
+      Click here!
+    </button>
+  )
+}`
+
+export const eventsAutoEvents = `function WeatherControl() {
+  const state = useStateDesigner({
+    initial: "sunny",
+    states: {
+      raining: {
+        onEnter: () => alert("☔️ Opening Umbrella"),
+        on: { TOGGLED_RAINING: { to: "sunny" } }
+      },
+      sunny: {
+        on: { TOGGLED_RAINING: { to: "raining" } }
+      }
+    }
+  })
+
+  return (
+    <label>
+      Raining 
+      <input 
+        type="checkbox" 
+        checked={state.isIn("raining")} 
+        onChange={() => state.send("TOGGLED_RAINING")}/>
+    </label>
+      
+  )
+}`
+
+export const eventsTransientStates = `function WeatherControl() {
+  const state = useStateDesigner({
+    on: {
+      REQUESTED_MENU: { to: "decidingMenu" },
+    },
+    initial: "waiting",
+    states: {
+      waiting: {},
+      decidingMenu: {
+        onEnter: [
+          () => alert("Determining menu..."),
+          {
+            if: () => new Date().getHours() < 10,
+            to: "servingBreakfast",
+            else: { to: "servingDinner" }
+          }
+        ]
+      },
+      servingBreakfast: {
+        onEnter: () => alert("🥞 Here's the Brekfast Menu"),
+      },
+      servingDinner: {
+        onEnter: () => alert("🍛 Here's the Dinner Menu")
+      }
+    }
+  })
+
+  return (
+    <button onClick={() => state.send("REQUESTED_MENU")}>
+      Click here!
+    </button>
+      
+  )
+}`
+
 export const eventHandlers = `function Example() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     on: {
       CLICKED: [
         () => alert("I'll run first!"),
@@ -72,7 +217,7 @@ export const eventHandlers = `function Example() {
 }`
 
 export const eventHandlersActions = `function Example() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     on: {
       CLICKED: () => alert("I'm an action!"),
     },
@@ -86,7 +231,7 @@ export const eventHandlersActions = `function Example() {
 }`
 
 export const eventHandlersObjects = `function Example() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     on: {
       CLICKED: {
         if: () => Math.random() > .5,
@@ -106,7 +251,7 @@ export const eventHandlersObjects = `function Example() {
 // States
 
 export const statesToggle = `function Toggle() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     initial: "unchecked",
     states: {
       checked: {},
@@ -120,7 +265,7 @@ export const statesToggle = `function Toggle() {
 }`
 
 export const statesToggleSend = `function Toggle() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     initial: "unchecked",
     states: {
       checked: {},
@@ -142,7 +287,7 @@ export const statesToggleSend = `function Toggle() {
 }`
 
 export const statesToggleEvents = `function Toggle() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     initial: "unchecked",
     states: {
       checked: {
@@ -168,7 +313,7 @@ export const statesToggleEvents = `function Toggle() {
 }`
 
 export const statesToggleWhenIn = `function Toggle() {
-  const state = useStateDesign({ ...toggle })
+  const state = useStateDesigner({ ...toggle })
 
   const label = state.whenIn({
     checked: "Turn off",
@@ -181,7 +326,7 @@ export const statesToggleWhenIn = `function Toggle() {
 }`
 
 export const statesNestedToggle = `function HoverToggle() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     initial: "unchecked",
     states: {
       unchecked: { 
@@ -228,7 +373,7 @@ export const statesNestedToggle = `function HoverToggle() {
 }`
 
 export const statesParallel = `function Toggle() {
-  const state = useStateDesign({
+  const state = useStateDesigner({
     states: {
       weight: {
         initial: "normal",
@@ -270,7 +415,7 @@ export const statesParallel = `function Toggle() {
 // Data
 
 export const data = `function Example() {
-  const { data } = useStateDesign({
+  const { data } = useStateDesigner({
     data: {
       value: 0,
     },
@@ -282,7 +427,7 @@ export const data = `function Example() {
 }`
 
 export const actions = `function Example() {
-  const { data, send } = useStateDesign({
+  const { data, send } = useStateDesigner({
     data: {
       value: 0,
     },
@@ -304,7 +449,7 @@ export const actions = `function Example() {
 }`
 
 export const values = `function Example() {
-  const { data, send, values } = useStateDesign({
+  const { data, send, values } = useStateDesigner({
     data: {
       value: 0,
     },
@@ -330,7 +475,7 @@ export const values = `function Example() {
 }`
 
 export const conditions = `function Example() {
-  const { data, send, values } = useStateDesign({
+  const { data, send, values } = useStateDesigner({
     data: {
       value: 0,
     },

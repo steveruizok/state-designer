@@ -38,7 +38,7 @@ If any event handler runs as a result of the `send` call, then that handler's co
 
 ```jsx
 function Counter() {
-  const { data, send } = useStateDesign({
+  const { data, send } = useStateDesigner({
     data: { message: "Hello world" },
     on: {
       // highlight-start

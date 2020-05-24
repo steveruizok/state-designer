@@ -20,20 +20,20 @@ yarn add @state-designer/react
 
 For the basics of State Designer, see the documentation for [@state-designer/core](https://github.com/@state-designer/core).
 
-You can use the `useStateDesign` hook to subscribe to either a global state or a local component state.
+You can use the `useStateDesigner` hook to subscribe to either a global state or a local component state.
 
 ### Global State
 
 To subscribe to a global state:
 
-1.  Create the state using `createStateDesign`.
+1.  Create the state using `createState`.
 
 ```js
 // state.js
 
-import { createStateDesign } from "@state-designer/react"
+import { createState } from "@state-designer/react"
 
-export const state = createStateDesign({
+export const state = createState({
   data: { items: 0 },
   on: {
     ADDED_ITEMS: {
@@ -45,17 +45,17 @@ export const state = createStateDesign({
 })
 ```
 
-2.  Pass the state to the `useStateDesign` hook.
+2.  Pass the state to the `useStateDesigner` hook.
 
 ```jsx
 // Counter.jsx
 
 import React from "react"
-import { useStateDesign } from "@state-designer/react"
+import { useStateDesigner } from "@state-designer/react"
 import { state } from "./state"
 
 export default function Counter() {
-  const { data, send } = useStateDesign(state)
+  const { data, send } = useStateDesigner(state)
 
   return (
     <div className="Counter">
@@ -111,16 +111,16 @@ In the example above, clicking the reset button would reset all three counters.
 
 ### Local State
 
-To create and subscribe a local state, pass a configuration object to `useStateDesign`.
+To create and subscribe a local state, pass a configuration object to `useStateDesigner`.
 
 ```jsx
 // Counter.jsx
 
 import React from "react"
-import { useStateDesign } from "@state-designer/react"
+import { useStateDesigner } from "@state-designer/react"
 
 export default function Counter() {
-  const { data, send } = useStateDesign({
+  const { data, send } = useStateDesigner({
     data: { items: 0 },
     on: {
       ADDED_ITEMS: {
@@ -164,7 +164,7 @@ In the example above, the three `Counter`s in the example below will each mainta
 
 #### Sending events
 
-When using a local state, other components will not be able to directly subscribe to the state's updates and may only `send` it events through the `send` method returned by `useStateDesign`. This method is stable and can be passed down to children in the same manner as the `dispatch` method described [here](https://reactjs.org/docs/hooks-faq.html#how-to-avoid-passing-callbacks-down).
+When using a local state, other components will not be able to directly subscribe to the state's updates and may only `send` it events through the `send` method returned by `useStateDesigner`. This method is stable and can be passed down to children in the same manner as the `dispatch` method described [here](https://reactjs.org/docs/hooks-faq.html#how-to-avoid-passing-callbacks-down).
 
 #### Dependencies
 
@@ -172,7 +172,7 @@ When using a local state, you may also provide an array of dependencies. If the 
 
 ```jsx
 function Checkbox({ checked = false }) {
-  const { isIn, send } = useStateDesign(
+  const { isIn, send } = useStateDesigner(
     {
       initial: checked ? "checked" : "unchecked",
       states: {
@@ -203,7 +203,7 @@ Note that this is a rather heavy-handed solution and may not be appropriate for 
 
 ```jsx
 function Checkbox({ checked = false }) {
-  const { isIn, send } = useStateDesign({
+  const { isIn, send } = useStateDesigner({
     initial: checked ? "checked" : "unchecked",
     states: {
       checked: {
@@ -239,10 +239,10 @@ In the example above, another component could still control the Checkbox through
 
 ```jsx
 import React from "react"
-import { useStateDesign } from "@state-designer/react"
+import { useStateDesigner } from "@state-designer/react"
 
 export default function App() {
-  const { data, send } = useStateDesign({
+  const { data, send } = useStateDesigner({
     data: { items: 0 },
     on: {
       ADDED_ITEMS: {
@@ -265,6 +265,6 @@ export default function App() {
 
 ## API
 
-### `useStateDesign`
+### `useStateDesigner`
 
 Subscribes to an existing state—or, if given a configuration object, creates a new state and subscribes to it. May also accept an array of dependencies that will, if changed between renders, cause the component to create and subscrive to a new state based on the provided configuration object.

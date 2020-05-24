@@ -13,7 +13,7 @@ if (!Object.entries) Object.entries = entries
  *
  * @param config A State Designer configuration object.
  */
-export function getStateTreeFromConfig<
+export function getStateTreeFromDesign<
   D extends unknown,
   R extends Record<string, S.Result<D>>,
   C extends Record<string, S.Condition<D>>,
@@ -21,7 +21,7 @@ export function getStateTreeFromConfig<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
->(config: S.Config<D, R, C, A, Y, T, V>, id: string) {
+>(config: S.Design<D, R, C, A, Y, T, V>, id: string) {
   /**
    * Convert an event function config into an event function.
    * @param item
@@ -64,7 +64,7 @@ export function getStateTreeFromConfig<
     return isFunction(item) ? item : castToNamedFunction(item)
   }
 
-  function getResults(items: S.MaybeArray<S.ResultConfig<D, R>> | undefined) {
+  function getResults(items: S.MaybeArray<S.ResultDesign<D, R>> | undefined) {
     if (isUndefined(items)) return []
     return castArray(items).map((item) =>
       getEventFn(item, config.results, "results")
@@ -72,7 +72,7 @@ export function getStateTreeFromConfig<
   }
 
   function getConditions(
-    items: S.MaybeArray<S.ConditionConfig<D, C>> | undefined
+    items: S.MaybeArray<S.ConditionDesign<D, C>> | undefined
   ) {
     if (isUndefined(items)) return []
     return castArray(items).map((item) =>
@@ -80,25 +80,25 @@ export function getStateTreeFromConfig<
     )
   }
 
-  function getActions(items: S.MaybeArray<S.ActionConfig<D, A>> | undefined) {
+  function getActions(items: S.MaybeArray<S.ActionDesign<D, A>> | undefined) {
     if (isUndefined(items)) return []
     return castArray(items).map((item) =>
       getEventFn(item, config.actions, "actions")
     )
   }
 
-  function getAsync(item: S.AsyncConfig<D, Y>) {
+  function getAsync(item: S.AsyncDesign<D, Y>) {
     return getEventFn(item, config.asyncs, "asyncs")
   }
 
-  function getTime(item: S.TimeConfig<D, T> | undefined) {
+  function getTime(item: S.TimeDesign<D, T> | undefined) {
     if (isUndefined(item)) return undefined
     return isNumber(item)
       ? castToNamedFunction(item)
       : getEventFn(item, config.times, "times")
   }
 
-  function getSend(item: S.SendConfig<D> | undefined): S.Send<D> | undefined {
+  function getSend(item: S.SendDesign<D> | undefined): S.Send<D> | undefined {
     if (isUndefined(item)) return undefined
     if (isString(item))
       return castToNamedFunction({ event: item, payload: undefined })
@@ -111,7 +111,7 @@ export function getStateTreeFromConfig<
    * @param itemCfg
    */
   function getEventHandlerObject(
-    itemCfg: S.EventHandlerObjectConfig<D, R, C, A, T>
+    itemCfg: S.EventHandlerObjectDesign<D, R, C, A, T>
   ): S.EventHandlerObject<D> {
     return {
       get: getResults(itemCfg.get),
@@ -133,7 +133,7 @@ export function getStateTreeFromConfig<
    * @param event
    */
   function getEventHandler(
-    event: S.EventHandlerConfig<D, R, C, A, T>
+    event: S.EventHandlerDesign<D, R, C, A, T>
   ): S.EventHandler<D> {
     return castArray(event).map((eventHandler) => {
       switch (typeof eventHandler) {
@@ -163,7 +163,7 @@ export function getStateTreeFromConfig<
    * @param active
    */
   function createState(
-    state: S.StateConfig<D, R, C, A, Y, T, V>,
+    state: S.StateDesign<D, R, C, A, Y, T, V>,
     name: string,
     path: string,
     active: boolean

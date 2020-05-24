@@ -2,9 +2,9 @@
 
 ## Core
 
-- [x] createConfig
+- [x] createDesign
   - [x] TypeScript helper methods
-- [x] createStateDesign
+- [x] createState
 - [x] Data
 - [x] States
   - [x] Nested states
@@ -57,7 +57,7 @@
 
 ## React
 
-- [x] useStateDesign
+- [x] useStateDesigner
   - [x] with config
   - [x] with state designer
 - [ ] Testing

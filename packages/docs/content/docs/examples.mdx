@@ -2,10 +2,10 @@
 
 ```jsx
 import React from "react"
-import { useStateDesign } from "state-designer"
+import { useStateDesigner } from "state-designer"
 
 function Counter() {
-  const { send, whenIn } = createStateDesign({
+  const { send, whenIn } = createState({
     initial: "inactive",
     states: {
       inactive: {
@@ -37,10 +37,10 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesign } from "state-designer"
+import { useStateDesigner } from "state-designer"
 
 function Counter() {
-  const { data, send } = createStateDesign({
+  const { data, send } = createState({
     data: {
       count: 0,
     },
@@ -64,10 +64,10 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesign } from "state-designer"
+import { useStateDesigner } from "state-designer"
 
 function Counter() {
-  const { data, send } = createStateDesign({
+  const { data, send } = createState({
     data: {
       min: 0,
       max: 10
@@ -112,10 +112,10 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesign } from "state-designer"
+import { useStateDesigner } from "state-designer"
 
 function Counter() {
-  const { data, send, whenIn } = createStateDesign({
+  const { data, send, whenIn } = createState({
     data: {
       min: 0,
       max: 10
@@ -171,10 +171,10 @@ function Counter() {
 
 ```jsx
 import React from "react"
-import { useStateDesign } from "state-designer"
+import { useStateDesigner } from "state-designer"
 
 function Counter() {
-  const { data, send } = createStateDesign({
+  const { data, send } = createState({
     data: {
       min: 0,
       max: 10
