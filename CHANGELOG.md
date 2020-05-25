@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1
+
+- The state will now immediately update before executing a `wait` delay.
+- If a state becomes inactive while waiting, the event will not continue.
+- Changes the `repeat` API from `event` to `onRepeat`.
+
 ## 1.2.0
 
 - Changes core API

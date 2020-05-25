@@ -90,6 +90,16 @@ export function createState<
     if (subscribers.has(callbackFn)) {
       subscribers.delete(callbackFn)
     }
+
+    // TODO: Prevent persistant intervals (in a smarter way)
+    /* In some cases, intervals may persist past reloads, or when a 
+    state is no longer needed. This solution is too blunt though: I can 
+    imagine users wanting to keep a state's time ticking even when
+    components that depend on it are unmounted. Public method for
+    pause and resume? Activities with cleanup? */
+    if (subscribers.size === 0) {
+      recursivelyEndStateIntervals(core.stateTree)
+    }
   }
 
   // Call each subscriber callback with the state's current update
@@ -102,14 +112,20 @@ export function createState<
 
   /* --------------------- Updates -------------------- */
 
-  // Run event handler that updates the global `updates` object,
+  // Run eve nt handler that updates the global `updates` object,
   // useful for (more or less) synchronous events
-  async function runOnThreadEventHandler(
+  async function runOnChainEventHandler(
     eventHandler: S.EventHandler<D>,
+    state: S.State<D>,
     payload: any = undefined,
     result: any = undefined
   ) {
-    const localUpdate = await runEventHandler(eventHandler, payload, result)
+    const localUpdate = await runEventHandler(
+      eventHandler,
+      state,
+      payload,
+      result
+    )
     if (localUpdate.didAction) setUpdate({ didAction: true })
     if (localUpdate.didTransition) setUpdate({ didTransition: true })
     return update
@@ -118,12 +134,18 @@ export function createState<
   // Run event handler that only returns a local `updates` object,
   // useful in handling delayed events, repeats, etc; so that they don't
   // interfere with "on thread" event handling.
-  async function runOffThreadEventHandler(
+  async function runOffChainEventHandler(
     eventHandler: S.EventHandler<D>,
+    state: S.State<D>,
     payload: any = undefined,
     result: any = undefined
   ) {
-    const localUpdate = await runEventHandler(eventHandler, payload, result)
+    const localUpdate = await runEventHandler(
+      eventHandler,
+      state,
+      payload,
+      result
+    )
     return localUpdate
   }
 
@@ -152,14 +174,24 @@ export function createState<
       // Run event handler, if present
       if (!isUndefined(eventHandler)) {
         vlog(`Running event handlers.`, S.VerboseType.EventHandler)
-        await runOnThreadEventHandler(eventHandler, sent.payload, undefined)
+        await runOnChainEventHandler(
+          eventHandler,
+          state,
+          sent.payload,
+          undefined
+        )
         if (update.didTransition) return
       }
 
       // Run onEvent, if present
       if (!isUndefined(state.onEvent)) {
         vlog(`Running onEvent in ${state.name}.`, S.VerboseType.EventHandler)
-        await runOnThreadEventHandler(state.onEvent, sent.payload, undefined)
+        await runOnChainEventHandler(
+          state.onEvent,
+          state,
+          sent.payload,
+          undefined
+        )
         if (update.didTransition) return
       }
       // Run event on states
@@ -172,8 +204,34 @@ export function createState<
     return
   }
 
+  function endStateIntervals(state: S.State<D>) {
+    const { interval, animationFrame } = state.times
+    if (!isUndefined(interval)) {
+      vlog(`Clearing interval on ${state.path}.`, S.VerboseType.RepeatEvent)
+      clearInterval(interval)
+      state.times.interval = undefined
+    }
+
+    if (!isUndefined(animationFrame)) {
+      vlog(
+        `Clearing animation frame on ${state.path}.`,
+        S.VerboseType.RepeatEvent
+      )
+      cancelAnimationFrame(animationFrame)
+      state.times.animationFrame = undefined
+    }
+  }
+
+  function recursivelyEndStateIntervals(state: S.State<D>) {
+    endStateIntervals(state)
+    for (let child of Object.values(state.states)) {
+      recursivelyEndStateIntervals(child)
+    }
+  }
+
   async function runEventHandler(
     eventHandler: S.EventHandler<D>,
+    state: S.State<D>,
     payload: any = undefined,
     result: any = undefined
   ): Promise<{
@@ -220,7 +278,15 @@ export function createState<
 
       if (item.wait) {
         const s = item.wait(core.data as D, payload, result)
+        const beforeId = state.activeId
+
+        // notify subscribers before waiting
+        notifySubscribers()
+
         await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
+
+        // bail completely if state became inactive while waiting
+        if (state.activeId !== beforeId) return localUpdate
       }
 
       if (passedConditions) {
@@ -275,7 +341,7 @@ export function createState<
       }
 
       if (!isUndefined(localUpdate.else)) {
-        const elseUpdate = await runOnThreadEventHandler(
+        const elseUpdate = await runOnChainEventHandler(
           localUpdate.else,
           payload,
           result
@@ -377,22 +443,7 @@ export function createState<
 
     deactivatedStates.forEach((state) => {
       vlog(`Deactivating ${state.path}.`, S.VerboseType.State)
-
-      const { interval, animationFrame } = state.times
-      if (!isUndefined(interval)) {
-        vlog(`Clearing interval on ${state.path}.`, S.VerboseType.RepeatEvent)
-        clearInterval(interval)
-        state.times.interval = undefined
-      }
-
-      if (!isUndefined(animationFrame)) {
-        vlog(
-          `Clearing animation frame on ${state.path}.`,
-          S.VerboseType.RepeatEvent
-        )
-        cancelAnimationFrame(animationFrame)
-        state.times.animationFrame = undefined
-      }
+      endStateIntervals(state)
     })
 
     for (let state of deactivatedStates) {
@@ -403,7 +454,7 @@ export function createState<
           `Running onExit event on ${state.path}.`,
           S.VerboseType.TransitionEvent
         )
-        await runOnThreadEventHandler(onExit, payload, result)
+        await runOnChainEventHandler(onExit, payload, result)
         if (update.transitions > currentTransitions) return
       }
     }
@@ -418,7 +469,7 @@ export function createState<
       const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
-        const { delay, event } = repeat
+        const { onRepeat, delay } = repeat
 
         let now = Date.now()
         let lastTime = 0
@@ -433,15 +484,19 @@ export function createState<
 
           const loop = async (now: number) => {
             vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
-            const interval = now - lastTime
-            elapsed += interval
+            const realInterval = now - lastTime
+            elapsed += realInterval
 
             lastTime = now
 
-            const localUpdate = await runOffThreadEventHandler(event, payload, {
-              interval,
-              elapsed,
-            })
+            const localUpdate = await runOffChainEventHandler(
+              onRepeat,
+              payload,
+              {
+                realInterval,
+                elapsed,
+              }
+            )
 
             if (localUpdate.didAction || localUpdate.didTransition) {
               notifySubscribers()
@@ -465,14 +520,18 @@ export function createState<
           state.times.interval = setInterval(async () => {
             vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             now = Date.now()
-            const interval = now - lastTime
-            elapsed += interval
+            const realInterval = now - lastTime
+            elapsed += realInterval
             lastTime = now
 
-            const localUpdate = await runOffThreadEventHandler(event, payload, {
-              interval,
-              elapsed,
-            })
+            const localUpdate = await runOffChainEventHandler(
+              onRepeat,
+              payload,
+              {
+                realInterval,
+                elapsed,
+              }
+            )
 
             if (localUpdate.didAction || localUpdate.didTransition) {
               notifySubscribers()
@@ -483,7 +542,7 @@ export function createState<
 
       if (!isUndefined(onEnter)) {
         vlog(`Running onEnter event.`, S.VerboseType.TransitionEvent)
-        await runOnThreadEventHandler(onEnter, payload, result)
+        await runOnChainEventHandler(onEnter, state, payload, result)
         if (update.transitions > currentTransitions) return
       }
 
@@ -492,7 +551,7 @@ export function createState<
         async.await(core.data, payload, result).then(
           async (resolved) => {
             vlog(`Async resolved.`, S.VerboseType.AsyncEvent)
-            const localUpdate = await runOffThreadEventHandler(
+            const localUpdate = await runOffChainEventHandler(
               async.onResolve,
               payload,
               resolved
@@ -504,7 +563,7 @@ export function createState<
           async (rejected) => {
             vlog(`Async rejected.`, S.VerboseType.AsyncEvent)
             if (!isUndefined(async.onReject)) {
-              const localUpdate = await runOffThreadEventHandler(
+              const localUpdate = await runOffChainEventHandler(
                 async.onReject,
                 payload,
                 rejected

@@ -25,7 +25,7 @@ const state = createState({
     },
     active: {
       repeat: {
-        event: [{ do: "increment" }],
+        onRepeat: [{ do: "increment" }],
         delay: 1,
       },
       on: {

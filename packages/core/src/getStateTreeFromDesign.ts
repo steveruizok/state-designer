@@ -172,6 +172,7 @@ export function getStateTreeFromDesign<
       name,
       path: path + name,
       active,
+      activeId: 0,
       history: state.initial ? [state.initial] : [],
       times: {
         interval: undefined,
@@ -192,7 +193,7 @@ export function getStateTreeFromDesign<
         : undefined,
       repeat: state.repeat
         ? {
-            event: getEventHandler(state.repeat.event),
+            onRepeat: getEventHandler(state.repeat.onRepeat),
             delay: state.repeat.delay ? getTime(state.repeat.delay) : undefined,
           }
         : undefined,

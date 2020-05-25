@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useStateDesigner } from "@state-designer/react"
+import { createState, useStateDesigner } from "@state-designer/react"
 import { motion, useMotionValue } from "framer-motion"
 
 const Follower: React.FC<{}> = () => {
@@ -63,9 +63,42 @@ const WhileTest: React.FC<{}> = () => {
   )
 }
 
+const state = createState({
+  data: {
+    count: 0,
+  },
+  repeat: {
+    onRepeat: (d) => d.count++,
+    delay: 0.1,
+  },
+})
+
+const Counter: React.FC = () => {
+  const { data } = useStateDesigner(state)
+  return <div>{data.count}</div>
+}
+
+const Counters: React.FC = () => {
+  const [showCounter1, setShowCounter1] = React.useState(false)
+  const [showCounter2, setShowCounter2] = React.useState(false)
+  return (
+    <div>
+      <button onClick={() => setShowCounter1(!showCounter1)}>
+        Toggle Counter
+      </button>
+      {showCounter1 && <Counter />}
+      <button onClick={() => setShowCounter2(!showCounter2)}>
+        Toggle Counter
+      </button>
+      {showCounter2 && <Counter />}
+    </div>
+  )
+}
+
 const Start: React.FC<{}> = () => {
   return (
     <div>
+      <Counters />
       <WhileTest />
       <Follower />
     </div>

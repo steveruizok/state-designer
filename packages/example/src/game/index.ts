@@ -92,7 +92,7 @@ const game = createState({
         },
         falling: {
           repeat: {
-            event: [
+            onRepeat: [
               {
                 get: "fallingPieceMovedDown",
                 if: "pieceWillFitInMatrix",
@@ -112,7 +112,7 @@ const game = createState({
         },
         dropping: {
           repeat: {
-            event: [
+            onRepeat: [
               {
                 get: "fallingPieceMovedDown",
                 if: "pieceWillFitInMatrix",

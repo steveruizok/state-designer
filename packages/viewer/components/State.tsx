@@ -86,7 +86,7 @@ export const State: React.FC<{ state: S.State<any>; initial: boolean }> = ({
                   <Styled.li>
                     <EventHandler
                       title="repeat"
-                      eventHandler={state.repeat.event}
+                      eventHandler={state.repeat.onRepeat}
                     >
                       <Card variant="eventFns">
                         <Styled.pre>delay</Styled.pre>

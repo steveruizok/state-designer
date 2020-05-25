@@ -33,10 +33,11 @@ const EventList: React.FC<{
 const StateNode: React.FC<{
   state: S.State<any>
 }> = ({ state }) => {
+  const { active } = state
   const states = Object.values(state.states)
   return (
-    <li data-active={state.active} className="item state">
-      {state.name}
+    <li data-active={active} className="item state">
+      {active ? <b>{state.name}</b> : state.name}
       {states.length > 0 && (
         <ul className="list state">
           {states.map((child, i) => (

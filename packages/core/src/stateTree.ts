@@ -13,6 +13,7 @@ import * as S from "./types"
  */
 export function deactivateState<D = any>(state: S.State<D>) {
   state.active = false
+  state.activeId++
   for (let childState of Object.values(state.states)) {
     deactivateState(childState)
   }
@@ -58,6 +59,7 @@ export function activateState<D = any>(
 ): void {
   // Activate this state
   state.active = true
+  state.activeId++
 
   // If this state is next in the path, remove it from path
   if (state.name === path[0]) {

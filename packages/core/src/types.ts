@@ -138,24 +138,24 @@ export type EventHandlerDesign<D, R, C, A, T> = MaybeArray<
   ActionDesign<D, A> | EventHandlerObjectDesign<D, R, C, A, T>
 >
 
-export type RepeatEventHandler<D> = {
-  event: EventHandler<D>
+export type RepeatEvent<D> = {
+  onRepeat: EventHandler<D>
   delay?: Time<D>
 }
 
-export type RepeatEventHandlerDesign<D, R, C, A, T> = {
-  event: EventHandlerDesign<D, R, C, A, T>
+export type RepeatEventDesign<D, R, C, A, T> = {
+  onRepeat: EventHandlerDesign<D, R, C, A, T>
   delay?: TimeDesign<D, T>
 }
 // Async Event Handler
 
-export type AsyncEventHandler<D> = {
+export type AsyncEvent<D> = {
   await: Async<D>
   onResolve: EventHandler<D>
   onReject?: EventHandler<D>
 }
 
-export type AsyncEventHandlerDesign<D, R, C, A, Y, T> = {
+export type AsyncEventDesign<D, R, C, A, Y, T> = {
   await: Extract<keyof Y, string> | Async<D>
   onResolve: EventHandlerDesign<D, R, C, A, T>
   onReject?: EventHandlerDesign<D, R, C, A, T>
@@ -185,6 +185,7 @@ export interface State<D> {
   active: boolean
   path: string
   history: string[]
+  activeId: number
   times: {
     interval?: any
     animationFrame?: number
@@ -193,8 +194,8 @@ export interface State<D> {
   onEnter?: EventHandler<D>
   onExit?: EventHandler<D>
   onEvent?: EventHandler<D>
-  repeat?: RepeatEventHandler<D>
-  async?: AsyncEventHandler<D>
+  repeat?: RepeatEvent<D>
+  async?: AsyncEvent<D>
   states: Record<string, State<D>>
   initial?: string
 }
@@ -204,8 +205,8 @@ export interface StateDesign<D, R, C, A, Y, T, V> {
   onEnter?: EventHandlerDesign<D, R, C, A, T>
   onExit?: EventHandlerDesign<D, R, C, A, T>
   onEvent?: EventHandlerDesign<D, R, C, A, T>
-  repeat?: RepeatEventHandlerDesign<D, R, C, A, T>
-  async?: AsyncEventHandlerDesign<D, R, C, A, Y, T>
+  repeat?: RepeatEventDesign<D, R, C, A, T>
+  async?: AsyncEventDesign<D, R, C, A, Y, T>
   states?: Record<string, StateDesign<D, R, C, A, Y, T, V>>
   initial?: string
 }
@@ -246,12 +247,12 @@ export interface DesignWithHelpers<
   createEventHandlerObjectDesign: (
     config: EventHandlerObjectDesign<D, R, C, A, T>
   ) => EventHandlerObjectDesign<D, R, C, A, T>
-  createAsyncEventHandlerDesign: (
-    config: AsyncEventHandlerDesign<D, R, C, A, Y, T>
-  ) => AsyncEventHandlerDesign<D, R, C, A, Y, T>
-  createRepeatEventHandlerDesign: (
-    config: RepeatEventHandlerDesign<D, R, C, A, T>
-  ) => RepeatEventHandlerDesign<D, R, C, A, T>
+  createAsyncEventDesign: (
+    config: AsyncEventDesign<D, R, C, A, Y, T>
+  ) => AsyncEventDesign<D, R, C, A, Y, T>
+  createRepeatEventDesign: (
+    config: RepeatEventDesign<D, R, C, A, T>
+  ) => RepeatEventDesign<D, R, C, A, T>
   createState: (
     config: StateDesign<D, R, C, A, Y, T, V>
   ) => StateDesign<D, R, C, A, Y, T, V>
