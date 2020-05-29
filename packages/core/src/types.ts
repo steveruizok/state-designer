@@ -1,5 +1,12 @@
 export type MaybeArray<T> = T | T[]
 
+export type Reducer = (
+  acc: any,
+  entry: [string, any],
+  index: number,
+  array: [string, any][]
+) => any
+
 // Event Functions
 
 export type EventFn<D, T> = (data: D, payload?: any, result?: any) => T
@@ -234,7 +241,7 @@ export interface State<D> {
   async?: AsyncEvent<D>
   states: Record<string, State<D>>
   initialFn?: InitialStateObject<D>
-  initial: string
+  initial?: string
 }
 
 export interface StateDesign<D, R, C, A, Y, T, V> {
@@ -340,12 +347,7 @@ export interface DesignedState<
   isInAny: (...paths: string[]) => boolean
   whenIn: (
     states: { [key: string]: any },
-    reducer?: (
-      previousValue: any,
-      currentValue: [string, any],
-      currentIndex: number,
-      array: [string, any][]
-    ) => any,
+    reducer?: "value" | "array" | Reducer,
     initial?: any
   ) => any
   getDesign: () => Design<D, R, C, A, Y, T, V>

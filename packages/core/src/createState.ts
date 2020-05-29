@@ -774,13 +774,8 @@ export function createState<
    */
   function whenIn(
     paths: Record<string, any>,
-    reducer: (
-      previousValue: any,
-      currentValue: [string, any],
-      currentIndex: number,
-      array: [string, any][]
-    ) => any = (prev, cur) => [...prev, cur[1]],
-    initial = []
+    reducer: "value" | "array" | S.Reducer = "value",
+    initialValue?: any
   ) {
     const entries: [string, any][] = []
 
@@ -806,10 +801,22 @@ export function createState<
       }
     }
 
-    let returnValue = initial
+    let returnValue: any
+    let rdcr: S.Reducer
+
+    if (reducer === "array") {
+      returnValue = []
+      rdcr = (a, [_, v]) => [...a, v]
+    } else if (reducer === "value") {
+      returnValue = undefined
+      rdcr = (_, [__, v]) => v
+    } else {
+      returnValue = initialValue
+      rdcr = reducer
+    }
 
     entries.forEach(
-      (entry, i) => (returnValue = reducer(returnValue, entry, i, entries))
+      (entry, i) => (returnValue = rdcr(returnValue, entry, i, entries))
     )
 
     return returnValue

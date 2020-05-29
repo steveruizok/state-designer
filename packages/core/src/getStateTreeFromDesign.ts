@@ -222,7 +222,7 @@ export function getStateTreeFromDesign<
         animationFrame: undefined,
       },
       initialFn: getInitialState(state.initial),
-      initial: "",
+      initial: undefined,
       onEnter: state.onEnter ? getEventHandler(state.onEnter) : undefined,
       onExit: state.onExit ? getEventHandler(state.onExit) : undefined,
       onEvent: state.onEvent ? getEventHandler(state.onEvent) : undefined,

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3
+
+- Fixes bug on parallel states, introduced by changes to initial.
+
 ## 1.2.2
 
 - Changes names of types. Config to Design.
