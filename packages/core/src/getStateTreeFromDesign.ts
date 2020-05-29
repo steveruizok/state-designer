@@ -218,6 +218,7 @@ export function getStateTreeFromDesign<
       activeId: 0,
       history: [],
       times: {
+        timeouts: [],
         interval: undefined,
         animationFrame: undefined,
       },

@@ -33,7 +33,6 @@ export function Todo({ id = 0, content = "", complete = false }) {
               },
             },
             full: {
-              onEnter: () => console.log("in fyul!"),
               on: {
                 TOGGLED_COMPLETE: { to: "complete" },
                 CHANGED_CONTENT: {

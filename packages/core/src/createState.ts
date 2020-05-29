@@ -40,14 +40,12 @@ export function createState<
   // Update (internal update state)
 
   type Update = {
-    process: Promise<S.DesignedState<D, R, C, A, Y, T, V>> | void
     transitions: number
     didTransition: boolean
     didAction: boolean
   }
 
   const update: Update = {
-    process: undefined,
     transitions: 0,
     didTransition: false,
     didAction: false,
@@ -114,43 +112,37 @@ export function createState<
 
   // Run eve nt handler that updates the global `updates` object,
   // useful for (more or less) synchronous events
-  async function runOnChainEventHandler(
-    eventHandler: S.EventHandler<D>,
+  function runOnChainEventHandler(
     state: S.State<D>,
+    eventHandler: S.EventHandler<D>,
     payload: any = undefined,
     result: any = undefined
   ) {
-    const localUpdate = await runEventHandler(
-      eventHandler,
-      state,
-      payload,
-      result
-    )
-    if (localUpdate.didAction) setUpdate({ didAction: true })
-    if (localUpdate.didTransition) setUpdate({ didTransition: true })
-    return update
+    return runEventHandler(state, eventHandler, payload, result)
   }
 
   // Run event handler that only returns a local `updates` object,
   // useful in handling delayed events, repeats, etc; so that they don't
   // interfere with "on thread" event handling.
-  async function runOffChainEventHandler(
-    eventHandler: S.EventHandler<D>,
+  function runOffChainEventHandler(
     state: S.State<D>,
+    eventHandler: S.EventHandler<D>,
     payload: any = undefined,
     result: any = undefined
   ) {
-    return runEventHandler(eventHandler, state, payload, result)
+    return runEventHandler(state, eventHandler, payload, result)
   }
 
   // Try to run an event on a state. If active, it will run the corresponding
   // event, if it has one; and, so long as there hasn't been a transition,
   // will run its onEvent event, if it has one. If still no transition has
   // occurred, it will move to try its child states.
-  async function handleEventOnState(
+  function handleEventOnState(
     state: S.State<D>,
     sent: S.Event
-  ): Promise<void> {
+  ): { shouldHalt: boolean; shouldNotify: boolean } {
+    const record = { shouldHalt: false, shouldNotify: false }
+
     vlog(
       `Testing event ${sent.event} in ${state.name}.`,
       S.VerboseType.EventHandler
@@ -168,38 +160,59 @@ export function createState<
       // Run event handler, if present
       if (!isUndefined(eventHandler)) {
         vlog(`Running event handlers.`, S.VerboseType.EventHandler)
-        await runOnChainEventHandler(
-          eventHandler,
+        const outcome = runOnChainEventHandler(
           state,
+          eventHandler,
           sent.payload,
           undefined
         )
-        if (update.didTransition) return
+
+        if (outcome.shouldHalt) {
+          return outcome
+        }
+
+        if (outcome.shouldNotify) {
+          record.shouldNotify = true
+        }
       }
 
       // Run onEvent, if present
       if (!isUndefined(state.onEvent)) {
         vlog(`Running onEvent in ${state.name}.`, S.VerboseType.EventHandler)
-        await runOnChainEventHandler(
-          state.onEvent,
+        const outcome = runOnChainEventHandler(
           state,
+          state.onEvent,
           sent.payload,
           undefined
         )
-        if (update.didTransition) return
+        if (outcome.shouldHalt) return outcome
+
+        if (outcome.shouldNotify) {
+          record.shouldNotify = true
+        }
       }
       // Run event on states
       for (let childState of activeChildren) {
-        if (update.didTransition) return
-        await handleEventOnState(childState, sent)
+        const outcome = handleEventOnState(childState, sent)
+        if (outcome.shouldHalt) return outcome
+
+        if (outcome.shouldNotify) {
+          record.shouldNotify = true
+        }
       }
     }
 
-    return
+    return record
   }
 
   function endStateIntervals(state: S.State<D>) {
-    const { interval, animationFrame } = state.times
+    const { timeouts, interval, animationFrame } = state.times
+
+    for (let timeout of timeouts) {
+      clearTimeout(timeout)
+    }
+    state.times.timeouts = []
+
     if (!isUndefined(interval)) {
       vlog(`Clearing interval on ${state.path}.`, S.VerboseType.RepeatEvent)
       clearInterval(interval)
@@ -223,27 +236,29 @@ export function createState<
     }
   }
 
-  async function runEventHandler(
-    eventHandler: S.EventHandler<D>,
+  function runEventHandler(
     state: S.State<D>,
+    eventHandler: S.EventHandler<D>,
     payload: any = undefined,
     result: any = undefined
-  ): Promise<{
-    didTransition: boolean
-    didAction: boolean
-  }> {
-    let localUpdate = {
-      didAction: false,
-      didTransition: false,
-      didElse: false,
-      send: undefined as S.Event | undefined,
-      transition: undefined as S.EventFn<D, string> | undefined,
-      else: undefined as S.EventHandler<D> | undefined,
+  ): {
+    shouldHalt: boolean
+    shouldNotify: boolean
+  } {
+    const eventHandlerRecord = {
+      shouldHalt: false,
+      shouldNotify: false,
     }
 
-    // TODO: Make sure off-thread event handlers don't mutate current.
+    // Makes changes, returns record
+    function handleHandlerObject(item: S.EventHandlerObject<D>) {
+      const record = {
+        shouldNotify: false,
+        shouldHalt: false,
+        else: undefined as S.EventHandler<D> | undefined,
+        transition: undefined as S.EventFn<D, string> | undefined,
+      }
 
-    for (let item of eventHandler) {
       // Results
       for (let resu of item.get) {
         result = resu(core.data as D, payload, result)
@@ -270,28 +285,15 @@ export function createState<
         )
       }
 
-      if (item.wait) {
-        const s = item.wait(core.data as D, payload, result)
-        const beforeId = state.activeId
-
-        // notify subscribers before waiting
-        notifySubscribers()
-
-        await new Promise((resolve) => setTimeout(() => resolve(), s * 1000))
-
-        // bail completely if state became inactive while waiting
-        if (state.activeId !== beforeId) return localUpdate
-      }
-
       if (passedConditions) {
         vlog("Passed conditions.", S.VerboseType.Condition)
 
         // Actions
         if (item.do.length > 0) {
           vlog("Running actions.", S.VerboseType.Action)
-          localUpdate.didAction = true
+          record.shouldNotify = true
 
-          core.data = await produce(core.data, async (draft) => {
+          core.data = produce(core.data, (draft) => {
             for (let action of item.do) {
               action(draft as D, payload, result)
             }
@@ -309,7 +311,9 @@ export function createState<
 
         // Send
         if (!isUndefined(item.send)) {
-          localUpdate.send = item.send(core.data as D, payload, result)
+          vlog("Sending event from event handler.", S.VerboseType.EventHandler)
+          const event = item.send(core.data as D, payload, result)
+          send(event.event, event.payload)
         }
 
         // Transitions
@@ -318,51 +322,110 @@ export function createState<
             if (__DEV__) {
               throw Error("Stuck in a loop! Bailing.")
             } else {
-              break
+              record.shouldHalt = true
+              return record
             }
           }
 
           setUpdate({ transitions: update.transitions++ })
-          localUpdate.didTransition = true
-          localUpdate.transition = item.to
+
+          record.transition = item.to
+          record.shouldHalt = true
+          record.shouldNotify = true
         }
       } else {
         vlog("Conditions failed.", S.VerboseType.Condition)
 
         if (!isUndefined(item.else)) {
-          localUpdate.else = item.else
+          record.else = item.else
         }
       }
 
-      if (!isUndefined(localUpdate.else)) {
-        const elseUpdate = await runOnChainEventHandler(
-          localUpdate.else,
+      if (!isUndefined(record.else)) {
+        const elseRecord = runOnChainEventHandler(
+          state,
+          record.else,
           payload,
           result
         )
 
-        if (elseUpdate.didAction) localUpdate.didAction = true
-        if (elseUpdate.didTransition) localUpdate.didTransition = true
+        if (elseRecord.shouldHalt) record.shouldHalt = true
+        if (elseRecord.shouldNotify) record.shouldNotify = true
       }
 
-      if (localUpdate.didTransition) break
+      return record
     }
 
-    // If we have a send, add that to the send queue
-    if (!isUndefined(localUpdate.send)) {
-      vlog("Sending event from event handler.", S.VerboseType.EventHandler)
-      send(localUpdate.send.event, localUpdate.send.payload)
+    function handlerHandlerObjectChain(chain: S.EventHandler<D>) {
+      for (let i = 0; i < chain.length; i++) {
+        const item = chain[i]
+
+        if (item.wait) {
+          // Waited events are handled as their own chain, so
+          // waiting an event handler object should trigger a notify
+          // just in case.
+          eventHandlerRecord.shouldNotify = true
+
+          const s = item.wait(core.data as D, payload, result)
+
+          // Add a timeout to the state's timeouts
+          state.times.timeouts.push(
+            setTimeout(() => {
+              // Handle event
+              const record = handleHandlerObject(item)
+
+              if (record.shouldHalt) {
+                if (!isUndefined(record.transition)) {
+                  // If transition, run the transition, notify subscribers, and end
+                  runTransition(record.transition, payload, result)
+                  notifySubscribers()
+                }
+              } else {
+                // If no transition, continue with the chain
+
+                if (record.shouldNotify) {
+                  // Notify subscribers immediately, I think
+                  // Todo: Notify when post-wait chain settles, I think
+                  notifySubscribers()
+                }
+
+                handlerHandlerObjectChain(chain.slice(i + 1))
+              }
+            }, s * 1000)
+          )
+
+          // Don't continue once we hit a wait event object
+          return
+        } else {
+          // Handle event
+          const record = handleHandlerObject(item)
+
+          // If we made a transition, run that transition
+          if (!isUndefined(record.transition)) {
+            runTransition(record.transition, payload, result)
+            eventHandlerRecord.shouldNotify = true
+          }
+
+          // If we should notify, notify
+          if (record.shouldNotify) {
+            eventHandlerRecord.shouldNotify = true
+          }
+
+          // If we shoudl halt, halt
+          if (record.shouldHalt) {
+            eventHandlerRecord.shouldHalt = true
+            return
+          }
+        }
+      }
     }
 
-    // If we made a transition, run that transition
-    if (!isUndefined(localUpdate.transition)) {
-      await runTransition(localUpdate.transition, payload, result)
-    }
+    handlerHandlerObjectChain(eventHandler)
 
-    return localUpdate
+    return eventHandlerRecord
   }
 
-  async function runTransition(
+  function runTransition(
     targetFn: S.EventFn<D, string>,
     payload: any = undefined,
     result: any = undefined
@@ -451,7 +514,7 @@ export function createState<
           `Running onExit event on ${state.path}.`,
           S.VerboseType.TransitionEvent
         )
-        await runOnChainEventHandler(onExit, payload, result)
+        runOnChainEventHandler(state, onExit, payload, result)
         if (update.transitions > currentTransitions) return
       }
     }
@@ -479,14 +542,15 @@ export function createState<
             S.VerboseType.RepeatEvent
           )
 
-          const loop = async (now: number) => {
+          const loop = (now: number) => {
             vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             const realInterval = now - lastTime
             elapsed += realInterval
 
             lastTime = now
 
-            const localUpdate = await runOffChainEventHandler(
+            const localUpdate = runOffChainEventHandler(
+              state,
               onRepeat,
               payload,
               {
@@ -495,7 +559,7 @@ export function createState<
               }
             )
 
-            if (localUpdate.didAction || localUpdate.didTransition) {
+            if (localUpdate.shouldNotify) {
               notifySubscribers()
             }
 
@@ -514,14 +578,15 @@ export function createState<
             S.VerboseType.RepeatEvent
           )
 
-          state.times.interval = setInterval(async () => {
+          state.times.interval = setInterval(() => {
             vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             now = Date.now()
             const realInterval = now - lastTime
             elapsed += realInterval
             lastTime = now
 
-            const localUpdate = await runOffChainEventHandler(
+            const localUpdate = runOffChainEventHandler(
+              state,
               onRepeat,
               payload,
               {
@@ -530,7 +595,7 @@ export function createState<
               }
             )
 
-            if (localUpdate.didAction || localUpdate.didTransition) {
+            if (localUpdate.shouldNotify) {
               notifySubscribers()
             }
           }, Math.max(1 / 60, s * 1000))
@@ -539,13 +604,13 @@ export function createState<
 
       if (!isUndefined(onEnter)) {
         vlog(`Running onEnter event.`, S.VerboseType.TransitionEvent)
-        const onEnterOutcome = await runOnChainEventHandler(
-          onEnter,
+        const onEnterRecord = runOnChainEventHandler(
           state,
+          onEnter,
           payload,
           result
         )
-        if (onEnterOutcome.didTransition) {
+        if (onEnterRecord.shouldHalt) {
           return
         }
       }
@@ -553,28 +618,28 @@ export function createState<
       if (!isUndefined(async)) {
         vlog(`Running async event.`, S.VerboseType.AsyncEvent)
         async.await(core.data, payload, result).then(
-          async (resolved) => {
+          (resolved) => {
             vlog(`Async resolved.`, S.VerboseType.AsyncEvent)
-            const localUpdate = await runOffChainEventHandler(
+            const localUpdate = runOffChainEventHandler(
+              state,
               async.onResolve,
               payload,
               resolved
             )
 
-            if (localUpdate.didAction || localUpdate.didTransition)
-              notifySubscribers()
+            if (localUpdate.shouldNotify) notifySubscribers()
           },
-          async (rejected) => {
+          (rejected) => {
             vlog(`Async rejected.`, S.VerboseType.AsyncEvent)
             if (!isUndefined(async.onReject)) {
-              const localUpdate = await runOffChainEventHandler(
+              const localUpdate = runOffChainEventHandler(
+                state,
                 async.onReject,
                 payload,
                 rejected
               )
 
-              if (localUpdate.didAction || localUpdate.didTransition)
-                notifySubscribers()
+              if (localUpdate.shouldNotify) notifySubscribers()
             }
           }
         )
@@ -588,9 +653,7 @@ export function createState<
 
   const sendQueue: S.Event[] = []
 
-  async function processSendQueue(): Promise<
-    S.DesignedState<D, R, C, A, Y, T, V>
-  > {
+  function processSendQueue(): S.DesignedState<D, R, C, A, Y, T, V> {
     vlog(`Processing next in queue.`, S.VerboseType.Queue)
 
     setUpdate({
@@ -604,7 +667,6 @@ export function createState<
       vlog(`Queue is empty, resolving.`, S.VerboseType.Queue)
 
       setUpdate({
-        process: undefined,
         transitions: 0,
       })
 
@@ -614,12 +676,10 @@ export function createState<
 
       // Handle the event and set the current handleEventOnState
       // promise, which will hold any additional sent events
-      setUpdate({
-        process: await handleEventOnState(core.stateTree, next),
-      })
+      const { shouldNotify } = handleEventOnState(core.stateTree, next)
 
       // Notify subscribers, if we should
-      if (update.didAction || update.didTransition) {
+      if (shouldNotify) {
         notifySubscribers()
       }
 
@@ -664,13 +724,13 @@ export function createState<
    * @param payload A payload of any type
    * @public
    */
-  async function send(
+  function send(
     eventName: string,
     payload?: any
-  ): Promise<S.DesignedState<D, R, C, A, Y, T, V>> {
+  ): S.DesignedState<D, R, C, A, Y, T, V> {
     vlog(`Received event ${eventName}.`, S.VerboseType.Event)
     sendQueue.push({ event: eventName, payload })
-    return update.process ? update.process : processSendQueue()
+    return processSendQueue()
   }
 
   /**

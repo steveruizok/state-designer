@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4
+
+- Removes all async/await from core library. There are likely some remaining bugs with the move, especially with the sendqueue, but tests are clear for now. Syncronous state was necessary for form control in React.
+
 ## 1.2.3
 
 - Fixes bug on parallel states, introduced by changes to initial.

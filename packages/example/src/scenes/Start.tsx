@@ -69,37 +69,37 @@ const WhileTest: React.FC<{}> = () => {
   )
 }
 
-const state = createState({
-  data: {
-    count: 0,
-  },
-  repeat: {
-    onRepeat: (d) => d.count++,
-    delay: 0.1,
-  },
-})
+// const state = createState({
+//   data: {
+//     count: 0,
+//   },
+//   repeat: {
+//     onRepeat: (d) => d.count++,
+//     delay: 0.1,
+//   },
+// })
 
-const Counter: React.FC = () => {
-  const { data } = useStateDesigner(state)
-  return <div>{data.count}</div>
-}
+// const Counter: React.FC = () => {
+//   const { data } = useStateDesigner(state)
+//   return <div>{data.count}</div>
+// }
 
-const Counters: React.FC = () => {
-  const [showCounter1, setShowCounter1] = React.useState(false)
-  const [showCounter2, setShowCounter2] = React.useState(false)
-  return (
-    <div>
-      <button onClick={() => setShowCounter1(!showCounter1)}>
-        Toggle Counter
-      </button>
-      {showCounter1 && <Counter />}
-      <button onClick={() => setShowCounter2(!showCounter2)}>
-        Toggle Counter
-      </button>
-      {showCounter2 && <Counter />}
-    </div>
-  )
-}
+// const Counters: React.FC = () => {
+//   const [showCounter1, setShowCounter1] = React.useState(false)
+//   const [showCounter2, setShowCounter2] = React.useState(false)
+//   return (
+//     <div>
+//       <button onClick={() => setShowCounter1(!showCounter1)}>
+//         Toggle Counter
+//       </button>
+//       {showCounter1 && <Counter />}
+//       <button onClick={() => setShowCounter2(!showCounter2)}>
+//         Toggle Counter
+//       </button>
+//       {showCounter2 && <Counter />}
+//     </div>
+//   )
+// }
 
 const Parallel: React.FC<{}> = () => {
   const { send, isIn, whenIn } = useStateDesigner({
@@ -129,8 +129,6 @@ const Parallel: React.FC<{}> = () => {
     },
   })
 
-  console.log(isIn("all"))
-
   return (
     <div style={{ margin: 32 }}>
       {whenIn(
@@ -144,15 +142,45 @@ const Parallel: React.FC<{}> = () => {
     </div>
   )
 }
+
+function WaitChain() {
+  const { data, send } = useStateDesigner({
+    data: { count: 0 },
+    on: {
+      TICKED: [
+        {
+          wait: 1,
+          do: (data) => (data.count += 3),
+        },
+        {
+          wait: 2,
+          do: (data) => {
+            console.log(data.count)
+            data.count--
+          },
+        },
+      ],
+    },
+  })
+
+  return (
+    <div>
+      <h1>{data.count}</h1>
+      <button onClick={() => send("TICKED")}>Tick</button>
+    </div>
+  )
+}
+
 const Start: React.FC<{}> = () => {
   return (
     <div>
       {/* <Counters />
       <WhileTest />
       <Follower /> */}
-      <Parallel />
-      <Todo content="Hello world!" complete={false} id={1} />
-      <Todo content="" complete={false} id={1} />
+      <WaitChain />
+      {/* <Parallel /> */}
+      {/* <Todo content="Hello world!" complete={false} id={1} /> */}
+      {/* <Todo content="" complete={false} id={1} /> */}
     </div>
   )
 }

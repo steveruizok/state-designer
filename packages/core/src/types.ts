@@ -230,6 +230,7 @@ export interface State<D> {
   history: string[]
   activeId: number
   times: {
+    timeouts: any[]
     interval?: any
     animationFrame?: number
   }
@@ -338,10 +339,7 @@ export interface DesignedState<
   stateTree: State<D>
   onUpdate: (callbackFn: SubscriberFn<D>) => () => void
   getUpdate: (callbackFn: SubscriberFn<D>) => void
-  send: (
-    eventName: string,
-    payload?: any
-  ) => Promise<DesignedState<D, R, C, A, Y, T, V>>
+  send: (eventName: string, payload?: any) => DesignedState<D, R, C, A, Y, T, V>
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
   isInAny: (...paths: string[]) => boolean

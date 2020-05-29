@@ -19,10 +19,7 @@ describe("createState", () => {
   it("Should support chaining with then.", async (done) => {
     const counter = createState(counterDesign)
 
-    await counter
-      .send("TOGGLED")
-      .then((c) => c.send("CLICKED_PLUS"))
-      .then((c) => c.send("CLICKED_PLUS"))
+    counter.send("TOGGLED").send("CLICKED_PLUS").send("CLICKED_PLUS")
 
     expect(counter.data.count).toBe(3)
     done()
@@ -53,7 +50,7 @@ describe("createState", () => {
     const counter = createState(counterDesign)
     expect(counter.isIn("active")).toBeFalsy()
     expect(counter.isIn("inactive")).toBeTruthy()
-    await counter.send("TOGGLED")
+    counter.send("TOGGLED")
     expect(counter.isIn("active")).toBeTruthy()
     expect(counter.isIn("inactive")).toBeFalsy()
     done()
@@ -72,7 +69,7 @@ describe("createState", () => {
     const counter = createState(counterDesign)
     expect(counter.can("CLICKED_PLUS")).toBeFalsy()
     expect(counter.can("TOGGLED")).toBeTruthy()
-    await counter.send("TOGGLED")
+    counter.send("TOGGLED")
     expect(counter.can("CLICKED_PLUS")).toBeTruthy()
     expect(counter.can("TOGGLED")).toBeTruthy()
     done()
@@ -99,20 +96,20 @@ describe("createState", () => {
 
     expect(state.isIn("inactive")).toBeTruthy()
 
-    await state.send("TOGGLE")
+    state.send("TOGGLE")
 
     expect(state.isIn("active")).toBeTruthy()
     expect(state.isIn("min")).toBeTruthy()
     expect(state.isIn("mid")).toBeFalsy()
     expect(state.isIn("max")).toBeFalsy()
 
-    await state.send("CLICKED_PLUS")
+    state.send("CLICKED_PLUS")
 
     expect(state.isIn("min")).toBeFalsy()
     expect(state.isIn("mid")).toBeTruthy()
     expect(state.isIn("max")).toBeFalsy()
 
-    await state.send("TOGGLE")
+    state.send("TOGGLE")
 
     expect(state.isIn("inactive")).toBeTruthy()
     expect(state.isIn("min")).toBeFalsy()
@@ -129,11 +126,11 @@ describe("createState", () => {
   it("Should support onEnter and onExit events.", async (done) => {
     const counter = createState(counterDesign)
     expect(counter.data.activations).toBe(0)
-    let update = await counter.send("TOGGLED")
+    let update = counter.send("TOGGLED")
     expect(update.data.activations).toBe(1)
     expect(update.data.deactivations).toBe(0)
     expect(counter.isIn("active")).toBeTruthy()
-    update = await counter.send("TOGGLED")
+    update = counter.send("TOGGLED")
     expect(update.data.activations).toBe(1)
     expect(update.data.deactivations).toBe(1)
     done()
@@ -162,12 +159,12 @@ describe("createState", () => {
     })
 
     expect(toggler.isIn("inactive")).toBeTruthy()
-    let update = await toggler.send("TOGGLED")
+    let update = toggler.send("TOGGLED")
     expect(toggler.isIn("active")).toBeTruthy()
     expect(update.data.count).toBe(1)
-    update = await toggler.send("TOGGLED")
+    update = toggler.send("TOGGLED")
     expect(toggler.isIn("inactive")).toBeTruthy()
-    update = await toggler.send("TOGGLED")
+    update = toggler.send("TOGGLED")
     expect(toggler.isIn("active")).toBeTruthy()
     expect(update.data.count).toBe(2)
     expect(toggler.data.count).toBe(2)
@@ -214,13 +211,13 @@ describe("createState", () => {
     })
 
     expect(state.data.count).toBe(0) // Start at zero
-    await state.send("SOME_EVENT")
+    state.send("SOME_EVENT")
     expect(state.data.count).toBe(2) // When zero, adds two
-    await state.send("SOME_EVENT")
+    state.send("SOME_EVENT")
     expect(state.data.count).toBe(3) // When less than max, adds one
-    await state.send("SOME_EVENT") // 4
-    await state.send("SOME_EVENT") // 5
-    await state.send("SOME_EVENT") // When at max, resets to zero
+    state.send("SOME_EVENT") // 4
+    state.send("SOME_EVENT") // 5
+    state.send("SOME_EVENT") // When at max, resets to zero
     expect(state.data.count).toBe(0)
 
     const ugly = createState({
@@ -248,7 +245,7 @@ describe("createState", () => {
     })
 
     expect(ugly.data.count).toBe(0)
-    await ugly.send("SOME_UGLY_EVENT")
+    ugly.send("SOME_UGLY_EVENT")
     expect(ugly.data.count).toBe(5)
     done()
   })
