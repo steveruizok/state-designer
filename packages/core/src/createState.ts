@@ -140,13 +140,7 @@ export function createState<
     payload: any = undefined,
     result: any = undefined
   ) {
-    const localUpdate = await runEventHandler(
-      eventHandler,
-      state,
-      payload,
-      result
-    )
-    return localUpdate
+    return runEventHandler(eventHandler, state, payload, result)
   }
 
   // Try to run an event on a state. If active, it will run the corresponding
@@ -412,6 +406,9 @@ export function createState<
     // Deactivate the whole state tree
     StateTree.deactivateState(core.stateTree)
 
+    // Update the initial states across the entire state tree.
+    StateTree.setIntitialStates(core.stateTree, payload, core.data)
+
     // Use the path to activate the tree again
     StateTree.activateState(
       core.stateTree,
@@ -542,8 +539,15 @@ export function createState<
 
       if (!isUndefined(onEnter)) {
         vlog(`Running onEnter event.`, S.VerboseType.TransitionEvent)
-        await runOnChainEventHandler(onEnter, state, payload, result)
-        if (update.transitions > currentTransitions) return
+        const onEnterOutcome = await runOnChainEventHandler(
+          onEnter,
+          state,
+          payload,
+          result
+        )
+        if (onEnterOutcome.didTransition) {
+          return
+        }
       }
 
       if (!isUndefined(async)) {
@@ -860,9 +864,11 @@ export function createState<
     values: getValues(config.data as D),
   }
 
-  // Deactivate the tree, then activate it again to trigger events
+  // Deactivate the tree, then activate it again to set initial active states.
   StateTree.deactivateState(core.stateTree)
-  runTransition(() => "root")
+  runTransition(() => "root") // Will onEnter events matter?
+  core.values = getValues(core.data)
+  core.active = StateTree.getActiveStates(core.stateTree)
 
   return core
 }

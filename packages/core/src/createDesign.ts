@@ -23,12 +23,12 @@ export function createDesign<
     createEventHandlerObjectDesign: (
       eventHandlerItemDesign: S.EventHandlerObjectDesign<D, R, C, A, T>
     ) => eventHandlerItemDesign,
-    createAsyncEventHandlerDesign: (
-      asyncEventHandlerDesign: S.AsyncEventHandlerDesign<D, R, C, A, Y, T>
-    ) => asyncEventHandlerDesign,
-    createRepeatEventHandlerDesign: (
-      repeatEventHandler: S.RepeatEventHandlerDesign<D, R, C, A, T>
-    ) => repeatEventHandler,
+    createAsyncEventDesign: (
+      asyncEventDesign: S.AsyncEventDesign<D, R, C, A, Y, T>
+    ) => asyncEventDesign,
+    createRepeatEventDesign: (
+      repeatEventDesign: S.RepeatEventDesign<D, R, C, A, T>
+    ) => repeatEventDesign,
     createState: (stateDesign: S.StateDesign<D, R, C, A, Y, T, V>) =>
       stateDesign,
     createActionDesign: (actionDesign: S.ActionDesign<D, A>) => actionDesign,

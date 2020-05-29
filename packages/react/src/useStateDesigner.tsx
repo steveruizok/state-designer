@@ -9,9 +9,9 @@ const emptyArray: any[] = []
 /* -------------------------------------------------- */
 
 /**
- * Subscribe a component to an existing state, or to a new one created from the provided configuration.
- * @param config A configuration object for a new state — or a state returned from createState.
- * @param dependencies (optional) An array of dependencies that, when changed, will rebuild a new state from the provided config.
+ * Subscribe a component to an existing state, or to a new one created from the provided designuration.
+ * @param design A designuration object for a new state — or a state returned from createState.
+ * @param dependencies (optional) An array of dependencies that, when changed, will rebuild a new state from the provided design.
  */
 export function useStateDesigner<
   D extends unknown,
@@ -25,8 +25,8 @@ export function useStateDesigner<
   design: S.Design<D, R, C, A, Y, T, V> | S.DesignedState<D, R, C, A, Y, T, V>,
   dependencies: any[] = emptyArray
 ): S.DesignedState<D, R, C, A, Y, T, V> {
-  // Store a state — either as provided or new from config,
-  // and, if given a config, re-create the state when dependencies change
+  // Store a state — either as provided or new from design,
+  // and, if given a design, re-create the state when dependencies change
   const state: S.DesignedState<D, R, C, A, Y, T, V> = React.useMemo(() => {
     return isUndefined((design as S.DesignedState<D, R, C, A, Y, T, V>).send)
       ? createState(design as S.Design<D, R, C, A, Y, T, V>)

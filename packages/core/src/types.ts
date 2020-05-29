@@ -64,6 +64,42 @@ export type Break<D> = EventFn<D, boolean>
 
 export type BreakDesign<D> = boolean | EventFn<D, boolean>
 
+// Intitial Object
+
+export type InitialStateObject<D> = {
+  get: Result<D>[]
+  if: Condition<D>[]
+  unless: Condition<D>[]
+  ifAny: Condition<D>[]
+  to: Target<D>
+  else?: InitialStateObject<D>
+}
+
+// Intitial Object Design
+
+export type InitialStateObjectDesign<D, C, R> =
+  | InitialStateObjectDesignWithoutLogic<D>
+  | InitialStateObjectDesignWithLogic<D, C, R>
+
+export type InitialStateObjectDesignWithoutLogic<D> =
+  | string
+  | {
+      to: TargetDesign<D>
+    }
+
+export type InitialStateObjectDesignWithLogic<D, C, R> = {
+  get?: MaybeArray<ResultDesign<D, R>>
+  if?: MaybeArray<ConditionDesign<D, C>>
+  unless?: MaybeArray<ConditionDesign<D, C>>
+  ifAny?: MaybeArray<ConditionDesign<D, C>>
+  to: TargetDesign<D>
+  else: InitialStateObjectDesign<D, C, R>
+}
+
+export type InitialStateDesign<D, C, R> =
+  | string
+  | InitialStateObjectDesign<D, C, R>
+
 // Event Handler Object
 
 export type EventHandlerObject<D> = {
@@ -197,7 +233,8 @@ export interface State<D> {
   repeat?: RepeatEvent<D>
   async?: AsyncEvent<D>
   states: Record<string, State<D>>
-  initial?: string
+  initialFn?: InitialStateObject<D>
+  initial: string
 }
 
 export interface StateDesign<D, R, C, A, Y, T, V> {
@@ -208,7 +245,7 @@ export interface StateDesign<D, R, C, A, Y, T, V> {
   repeat?: RepeatEventDesign<D, R, C, A, T>
   async?: AsyncEventDesign<D, R, C, A, Y, T>
   states?: Record<string, StateDesign<D, R, C, A, Y, T, V>>
-  initial?: string
+  initial?: InitialStateDesign<D, C, R>
 }
 
 // Design
@@ -242,27 +279,27 @@ export interface DesignWithHelpers<
   V extends Record<string, Value<D>> = any
 > extends Design<D, R, C, A, Y, T, V> {
   createEventHandlerDesign: (
-    config: EventHandlerDesign<D, R, C, A, T>
+    design: EventHandlerDesign<D, R, C, A, T>
   ) => EventHandlerDesign<D, R, C, A, T>
   createEventHandlerObjectDesign: (
-    config: EventHandlerObjectDesign<D, R, C, A, T>
+    design: EventHandlerObjectDesign<D, R, C, A, T>
   ) => EventHandlerObjectDesign<D, R, C, A, T>
   createAsyncEventDesign: (
-    config: AsyncEventDesign<D, R, C, A, Y, T>
+    design: AsyncEventDesign<D, R, C, A, Y, T>
   ) => AsyncEventDesign<D, R, C, A, Y, T>
   createRepeatEventDesign: (
-    config: RepeatEventDesign<D, R, C, A, T>
+    design: RepeatEventDesign<D, R, C, A, T>
   ) => RepeatEventDesign<D, R, C, A, T>
   createState: (
-    config: StateDesign<D, R, C, A, Y, T, V>
+    design: StateDesign<D, R, C, A, Y, T, V>
   ) => StateDesign<D, R, C, A, Y, T, V>
-  createResultDesign: (config: ResultDesign<D, R>) => ResultDesign<D, R>
+  createResultDesign: (design: ResultDesign<D, R>) => ResultDesign<D, R>
   createConditionDesign: (
-    config: ConditionDesign<D, C>
+    design: ConditionDesign<D, C>
   ) => ConditionDesign<D, C>
-  createActionDesign: (config: ActionDesign<D, A>) => ActionDesign<D, A>
-  createTimeDesign: (config: TimeDesign<D, T>) => TimeDesign<D, T>
-  createValueDesign: (config: Value<D>) => Value<D>
+  createActionDesign: (design: ActionDesign<D, A>) => ActionDesign<D, A>
+  createTimeDesign: (design: TimeDesign<D, T>) => TimeDesign<D, T>
+  createValueDesign: (design: Value<D>) => Value<D>
 }
 
 // Subscribers

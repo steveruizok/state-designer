@@ -32,6 +32,7 @@ describe("createState", () => {
 
   it("Should support the isIn helper.", async (done) => {
     const counter = createState(counterDesign)
+    console.log(counter.stateTree)
     expect(counter.isIn("active")).toBeFalsy()
     expect(counter.isIn("inactive")).toBeTruthy()
     expect(counter.isIn("active", "inactive")).toBeFalsy()

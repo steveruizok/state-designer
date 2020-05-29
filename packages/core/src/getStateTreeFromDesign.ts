@@ -155,6 +155,49 @@ export function getStateTreeFromDesign<
     })
   }
 
+  function getInitialState(
+    initial?: string | S.InitialStateObjectDesign<D, C, R>
+  ): S.InitialStateObject<D> | undefined {
+    if (isUndefined(initial)) {
+      return
+    }
+
+    if (
+      (initial as S.InitialStateObjectDesignWithLogic<D, C, R>).else !==
+      undefined
+    ) {
+      const init = initial as S.InitialStateObjectDesignWithLogic<D, C, R>
+      return {
+        get: getResults(init.get),
+        if: getConditions(init.if),
+        unless: getConditions(init.unless),
+        ifAny: getConditions(init.ifAny),
+        to: isFunction(init.to) ? init.to : castToNamedFunction(init.to),
+        else: getInitialState(init.else),
+      }
+    } else {
+      const init = initial as S.InitialStateObjectDesignWithoutLogic<D>
+
+      if (typeof init === "string") {
+        return {
+          get: [],
+          if: [],
+          unless: [],
+          ifAny: [],
+          to: castToNamedFunction(init),
+        }
+      }
+
+      return {
+        get: [],
+        if: [],
+        unless: [],
+        ifAny: [],
+        to: isFunction(init.to) ? init.to : castToNamedFunction(init.to),
+      }
+    }
+  }
+
   /**
    * Convert a config into a state tree. Works recursively, so only call on the config.
    * @param state
@@ -173,12 +216,13 @@ export function getStateTreeFromDesign<
       path: path + name,
       active,
       activeId: 0,
-      history: state.initial ? [state.initial] : [],
+      history: [],
       times: {
         interval: undefined,
         animationFrame: undefined,
       },
-      initial: state.initial,
+      initialFn: getInitialState(state.initial),
+      initial: "",
       onEnter: state.onEnter ? getEventHandler(state.onEnter) : undefined,
       onExit: state.onExit ? getEventHandler(state.onExit) : undefined,
       onEvent: state.onEvent ? getEventHandler(state.onEvent) : undefined,
@@ -210,12 +254,7 @@ export function getStateTreeFromDesign<
           ? Object.entries(state.states).map(([childName, childState]) => {
               return [
                 childName,
-                createState(
-                  childState,
-                  childName,
-                  path + name + ".",
-                  isUndefined(state.initial) || state.initial === childName
-                ),
+                createState(childState, childName, path + name + ".", false),
               ]
             })
           : []

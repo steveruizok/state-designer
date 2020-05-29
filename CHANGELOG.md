@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.2.2
+
+- Changes names of types. Config to Design.
+- Adds multiples for events in StateGraph.
+- Adds computed initial property. This should prevent confusing `onEnter` patterns.
+- When defined, an `initial` property can either be a string, a function that returns a string, an object with a `to` property (either a string or a function that returns a string), or an object with a `to` (either a string or a function that returns a string), conditionals (`if`, `ifAny`, or `unless`) and an `else`, which takes the same value as `initial`.
+
+```js
+{ ...states, initial: undefined }
+
+{ ...states, initial: "a" }
+
+{ ...states, initial: (data) => data.someProp ? "a" : "b" }
+
+{ ...states, initial: { if: "someCondition", to: "a", else: "b" } }
+
+{ ...states,
+  initial: {
+    if: "someCondition",
+    to: "a",
+    else: (data) => data.someProp ? "a" : "b"
+  }
+}
+
+{ ...states,
+  initial: {
+    if: "someCondition",
+    to: "a",
+    else: {
+      if: "someOtherCondition",
+      to: "b",
+      else: "c"
+    }
+  }
+}
+```
+
 ## 1.2.1
 
 - The state will now immediately update before executing a `wait` delay.

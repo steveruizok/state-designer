@@ -163,3 +163,71 @@ export function findTransitionTargets<D = any>(
 
   return acc
 }
+
+/**
+ * Compute a state's initial state, given the state's initialFn and the provided payload and data.
+ *
+ * @param initial
+ * @param payload
+ * @param data
+ */
+export function getInitialState<D>(
+  initial: S.InitialStateObject<D>,
+  payload: any,
+  data: D
+): string {
+  if (initial.else !== undefined) {
+    // Initial State with Logic
+    let result: any = undefined
+
+    for (let resu of initial.get) {
+      result = resu(data, payload, result)
+    }
+
+    let passedConditions = true
+
+    if (passedConditions && initial.if.length > 0) {
+      passedConditions = initial.if.every((cond) => cond(data, payload, result))
+    }
+
+    if (passedConditions && initial.unless.length > 0) {
+      passedConditions = initial.unless.every(
+        (cond) => !cond(data, payload, result)
+      )
+    }
+
+    if (passedConditions && initial.ifAny.length > 0) {
+      passedConditions = initial.ifAny.some((cond) =>
+        cond(data, payload, result)
+      )
+    }
+
+    if (passedConditions) {
+      return initial.to(data, payload, result)
+    } else {
+      return getInitialState(initial.else, payload, data)
+    }
+  } else {
+    return initial.to(data, payload, undefined)
+  }
+}
+
+/**
+ * Recursively set initial states. Call this function on the state tree before transitioning.
+ *
+ * @param state
+ * @param payload
+ * @param data
+ */
+export function setIntitialStates<D>(state: S.State<D>, payload: any, data: D) {
+  if (state.initialFn !== undefined) {
+    state.initial = getInitialState(state.initialFn, payload, data)
+  }
+
+  if (state.states !== undefined) {
+    // Parallel State
+    for (let child of Object.values(state.states)) {
+      setIntitialStates(child, payload, data)
+    }
+  }
+}

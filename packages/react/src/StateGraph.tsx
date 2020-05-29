@@ -19,11 +19,23 @@ const EventList: React.FC<{
     return localEvents
   }
 
+  const eventMap = new Map<string, number>([])
+
+  for (let event of getEvents(state)) {
+    const prior = eventMap.get(event)
+    if (prior === undefined) {
+      eventMap.set(event, 1)
+    } else {
+      eventMap.set(event, prior + 1)
+    }
+  }
+
   return (
     <ul className="list event">
-      {getEvents(state).map((eventName, i) => (
+      {Array.from(eventMap.entries()).map(([eventName, count], i) => (
         <li key={i} className="item event">
           {eventName}
+          {count > 1 && ` x${count}`}
         </li>
       ))}
     </ul>
