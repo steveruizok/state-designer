@@ -2,7 +2,7 @@ import { isUndefined, pick } from "lodash"
 import * as React from "react"
 import { createState, S } from "@state-designer/core"
 
-const emptyArray: any[] = []
+const emptyArray: unknown[] = []
 
 /* -------------------------------------------------- */
 /*                     React Hook                     */
@@ -43,10 +43,13 @@ export function useStateDesigner<
   React.useEffect(
     () =>
       state.onUpdate((update) => {
-        setCurrent({ ...update })
+        setCurrent((current) => ({
+          ...current,
+          ...pick(update, "data", "active", "stateTree", "values"),
+        }))
       }),
     [state, setCurrent]
   )
 
-  return { ...state, ...pick(current, "data", "active", "stateTree", "values") }
+  return current
 }

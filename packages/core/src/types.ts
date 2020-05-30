@@ -1,11 +1,11 @@
 export type MaybeArray<T> = T | T[]
 
-export type Reducer = (
+export type Reducer<T> = (
   acc: any,
   entry: [string, any],
   index: number,
   array: [string, any][]
-) => any
+) => T
 
 // Event Functions
 
@@ -343,11 +343,11 @@ export interface DesignedState<
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
   isInAny: (...paths: string[]) => boolean
-  whenIn: (
+  whenIn: <T = unknown>(
     states: { [key: string]: any },
-    reducer?: "value" | "array" | Reducer,
+    reducer?: "value" | "array" | Reducer<T>,
     initial?: any
-  ) => any
+  ) => T
   getDesign: () => Design<D, R, C, A, Y, T, V>
   clone: () => DesignedState<D, R, C, A, Y, T, V>
   values: Values<D, V>

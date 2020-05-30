@@ -7,6 +7,7 @@ import {
 } from "@state-designer/react"
 import { motion, useMotionValue } from "framer-motion"
 import { Todo } from "./Tests/Todo"
+import { TodoList } from "./Todos"
 
 const Follower: React.FC<{}> = () => {
   const x = useMotionValue(0)
@@ -177,10 +178,11 @@ const Start: React.FC<{}> = () => {
       {/* <Counters />
       <WhileTest />
       <Follower /> */}
-      <WaitChain />
+      {/* <WaitChain /> */}
       {/* <Parallel /> */}
       {/* <Todo content="Hello world!" complete={false} id={1} /> */}
       {/* <Todo content="" complete={false} id={1} /> */}
+      <TodoList />
     </div>
   )
 }

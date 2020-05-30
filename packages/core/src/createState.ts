@@ -832,11 +832,11 @@ export function createState<
    * @param initial (optional) The reducer's initial value.
    * @public
    */
-  function whenIn(
+  function whenIn<T = any>(
     paths: Record<string, any>,
-    reducer: "value" | "array" | S.Reducer = "value",
+    reducer: "value" | "array" | S.Reducer<T> = "value",
     initialValue?: any
-  ) {
+  ): T {
     const entries: [string, any][] = []
 
     Object.entries(paths).forEach(([key, value]) => {
@@ -862,11 +862,11 @@ export function createState<
     }
 
     let returnValue: any
-    let rdcr: S.Reducer
+    let rdcr: S.Reducer<T>
 
     if (reducer === "array") {
       returnValue = []
-      rdcr = (a, [_, v]) => [...a, v]
+      rdcr = (a, [_, v]) => [...a, v] as any
     } else if (reducer === "value") {
       returnValue = undefined
       rdcr = (_, [__, v]) => v
