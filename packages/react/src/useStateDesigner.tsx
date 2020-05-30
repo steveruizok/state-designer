@@ -38,7 +38,7 @@ export function useStateDesigner<
   // and, if given a design, re-create the state when dependencies change
   const state: RV = React.useMemo(() => {
     return isUndefined((design as RV).send)
-      ? createState(design as S.Design<D, R, C, A, Y, T, V>)
+      ? createState(design as RV)
       : (design as RV)
   }, dependencies)
 

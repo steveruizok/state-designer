@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.5
+
+- Greatly simplifies types on DesignedState.
+- DesignedState now only includes types for `data` and the returned `values`.
+- Adds `useUpdateEffect`, useful for `send`ing data up to a parent state.
+
 ## 1.2.4
 
 - Removes all async/await from core library. There are likely some remaining bugs with the move, especially with the sendqueue, but tests are clear for now. Syncronous state was necessary for form control in React.

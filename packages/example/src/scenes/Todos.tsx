@@ -54,6 +54,7 @@ const globalState = createState({
   },
   actions: {
     updateTodo(data, payload) {
+      console.log(payload)
       data.todos[payload.id] = payload
     },
     createTodo(data) {
@@ -89,86 +90,80 @@ const globalState = createState({
 })
 
 const Todo: React.FC<ITodo> = ({ id, content, complete }) => {
-  const state = useStateDesigner(
-    {
-      data: {
-        id,
-        content,
-        complete,
-      },
-      initial: complete ? "complete" : "incomplete",
-      states: {
-        incomplete: {
-          on: {
-            CHANGED_CONTENT: { do: "setContent" },
-          },
-          initial: {
-            if: "contentIsEmpty",
-            to: "empty",
-            else: { to: "full" },
-          },
-          states: {
-            empty: {
-              on: {
-                CHANGED_CONTENT: {
-                  unless: "contentIsEmpty",
-                  to: "full",
-                },
+  const state = useStateDesigner({
+    data: {
+      id,
+      content,
+      complete,
+    },
+    initial: complete ? "complete" : "incomplete",
+    states: {
+      incomplete: {
+        on: {
+          CHANGED_CONTENT: { do: "setContent" },
+        },
+        initial: {
+          if: "contentIsEmpty",
+          to: "empty",
+          else: { to: "full" },
+        },
+        states: {
+          empty: {
+            on: {
+              CHANGED_CONTENT: {
+                unless: "contentIsEmpty",
+                to: "full",
               },
             },
-            full: {
-              on: {
-                TOGGLED_COMPLETE: {
-                  do: "setComplete",
-                  to: "complete",
-                },
+          },
+          full: {
+            on: {
+              TOGGLED_COMPLETE: {
+                do: "setComplete",
+                to: "complete",
+              },
 
-                CHANGED_CONTENT: {
-                  if: "contentIsEmpty",
-                  to: "empty",
-                },
+              CHANGED_CONTENT: {
+                if: "contentIsEmpty",
+                to: "empty",
               },
             },
           },
         },
-        complete: {
-          on: {
-            TOGGLED_COMPLETE: {
-              do: "clearComplete",
-              to: "incomplete",
-            },
+      },
+      complete: {
+        on: {
+          TOGGLED_COMPLETE: {
+            do: "clearComplete",
+            to: "incomplete",
           },
-        },
-      },
-      conditions: {
-        contentIsEmpty(data) {
-          return data.content === ""
-        },
-      },
-      actions: {
-        setContent(data, payload) {
-          data.content = payload
-        },
-        setComplete(data) {
-          data.complete = true
-        },
-        clearComplete(data) {
-          data.complete = false
-        },
-        updateGlobalState(data) {
-          globalState.send("CHANGED_TODO", data)
         },
       },
     },
-    [id, content, complete]
-  )
+    conditions: {
+      contentIsEmpty(data) {
+        return data.content === ""
+      },
+    },
+    actions: {
+      setContent(data, payload) {
+        data.content = payload
+      },
+      setComplete(data) {
+        data.complete = true
+      },
+      clearComplete(data) {
+        data.complete = false
+      },
+      updateGlobalState(data) {
+        globalState.send("CHANGED_TODO", data)
+      },
+    },
+  })
 
   useUpdateEffect(
     state,
-    (update) => {
-      console.log("hook firing, dependencies changed")
-      globalState.send("CHANGED_TODO", update.data)
-    },
+    (update) => globalState.send("CHANGED_TODO", update.data),
     [state.data.content]
   )
 
