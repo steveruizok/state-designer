@@ -19,8 +19,8 @@ enableAllPlugins()
 /* -------------------------------------------------- */
 
 /**
- * Create a new state from a configuration object.
- * @param config
+ * Create a new state from a designuration object.
+ * @param design
  * @public
  */
 export function createState<
@@ -32,10 +32,22 @@ export function createState<
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
 >(
-  config: S.Design<D, R, C, A, Y, T, V>,
+  design: S.Design<D, R, C, A, Y, T, V>,
   verbose?: (message: string, type: S.VerboseType) => any
-): S.DesignedState<D, R, C, A, Y, T, V> {
+): S.DesignedState<
+  D,
+  {
+    [key in keyof V]: ReturnType<V[key]>
+  }
+> {
   /* ------------------ Mutable Data ------------------ */
+
+  type Core = S.DesignedState<
+    D,
+    {
+      [key in keyof V]: ReturnType<V[key]>
+    }
+  >
 
   // Update (internal update state)
 
@@ -68,14 +80,14 @@ export function createState<
 
   // A set of subscription callbacks. The subscribe function
   // adds a callback to the set; unsubscribe removes it.
-  const subscribers = new Set<S.SubscriberFn<D>>([])
+  const subscribers = new Set<S.SubscriberFn<Core>>([])
 
   /**
    * Subscribe a callback to this state's updates. On each update, the state
    * will call the callback with the state's new update.
    * @param callbackFn
    */
-  function subscribe(callbackFn: S.SubscriberFn<D>) {
+  function subscribe(callbackFn: S.SubscriberFn<Core>) {
     subscribers.add(callbackFn)
   }
 
@@ -84,7 +96,7 @@ export function createState<
    * called when the state changes.
    * @param callbackFn
    */
-  function unsubscribe(callbackFn: S.SubscriberFn<D>) {
+  function unsubscribe(callbackFn: S.SubscriberFn<Core>) {
     if (subscribers.has(callbackFn)) {
       subscribers.delete(callbackFn)
     }
@@ -653,7 +665,7 @@ export function createState<
 
   const sendQueue: S.Event[] = []
 
-  function processSendQueue(): S.DesignedState<D, R, C, A, Y, T, V> {
+  function processSendQueue(): Core {
     vlog(`Processing next in queue.`, S.VerboseType.Queue)
 
     setUpdate({
@@ -703,7 +715,7 @@ export function createState<
    * if (allDone) cancelUpdates()
    *
    */
-  function onUpdate(callbackFn: S.SubscriberFn<D>) {
+  function onUpdate(callbackFn: S.SubscriberFn<Core>) {
     subscribe(callbackFn)
     return () => unsubscribe(callbackFn)
   }
@@ -713,7 +725,7 @@ export function createState<
    * @param callbackFn
    * @public
    */
-  function getUpdate(callbackFn: S.SubscriberFn<D>) {
+  function getUpdate(callbackFn: S.SubscriberFn<Core>) {
     core.active = StateTree.getActiveStates(core.stateTree)
     callbackFn(core)
   }
@@ -724,10 +736,7 @@ export function createState<
    * @param payload A payload of any type
    * @public
    */
-  function send(
-    eventName: string,
-    payload?: any
-  ): S.DesignedState<D, R, C, A, Y, T, V> {
+  function send(eventName: string, payload?: any): Core {
     vlog(`Received event ${eventName}.`, S.VerboseType.Event)
     sendQueue.push({ event: eventName, payload })
     return processSendQueue()
@@ -887,7 +896,7 @@ export function createState<
    * @param data The current data state.
    */
   function getValues(data: D): S.Values<D, V> {
-    return Object.entries(config.values || {}).reduce<S.Values<D, V>>(
+    return Object.entries(design.values || {}).reduce<S.Values<D, V>>(
       (acc, [key, fn]) => {
         acc[key as keyof V] = fn(data as D)
         return acc
@@ -897,26 +906,26 @@ export function createState<
   }
 
   /**
-   * Get the original config object (for debugging, mostly)
+   * Get the original design object (for debugging, mostly)
    * @public
    */
   function getDesign() {
-    return config
+    return design
   }
 
   function clone() {
-    return createState(config)
+    return createState(design)
   }
 
   /* --------------------- Kickoff -------------------- */
 
-  const id = "#" + (isUndefined(config.id) ? `state_${uniqueId()}` : config.id)
+  const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
 
-  const _stateTree = getStateTreeFromDesign(config, id)
+  const _stateTree = getStateTreeFromDesign(design, id)
 
-  const core = {
+  const core: Core = {
     id,
-    data: produce(config.data, (d) => d) as D,
+    data: produce(design.data, (d) => d) as D,
     active: StateTree.getActiveStates(_stateTree),
     stateTree: _stateTree,
     send,
@@ -924,11 +933,11 @@ export function createState<
     isInAny,
     can,
     whenIn,
+    getDesign,
     onUpdate,
     getUpdate,
-    getDesign,
     clone,
-    values: getValues(config.data as D),
+    values: getValues(design.data as D),
   }
 
   // Deactivate the tree, then activate it again to set initial active states.
@@ -939,3 +948,16 @@ export function createState<
 
   return core
 }
+
+const test = createState({
+  data: {
+    count: 0,
+  },
+  values: {
+    double(data) {
+      return data.count * 2
+    },
+  },
+})
+
+test

@@ -1,7 +1,12 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 
-import { createDesign, createState, useStateDesigner } from "../"
+import {
+  createDesign,
+  createState,
+  useStateDesigner,
+  useUpdateEffect,
+} from "../"
 
 const configObject = {
   data: { count: 0 },
@@ -27,6 +32,29 @@ describe("createState", () => {
 })
 
 describe("useStateDesigner", () => {
+  it("Should have working types", () => {
+    const Example = () => {
+      const state = useStateDesigner({
+        data: { count: 0 },
+        values: {
+          double(data) {
+            return data.count * 2
+          },
+        },
+      })
+
+      useUpdateEffect(state, (update) => {
+        update.values.double
+      })
+
+      return <div>{state.values.double}</div>
+    }
+
+    const div = document.createElement("div")
+    ReactDOM.render(<Example />, div)
+    ReactDOM.unmountComponentAtNode(div)
+  })
+
   it("Should create / subscribe to a local state from an external config.", () => {
     const CounterFromConfig = () => {
       const { data, send } = useStateDesigner(config)

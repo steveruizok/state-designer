@@ -22,21 +22,28 @@ export function useStateDesigner<
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
 >(
-  design: S.Design<D, R, C, A, Y, T, V> | S.DesignedState<D, R, C, A, Y, T, V>,
+  design:
+    | S.Design<D, R, C, A, Y, T, V>
+    | S.DesignedState<
+        D,
+        {
+          [key in keyof V]: ReturnType<V[key]>
+        }
+      >,
   dependencies: any[] = emptyArray
-): S.DesignedState<D, R, C, A, Y, T, V> {
+): S.DesignedState<D, { [key in keyof V]: ReturnType<V[key]> }> {
+  type RV = S.DesignedState<D, { [key in keyof V]: ReturnType<V[key]> }>
+
   // Store a state — either as provided or new from design,
   // and, if given a design, re-create the state when dependencies change
-  const state: S.DesignedState<D, R, C, A, Y, T, V> = React.useMemo(() => {
-    return isUndefined((design as S.DesignedState<D, R, C, A, Y, T, V>).send)
+  const state: RV = React.useMemo(() => {
+    return isUndefined((design as RV).send)
       ? createState(design as S.Design<D, R, C, A, Y, T, V>)
-      : (design as S.DesignedState<D, R, C, A, Y, T, V>)
+      : (design as RV)
   }, dependencies)
 
   // Keep subscription updates in state
-  const [current, setCurrent] = React.useState<
-    S.DesignedState<D, R, C, A, Y, T, V>
-  >(state)
+  const [current, setCurrent] = React.useState<RV>(state)
 
   // Subscribe to changes — and resubscribe when dependencies change.
   // Note that the effect returns the cancel function returned by onChange.

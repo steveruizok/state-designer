@@ -312,34 +312,15 @@ export interface DesignWithHelpers<
 
 // Subscribers
 
-export type SubscriberFn<
-  D,
-  R extends Record<string, Result<D>> = any,
-  C extends Record<string, Condition<D>> = any,
-  A extends Record<string, Action<D>> = any,
-  Y extends Record<string, Async<D>> = any,
-  T extends Record<string, Time<D>> = any,
-  V extends Record<string, Value<D>> = any
-> = (update: DesignedState<D, R, C, A, Y, T, V>) => void
+export type SubscriberFn<T> = (update: T) => void
 
 // State Design
 
-export interface DesignedState<
-  D,
-  R extends Record<string, Result<D>>,
-  C extends Record<string, Condition<D>>,
-  A extends Record<string, Action<D>>,
-  Y extends Record<string, Async<D>>,
-  T extends Record<string, Time<D>>,
-  V extends Record<string, Value<D>>
-> {
+export interface DesignedState<D, V> {
   id: string
   data: D
   active: State<D>[]
   stateTree: State<D>
-  onUpdate: (callbackFn: SubscriberFn<D>) => () => void
-  getUpdate: (callbackFn: SubscriberFn<D>) => void
-  send: (eventName: string, payload?: any) => DesignedState<D, R, C, A, Y, T, V>
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
   isInAny: (...paths: string[]) => boolean
@@ -348,7 +329,10 @@ export interface DesignedState<
     reducer?: "value" | "array" | Reducer<T>,
     initial?: any
   ) => T
-  getDesign: () => Design<D, R, C, A, Y, T, V>
-  clone: () => DesignedState<D, R, C, A, Y, T, V>
-  values: Values<D, V>
+  getDesign: () => any
+  send: (eventName: string, payload?: any) => DesignedState<D, V>
+  onUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => () => void
+  getUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => void
+  values: V
+  clone: () => DesignedState<D, V>
 }

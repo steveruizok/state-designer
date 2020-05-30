@@ -63,7 +63,7 @@ const StateNode: React.FC<{
 
 export const StateGraph: React.FC<
   {
-    state: S.DesignedState<any, any, any, any, any, any, any>
+    state: S.DesignedState<any, any>
   } & React.HTMLProps<HTMLDivElement>
 > = ({ state, ...rest }) => {
   const { stateTree } = useStateDesigner(state)
