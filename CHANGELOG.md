@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.6
+
+- Major refactor on event handling following the move to synchronous state. No API change. Events are now handled in "chains" of event handlers. Handlers with `wait` properties may pause chain; they will resume after a timeout with the current data. Handlers with `else` properties are handled as nested separate chains.
+- Results now work again and have equality with data in actions. You can `get` information from `data` and `do` something to it.
+- This has meant that all event handler functions (conditions, actions, `secretlyDo` actions, etc) take a draft of data. This may make it more difficult to fire effects (such as `globalState.send("UPDATED", data.count)`) because the data will later be a revoked proxy when the draft completes.
+- This also means that event handlers with `wait` properties will have a separate draft after the timeout; so they will not receive the same `get` result as event handlers before it.
+- There are lots of tradeoff here, mostly present to enable mutations via immer! This remains an important piece of the API, however, so I believe these changes are worth it. That said, the choices may change in the future.
+
 ## 1.2.5
 
 - Greatly simplifies types on DesignedState.

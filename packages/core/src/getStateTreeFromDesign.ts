@@ -122,6 +122,7 @@ export function getStateTreeFromDesign<
       secretlyDo: getActions(itemCfg.secretlyDo),
       to: castToFunction(itemCfg.to),
       send: getSend(itemCfg.send),
+      sendToParent: getSend(itemCfg.sendToParent),
       wait: getTime(itemCfg.wait),
       break: castToFunction(itemCfg.break),
       else: itemCfg.else ? getEventHandler(itemCfg.else) : undefined,
@@ -210,7 +211,7 @@ export function getStateTreeFromDesign<
     name: string,
     path: string,
     active: boolean
-  ): S.State<D> {
+  ): S.State<D, V> {
     return {
       name,
       path: path + name,

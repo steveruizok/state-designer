@@ -6,13 +6,19 @@ import {
   uniqueId,
   isUndefined,
 } from "lodash"
-import { produce, enableAllPlugins } from "immer"
+import { produce, enableAllPlugins, setAutoFreeze } from "immer"
 
+import { createEventChain } from "./createEventChain"
 import * as S from "./types"
 import * as StateTree from "./stateTree"
 import { getStateTreeFromDesign } from "./getStateTreeFromDesign"
 
 enableAllPlugins()
+setAutoFreeze(false)
+
+type ReturnedValues<TD, TV extends Record<string, S.Value<TD>>> = {
+  [key in keyof TV]: ReturnType<TV[key]>
+}
 
 /* -------------------------------------------------- */
 /*                Create State Designer               */
@@ -32,8 +38,7 @@ export function createState<
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
 >(
-  design: S.Design<D, R, C, A, Y, T, V>,
-  verbose?: (message: string, type: S.VerboseType) => any
+  design: S.Design<D, R, C, A, Y, T, V>
 ): S.DesignedState<
   D,
   {
@@ -42,39 +47,9 @@ export function createState<
 > {
   /* ------------------ Mutable Data ------------------ */
 
-  type Core = S.DesignedState<
-    D,
-    {
-      [key in keyof V]: ReturnType<V[key]>
-    }
-  >
+  type Core = S.DesignedState<D, ReturnedValues<D, V>>
 
   // Update (internal update state)
-
-  type Update = {
-    transitions: number
-    didTransition: boolean
-    didAction: boolean
-  }
-
-  const update: Update = {
-    transitions: 0,
-    didTransition: false,
-    didAction: false,
-  }
-
-  function setUpdate(changes: Partial<Update>) {
-    Object.assign(update, changes)
-    return update
-  }
-
-  /* -------------------- Debugging ------------------- */
-
-  function vlog(message: string, type: S.VerboseType) {
-    if (verbose) {
-      verbose(`${new Date().toLocaleTimeString()} — ${message}`, type)
-    }
-  }
 
   /* ------------------ Subscriptions ----------------- */
 
@@ -108,14 +83,13 @@ export function createState<
     components that depend on it are unmounted. Public method for
     pause and resume? Activities with cleanup? */
     if (subscribers.size === 0) {
-      recursivelyEndStateIntervals(core.stateTree)
+      StateTree.recursivelyEndStateIntervals(core.stateTree)
     }
   }
 
   // Call each subscriber callback with the state's current update
   function notifySubscribers() {
-    vlog(`Notifying subsribers.`, S.VerboseType.Notification)
-    core.values = getValues(core.data)
+    core.values = getValues(core.data, design.values)
     core.active = StateTree.getActiveStates(core.stateTree)
     subscribers.forEach((subscriber) => subscriber(core))
   }
@@ -124,25 +98,54 @@ export function createState<
 
   // Run eve nt handler that updates the global `updates` object,
   // useful for (more or less) synchronous events
-  function runOnChainEventHandler(
-    state: S.State<D>,
+  function runEventHandlerChain(
     eventHandler: S.EventHandler<D>,
     payload: any = undefined,
     result: any = undefined
   ) {
-    return runEventHandler(state, eventHandler, payload, result)
-  }
+    const outcome = createEventChain<D>({
+      data: core.data,
+      result,
+      payload,
+      handler: eventHandler,
+      onAsyncUpdate: (update) => {
+        core.data = update.data
 
-  // Run event handler that only returns a local `updates` object,
-  // useful in handling delayed events, repeats, etc; so that they don't
-  // interfere with "on thread" event handling.
-  function runOffChainEventHandler(
-    state: S.State<D>,
-    eventHandler: S.EventHandler<D>,
-    payload: any = undefined,
-    result: any = undefined
-  ) {
-    return runEventHandler(state, eventHandler, payload, result)
+        console.log(core.data)
+
+        if (update.shouldNotify) {
+          notifySubscribers()
+        }
+
+        if (update.pendingSend) {
+          const { event, payload } = update.pendingSend
+          send(event, payload)
+        }
+
+        if (update.pendingTransition) {
+          runTransition(update.pendingTransition)
+        }
+      },
+      onRefreshDataAfterWait: () => core.data,
+    })
+
+    core.data = outcome.data
+
+    if (outcome.pendingSend) {
+      const { event, payload } = outcome.pendingSend
+      send(event, payload)
+    }
+
+    if (outcome.pendingTransition) {
+      runTransition(outcome.pendingTransition)
+    }
+
+    return {
+      shouldHalt: outcome.shouldBreak,
+      shouldNotify: outcome.shouldNotify,
+    }
+
+    // return runEventHandler(state, eventHandler, payload, result)
   }
 
   // Try to run an event on a state. If active, it will run the corresponding
@@ -150,19 +153,12 @@ export function createState<
   // will run its onEvent event, if it has one. If still no transition has
   // occurred, it will move to try its child states.
   function handleEventOnState(
-    state: S.State<D>,
+    state: S.State<D, V>,
     sent: S.Event
   ): { shouldHalt: boolean; shouldNotify: boolean } {
     const record = { shouldHalt: false, shouldNotify: false }
 
-    vlog(
-      `Testing event ${sent.event} in ${state.name}.`,
-      S.VerboseType.EventHandler
-    )
-
     if (state.active) {
-      vlog(`Found event state's events.`, S.VerboseType.EventHandler)
-
       const activeChildren = Object.values(state.states).filter(
         (state) => state.active
       )
@@ -171,45 +167,53 @@ export function createState<
 
       // Run event handler, if present
       if (!isUndefined(eventHandler)) {
-        vlog(`Running event handlers.`, S.VerboseType.EventHandler)
-        const outcome = runOnChainEventHandler(
-          state,
+        const outcome = runEventHandlerChain(
           eventHandler,
           sent.payload,
           undefined
         )
 
-        if (outcome.shouldHalt) {
-          return outcome
-        }
-
         if (outcome.shouldNotify) {
           record.shouldNotify = true
+        }
+
+        if (outcome.shouldHalt) {
+          record.shouldNotify = true
+          record.shouldHalt = true
+          return record
         }
       }
 
       // Run onEvent, if present
       if (!isUndefined(state.onEvent)) {
-        vlog(`Running onEvent in ${state.name}.`, S.VerboseType.EventHandler)
-        const outcome = runOnChainEventHandler(
-          state,
+        const outcome = runEventHandlerChain(
           state.onEvent,
           sent.payload,
           undefined
         )
-        if (outcome.shouldHalt) return outcome
 
         if (outcome.shouldNotify) {
           record.shouldNotify = true
+        }
+
+        if (outcome.shouldHalt) {
+          record.shouldNotify = true
+          record.shouldHalt = true
+          return record
         }
       }
       // Run event on states
       for (let childState of activeChildren) {
         const outcome = handleEventOnState(childState, sent)
-        if (outcome.shouldHalt) return outcome
 
         if (outcome.shouldNotify) {
           record.shouldNotify = true
+        }
+
+        if (outcome.shouldHalt) {
+          record.shouldNotify = true
+          record.shouldHalt = true
+          return record
         }
       }
     }
@@ -217,234 +221,11 @@ export function createState<
     return record
   }
 
-  function endStateIntervals(state: S.State<D>) {
-    const { timeouts, interval, animationFrame } = state.times
-
-    for (let timeout of timeouts) {
-      clearTimeout(timeout)
-    }
-    state.times.timeouts = []
-
-    if (!isUndefined(interval)) {
-      vlog(`Clearing interval on ${state.path}.`, S.VerboseType.RepeatEvent)
-      clearInterval(interval)
-      state.times.interval = undefined
-    }
-
-    if (!isUndefined(animationFrame)) {
-      vlog(
-        `Clearing animation frame on ${state.path}.`,
-        S.VerboseType.RepeatEvent
-      )
-      cancelAnimationFrame(animationFrame)
-      state.times.animationFrame = undefined
-    }
-  }
-
-  function recursivelyEndStateIntervals(state: S.State<D>) {
-    endStateIntervals(state)
-    for (let child of Object.values(state.states)) {
-      recursivelyEndStateIntervals(child)
-    }
-  }
-
-  function runEventHandler(
-    state: S.State<D>,
-    eventHandler: S.EventHandler<D>,
-    payload: any = undefined,
-    result: any = undefined
-  ): {
-    shouldHalt: boolean
-    shouldNotify: boolean
-  } {
-    const eventHandlerRecord = {
-      shouldHalt: false,
-      shouldNotify: false,
-    }
-
-    // Makes changes, returns record
-    function handleHandlerObject(item: S.EventHandlerObject<D>) {
-      const record = {
-        shouldNotify: false,
-        shouldHalt: false,
-        else: undefined as S.EventHandler<D> | undefined,
-        transition: undefined as S.EventFn<D, string> | undefined,
-      }
-
-      // Results
-      for (let resu of item.get) {
-        result = resu(core.data as D, payload, result)
-      }
-
-      // Conditions
-      let passedConditions = true
-
-      if (passedConditions && item.if.length > 0) {
-        passedConditions = item.if.every((cond) =>
-          cond(core.data as D, payload, result)
-        )
-      }
-
-      if (passedConditions && item.unless.length > 0) {
-        passedConditions = item.unless.every(
-          (cond) => !cond(core.data as D, payload, result)
-        )
-      }
-
-      if (passedConditions && item.ifAny.length > 0) {
-        passedConditions = item.ifAny.some((cond) =>
-          cond(core.data as D, payload, result)
-        )
-      }
-
-      if (passedConditions) {
-        vlog("Passed conditions.", S.VerboseType.Condition)
-
-        // Actions
-        if (item.do.length > 0) {
-          vlog("Running actions.", S.VerboseType.Action)
-          record.shouldNotify = true
-
-          core.data = produce(core.data, (draft) => {
-            for (let action of item.do) {
-              action(draft as D, payload, result)
-            }
-          })
-        }
-
-        // Secret Actions (does not trigger an update)
-        if (item.secretlyDo.length > 0) {
-          vlog("Running actions.", S.VerboseType.SecretAction)
-
-          for (let action of item.secretlyDo) {
-            action(core.data as D, payload, result)
-          }
-        }
-
-        // Send
-        if (!isUndefined(item.send)) {
-          vlog("Sending event from event handler.", S.VerboseType.EventHandler)
-          const event = item.send(core.data as D, payload, result)
-          send(event.event, event.payload)
-        }
-
-        // Transitions
-        if (!isUndefined(item.to)) {
-          if (update.transitions > 200) {
-            if (__DEV__) {
-              throw Error("Stuck in a loop! Bailing.")
-            } else {
-              record.shouldHalt = true
-              return record
-            }
-          }
-
-          setUpdate({ transitions: update.transitions++ })
-
-          record.transition = item.to
-          record.shouldHalt = true
-          record.shouldNotify = true
-        }
-      } else {
-        vlog("Conditions failed.", S.VerboseType.Condition)
-
-        if (!isUndefined(item.else)) {
-          record.else = item.else
-        }
-      }
-
-      if (!isUndefined(record.else)) {
-        const elseRecord = runOnChainEventHandler(
-          state,
-          record.else,
-          payload,
-          result
-        )
-
-        if (elseRecord.shouldHalt) record.shouldHalt = true
-        if (elseRecord.shouldNotify) record.shouldNotify = true
-      }
-
-      return record
-    }
-
-    function handlerHandlerObjectChain(chain: S.EventHandler<D>) {
-      for (let i = 0; i < chain.length; i++) {
-        const item = chain[i]
-
-        if (item.wait) {
-          // Waited events are handled as their own chain, so
-          // waiting an event handler object should trigger a notify
-          // just in case.
-          eventHandlerRecord.shouldNotify = true
-
-          const s = item.wait(core.data as D, payload, result)
-
-          // Add a timeout to the state's timeouts
-          state.times.timeouts.push(
-            setTimeout(() => {
-              // Handle event
-              const record = handleHandlerObject(item)
-
-              if (record.shouldHalt) {
-                if (!isUndefined(record.transition)) {
-                  // If transition, run the transition, notify subscribers, and end
-                  runTransition(record.transition, payload, result)
-                  notifySubscribers()
-                }
-              } else {
-                // If no transition, continue with the chain
-
-                if (record.shouldNotify) {
-                  // Notify subscribers immediately, I think
-                  // Todo: Notify when post-wait chain settles, I think
-                  notifySubscribers()
-                }
-
-                handlerHandlerObjectChain(chain.slice(i + 1))
-              }
-            }, s * 1000)
-          )
-
-          // Don't continue once we hit a wait event object
-          return
-        } else {
-          // Handle event
-          const record = handleHandlerObject(item)
-
-          // If we made a transition, run that transition
-          if (!isUndefined(record.transition)) {
-            runTransition(record.transition, payload, result)
-            eventHandlerRecord.shouldNotify = true
-          }
-
-          // If we should notify, notify
-          if (record.shouldNotify) {
-            eventHandlerRecord.shouldNotify = true
-          }
-
-          // If we shoudl halt, halt
-          if (record.shouldHalt) {
-            eventHandlerRecord.shouldHalt = true
-            return
-          }
-        }
-      }
-    }
-
-    handlerHandlerObjectChain(eventHandler)
-
-    return eventHandlerRecord
-  }
-
   function runTransition(
-    targetFn: S.EventFn<D, string>,
+    path: string,
     payload: any = undefined,
     result: any = undefined
   ) {
-    let path = targetFn(core.data, payload, result)
-    vlog(`Transitioning to ${path}.`, S.VerboseType.Transition)
-
     // Is this a restore transition?
 
     const isPreviousTransition = path.endsWith(".previous")
@@ -506,28 +287,21 @@ export function createState<
       (state) => !beforeActive.includes(state)
     )
 
-    const currentTransitions = update.transitions
-
     // Deactivated States
     // - clear any interval
     // - handle onExit events
     // - bail if we've transitioned
 
     deactivatedStates.forEach((state) => {
-      vlog(`Deactivating ${state.path}.`, S.VerboseType.State)
-      endStateIntervals(state)
+      StateTree.endStateIntervals(state)
     })
 
     for (let state of deactivatedStates) {
       const { onExit } = state
 
       if (!isUndefined(onExit)) {
-        vlog(
-          `Running onExit event on ${state.path}.`,
-          S.VerboseType.TransitionEvent
-        )
-        runOnChainEventHandler(state, onExit, payload, result)
-        if (update.transitions > currentTransitions) return
+        const outcome = runEventHandlerChain(onExit, payload, result)
+        if (outcome.shouldHalt) return
       }
     }
 
@@ -537,7 +311,6 @@ export function createState<
     // - bail if we've transitioned
 
     for (let state of newlyActivatedStates) {
-      vlog(`Activating ${state.path}.`, S.VerboseType.State)
       const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
@@ -549,29 +322,18 @@ export function createState<
 
         if (delay === undefined) {
           // Run on every animation frame
-          vlog(
-            `Starting repeat using animation frame.`,
-            S.VerboseType.RepeatEvent
-          )
-
           const loop = (now: number) => {
-            vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             const realInterval = now - lastTime
             elapsed += realInterval
 
             lastTime = now
 
-            const localUpdate = runOffChainEventHandler(
-              state,
-              onRepeat,
-              payload,
-              {
-                realInterval,
-                elapsed,
-              }
-            )
+            const outcome = runEventHandlerChain(onRepeat, payload, {
+              realInterval,
+              elapsed,
+            })
 
-            if (localUpdate.shouldNotify) {
+            if (outcome.shouldNotify) {
               notifySubscribers()
             }
 
@@ -585,29 +347,18 @@ export function createState<
 
           const s = delay(core.data, payload, result)
 
-          vlog(
-            `Starting repeat using delay of ${s}.`,
-            S.VerboseType.RepeatEvent
-          )
-
           state.times.interval = setInterval(() => {
-            vlog(`Running repeat event.`, S.VerboseType.RepeatEvent)
             now = Date.now()
             const realInterval = now - lastTime
             elapsed += realInterval
             lastTime = now
 
-            const localUpdate = runOffChainEventHandler(
-              state,
-              onRepeat,
-              payload,
-              {
-                realInterval,
-                elapsed,
-              }
-            )
+            const outcome = runEventHandlerChain(onRepeat, payload, {
+              realInterval,
+              elapsed,
+            })
 
-            if (localUpdate.shouldNotify) {
+            if (outcome.shouldNotify) {
               notifySubscribers()
             }
           }, Math.max(1 / 60, s * 1000))
@@ -615,25 +366,16 @@ export function createState<
       }
 
       if (!isUndefined(onEnter)) {
-        vlog(`Running onEnter event.`, S.VerboseType.TransitionEvent)
-        const onEnterRecord = runOnChainEventHandler(
-          state,
-          onEnter,
-          payload,
-          result
-        )
+        const onEnterRecord = runEventHandlerChain(onEnter, payload, result)
         if (onEnterRecord.shouldHalt) {
           return
         }
       }
 
       if (!isUndefined(async)) {
-        vlog(`Running async event.`, S.VerboseType.AsyncEvent)
         async.await(core.data, payload, result).then(
           (resolved) => {
-            vlog(`Async resolved.`, S.VerboseType.AsyncEvent)
-            const localUpdate = runOffChainEventHandler(
-              state,
+            const localUpdate = runEventHandlerChain(
               async.onResolve,
               payload,
               resolved
@@ -642,10 +384,8 @@ export function createState<
             if (localUpdate.shouldNotify) notifySubscribers()
           },
           (rejected) => {
-            vlog(`Async rejected.`, S.VerboseType.AsyncEvent)
             if (!isUndefined(async.onReject)) {
-              const localUpdate = runOffChainEventHandler(
-                state,
+              const localUpdate = runEventHandlerChain(
                 async.onReject,
                 payload,
                 rejected
@@ -666,26 +406,11 @@ export function createState<
   const sendQueue: S.Event[] = []
 
   function processSendQueue(): Core {
-    vlog(`Processing next in queue.`, S.VerboseType.Queue)
-
-    setUpdate({
-      didAction: false,
-      didTransition: false,
-    })
-
     const next = sendQueue.shift()
 
     if (isUndefined(next)) {
-      vlog(`Queue is empty, resolving.`, S.VerboseType.Queue)
-
-      setUpdate({
-        transitions: 0,
-      })
-
       return core
     } else {
-      vlog(`Running next item in send queue.`, S.VerboseType.Queue)
-
       // Handle the event and set the current handleEventOnState
       // promise, which will hold any additional sent events
       const { shouldNotify } = handleEventOnState(core.stateTree, next)
@@ -737,7 +462,6 @@ export function createState<
    * @public
    */
   function send(eventName: string, payload?: any): Core {
-    vlog(`Received event ${eventName}.`, S.VerboseType.Event)
     sendQueue.push({ event: eventName, payload })
     return processSendQueue()
   }
@@ -892,20 +616,6 @@ export function createState<
   }
 
   /**
-   * Hideously compute values based on the current data.
-   * @param data The current data state.
-   */
-  function getValues(data: D): S.Values<D, V> {
-    return Object.entries(design.values || {}).reduce<S.Values<D, V>>(
-      (acc, [key, fn]) => {
-        acc[key as keyof V] = fn(data as D)
-        return acc
-      },
-      {} as S.Values<D, V>
-    )
-  }
-
-  /**
    * Get the original design object (for debugging, mostly)
    * @public
    */
@@ -913,6 +623,10 @@ export function createState<
     return design
   }
 
+  /**
+   * Create a new state from this state's original design
+   * @public
+   */
   function clone() {
     return createState(design)
   }
@@ -921,13 +635,13 @@ export function createState<
 
   const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
 
-  const _stateTree = getStateTreeFromDesign(design, id)
+  const ___stateTree = getStateTreeFromDesign(design, id)
 
   const core: Core = {
     id,
     data: produce(design.data, (d) => d) as D,
-    active: StateTree.getActiveStates(_stateTree),
-    stateTree: _stateTree,
+    active: StateTree.getActiveStates(___stateTree),
+    stateTree: ___stateTree,
     send,
     isIn,
     isInAny,
@@ -937,27 +651,35 @@ export function createState<
     onUpdate,
     getUpdate,
     clone,
-    values: getValues(design.data as D),
+    values: getValues(design.data as D, design.values),
   }
 
   // Deactivate the tree, then activate it again to set initial active states.
   StateTree.deactivateState(core.stateTree)
-  runTransition(() => "root") // Will onEnter events matter?
-  core.values = getValues(core.data)
+  runTransition("root") // Will onEnter events matter?
+  core.values = getValues(core.data, design.values)
   core.active = StateTree.getActiveStates(core.stateTree)
 
   return core
 }
 
-const test = createState({
-  data: {
-    count: 0,
-  },
-  values: {
-    double(data) {
-      return data.count * 2
-    },
-  },
-})
+/* -------------------------------------------------- */
+/*                        Pure                        */
+/* -------------------------------------------------- */
 
-test
+/**
+ * Hideously compute values based on the current data.
+ * @param data The current data state.
+ */
+function getValues<D, V extends Record<string, S.Value<D>>>(
+  data: D,
+  values: V | undefined
+): S.Values<D, V> {
+  return Object.entries(values || {}).reduce<S.Values<D, V>>(
+    (acc, [key, fn]) => {
+      acc[key as keyof V] = fn(data as D)
+      return acc
+    },
+    {} as S.Values<D, V>
+  )
+}

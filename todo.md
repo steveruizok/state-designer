@@ -23,6 +23,10 @@
   - [x] Conditions
   - [x] Waits
 - [x] Transitions
+- [x] Move handlers to syncronous state
+- [ ] Nested machines
+
+  - [ ] Fix frozen object errors
 
   - [ ] Multiple Parallel Transitions?
 

@@ -11,7 +11,7 @@ import * as S from "./types"
  *
  * @param state
  */
-export function deactivateState<D = any>(state: S.State<D>) {
+export function deactivateState<D = any>(state: S.State<D, unknown>) {
   state.active = false
   state.activeId++
   for (let childState of Object.values(state.states)) {
@@ -25,8 +25,8 @@ export function deactivateState<D = any>(state: S.State<D>) {
  *
  * @param state The current state to examine.
  */
-export function getActiveStates<D = any>(state: S.State<D>) {
-  const acc: S.State<D>[] = []
+export function getActiveStates<D = any>(state: S.State<D, unknown>) {
+  const acc: S.State<D, unknown>[] = []
 
   if (state.active) {
     acc.push(state)
@@ -51,9 +51,9 @@ export function getActiveStates<D = any>(state: S.State<D>) {
  *                of the target (the deepest state in the path) and all of its descendants.
  */
 export function activateState<D = any>(
-  state: S.State<D>,
+  state: S.State<D, unknown>,
   path: string[],
-  beforeActive: S.State<D>[],
+  beforeActive: S.State<D, unknown>[],
   previous: boolean,
   restore: boolean
 ): void {
@@ -146,10 +146,10 @@ export function activateState<D = any>(
  * @param path
  */
 export function findTransitionTargets<D = any>(
-  state: S.State<D>,
+  state: S.State<D, unknown>,
   path: string
-): S.State<D>[] {
-  const acc: S.State<D>[] = []
+): S.State<D, unknown>[] {
+  const acc: S.State<D, unknown>[] = []
 
   let safePath = path.startsWith(".") ? path : "." + path
 
@@ -219,7 +219,11 @@ export function getInitialState<D>(
  * @param payload
  * @param data
  */
-export function setIntitialStates<D>(state: S.State<D>, payload: any, data: D) {
+export function setIntitialStates<D>(
+  state: S.State<D, unknown>,
+  payload: any,
+  data: D
+) {
   if (state.initialFn !== undefined) {
     state.initial = getInitialState(state.initialFn, payload, data)
   }
@@ -229,5 +233,31 @@ export function setIntitialStates<D>(state: S.State<D>, payload: any, data: D) {
     for (let child of Object.values(state.states)) {
       setIntitialStates(child, payload, data)
     }
+  }
+}
+
+export function endStateIntervals<D, V>(state: S.State<D, V>) {
+  const { timeouts, interval, animationFrame } = state.times
+
+  for (let timeout of timeouts) {
+    clearTimeout(timeout)
+  }
+  state.times.timeouts = []
+
+  if (!isUndefined(interval)) {
+    clearInterval(interval)
+    state.times.interval = undefined
+  }
+
+  if (!isUndefined(animationFrame)) {
+    cancelAnimationFrame(animationFrame)
+    state.times.animationFrame = undefined
+  }
+}
+
+export function recursivelyEndStateIntervals<D, V>(state: S.State<D, V>) {
+  endStateIntervals(state)
+  for (let child of Object.values(state.states)) {
+    recursivelyEndStateIntervals(child)
   }
 }

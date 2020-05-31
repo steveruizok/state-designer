@@ -54,7 +54,6 @@ const globalState = createState({
   },
   actions: {
     updateTodo(data, payload) {
-      console.log(payload)
       data.todos[payload.id] = payload
     },
     createTodo(data) {
@@ -154,9 +153,6 @@ const Todo: React.FC<ITodo> = ({ id, content, complete }) => {
       },
       clearComplete(data) {
         data.complete = false
-      },
-      updateGlobalState(data) {
-        globalState.send("CHANGED_TODO", data)
       },
     },
   })

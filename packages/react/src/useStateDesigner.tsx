@@ -47,16 +47,20 @@ export function useStateDesigner<
 
   // Subscribe to changes — and resubscribe when dependencies change.
   // Note that the effect returns the cancel function returned by onChange.
-  React.useEffect(
-    () =>
-      state.onUpdate((update) => {
-        setCurrent((current) => ({
-          ...current,
-          ...pick(update, "data", "active", "stateTree", "values"),
-        }))
-      }),
-    [state, setCurrent]
-  )
+  React.useEffect(() => {
+    function handleUpdate(update: RV) {
+      setCurrent((current) => ({
+        ...current,
+        ...pick(update, "data", "active", "stateTree", "values"),
+      }))
+    }
+
+    // Set state now...
+    state.getUpdate(handleUpdate)
+
+    // And subsribe to updates (will return function that unsubscribes)
+    return state.onUpdate(handleUpdate)
+  }, [state, setCurrent])
 
   return current
 }

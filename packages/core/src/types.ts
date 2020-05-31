@@ -17,7 +17,7 @@ export type EventFnDesign<T, K> = Extract<keyof T, string> | K
 
 export type Action<D> = EventFn<D, any>
 
-export type ActionDesign<D, T> = EventFnDesign<T, Action<D>>
+export type ActionDesign<D, T> = EventFnDesign<T, EventFn<D, any>>
 
 // Condition
 
@@ -48,6 +48,10 @@ export type TimeDesign<D, T> = number | EventFnDesign<T, Time<D>>
 export type Value<D> = (data: D) => any
 
 export type Values<D, V extends Record<string, Value<D>>> = {
+  [key in keyof V]: ReturnType<V[key]>
+}
+
+export type ReturnedValues<D, V extends Record<string, Value<D>>> = {
   [key in keyof V]: ReturnType<V[key]>
 }
 
@@ -118,6 +122,7 @@ export type EventHandlerObject<D> = {
   secretlyDo: Action<D>[]
   to?: Target<D>
   send?: Send<D>
+  sendToParent?: Send<D>
   wait?: Time<D>
   break?: Break<D>
   else?: EventHandler<D>
@@ -159,6 +164,10 @@ export type EventHandlerObjectDesign<D, R, C, A, T> = {
    * An event name and (optionally) payload to send to the state.
    */
   send?: SendDesign<D>
+  /**
+   * An event name and (optionally) payload to send to a spawned state's parent state.
+   */
+  sendToParent?: SendDesign<D>
   /**
    * A delay (in seconds) to wait before running this handler object.
    */
@@ -223,7 +232,7 @@ export enum VerboseType {
 
 // State
 
-export interface State<D> {
+export interface State<D, V> {
   name: string
   active: boolean
   path: string
@@ -234,13 +243,13 @@ export interface State<D> {
     interval?: any
     animationFrame?: number
   }
-  on: Record<string, EventHandler<D>>
+  on: Record<string, EventHandler<D> & ThisType<DesignedState<D, V>>>
   onEnter?: EventHandler<D>
   onExit?: EventHandler<D>
   onEvent?: EventHandler<D>
   repeat?: RepeatEvent<D>
   async?: AsyncEvent<D>
-  states: Record<string, State<D>>
+  states: Record<string, State<D, V>>
   initialFn?: InitialStateObject<D>
   initial?: string
 }
@@ -319,8 +328,8 @@ export type SubscriberFn<T> = (update: T) => void
 export interface DesignedState<D, V> {
   id: string
   data: D
-  active: State<D>[]
-  stateTree: State<D>
+  active: State<D, V>[]
+  stateTree: State<D, V>
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
   isInAny: (...paths: string[]) => boolean
@@ -336,3 +345,13 @@ export interface DesignedState<D, V> {
   values: V
   clone: () => DesignedState<D, V>
 }
+
+// State with Design
+export type StateWithDesign<
+  State extends Design<unknown, any, any, any, any, any, any>
+> = DesignedState<
+  State["data"],
+  {
+    [key in keyof State["values"]]: ReturnType<State["values"][key]>
+  }
+>

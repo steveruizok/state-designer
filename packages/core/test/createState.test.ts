@@ -14,22 +14,72 @@ describe("createState", () => {
     expect(state.isIn).toBeTruthy()
   })
 
+  // Can I run actions?
+
+  it("Should support actions.", () => {
+    const toggler = createState({
+      initial: "inactive",
+      data: { count: 0 },
+      states: {
+        inactive: { on: { TOGGLED: { do: "increment", to: "active" } } },
+        active: { on: { TOGGLED: [{ to: "inactive" }, { do: "increment" }] } },
+      },
+      actions: {
+        increment(d) {
+          d.count++
+        },
+      },
+    })
+
+    expect(toggler.data.count).toBe(0)
+    toggler.send("TOGGLED")
+    expect(toggler.data.count).toBe(1)
+  })
+
   // Can I chain events?
 
-  it("Should support chaining with then.", async (done) => {
-    const counter = createState(counterDesign)
+  it("Should support chaining.", () => {
+    const counter = createState({
+      initial: "inactive",
+      data: { count: 0 },
+      actions: {
+        increment(d) {
+          d.count++
+        },
+      },
+      on: { INCREASED: "increment" },
+    })
 
-    counter.send("TOGGLED").send("CLICKED_PLUS").send("CLICKED_PLUS")
+    expect(counter.data.count).toBe(0)
+    counter.send("INCREASED").send("INCREASED")
+    expect(counter.data.count).toBe(2)
+  })
 
-    expect(counter.data.count).toBe(3)
-    done()
+  it("Should correctly bail on transitions.", () => {
+    const toggler = createState({
+      initial: "inactive",
+      data: { count: 0 },
+      states: {
+        inactive: { on: { TOGGLED: { do: "increment", to: "active" } } },
+        active: { on: { TOGGLED: [{ to: "inactive" }, { do: "increment" }] } },
+      },
+      actions: {
+        increment(d) {
+          d.count++
+        },
+      },
+    })
+
+    expect(toggler.data.count).toBe(0)
+    toggler.send("TOGGLED") // Should run first increment
+    toggler.send("TOGGLED") // Should not run second increment
+    expect(toggler.data.count).toBe(1)
   })
 
   // Does the `isIn` helper work?
 
   it("Should support the isIn helper.", async (done) => {
     const counter = createState(counterDesign)
-    console.log(counter.stateTree)
     expect(counter.isIn("active")).toBeFalsy()
     expect(counter.isIn("inactive")).toBeTruthy()
     expect(counter.isIn("active", "inactive")).toBeFalsy()
@@ -171,6 +221,60 @@ describe("createState", () => {
     done()
   })
 
+  // Do results work?
+
+  it("Should support results.", () => {
+    type Switch = { id: string; switched: boolean }
+
+    type SwitchCollection = Record<string, Switch>
+
+    const switches: SwitchCollection = {
+      0: { id: "0", switched: false },
+      1: { id: "1", switched: false },
+      2: { id: "2", switched: true },
+    }
+
+    const state = createState({
+      data: { switches },
+      on: {
+        FLIPPED_SWITCH: {
+          get: "switch",
+          if: "switchIsFlipped",
+          do: "flipSwitch",
+          else: {
+            get: "switch", // Is there a way to recycle previous get?
+            do: "flipSwitch",
+          },
+        },
+      },
+      results: {
+        switch(data, payload: Switch) {
+          return data.switches[payload.id]
+        },
+      },
+      conditions: {
+        switchIsFlipped(_, __, result: Switch) {
+          return result.switched
+        },
+      },
+      actions: {
+        flipSwitch(_, __, result: Switch) {
+          result.switched = !result.switched
+        },
+      },
+    })
+
+    expect(state.data.switches[0].switched).toBeFalsy()
+    expect(state.data.switches[1].switched).toBeFalsy()
+    state.send("FLIPPED_SWITCH", { id: "0" })
+    expect(state.data.switches[0].switched).toBeTruthy()
+    expect(state.data.switches[1].switched).toBeFalsy()
+    state.send("FLIPPED_SWITCH", { id: "0" })
+    state.send("FLIPPED_SWITCH", { id: "1" })
+    expect(state.data.switches[0].switched).toBeFalsy()
+    expect(state.data.switches[1].switched).toBeTruthy()
+  })
+
   // Do asynchronous actions block further updates?
 
   // Do data mutations work?
@@ -182,8 +286,67 @@ describe("createState", () => {
   // Does asynchronous send queueing work?
 
   // Does WhenIn work?
+  it("Should support whenIn.", () => {
+    const state = createState({
+      initial: "a",
+      states: {
+        a: { on: { TO_C: { to: "c" } } },
+        b: {},
+        c: {
+          states: {
+            d: {},
+            e: {},
+            f: {},
+          },
+        },
+      },
+    })
 
-  // Do else event handlers work?
+    const keys = {
+      a: "a",
+      b: "b",
+      c: "c",
+      d: "d",
+      e: "e",
+      f: "f",
+    }
+
+    expect(state.whenIn(keys)).toBe("a")
+    state.send("TO_C")
+    expect(state.whenIn(keys)).toBe("f")
+    expect(state.whenIn(keys, "array")).toMatchObject(["c", "d", "e", "f"])
+    expect(state.whenIn(keys, (a, [_, v]) => a + v, "")).toBe("cdef")
+  })
+
+  it("Should support wait.", async (done) => {
+    const state = createState({
+      data: { count: 0 },
+      on: {
+        TRIGGERED: [
+          {
+            do: (d) => d.count++,
+          },
+          {
+            do: (d) => (d.count += 10),
+            wait: 0.5,
+          },
+          {
+            do: (d) => d.count++,
+          },
+          {
+            do: (d) => (d.count += 10),
+            wait: 0.5,
+          },
+        ],
+      },
+    })
+
+    state.send("TRIGGERED")
+    expect(state.data.count).toBe(1)
+    await new Promise((resolve) => setTimeout(() => resolve(), 2000))
+    expect(state.data.count).toBe(22)
+    done()
+  })
 
   // Do initial active states work?
   it("Should support else event handlers.", async (done) => {
@@ -214,9 +377,11 @@ describe("createState", () => {
     state.send("SOME_EVENT")
     expect(state.data.count).toBe(2) // When zero, adds two
     state.send("SOME_EVENT")
-    expect(state.data.count).toBe(3) // When less than max, adds one
+    expect(state.data.count).toBe(3)
     state.send("SOME_EVENT") // 4
+    expect(state.data.count).toBe(4)
     state.send("SOME_EVENT") // 5
+    expect(state.data.count).toBe(5) // When less than max, adds one
     state.send("SOME_EVENT") // When at max, resets to zero
     expect(state.data.count).toBe(0)
 

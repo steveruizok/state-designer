@@ -7,9 +7,10 @@ import { useStateDesigner } from "@state-designer/react"
 import { Styled } from "theme-ui"
 import { Flex, IconButton, Heading, Card, Grid } from "@theme-ui/components"
 
-export const State: React.FC<{ state: S.State<any>; initial: boolean }> = ({
-  state,
-}) => {
+export const State: React.FC<{
+  state: S.State<any, any>
+  initial: boolean
+}> = ({ state }) => {
   const eventHandlers = Object.entries(state.on)
 
   const states = Object.values(state.states)

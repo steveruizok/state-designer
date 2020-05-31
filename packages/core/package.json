@@ -21,7 +21,7 @@
     "prebuild": "rimraf dist",
     "build": "cross-env NODE_ENV=production tsdx build --format=cjs,esm,umd",
     "prepublish": "npm run build",
-    "start-test": "tsdx test -- --watchAll",
+    "start-test": "tsdx test --watchAll",
     "test": "tsdx test --env=jsdom",
     "lint": "tsdx lint"
   },
