@@ -66,9 +66,50 @@ export const Lockup = withDefaultProps(Image, (p) => ({
   h: 4,
 }))
 
-export const TitleBar = ({ children }) => {
-  const { colorMode } = useColorMode()
+export const NavLinks = () => {
   const { pathname } = useLocation()
+  return (
+    <Grid
+      templateColumns="min-content 1fr"
+      autoFlow="column"
+      columnGap={4}
+      rowGap={[4, 2]}
+    >
+      {routes.map(({ name }, i) => {
+        const isStarterActive = pathname === `/${name}-starter`
+        const isCompleteActive = pathname === `/${name}-complete`
+        return (
+          <React.Fragment key={i}>
+            <Text gridColumn={1}>
+              <b>{name}</b>
+            </Text>
+            <HStack gridColumn={2} w="fit-content">
+              <CLink
+                to={`/${name}-starter`}
+                as={Link}
+                textDecor={isStarterActive ? "underline" : "inherit"}
+              >
+                starter
+              </CLink>
+              /
+              <CLink
+                to={`/${name}-complete`}
+                as={Link}
+                textDecor={isCompleteActive ? "underline" : "inherit"}
+              >
+                complete
+              </CLink>
+            </HStack>
+          </React.Fragment>
+        )
+      })}
+    </Grid>
+  )
+}
+
+export const TitleBar = () => {
+  const { pathname } = useLocation()
+  const { colorMode } = useColorMode()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const btnRef = React.useRef()
   return (
@@ -114,41 +155,7 @@ export const TitleBar = ({ children }) => {
           <DrawerHeader>Tutorials</DrawerHeader>
 
           <DrawerBody>
-            <Grid
-              templateColumns="min-content 1fr"
-              autoFlow="column"
-              columnGap={4}
-              rowGap={[4, 2]}
-            >
-              {routes.map(({ name }, i) => {
-                const isStarterActive = pathname === `/${name}-starter`
-                const isCompleteActive = pathname === `/${name}-complete`
-                return (
-                  <React.Fragment key={i}>
-                    <Text gridColumn={1}>
-                      <b>{name}</b>
-                    </Text>
-                    <HStack gridColumn={2} w="fit-content">
-                      <CLink
-                        to={`/${name}-starter`}
-                        as={Link}
-                        textDecor={isStarterActive ? "underline" : "inherit"}
-                      >
-                        starter
-                      </CLink>
-                      /
-                      <CLink
-                        to={`/${name}-complete`}
-                        as={Link}
-                        textDecor={isCompleteActive ? "underline" : "inherit"}
-                      >
-                        complete
-                      </CLink>
-                    </HStack>
-                  </React.Fragment>
-                )
-              })}
-            </Grid>
+            <NavLinks />
           </DrawerBody>
           <DrawerFooter>
             <CLink href="https://state-designer.com" />
