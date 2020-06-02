@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "tutorials": ["packages/tutorials/src"],
       "@state-designer/core": ["packages/core/src"],
       "@state-designer/react": ["packages/react/src"],
       "state-designer": ["packages/state-designer/src"],

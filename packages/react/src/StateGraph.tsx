@@ -3,9 +3,9 @@ import { S } from "@state-designer/core"
 import { useStateDesigner } from "./useStateDesigner"
 
 const EventList: React.FC<{
-  state: S.State<any>
+  state: S.State<any, any>
 }> = ({ state }) => {
-  function getEvents(state: S.State<any>): string[] {
+  function getEvents(state: S.State<any, any>): string[] {
     const localEvents: string[] = []
 
     if (state.active) {
@@ -43,7 +43,7 @@ const EventList: React.FC<{
 }
 
 const StateNode: React.FC<{
-  state: S.State<any>
+  state: S.State<any, any>
 }> = ({ state }) => {
   const { active } = state
   const states = Object.values(state.states)

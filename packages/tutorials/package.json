@@ -1,0 +1,36 @@
+{
+  "name": "state-designer-tutorials",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "keywords": [],
+  "main": "src/index.js",
+  "dependencies": {
+    "@chakra-ui/core": "0.8.0",
+    "@emotion/core": "10.0.28",
+    "@emotion/styled": "10.0.27",
+    "@state-designer/react": "1.2.6",
+    "emotion-theming": "10.0.27",
+    "mdn-polyfills": "5.20.0",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-router-dom": "5.2.0",
+    "react-scripts": "3.4.1"
+  },
+  "devDependencies": {
+    "typescript": "3.8.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "baseUrl": "src"
+}
