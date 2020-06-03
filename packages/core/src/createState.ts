@@ -314,7 +314,7 @@ export function createState<
       if (!isUndefined(repeat)) {
         const { onRepeat, delay } = repeat
 
-        let now = Date.now()
+        let now = performance.now()
         let lastTime: number | undefined = undefined
         let elapsed = 0
         let realInterval = 0
@@ -346,12 +346,12 @@ export function createState<
           state.times.animationFrame = requestAnimationFrame(loop)
         } else {
           // Run on provided delay amount
-          let lastTime = Date.now()
+          let lastTime = performance.now()
 
           const s = delay(core.data, payload, result)
 
           state.times.interval = setInterval(() => {
-            now = Date.now()
+            now = performance.now()
             realInterval = now - lastTime
             elapsed += realInterval
             lastTime = now
