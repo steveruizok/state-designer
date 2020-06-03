@@ -80,7 +80,6 @@ export default function () {
       <Time blinking={state.isIn("complete")}>
         {state.values.minutes}:{state.values.seconds}
       </Time>
-      <div aria-label="test-time">{state.data.seconds}</div>
       <MinuteButton
         disabled={!state.can("ENTERED_MINUTE")}
         onClick={() => state.send("ENTERED_MINUTE")}

@@ -1,13 +1,20 @@
 import React from "react"
-import { TimerLayout, Time, ResetButton, Button } from "components"
+import {
+  TimerLayout,
+  Time,
+  StartStopButton,
+  ResetButton,
+  MinuteButton,
+  SecondButton,
+} from "components"
 
 export default function () {
   return (
     <TimerLayout>
       <Time blinking={false}>00:00</Time>
-      <Button disabled={false}>Min</Button>
-      <Button disabled={false}>Sec</Button>
-      <Button disabled={false}>START</Button>
+      <MinuteButton disabled={false} />
+      <SecondButton disabled={false} />
+      <StartStopButton disabled={false}>Start</StartStopButton>
       <ResetButton />
     </TimerLayout>
   )

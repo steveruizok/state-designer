@@ -20,7 +20,6 @@ export default function (Component) {
       second: utils.getByLabelText("second-button"),
       reset: utils.getByLabelText("reset-button"),
       time: utils.getByLabelText("Time"),
-      testTime: utils.getByLabelText("test-time"),
       startStop: utils.getByLabelText("start-stop-button"),
       container: utils.getByLabelText("container"),
     }

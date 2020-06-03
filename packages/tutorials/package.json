@@ -26,8 +26,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "test-complete": "react-scripts test --env=jsdom --testPathPattern=complete",
+    "test": "react-scripts test --env=jsdom --testPathPattern=complete",
     "test-starter": "react-scripts test --env=jsdom --testPathPattern=starter",
     "eject": "react-scripts eject"
   },
