@@ -111,8 +111,6 @@ export function createState<
       onAsyncUpdate: (update) => {
         core.data = update.data
 
-        console.log(core.data)
-
         if (update.shouldNotify) {
           notifySubscribers()
         }
@@ -317,19 +315,24 @@ export function createState<
         const { onRepeat, delay } = repeat
 
         let now = Date.now()
-        let lastTime = 0
+        let lastTime: number | undefined = undefined
         let elapsed = 0
+        let realInterval = 0
 
         if (delay === undefined) {
           // Run on every animation frame
-          const loop = (now: number) => {
-            const realInterval = now - lastTime
+          const loop = (ms: number) => {
+            if (isUndefined(lastTime)) {
+              lastTime = ms
+            }
+
+            realInterval = ms - lastTime
             elapsed += realInterval
 
-            lastTime = now
+            lastTime = ms
 
             const outcome = runEventHandlerChain(onRepeat, payload, {
-              realInterval,
+              interval: realInterval,
               elapsed,
             })
 
@@ -349,12 +352,12 @@ export function createState<
 
           state.times.interval = setInterval(() => {
             now = Date.now()
-            const realInterval = now - lastTime
+            realInterval = now - lastTime
             elapsed += realInterval
             lastTime = now
 
             const outcome = runEventHandlerChain(onRepeat, payload, {
-              realInterval,
+              interval: realInterval,
               elapsed,
             })
 

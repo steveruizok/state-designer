@@ -242,6 +242,7 @@ export function endStateIntervals<D, V>(state: S.State<D, V>) {
   for (let timeout of timeouts) {
     clearTimeout(timeout)
   }
+
   state.times.timeouts = []
 
   if (!isUndefined(interval)) {

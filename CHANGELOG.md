@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.7
+
+- Fixed information result sent from interval. In an `onRepeat` handler, `result.elapsed` will be initialized with the total time since the repeating event began, while `result.interval` will contain the precise interval since the previous time `onRepeat` was called.
+
 ## 1.2.6
 
 - Major refactor on event handling following the move to synchronous state. No API change. Events are now handled in "chains" of event handlers. Handlers with `wait` properties may pause chain; they will resume after a timeout with the current data. Handlers with `else` properties are handled as nested separate chains.

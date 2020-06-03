@@ -8,6 +8,7 @@
 
 import * as React from "react"
 import { useLocation, Link } from "react-router-dom"
+import { keyframes } from "@emotion/core"
 import {
   Button,
   Divider,
@@ -33,6 +34,7 @@ import {
   useDisclosure,
   Link as CLink,
 } from "@chakra-ui/core"
+import theme from "theme"
 import routes from "routes"
 
 // Helper function to provide default props to low-level components
@@ -349,7 +351,45 @@ export const SubHeading = withDefaultProps(Heading, {
   mb: 3,
 })
 
+// Stopwatch
+
+export const StopwatchLayout = withDefaultProps(TightLayout, {
+  templateColumns: "1fr 1fr min-content",
+  width: "260px",
+  autoRows: "min-content",
+  columnGap: 2,
+  rowGap: 4,
+})
+
+export const Time = withDefaultProps(Heading, (p) => ({
+  as: "h2",
+  size: "2xl",
+  gridColumn: "span 4",
+  textAlign: "center",
+  fontFamily: "mono",
+  animation: p.blinking ? `${blink} 1s ease infinite` : `none`,
+}))
+
+export const ResetButton = withDefaultProps(IconButton, {
+  icon: "repeat-clock",
+})
+
 // Timer
+
+const blink = keyframes`{
+	0% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 1;
+	}
+	51% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 0;
+	}
+}`
 
 export const TimerLayout = withDefaultProps(TightLayout, {
   templateColumns: "1fr 1fr 1fr min-content",
@@ -357,15 +397,6 @@ export const TimerLayout = withDefaultProps(TightLayout, {
   autoRows: "min-content",
   columnGap: 2,
   rowGap: 4,
-})
-
-export const Time = withDefaultProps(Heading, {
-  gridColumn: "span 4",
-  textAlign: "center",
-})
-
-export const ResetButton = withDefaultProps(IconButton, {
-  icon: "repeat-clock",
 })
 
 export { Button, Divider, Heading, IconButton, Switch }

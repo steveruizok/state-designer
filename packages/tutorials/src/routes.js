@@ -8,6 +8,8 @@ import TodoStarter from "tutorials/todo/starter"
 import TodoComplete from "tutorials/todo/complete"
 import TodosStarter from "tutorials/todos/starter"
 import TodosComplete from "tutorials/todos/complete"
+import StopwatchStarter from "tutorials/stopwatch/starter"
+import StopwatchComplete from "tutorials/stopwatch/complete"
 import TimerStarter from "tutorials/timer/starter"
 import TimerComplete from "tutorials/timer/complete"
 
@@ -36,6 +38,11 @@ export default [
     name: "todos",
     Starter: TodosStarter,
     Complete: TodosComplete,
+  },
+  {
+    name: "stopwatch",
+    Starter: StopwatchStarter,
+    Complete: StopwatchComplete,
   },
   {
     name: "timer",
