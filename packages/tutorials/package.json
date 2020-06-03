@@ -36,5 +36,8 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "baseUrl": "src"
+  "baseUrl": "src",
+  "jest": {
+    "testTimeout": 30000
+  }
 }
