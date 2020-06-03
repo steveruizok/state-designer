@@ -112,15 +112,20 @@ export default function (Component) {
     const utils = setup()
     const { start, stop, reset } = utils.components
 
+    fireEvent.click(start)
+    fireEvent.click(stop)
+    fireEvent.click(reset)
+
     await act(async () => {
-      fireEvent.click(start)
       await new Promise((resolve) => setTimeout(resolve, 120))
-      fireEvent.click(stop)
-      fireEvent.click(reset)
     })
 
     let time = utils.getByLabelText("Time").textContent
     expect(time).toBe("0.00")
     done()
   })
+}
+
+async function pause(duration = 1000) {
+  await new Promise((resolve) => setTimeout(resolve, duration))
 }

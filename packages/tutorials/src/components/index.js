@@ -221,6 +221,7 @@ export const TightLayout = withDefaultProps(Layout, {
 
 export const TwoColumnLayout = withDefaultProps(Layout, (p) => ({
   templateColumns: "auto 1fr",
+  columnGap: 5,
 }))
 
 export const HStack = withDefaultProps(Grid, (p) => ({
@@ -288,15 +289,10 @@ export const Checkbox = (props) => {
   )
 }
 
-export function TextInput(props) {
-  const { label, ...rest } = props
-  return (
-    <HStack templateColumns="64px 1fr" textAlign="left" gap={4} width="100%">
-      <span aria-label={label + "-label"}>{label}</span>
-      <Input aria-label={label + "-input"} h={10} {...rest} />
-    </HStack>
-  )
-}
+export const TextInput = withDefaultProps(Input, {
+  ariaLabel: "input",
+  h: 10,
+})
 
 /* --------------------- Counter -------------------- */
 
@@ -351,11 +347,21 @@ export const InputLayout = withDefaultProps(TightLayout, {
   rowGap: 4,
 })
 
-export const NameInput = withDefaultProps(TextInput, {
+export function TextInputWithLabel(props) {
+  const { label, ...rest } = props
+  return (
+    <HStack templateColumns="64px 1fr" textAlign="left" gap={4} width="100%">
+      <span aria-label={label + "-label"}>{label}</span>
+      <TextInput aria-label={label + "-input"} {...rest} />
+    </HStack>
+  )
+}
+
+export const NameInput = withDefaultProps(TextInputWithLabel, {
   label: "Name",
 })
 
-export const TitleInput = withDefaultProps(TextInput, {
+export const TitleInput = withDefaultProps(TextInputWithLabel, {
   label: "Title",
 })
 

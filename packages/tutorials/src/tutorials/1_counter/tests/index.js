@@ -56,4 +56,14 @@ export default function (Component) {
     fireEvent.click(decreaseButton)
     expect(count).toHaveTextContent("0")
   })
+
+  test("It should disable the decrease button when count is zero.", () => {
+    const utils = setup()
+    const { increaseButton, decreaseButton } = utils.components
+    expect(decreaseButton).toBeDisabled()
+    fireEvent.click(increaseButton)
+    expect(decreaseButton).not.toBeDisabled()
+    fireEvent.click(decreaseButton)
+    expect(decreaseButton).toBeDisabled()
+  })
 }

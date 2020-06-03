@@ -42,14 +42,14 @@ export default function (Component) {
   test("It should increase time by minute button.", () => {
     const utils = setup()
     const { time, minute } = utils.components
-    act(() => void fireEvent.click(minute))
+    fireEvent.click(minute)
     expect(time).toHaveTextContent("01:00")
   })
 
   test("It should increase time by second button.", () => {
     const utils = setup()
     const { time, second } = utils.components
-    act(() => void fireEvent.click(second))
+    fireEvent.click(second)
     expect(time).toHaveTextContent("00:01")
   })
 
@@ -63,7 +63,7 @@ export default function (Component) {
   test("It should have start button enabled when time is not zero.", () => {
     const utils = setup()
     const { second, startStop } = utils.components
-    act(() => void fireEvent.click(second))
+    fireEvent.click(second)
     expect(startStop).not.toBeDisabled()
   })
 
@@ -75,11 +75,9 @@ export default function (Component) {
     fireEvent.click(second)
     fireEvent.click(startStop)
 
-    await act(async () => {
-      await pause(1050)
-      expect(time).toHaveTextContent("01:00")
-      fireEvent.click(startStop)
-    })
+    await pause(1050)
+    expect(time).toHaveTextContent("01:00")
+    fireEvent.click(startStop)
   })
 
   test("It should have minute and second buttons disabled while counting down.", async () => {
@@ -101,16 +99,14 @@ export default function (Component) {
     fireEvent.click(second)
     fireEvent.click(startStop)
 
-    await act(async () => {
-      await pause(1050)
-      expect(time).toHaveTextContent("01:00")
-      fireEvent.click(startStop)
-      await pause(1050)
-      fireEvent.click(startStop)
-      await pause(1050)
-      expect(time).toHaveTextContent("00:59")
-      fireEvent.click(startStop)
-    })
+    await pause(1050)
+    expect(time).toHaveTextContent("01:00")
+    fireEvent.click(startStop)
+    await pause(1050)
+    fireEvent.click(startStop)
+    await pause(1050)
+    expect(time).toHaveTextContent("00:59")
+    fireEvent.click(startStop)
   })
 
   test("It should allow time adjustments before resuming.", async () => {
@@ -121,18 +117,18 @@ export default function (Component) {
     fireEvent.click(second)
     fireEvent.click(startStop)
 
-    await act(async () => {
-      await pause(1050)
-      expect(time).toHaveTextContent("01:00")
-      fireEvent.click(startStop)
-      fireEvent.click(minute)
-      fireEvent.click(second)
-      await pause(1050)
-      fireEvent.click(startStop)
-      await pause(1050)
-      expect(time).toHaveTextContent("02:00")
-      fireEvent.click(startStop)
-    })
+    await pause(1050)
+    expect(time).toHaveTextContent("01:00")
+    fireEvent.click(startStop)
+    fireEvent.click(minute)
+    fireEvent.click(second)
+
+    await pause(1050)
+    fireEvent.click(startStop)
+
+    await pause(1050)
+    expect(time).toHaveTextContent("02:00")
+    fireEvent.click(startStop)
   })
 
   test("It should reset while stopped.", async () => {
@@ -154,16 +150,19 @@ export default function (Component) {
     fireEvent.click(second)
     fireEvent.click(startStop)
 
-    await act(async () => {
-      await pause(1050)
-      expect(time).toHaveTextContent("01:00")
-      fireEvent.click(reset)
-      await pause(1050)
-      expect(time).toHaveTextContent("00:00")
-    })
+    await pause(1050)
+
+    expect(time).toHaveTextContent("01:00")
+    fireEvent.click(reset)
+
+    await pause(1050)
+
+    expect(time).toHaveTextContent("00:00")
   })
 }
 
 async function pause(duration = 1000) {
-  await new Promise((resolve) => setTimeout(resolve, duration))
+  return act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, duration))
+  })
 }
