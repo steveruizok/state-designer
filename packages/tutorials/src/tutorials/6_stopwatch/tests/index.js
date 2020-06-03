@@ -45,31 +45,26 @@ export default function (Component) {
 
   test("It should enter start state and begin counting up.", async (done) => {
     const utils = setup()
-    const { start } = utils.components
+    const { time, start } = utils.components
 
-    await act(async () => {
-      fireEvent.click(start)
-      await new Promise((resolve) => setTimeout(resolve, 120))
-    })
+    fireEvent.click(start)
+    await pause(120)
 
-    const time = utils.getByLabelText("Time")
     expect(time.textContent).not.toBe("0.00")
     done()
   })
 
   test("It should stop.", async (done) => {
     const utils = setup()
-    const { start, stop } = utils.components
+    const { time, start, stop } = utils.components
     let t1, t2
 
-    await act(async () => {
-      fireEvent.click(start)
-      await new Promise((resolve) => setTimeout(resolve, 120))
-      fireEvent.click(stop)
-      t1 = utils.getByLabelText("Time").textContent
-      await new Promise((resolve) => setTimeout(resolve, 120))
-      t2 = utils.getByLabelText("Time").textContent
-    })
+    fireEvent.click(start)
+    await pause(120)
+    fireEvent.click(stop)
+    t1 = time.textContent
+    await pause(120)
+    t2 = time.textContent
 
     expect(t1 === t2).toBeTruthy()
     done()
@@ -77,18 +72,16 @@ export default function (Component) {
 
   test("It should stop and re-start.", async (done) => {
     const utils = setup()
-    const { start, stop } = utils.components
+    const { time, start, stop } = utils.components
     let t1, t2
 
-    await act(async () => {
-      fireEvent.click(start)
-      await new Promise((resolve) => setTimeout(resolve, 120))
-      fireEvent.click(stop)
-      t1 = utils.getByLabelText("Time").textContent
-      fireEvent.click(start)
-      await new Promise((resolve) => setTimeout(resolve, 120))
-      t2 = utils.getByLabelText("Time").textContent
-    })
+    fireEvent.click(start)
+    await pause(120)
+    fireEvent.click(stop)
+    t1 = time.textContent
+    fireEvent.click(start)
+    await pause(120)
+    t2 = time.textContent
 
     expect(t1 === t2).toBeFalsy()
     done()
@@ -96,36 +89,32 @@ export default function (Component) {
 
   test("It should reset while running.", async (done) => {
     const utils = setup()
-    const { start, reset } = utils.components
+    const { time, start, reset } = utils.components
 
-    await act(async () => {
-      fireEvent.click(start)
-      await new Promise((resolve) => setTimeout(resolve, 120))
-      fireEvent.click(reset)
-    })
-    let time = utils.getByLabelText("Time").textContent
-    expect(time).toBe("0.00")
+    fireEvent.click(start)
+    await pause(120)
+    fireEvent.click(reset)
+    expect(time.textContent).toBe("0.00")
     done()
   })
 
   test("It should reset while stopped.", async (done) => {
     const utils = setup()
-    const { start, stop, reset } = utils.components
+    const { time, start, stop, reset } = utils.components
 
     fireEvent.click(start)
     fireEvent.click(stop)
     fireEvent.click(reset)
 
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 120))
-    })
+    await pause(120)
 
-    let time = utils.getByLabelText("Time").textContent
-    expect(time).toBe("0.00")
+    expect(time.textContent).toBe("0.00")
     done()
   })
 }
 
 async function pause(duration = 1000) {
-  await new Promise((resolve) => setTimeout(resolve, duration))
+  return act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, duration))
+  })
 }

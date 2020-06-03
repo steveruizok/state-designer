@@ -67,7 +67,7 @@ export default function (Component) {
     expect(startStop).not.toBeDisabled()
   })
 
-  test("It should start counting down.", async () => {
+  test("It should start counting down.", async (done) => {
     const utils = setup()
     const { minute, second, startStop, time } = utils.components
 
@@ -78,9 +78,10 @@ export default function (Component) {
     await pause(1050)
     expect(time).toHaveTextContent("01:00")
     fireEvent.click(startStop)
+    done()
   })
 
-  test("It should have minute and second buttons disabled while counting down.", async () => {
+  test("It should have minute and second buttons disabled while counting down.", async (done) => {
     const utils = setup()
     const { minute, second, startStop, time } = utils.components
 
@@ -89,9 +90,10 @@ export default function (Component) {
     fireEvent.click(startStop)
     expect(minute).toBeDisabled()
     expect(second).toBeDisabled()
+    done()
   })
 
-  test("It should resume counting down.", async () => {
+  test("It should resume counting down.", async (done) => {
     const utils = setup()
     const { minute, second, startStop, time } = utils.components
 
@@ -107,9 +109,10 @@ export default function (Component) {
     await pause(1050)
     expect(time).toHaveTextContent("00:59")
     fireEvent.click(startStop)
+    done()
   })
 
-  test("It should allow time adjustments before resuming.", async () => {
+  test("It should allow time adjustments before resuming.", async (done) => {
     const utils = setup()
     const { minute, second, startStop, time } = utils.components
 
@@ -129,9 +132,11 @@ export default function (Component) {
     await pause(1050)
     expect(time).toHaveTextContent("02:00")
     fireEvent.click(startStop)
+
+    done()
   })
 
-  test("It should reset while stopped.", async () => {
+  test("It should reset while stopped.", async (done) => {
     const utils = setup()
     const { reset, minute, second, time } = utils.components
 
@@ -140,9 +145,10 @@ export default function (Component) {
     expect(time).toHaveTextContent("01:01")
     fireEvent.click(reset)
     expect(time).toHaveTextContent("00:00")
+    done()
   })
 
-  test("It should reset while counting down.", async () => {
+  test("It should reset while counting down.", async (done) => {
     const utils = setup()
     const { reset, minute, second, startStop, time } = utils.components
 
@@ -158,6 +164,7 @@ export default function (Component) {
     await pause(1050)
 
     expect(time).toHaveTextContent("00:00")
+    done()
   })
 }
 
