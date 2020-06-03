@@ -8,15 +8,15 @@ import App from "./App"
 
 const rootElement = document.getElementById("root")
 ReactDOM.render(
-	<React.StrictMode>
-		<ThemeProvider theme={theme}>
-			<ColorModeProvider>
-				<CSSReset />
-				<BrowserRouter>
-					<App />
-				</BrowserRouter>
-			</ColorModeProvider>
-		</ThemeProvider>
-	</React.StrictMode>,
-	rootElement
+  <React.StrictMode>
+    <ThemeProvider theme={theme}>
+      <ColorModeProvider>
+        <BrowserRouter>
+          <CSSReset />
+          <App />
+        </BrowserRouter>
+      </ColorModeProvider>
+    </ThemeProvider>
+  </React.StrictMode>,
+  rootElement
 )

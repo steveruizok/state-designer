@@ -1,5 +1,11 @@
 import React from "react"
-import { StopwatchLayout, Time, ResetButton, Button } from "components"
+import {
+  StartButton,
+  StopButton,
+  StopwatchLayout,
+  Time,
+  ResetButton,
+} from "components"
 import { useStateDesigner } from "@state-designer/react"
 
 export default function () {
@@ -43,18 +49,14 @@ export default function () {
   return (
     <StopwatchLayout>
       <Time>{state.values.seconds}</Time>
-      <Button
+      <StartButton
         disabled={state.isIn("running")}
         onClick={() => state.send("STARTED")}
-      >
-        START
-      </Button>
-      <Button
+      />
+      <StopButton
         disabled={state.isIn("stopped")}
         onClick={() => state.send("STOPPED")}
-      >
-        STOP
-      </Button>
+      />
       <ResetButton onClick={() => state.send("RESET")} />
     </StopwatchLayout>
   )

@@ -1,5 +1,12 @@
 import React from "react"
-import { TimerLayout, Time, ResetButton, Button } from "components"
+import {
+  TimerLayout,
+  Time,
+  ResetButton,
+  MinuteButton,
+  SecondButton,
+  StartStopButton,
+} from "components"
 import { useStateDesigner } from "@state-designer/react"
 
 export default function () {
@@ -73,24 +80,21 @@ export default function () {
       <Time blinking={state.isIn("complete")}>
         {state.values.minutes}:{state.values.seconds}
       </Time>
-      <Button
+      <div aria-label="test-time">{state.data.seconds}</div>
+      <MinuteButton
         disabled={!state.can("ENTERED_MINUTE")}
         onClick={() => state.send("ENTERED_MINUTE")}
-      >
-        Min
-      </Button>
-      <Button
+      />
+      <SecondButton
         disabled={!state.can("ENTERED_SECOND")}
         onClick={() => state.send("ENTERED_SECOND")}
-      >
-        Sec
-      </Button>
-      <Button
+      />
+      <StartStopButton
         disabled={state.isIn("stopped") && !state.can("START_STOPPED")}
         onClick={() => state.send("START_STOPPED")}
       >
-        {state.isIn("stopped") ? "START" : "STOP"}
-      </Button>
+        {state.isIn("stopped") ? "Start" : "Stop"}
+      </StartStopButton>
       <ResetButton onClick={() => state.send("RESET")} />
     </TimerLayout>
   )

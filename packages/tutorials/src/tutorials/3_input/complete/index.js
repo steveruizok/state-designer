@@ -1,19 +1,19 @@
 import React from "react"
 import { useStateDesigner } from "@state-designer/react"
 import {
+  ClearButton,
   InputLayout,
-  Button,
-  Heading,
-  SubHeading,
-  InputRow,
-  TextInput,
+  NameHeading,
+  TitleHeading,
+  NameInput,
+  TitleInput,
 } from "components"
 
 export default function () {
   const state = useStateDesigner({
     data: {
-      name: "Luako",
-      title: "Leaf Blower",
+      name: "",
+      title: "",
     },
     on: {
       CHANGED_NAME: "updateName",
@@ -38,23 +38,17 @@ export default function () {
 
   return (
     <InputLayout>
-      <Heading>{state.data.name || "Name"}</Heading>
-      <SubHeading>{state.data.title || "Title"}</SubHeading>
-      <InputRow>
-        Name
-        <TextInput
-          value={state.data.name}
-          onChange={(e) => state.send("CHANGED_NAME", e.target.value)}
-        />
-      </InputRow>
-      <InputRow>
-        Title
-        <TextInput
-          value={state.data.title}
-          onChange={(e) => state.send("CHANGED_TITLE", e.target.value)}
-        />
-      </InputRow>
-      <Button onClick={() => state.send("CLEARED")}>Clear</Button>
+      <NameHeading>{state.data.name || "Name"}</NameHeading>
+      <TitleHeading>{state.data.title || "Title"}</TitleHeading>
+      <NameInput
+        value={state.data.name}
+        onChange={(e) => state.send("CHANGED_NAME", e.target.value)}
+      />
+      <TitleInput
+        value={state.data.title}
+        onChange={(e) => state.send("CHANGED_TITLE", e.target.value)}
+      />
+      <ClearButton onClick={() => state.send("CLEARED")} />
     </InputLayout>
   )
 }

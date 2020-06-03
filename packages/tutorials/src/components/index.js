@@ -43,6 +43,7 @@ const withDefaultProps = (C, defaults = {}) => (props) => {
   const { colorMode } = useColorMode()
   const p = { ...props, colorMode }
   const d = typeof defaults === "function" ? defaults(p) : defaults
+  if (d.ariaLabel !== undefined) d["aria-label"] = d.ariaLabel
   return <C {...d} {...p} style={{ ...d.style, ...p.style }} />
 }
 
@@ -194,7 +195,10 @@ export function Footer() {
   )
 }
 
+// Tutorials
+
 export const Layout = withDefaultProps(Grid, (p) => ({
+  ariaLabel: "container",
   p: 4,
   borderRadius: 8,
   width: "100%",
@@ -255,7 +259,7 @@ export const Value = withDefaultProps(Heading, {
   textAlign: "center",
 })
 
-// Todo
+/* ---------------------- Todo ---------------------- */
 
 export const TodoContainer = withDefaultProps(Grid, {
   templateColumns: "32px 1fr",
@@ -284,32 +288,38 @@ export const Checkbox = (props) => {
   )
 }
 
-export const TextInput = withDefaultProps(Input, {
-  h: 10,
-})
+export function TextInput(props) {
+  const { label, ...rest } = props
+  return (
+    <HStack templateColumns="64px 1fr" textAlign="left" gap={4} width="100%">
+      <span aria-label={label + "-label"}>{label}</span>
+      <Input aria-label={label + "-input"} h={10} {...rest} />
+    </HStack>
+  )
+}
 
-// Counter
+/* --------------------- Counter -------------------- */
 
 export const CounterLayout = withDefaultProps(TightLayout, {
   templateColumns: "min-content 1fr min-content",
   alignItems: "center",
 })
 
-export const Count = withDefaultProps(Value, {})
+export const Count = withDefaultProps(Value, { ariaLabel: "count" })
 
 export const PlusButton = withDefaultProps(IconButton, {
+  ariaLabel: "increase",
   icon: "add",
-  arialLabel: "Increase",
   variantColor: "blue",
 })
 
 export const MinusButton = withDefaultProps(IconButton, {
+  ariaLabel: "decrease",
   icon: "minus",
-  arialLabel: "Decrease",
   variantColor: "blue",
 })
 
-// Toggle
+/* --------------------- Toggle --------------------- */
 
 export const ToggleLayout = withDefaultProps(TightLayout, {
   textAlign: "center",
@@ -319,6 +329,7 @@ export const ToggleLayout = withDefaultProps(TightLayout, {
 export const Toggle = withDefaultProps(Switch, (p) => ({
   isChecked: p.isToggled,
   size: "lg",
+  ariaLabel: "toggle",
 }))
 
 export const Label = withDefaultProps(Heading, {
@@ -328,15 +339,24 @@ export const Label = withDefaultProps(Heading, {
   p: 0,
   lineHeight: 1,
   textAlign: "center",
+  ariaLabel: "label",
 })
 
-// Input
+/* ---------------------- Input --------------------- */
 
 export const InputLayout = withDefaultProps(TightLayout, {
   width: "320px",
   textAlign: "center",
   autoRows: "min-content",
   rowGap: 4,
+})
+
+export const NameInput = withDefaultProps(TextInput, {
+  label: "Name",
+})
+
+export const TitleInput = withDefaultProps(TextInput, {
+  label: "Title",
 })
 
 export const InputRow = withDefaultProps(HStack, {
@@ -346,12 +366,22 @@ export const InputRow = withDefaultProps(HStack, {
   width: "100%",
 })
 
-export const SubHeading = withDefaultProps(Heading, {
-  size: "sm",
-  mb: 3,
+export const NameHeading = withDefaultProps(Heading, {
+  ariaLabel: "Name-heading",
 })
 
-// Stopwatch
+export const TitleHeading = withDefaultProps(Heading, {
+  size: "sm",
+  mb: 3,
+  ariaLabel: "Title-heading",
+})
+
+export const ClearButton = withDefaultProps(Button, {
+  ariaLabel: "Clear",
+  children: "Clear",
+})
+
+/* -------------------- Stopwatch ------------------- */
 
 export const StopwatchLayout = withDefaultProps(TightLayout, {
   templateColumns: "1fr 1fr min-content",
@@ -368,13 +398,25 @@ export const Time = withDefaultProps(Heading, (p) => ({
   textAlign: "center",
   fontFamily: "mono",
   animation: p.blinking ? `${blink} 1s ease infinite` : `none`,
+  ariaLabel: "Time",
 }))
+
+export const StartButton = withDefaultProps(Button, {
+  children: "START",
+  ariaLabel: "start-button",
+})
+
+export const StopButton = withDefaultProps(Button, {
+  children: "STOP",
+  ariaLabel: "stop-button",
+})
 
 export const ResetButton = withDefaultProps(IconButton, {
   icon: "repeat-clock",
+  ariaLabel: "reset-button",
 })
 
-// Timer
+/* ---------------------- Timer --------------------- */
 
 const blink = keyframes`{
 	0% {
@@ -398,5 +440,21 @@ export const TimerLayout = withDefaultProps(TightLayout, {
   columnGap: 2,
   rowGap: 4,
 })
+
+export const MinuteButton = withDefaultProps(Button, {
+  children: "Min",
+  ariaLabel: "minute-button",
+})
+
+export const SecondButton = withDefaultProps(Button, {
+  children: "Sec",
+  ariaLabel: "second-button",
+})
+
+export const StartStopButton = withDefaultProps(Button, {
+  ariaLabel: "start-stop-button",
+})
+
+// ResetButton from Stopwatch
 
 export { Button, Divider, Heading, IconButton, Switch }

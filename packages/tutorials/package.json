@@ -10,6 +10,9 @@
     "@emotion/core": "10.0.28",
     "@emotion/styled": "10.0.27",
     "@state-designer/react": "1.2.6",
+    "@testing-library/jest-dom": "^5.9.0",
+    "@testing-library/react": "^10.0.6",
+    "@testing-library/user-event": "^11.0.0",
     "emotion-theming": "10.0.27",
     "mdn-polyfills": "5.20.0",
     "react": "16.13.1",
@@ -24,6 +27,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
+    "test-complete": "react-scripts test --env=jsdom --testPathPattern=complete",
+    "test-starter": "react-scripts test --env=jsdom --testPathPattern=starter",
     "eject": "react-scripts eject"
   },
   "browserslist": [

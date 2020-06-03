@@ -1,27 +1,21 @@
 import React from "react"
 import {
+  ClearButton,
   InputLayout,
-  Button,
-  Heading,
-  SubHeading,
-  InputRow,
-  TextInput,
+  NameHeading,
+  TitleHeading,
+  NameInput,
+  TitleInput,
 } from "components"
 
 export default function () {
   return (
     <InputLayout>
-      <Heading>Name</Heading>
-      <SubHeading>Title</SubHeading>
-      <InputRow>
-        Name
-        <TextInput />
-      </InputRow>
-      <InputRow>
-        Title
-        <TextInput />
-      </InputRow>
-      <Button>Clear</Button>
+      <NameHeading>Name</NameHeading>
+      <TitleHeading>Title</TitleHeading>
+      <NameInput />
+      <TitleInput />
+      <ClearButton />
     </InputLayout>
   )
 }
