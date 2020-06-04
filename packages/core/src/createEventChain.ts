@@ -47,6 +47,19 @@ export function createEventChain<D>(options: Options<D>) {
   }
 
   let draftCore: Draft<Core<D>> = createDraft(core)
+  let orig = original(draftCore) as Draft<Core<D>>
+  let tResult = orig?.result
+
+  function complete(draft: Draft<Core<D>>) {
+    core = finishDraft(draft) as Core<D>
+    finalOutcome.data = core.data
+  }
+
+  function refresh() {
+    draftCore = createDraft(core)
+    orig = original(draftCore) as Draft<Core<D>>
+    tResult = orig?.result
+  }
 
   function processEventHandler(
     eventHandler: S.EventHandler<D>,
@@ -74,10 +87,9 @@ export function createEventChain<D>(options: Options<D>) {
 
       // // Notify, if necessary
       if (waiting && finalOutcome.shouldNotify) {
-        core = finishDraft(draftCore) as Core<D>
-        finalOutcome.data = core.data
+        complete(draftCore)
         onAsyncUpdate(finalOutcome)
-        draftCore = createDraft(core)
+        refresh()
       }
 
       waiting = true
@@ -86,12 +98,12 @@ export function createEventChain<D>(options: Options<D>) {
         core.data = onRefreshDataAfterWait() // After the timeout, refresh data
         core.result = undefined // Results can't be carried across!
 
-        draftCore = createDraft(core)
+        refresh()
+
         processHandlerObject(nextHandlerObject, draftCore)
         processEventHandler(handlers, draftCore)
 
-        core = finishDraft(draftCore) as Core<D>
-        finalOutcome.data = core.data
+        complete(draftCore)
         onAsyncUpdate(finalOutcome)
       }, waitTime)
 
@@ -108,38 +120,36 @@ export function createEventChain<D>(options: Options<D>) {
   ) {
     let passedConditions = true
 
-    // Create new original from draft
-    let orig = original(draft) as Draft<Core<D>>
-
     // Compute a result using original data and draft result
     if (handler.get.length > 0) {
       for (let resu of handler.get) {
-        draft.result = resu(orig.data as D, payload, draft.result)
+        tResult = resu(draft.data as D, payload, tResult)
       }
 
-      // Refresh original after result changes
-      orig = original(draft) as Draft<Core<D>>
+      // Save result to draft
+      draft.result = tResult
     }
 
     // Conditions — use original data / result
-
     if (passedConditions && handler.if.length > 0) {
       passedConditions = handler.if.every((cond) =>
-        cond(orig.data as D, payload, orig.result)
+        cond(draft.data as D, payload, tResult)
       )
     }
 
     if (passedConditions && handler.unless.length > 0) {
       passedConditions = handler.unless.every(
-        (cond) => !cond(orig.data as D, payload, orig.data)
+        (cond) => !cond(draft.data as D, payload, tResult)
       )
     }
 
     if (passedConditions && handler.ifAny.length > 0) {
       passedConditions = handler.ifAny.some((cond) =>
-        cond(orig.data as D, payload, orig.data)
+        cond(draft.data as D, payload, tResult)
       )
     }
+
+    // Create temporary human-readable copy of data
 
     if (passedConditions) {
       // Actions
@@ -147,32 +157,29 @@ export function createEventChain<D>(options: Options<D>) {
         finalOutcome.shouldNotify = true
 
         for (let action of handler.do) {
-          action(orig.data as D, payload, orig.data)
+          action(draft.data as D, payload, tResult)
         }
       }
-
-      // Create new original from draft
-      orig = original(draft) as Draft<Core<D>>
 
       // Side effects
       if (handler.secretlyDo.length > 0) {
         for (let action of handler.secretlyDo) {
-          action(orig.data as D, payload, orig.result)
+          action(draft.data as D, payload, tResult)
         }
       }
 
       // Sends
       if (handler.send !== undefined) {
-        const event = handler.send(orig.data as D, payload, orig.result)
+        const event = handler.send(draft.data as D, payload, tResult)
         finalOutcome.pendingSend = event
       }
 
       // Transitions
       if (handler.to !== undefined) {
         finalOutcome.pendingTransition = handler.to(
-          orig.data as D,
+          draft.data as D,
           payload,
-          orig.result
+          tResult
         )
 
         finalOutcome.shouldBreak = true
@@ -188,9 +195,8 @@ export function createEventChain<D>(options: Options<D>) {
   }
 
   processEventHandler(handlers, draftCore)
-  core = finishDraft(draftCore) as Core<D>
 
-  finalOutcome.data = core.data
+  complete(draftCore)
 
   return finalOutcome
 }

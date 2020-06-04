@@ -197,7 +197,7 @@ const game = createState({
     moveFallingPieceRight(data) {
       data.falling.origin.x++
     },
-    moveFallingPieceDown(data) {
+    moveFallingPieceDown(data, _, piece) {
       data.falling.origin.y++
     },
     rotateFallingPieceClockwise(data) {
