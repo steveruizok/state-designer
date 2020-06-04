@@ -495,4 +495,85 @@ export const PlayButton = withDefaultProps(Button, (p) => ({
   variantColor: p.highlight ? "blue" : undefined,
 }))
 
+/* --------------------- Tetris --------------------- */
+
+const MatrixTetromino = withDefaultProps(Box, (p) => {
+  return {
+    height: "100%",
+    width: "100%",
+    bg: `${p.color}`,
+  }
+})
+
+const Tetromino = withDefaultProps(Box, (p) => {
+  return {
+    height: "100%",
+    width: "100%",
+    gridColumn: p.x + 1,
+    gridRow: p.y + 1,
+    bg: p.color,
+  }
+})
+
+const Piece = ({ tetrominos, color, x, y, ...p }) => {
+  return [
+    ...tetrominos
+      .filter((point) => y + point.y >= 0)
+      .map((point, i) => {
+        return (
+          <Tetromino key={i} color={color} x={x + point.x} y={y + point.y} />
+        )
+      }),
+  ]
+}
+
+export const Tetris = {
+  MatrixTetromino,
+  Layout: withDefaultProps(Layout, () => ({
+    gridGap: 4,
+    templateColumns: "auto auto",
+  })),
+  NextField: withDefaultProps(Grid, (p) => ({
+    templateColumns: "repeat(4, 16px)",
+    autoRows: "16px",
+    gridGap: "0px",
+  })),
+  PlayField: withDefaultProps(Grid, (p) => ({
+    position: "relative",
+    width: 240,
+    height: 480,
+    bg: p.colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100",
+  })),
+  Tetromino,
+  Piece,
+  GhostPiece: withDefaultProps(Piece, (p) => ({
+    color: p.colorMode === "dark" ? "whiteAlpha.200" : "blackAlpha.200",
+  })),
+  Layer: withDefaultProps(Grid, (p) => ({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    templateColumns: "repeat(10, 24px)",
+    templateRows: "repeat(20, 24px)",
+    gridGap: "0px",
+    bg: "transparent",
+  })),
+  Label: withDefaultProps(Text, (p) => {
+    return {
+      textAlign: "left",
+      display: "inline",
+      fontWeight: "bold",
+    }
+  }),
+  Stats: withDefaultProps(Grid, (p) => {
+    return {
+      textAlign: "right",
+      templateColumns: "min-content 1fr",
+    }
+  }),
+  Button: withDefaultProps(Button, (p) => ({
+    variantColor: p.highlight ? "blue" : "gray",
+  })),
+}
+
 export { Button, Divider, Heading, IconButton, Switch }

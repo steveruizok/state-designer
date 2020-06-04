@@ -1,3 +1,7 @@
+import cloneDeep from "lodash-es/cloneDeep"
+import sample from "lodash-es/sample"
+
+export { cloneDeep, sample }
 // Shared helper functions for tutorials.
 
 /**

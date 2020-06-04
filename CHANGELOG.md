@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.8
+
+- Improves event chain handling of results.
+
 ## 1.2.7
 
 - Fixed information result sent from interval. In an `onRepeat` handler, `result.elapsed` will be initialized with the total time since the repeating event began, while `result.interval` will contain the precise interval since the previous time `onRepeat` was called.
