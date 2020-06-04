@@ -57,10 +57,10 @@ export default function ({ content = "", complete = false }) {
       },
     },
     actions: {
-      setComplete(data, payload) {
+      setComplete(data) {
         data.complete = true
       },
-      clearComplete(data, payload) {
+      clearComplete(data) {
         data.complete = false
       },
       updateContent(data, payload) {

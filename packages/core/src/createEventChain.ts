@@ -1,9 +1,8 @@
 import * as S from "./types"
-import { createDraft, finishDraft, Draft } from "immer"
+import { createDraft, finishDraft, Draft, original } from "immer"
 
 type Core<D> = {
   data: D
-  payload: any
   result: any
 }
 
@@ -29,6 +28,7 @@ type Options<D> = {
 export function createEventChain<D>(options: Options<D>) {
   let { onAsyncUpdate, onRefreshDataAfterWait } = options
   let handlers = [...options.handler]
+  const { payload } = options
 
   let waiting = false
   let didBreak = false
@@ -44,7 +44,6 @@ export function createEventChain<D>(options: Options<D>) {
   let core = {
     data: options.data,
     result: options.result,
-    payload: options.payload,
   }
 
   let draftCore: Draft<Core<D>> = createDraft(core)
@@ -70,11 +69,8 @@ export function createEventChain<D>(options: Options<D>) {
     if (nextHandlerObject.wait !== undefined) {
       // Calculate wait time from finalOutcome draft
       const waitTime =
-        nextHandlerObject.wait(
-          (draft.data as D) as D,
-          draft.payload,
-          draft.result
-        ) * 1000
+        nextHandlerObject.wait((draft.data as D) as D, payload, draft.result) *
+        1000
 
       // // Notify, if necessary
       if (waiting && finalOutcome.shouldNotify) {
@@ -112,27 +108,36 @@ export function createEventChain<D>(options: Options<D>) {
   ) {
     let passedConditions = true
 
-    for (let resu of handler.get) {
-      draft.result = resu(draft.data as D, draft.payload, draft.result)
+    // Create new original from draft
+    let orig = original(draft) as Draft<Core<D>>
+
+    // Compute a result using original data and draft result
+    if (handler.get.length > 0) {
+      for (let resu of handler.get) {
+        draft.result = resu(orig.data as D, payload, draft.result)
+      }
+
+      // Refresh original after result changes
+      orig = original(draft) as Draft<Core<D>>
     }
 
-    // Conditions
+    // Conditions — use original data / result
 
     if (passedConditions && handler.if.length > 0) {
       passedConditions = handler.if.every((cond) =>
-        cond(draft.data as D, draft.payload, draft.result)
+        cond(orig.data as D, payload, orig.result)
       )
     }
 
     if (passedConditions && handler.unless.length > 0) {
       passedConditions = handler.unless.every(
-        (cond) => !cond(draft.data as D, draft.payload, draft.result)
+        (cond) => !cond(orig.data as D, payload, orig.data)
       )
     }
 
     if (passedConditions && handler.ifAny.length > 0) {
       passedConditions = handler.ifAny.some((cond) =>
-        cond(draft.data as D, draft.payload, draft.result)
+        cond(orig.data as D, payload, orig.data)
       )
     }
 
@@ -142,29 +147,32 @@ export function createEventChain<D>(options: Options<D>) {
         finalOutcome.shouldNotify = true
 
         for (let action of handler.do) {
-          action(draft.data as D, draft.payload, draft.result)
+          action(orig.data as D, payload, orig.data)
         }
       }
+
+      // Create new original from draft
+      orig = original(draft) as Draft<Core<D>>
 
       // Side effects
       if (handler.secretlyDo.length > 0) {
         for (let action of handler.secretlyDo) {
-          action(draft.data as D, draft.payload, draft.result)
+          action(orig.data as D, payload, orig.result)
         }
       }
 
       // Sends
       if (handler.send !== undefined) {
-        const event = handler.send(draft.data as D, draft.payload, draft.result)
+        const event = handler.send(orig.data as D, payload, orig.result)
         finalOutcome.pendingSend = event
       }
 
       // Transitions
       if (handler.to !== undefined) {
         finalOutcome.pendingTransition = handler.to(
-          draft.data as D,
-          draft.payload,
-          draft.result
+          orig.data as D,
+          payload,
+          orig.result
         )
 
         finalOutcome.shouldBreak = true

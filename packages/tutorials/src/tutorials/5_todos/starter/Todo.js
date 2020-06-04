@@ -2,10 +2,9 @@ import React from "react"
 import { TodoContainer, RemoveButton, Checkbox, TextInput } from "components"
 import { useStateDesigner } from "@state-designer/react"
 
-export default function ({ id = 0, content = "", complete = false }) {
+export default function ({ content = "", complete = false }) {
   const state = useStateDesigner({
     data: {
-      id,
       content,
       complete,
     },
@@ -58,10 +57,10 @@ export default function ({ id = 0, content = "", complete = false }) {
       },
     },
     actions: {
-      setComplete(data, payload) {
+      setComplete(data) {
         data.complete = true
       },
-      clearComplete(data, payload) {
+      clearComplete(data) {
         data.complete = false
       },
       updateContent(data, payload) {
@@ -73,11 +72,7 @@ export default function ({ id = 0, content = "", complete = false }) {
   return (
     <TodoContainer>
       {state.whenIn({
-        empty: (
-          <RemoveButton
-            onClick={() => global.send("REMOVED_TODO", state.data)}
-          />
-        ),
+        empty: <RemoveButton />,
         default: (
           <Checkbox
             isChecked={state.isIn("complete")}

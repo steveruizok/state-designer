@@ -12,6 +12,8 @@ import StopwatchStarter from "tutorials/6_stopwatch/starter"
 import StopwatchComplete from "tutorials/6_stopwatch/complete"
 import TimerStarter from "tutorials/7_timer/starter"
 import TimerComplete from "tutorials/7_timer/complete"
+import TilesStarter from "tutorials/8_tiles/starter"
+import TilesComplete from "tutorials/8_tiles/complete"
 
 export default [
   {
@@ -48,5 +50,10 @@ export default [
     name: "timer",
     Starter: TimerStarter,
     Complete: TimerComplete,
+  },
+  {
+    name: "tiles",
+    Starter: TilesStarter,
+    Complete: TilesComplete,
   },
 ]

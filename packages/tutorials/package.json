@@ -14,6 +14,7 @@
     "@testing-library/react": "^10.0.6",
     "@testing-library/user-event": "^11.0.0",
     "emotion-theming": "10.0.27",
+    "framer-motion": "^1.11.0",
     "mdn-polyfills": "5.20.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",

@@ -1,6 +1,5 @@
 import React from "react"
 import { TodoContainer, RemoveButton, Checkbox, TextInput } from "components"
-
 import { useStateDesigner, useUpdateEffect } from "@state-designer/react"
 import global from "./globalState"
 
@@ -60,10 +59,10 @@ export default function ({ id = 0, content = "", complete = false }) {
       },
     },
     actions: {
-      setComplete(data, payload) {
+      setComplete(data) {
         data.complete = true
       },
-      clearComplete(data, payload) {
+      clearComplete(data) {
         data.complete = false
       },
       updateContent(data, payload) {

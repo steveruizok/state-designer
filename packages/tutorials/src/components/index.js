@@ -1,3 +1,5 @@
+/** @jsx jsx */
+import { jsx } from "@emotion/core"
 /**
  * This file contains low-level components to use in demo projects and tutorials for `state-designer`.
  * Because those demos are focused on state management, rather than presentation and styling, these
@@ -10,6 +12,7 @@ import * as React from "react"
 import { useLocation, Link } from "react-router-dom"
 import { keyframes } from "@emotion/core"
 import {
+  Box,
   Button,
   Divider,
   Checkbox as Cb,
@@ -33,8 +36,8 @@ import {
   DrawerCloseButton,
   useDisclosure,
   Link as CLink,
+  css,
 } from "@chakra-ui/core"
-import theme from "theme"
 import routes from "routes"
 
 // Helper function to provide default props to low-level components
@@ -81,30 +84,28 @@ export const NavLinks = () => {
       {routes.map(({ name }, i) => {
         const isStarterActive = pathname === `/${name}-starter`
         const isCompleteActive = pathname === `/${name}-complete`
-        return (
-          <React.Fragment key={i}>
-            <Text gridColumn={1}>
-              <b>{name}</b>
-            </Text>
-            <HStack gridColumn={2} w="fit-content">
-              <CLink
-                to={`/${name}-starter`}
-                as={Link}
-                textDecor={isStarterActive ? "underline" : "inherit"}
-              >
-                starter
-              </CLink>
-              /
-              <CLink
-                to={`/${name}-complete`}
-                as={Link}
-                textDecor={isCompleteActive ? "underline" : "inherit"}
-              >
-                complete
-              </CLink>
-            </HStack>
-          </React.Fragment>
-        )
+        return [
+          <Text gridColumn={1} key={i + "t"}>
+            <b>{name}</b>
+          </Text>,
+          <HStack gridColumn={2} w="fit-content" key={i + "h"}>
+            <CLink
+              to={`/${name}-starter`}
+              as={Link}
+              textDecor={isStarterActive ? "underline" : "inherit"}
+            >
+              starter
+            </CLink>
+            /
+            <CLink
+              to={`/${name}-complete`}
+              as={Link}
+              textDecor={isCompleteActive ? "underline" : "inherit"}
+            >
+              complete
+            </CLink>
+          </HStack>,
+        ]
       })}
     </Grid>
   )
@@ -116,7 +117,7 @@ export const TitleBar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const btnRef = React.useRef()
   return (
-    <>
+    <Box>
       <Flex
         mb={4}
         px={[0, 1, 4]}
@@ -165,7 +166,7 @@ export const TitleBar = () => {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
-    </>
+    </Box>
   )
 }
 
@@ -201,7 +202,7 @@ export const Layout = withDefaultProps(Grid, (p) => ({
   ariaLabel: "container",
   p: 4,
   borderRadius: 8,
-  width: "100%",
+  width: "fit-content",
   maxWidth: 700,
   margin: "0 auto",
   boxShadow: "0 4px 12px -4px rgba(0,0,5,.05)",
@@ -462,5 +463,36 @@ export const StartStopButton = withDefaultProps(Button, {
 })
 
 // ResetButton from Stopwatch
+
+/* ---------------------- Tiles --------------------- */
+
+export const TileLayout = withDefaultProps(Layout, {
+  gap: 4,
+})
+
+export const TileGrid = withDefaultProps(Grid, (p) => ({
+  height: "320px",
+  width: "320px",
+  templateColumns: "repeat(4, 1fr)",
+  templateRows: "repeat(4, 1fr)",
+  backgroundImage: `url(${p.image})`,
+}))
+
+export const Tile = withDefaultProps(Box, ({ tile, highlight }) => ({
+  bg: "blue.500",
+  height: "100%",
+  width: "100%",
+  backgroundImage: "inherit",
+  backgroundSize: "500% 500%",
+  backgroundPosition: `${(tile % 4) * -100}% ${Math.floor(tile / 4) * -100}%`,
+  css: css({
+    filter: highlight ? "brightness(1.1)" : "brightness(1)",
+  }),
+  userSelect: "none",
+}))
+
+export const PlayButton = withDefaultProps(Button, (p) => ({
+  variantColor: p.highlight ? "blue" : undefined,
+}))
 
 export { Button, Divider, Heading, IconButton, Switch }
