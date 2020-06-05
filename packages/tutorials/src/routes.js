@@ -18,6 +18,8 @@ import TetrisStarter from "tutorials/tetris/starter"
 import TetrisComplete from "tutorials/tetris/complete"
 import SnakeStarter from "tutorials/snake/starter"
 import SnakeComplete from "tutorials/snake/complete"
+import BreakoutStarter from "tutorials/breakout/starter"
+import BreakoutComplete from "tutorials/breakout/complete"
 
 export default [
   {
@@ -69,5 +71,10 @@ export default [
     name: "tetris",
     Starter: TetrisStarter,
     Complete: TetrisComplete,
+  },
+  {
+    name: "breakout",
+    Starter: BreakoutStarter,
+    Complete: BreakoutComplete,
   },
 ]

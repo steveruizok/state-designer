@@ -13,7 +13,6 @@ import * as S from "./types"
  */
 export function deactivateState<D = any>(state: S.State<D, unknown>) {
   state.active = false
-  state.activeId++
   for (let childState of Object.values(state.states)) {
     deactivateState(childState)
   }
@@ -59,7 +58,6 @@ export function activateState<D = any>(
 ): void {
   // Activate this state
   state.active = true
-  state.activeId++
 
   // If this state is next in the path, remove it from path
   if (state.name === path[0]) {
@@ -251,6 +249,7 @@ export function endStateIntervals<D, V>(state: S.State<D, V>) {
   }
 
   if (!isUndefined(animationFrame)) {
+    console.log("clearing animationg loop", state.name)
     cancelAnimationFrame(animationFrame)
     state.times.animationFrame = undefined
   }

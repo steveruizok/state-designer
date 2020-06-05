@@ -296,6 +296,7 @@ export function createState<
 
     for (let state of deactivatedStates) {
       const { onExit } = state
+      state.activeId++
 
       if (!isUndefined(onExit)) {
         const outcome = runEventHandlerChain(onExit, payload, result)
@@ -309,7 +310,7 @@ export function createState<
     // - bail if we've transitioned
 
     for (let state of newlyActivatedStates) {
-      const { async, repeat, onEnter } = state
+      const { async, repeat, onEnter, activeId } = state
 
       if (!isUndefined(repeat)) {
         const { onRepeat, delay } = repeat
@@ -340,9 +341,12 @@ export function createState<
               notifySubscribers()
             }
 
-            state.times.animationFrame = requestAnimationFrame(loop)
+            if (state.activeId === activeId) {
+              state.times.animationFrame = requestAnimationFrame(loop)
+            }
           }
 
+          console.log("setting animation loop", state.name)
           state.times.animationFrame = requestAnimationFrame(loop)
         } else {
           // Run on provided delay amount
