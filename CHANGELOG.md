@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.9
+
+- Adds `unlessAny`, the opposite of `ifAny`. An `unlessAny` check will stop a handler if any of the provided conditions return `true`.
+- The difference between `unless` and `unlessAny` may be confusing—it certainly was for me! Remember that the `unless` check will only pass if `all` of its conditions return `false`. So `unless: [false, false, false]` would continue but `unless: [false, false, true]` would stop. An `unlessAny: [false, false, false]` would also continue, but `unless: [false, false, true]` would _also_ continue.
+
+```js
+  if: [true, true] // Pass
+  if: [false, false] // Fail
+  if: [true, false] // Fail
+
+  ifAny: [true, true] // Pass
+  ifAny: [false, false] // Fail
+  ifAny: [true, false] // Pass
+
+  unless: [true, true] // Fail
+  unless: [true, false] // Pass
+  unless: [false, true] // Fail
+
+  unlessAny: [true, true] // Fail
+  unlessAny: [true, false] // Pass
+  unlessAny: [false, true] // Pass
+```
+
 ## 1.2.8
 
 - Improves event chain handling of results.
