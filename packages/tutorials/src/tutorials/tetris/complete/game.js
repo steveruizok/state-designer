@@ -139,7 +139,6 @@ const game = createState({
       },
     },
     gameover: {
-      onEnter: () => console.log("Game over!"),
       on: {
         STARTED: {
           do: "resetGame",

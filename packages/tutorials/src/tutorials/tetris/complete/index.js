@@ -1,60 +1,53 @@
 import React from "react"
 import { useStateDesigner } from "@state-designer/react"
-import { Tetris, VStack } from "components"
+import { Tetris as T } from "components"
 import { colors, tetrominos } from "./static"
 import game from "./game"
-import useInputs from "./input"
-
-const {
-  Layout,
-  PlayField,
-  NextField,
-  Layer,
-  MatrixTetromino,
-  Piece,
-  GhostPiece,
-  Stats,
-  Label,
-  Button,
-} = Tetris
+import useKeyboardInputs from "./input"
 
 export default function () {
   const state = useStateDesigner(game)
-  useInputs()
+
+  useKeyboardInputs()
 
   const { falling, ghost, score, level, lines } = state.data
 
   return (
-    <Layout>
-      <PlayField>
-        <Layer>
+    <T.Layout>
+      <T.PlayField>
+        <T.Layer>
           {state.data.matrix
             .slice(-20)
-            .map((row) =>
-              row.map((type, i) => (
-                <MatrixTetromino key={i} color={colors[type]} />
+            .map((row, y) =>
+              row.map((type, x) => (
+                <T.Tetromino
+                  key={y * 10 + x}
+                  color={colors[type]}
+                  x={x}
+                  y={y}
+                />
               ))
             )}
-        </Layer>
-        <Layer>
-          <Piece
+        </T.Layer>
+        <T.Layer>
+          <T.Piece
             tetrominos={tetrominos[falling.type][falling.orientation]}
             color={colors[falling.type]}
             x={falling.origin.x}
             y={falling.origin.y - 20}
           />
-          <GhostPiece
+          <T.GhostPiece
             tetrominos={tetrominos[ghost.type][ghost.orientation]}
             origin={ghost.origin}
             x={ghost.origin.x}
             y={ghost.origin.y - 20}
           />
-        </Layer>
-      </PlayField>
-      <NextField>
+        </T.Layer>
+      </T.PlayField>
+      <T.NextField>
         {state.data.next.map((type, i) => {
           return (
-            <Piece
+            <T.Piece
               key={i}
               tetrominos={tetrominos[type][0]}
               color={colors[type]}
@@ -63,25 +56,23 @@ export default function () {
             />
           )
         })}
-      </NextField>
-      <VStack>
-        <Stats>
-          <Label>Score</Label> {score}
-          <Label>Level</Label> {level}
-          <Label>Lines</Label> {lines}
-        </Stats>
-        <Button
-          highlight={!state.isIn("playing")}
-          onClick={() => state.send("STARTED")}
-        >
-          {state.whenIn({
-            playing: "Pause",
-            paused: "Resume",
-            start: "Play",
-            gameover: "Play Again",
-          })}
-        </Button>
-      </VStack>
-    </Layout>
+      </T.NextField>
+      <T.Stats>
+        <T.Label>Score</T.Label> {score}
+        <T.Label>Level</T.Label> {level}
+        <T.Label>Lines</T.Label> {lines}
+      </T.Stats>
+      <T.Button
+        highlight={!state.isIn("playing")}
+        onClick={() => state.send("STARTED")}
+      >
+        {state.whenIn({
+          playing: "Pause",
+          paused: "Resume",
+          start: "Play",
+          gameover: "Play Again",
+        })}
+      </T.Button>
+    </T.Layout>
   )
 }

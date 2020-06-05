@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { jsx } from "@emotion/core"
+
 /**
  * This file contains low-level components to use in demo projects and tutorials for `state-designer`.
  * Because those demos are focused on state management, rather than presentation and styling, these
@@ -7,6 +7,8 @@ import { jsx } from "@emotion/core"
  * A regular project would not include this layer of abstraction.
  *
  */
+
+import { jsx } from "@emotion/core"
 
 import * as React from "react"
 import { useLocation, Link } from "react-router-dom"
@@ -497,14 +499,6 @@ export const PlayButton = withDefaultProps(Button, (p) => ({
 
 /* --------------------- Tetris --------------------- */
 
-const MatrixTetromino = withDefaultProps(Box, (p) => {
-  return {
-    height: "100%",
-    width: "100%",
-    bg: `${p.color}`,
-  }
-})
-
 const Tetromino = withDefaultProps(Box, (p) => {
   return {
     height: "100%",
@@ -528,7 +522,6 @@ const Piece = ({ tetrominos, color, x, y, ...p }) => {
 }
 
 export const Tetris = {
-  MatrixTetromino,
   Layout: withDefaultProps(Layout, () => ({
     gridGap: 4,
     templateColumns: "auto auto",
@@ -572,6 +565,7 @@ export const Tetris = {
     }
   }),
   Button: withDefaultProps(Button, (p) => ({
+    gridColumn: 1,
     variantColor: p.highlight ? "blue" : "gray",
   })),
 }
