@@ -16,6 +16,8 @@ import TilesStarter from "tutorials/8_tiles/starter"
 import TilesComplete from "tutorials/8_tiles/complete"
 import TetrisStarter from "tutorials/tetris/starter"
 import TetrisComplete from "tutorials/tetris/complete"
+import SnakeStarter from "tutorials/snake/starter"
+import SnakeComplete from "tutorials/snake/complete"
 
 export default [
   {
@@ -57,6 +59,11 @@ export default [
     name: "tiles",
     Starter: TilesStarter,
     Complete: TilesComplete,
+  },
+  {
+    name: "snake",
+    Starter: SnakeStarter,
+    Complete: SnakeComplete,
   },
   {
     name: "tetris",

@@ -1,22 +1,25 @@
 import React from "react"
 import { colors, tetrominos } from "./static"
-import useKeyboardInputs from "./input"
+import { useKeyboardInputs } from "utils"
 import { Tetris as T } from "components"
 
 export default function () {
-  useKeyboardInputs()
+  useKeyboardInputs({
+    onKeyDown: {},
+    onKeyUp: {},
+  })
 
   return (
     <T.Layout>
       <T.PlayField>
         <T.Layer>
-          <T.Tetromino color={colors["O"]} x={7} y={18} />
-          <T.Tetromino color={colors["I"]} x={8} y={18} />
-          <T.Tetromino color={colors["S"]} x={9} y={18} />
-          <T.Tetromino color={colors["Z"]} x={6} y={19} />
-          <T.Tetromino color={colors["L"]} x={7} y={19} />
-          <T.Tetromino color={colors["J"]} x={8} y={19} />
-          <T.Tetromino color={colors["T"]} x={9} y={19} />
+          <T.Cell color={colors["O"]} x={7} y={18} />
+          <T.Cell color={colors["I"]} x={8} y={18} />
+          <T.Cell color={colors["S"]} x={9} y={18} />
+          <T.Cell color={colors["Z"]} x={6} y={19} />
+          <T.Cell color={colors["L"]} x={7} y={19} />
+          <T.Cell color={colors["J"]} x={8} y={19} />
+          <T.Cell color={colors["T"]} x={9} y={19} />
         </T.Layer>
         <T.Layer>
           <T.Piece

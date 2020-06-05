@@ -81,6 +81,7 @@ export type InitialStateObject<D> = {
   get: Result<D>[]
   if: Condition<D>[]
   unless: Condition<D>[]
+  unlessAny: Condition<D>[]
   ifAny: Condition<D>[]
   to: Target<D>
   else?: InitialStateObject<D>
@@ -103,6 +104,7 @@ export type InitialStateObjectDesignWithLogic<D, C, R> = {
   if?: MaybeArray<ConditionDesign<D, C>>
   unless?: MaybeArray<ConditionDesign<D, C>>
   ifAny?: MaybeArray<ConditionDesign<D, C>>
+  unlessAny?: MaybeArray<ConditionDesign<D, C>>
   to: TargetDesign<D>
   else: InitialStateObjectDesign<D, C, R>
 }
@@ -118,6 +120,7 @@ export type EventHandlerObject<D> = {
   if: Condition<D>[]
   unless: Condition<D>[]
   ifAny: Condition<D>[]
+  unlessAny: Condition<D>[]
   do: Action<D>[]
   secretlyDo: Action<D>[]
   to?: Target<D>
@@ -137,17 +140,21 @@ export type EventHandlerObjectDesign<D, R, C, A, T> = {
    */
   get?: MaybeArray<ResultDesign<D, R>>
   /**
-   * The condition(s) that must all be true in order for this event handler object to run.
+   * One or more condition(s) to test. If any condition returns false, the handler will not run.
    */
   if?: MaybeArray<ConditionDesign<D, C>>
   /**
-   * The condition(s) that must be all be false in order for this event handler object to run.
+   * One or more condition(s) to test. If any condition returns true, the handler will run.
+   */
+  ifAny?: MaybeArray<ConditionDesign<D, C>>
+  /**
+   * One or more condition(s) to test. If any condition returns true, the handler will not run.
    */
   unless?: MaybeArray<ConditionDesign<D, C>>
   /**
-   * The condition(s) of which at least one must be true in order for this event handler object to run.
+   * One or more condition(s) to test. If any condition returns false, the handler will run.
    */
-  ifAny?: MaybeArray<ConditionDesign<D, C>>
+  unlessAny?: MaybeArray<ConditionDesign<D, C>>
   /**
    * The action(s) to perform. These actions can mutate the data property. Note: Defining actions will cause this event to trigger an update.
    */

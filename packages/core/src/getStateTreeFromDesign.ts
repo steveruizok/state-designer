@@ -117,6 +117,7 @@ export function getStateTreeFromDesign<
       get: getResults(itemCfg.get),
       if: getConditions(itemCfg.if),
       unless: getConditions(itemCfg.unless),
+      unlessAny: getConditions(itemCfg.unlessAny),
       ifAny: getConditions(itemCfg.ifAny),
       do: getActions(itemCfg.do),
       secretlyDo: getActions(itemCfg.secretlyDo),
@@ -173,6 +174,7 @@ export function getStateTreeFromDesign<
         if: getConditions(init.if),
         unless: getConditions(init.unless),
         ifAny: getConditions(init.ifAny),
+        unlessAny: getConditions(init.unlessAny),
         to: isFunction(init.to) ? init.to : castToNamedFunction(init.to),
         else: getInitialState(init.else),
       }
@@ -185,6 +187,7 @@ export function getStateTreeFromDesign<
           if: [],
           unless: [],
           ifAny: [],
+          unlessAny: [],
           to: castToNamedFunction(init),
         }
       }
@@ -194,6 +197,7 @@ export function getStateTreeFromDesign<
         if: [],
         unless: [],
         ifAny: [],
+        unlessAny: [],
         to: isFunction(init.to) ? init.to : castToNamedFunction(init.to),
       }
     }

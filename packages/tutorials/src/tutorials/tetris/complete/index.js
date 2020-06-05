@@ -3,12 +3,24 @@ import { useStateDesigner } from "@state-designer/react"
 import { Tetris as T } from "components"
 import { colors, tetrominos } from "./static"
 import game from "./game"
-import useKeyboardInputs from "./input"
+import { useKeyboardInputs } from "utils"
 
 export default function () {
   const state = useStateDesigner(game)
 
-  useKeyboardInputs()
+  useKeyboardInputs({
+    onKeyDown: {
+      Escape: () => state.send("STARTED"),
+      ArrowLeft: () => state.send("MOVED_LEFT"),
+      ArrowRight: () => state.send("MOVED_RIGHT"),
+      ArrowUp: () => state.send("ROTATED_CLOCKWISE"),
+      ArrowDown: () => state.send("STARTED_DROP"),
+      " ": () => state.send("HARD_DROPPED"),
+    },
+    onKeyUp: {
+      ArrowDown: () => state.send("STOPPED_DROP"),
+    },
+  })
 
   const { falling, ghost, score, level, lines } = state.data
 
@@ -20,12 +32,7 @@ export default function () {
             .slice(-20)
             .map((row, y) =>
               row.map((type, x) => (
-                <T.Tetromino
-                  key={y * 10 + x}
-                  color={colors[type]}
-                  x={x}
-                  y={y}
-                />
+                <T.Cell key={y * 10 + x} color={colors[type]} x={x} y={y} />
               ))
             )}
         </T.Layer>

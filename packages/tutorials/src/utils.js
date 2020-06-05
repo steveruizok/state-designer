@@ -1,3 +1,4 @@
+import * as React from "react"
 import cloneDeep from "lodash-es/cloneDeep"
 import sample from "lodash-es/sample"
 
@@ -13,6 +14,18 @@ export { cloneDeep, sample }
  */
 export function range(n) {
   return [...Array(n)].map((_, i) => i)
+}
+
+/**
+ * Create an array containing y number of rows with x number of entries per row.
+ * @param {number} y The desired length of the outer array.
+ * @param {number} x The desired array of each inner array.
+ * @example
+ * range2d(2, 2) // [[0, 1], [0, 1]]
+ * range2d(2, 3) // [[0, 1], [0, 1], [0, 1]]
+ */
+export function range2d(y, x) {
+  return range(y).map(() => range(x).map((i) => i))
 }
 
 /**
@@ -45,4 +58,29 @@ export function shuffle(arr) {
   }
 
   return arr
+}
+
+export function useKeyboardInputs({ onKeyDown = {}, onKeyUp = {} }) {
+  React.useEffect(() => {
+    function handleKeydown(event) {
+      if (onKeyDown[event.key] !== undefined) {
+        event.preventDefault()
+        onKeyDown[event.key](event)
+      }
+    }
+
+    function handleKeyup(event) {
+      if (onKeyUp[event.key] !== undefined) {
+        event.preventDefault()
+        onKeyUp[event.key](event)
+      }
+    }
+
+    document.body.addEventListener("keydown", handleKeydown)
+    document.body.addEventListener("keyup", handleKeyup)
+    return () => {
+      document.body.removeEventListener("keydown", handleKeydown)
+      document.body.removeEventListener("keyup", handleKeyup)
+    }
+  }, [])
 }

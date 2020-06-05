@@ -137,14 +137,20 @@ export function createEventChain<D>(options: Options<D>) {
       )
     }
 
+    if (passedConditions && handler.ifAny.length > 0) {
+      passedConditions = handler.ifAny.some((cond) =>
+        cond(draft.data as D, payload, tResult)
+      )
+    }
+
     if (passedConditions && handler.unless.length > 0) {
       passedConditions = handler.unless.every(
         (cond) => !cond(draft.data as D, payload, tResult)
       )
     }
 
-    if (passedConditions && handler.ifAny.length > 0) {
-      passedConditions = handler.ifAny.some((cond) =>
+    if (passedConditions && handler.unlessAny.length > 0) {
+      passedConditions = !handler.unlessAny.some((cond) =>
         cond(draft.data as D, payload, tResult)
       )
     }

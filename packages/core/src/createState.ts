@@ -521,12 +521,12 @@ export function createState<
         const eventHandler = state.on[eventName]
 
         if (!isUndefined(eventHandler)) {
-          for (let item of eventHandler) {
+          for (let handler of eventHandler) {
             // Result
 
             result = undefined
 
-            for (let resu of item.get) {
+            for (let resu of handler.get) {
               result = resu(core.data as D, payload, result)
             }
 
@@ -534,20 +534,26 @@ export function createState<
 
             let passedConditions = true
 
-            if (passedConditions && item.if.length > 0) {
-              passedConditions = item.if.every((cond) =>
+            if (passedConditions && handler.if.length > 0) {
+              passedConditions = handler.if.every((cond) =>
                 cond(core.data, payload, result)
               )
             }
 
-            if (passedConditions && item.unless.length > 0) {
-              passedConditions = item.unless.every(
+            if (passedConditions && handler.ifAny.length > 0) {
+              passedConditions = handler.ifAny.some((cond) =>
+                cond(core.data, payload, result)
+              )
+            }
+
+            if (passedConditions && handler.unless.length > 0) {
+              passedConditions = handler.unless.every(
                 (cond) => !cond(core.data, payload, result)
               )
             }
 
-            if (passedConditions && item.ifAny.length > 0) {
-              passedConditions = item.ifAny.some((cond) =>
+            if (passedConditions && handler.unlessAny.length > 0) {
+              passedConditions = !handler.unlessAny.some((cond) =>
                 cond(core.data, payload, result)
               )
             }
