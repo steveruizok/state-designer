@@ -161,6 +161,10 @@ export const TitleBar = () => {
           <DrawerHeader>Tutorials</DrawerHeader>
 
           <DrawerBody>
+            <CLink to={"/"} as={Link}>
+              Home
+            </CLink>
+            <Divider />
             <NavLinks />
           </DrawerBody>
           <DrawerFooter>
@@ -570,4 +574,4 @@ export const Tetris = {
   })),
 }
 
-export { Button, Divider, Heading, IconButton, Switch }
+export { Button, Divider, Heading, IconButton, Switch, Text }

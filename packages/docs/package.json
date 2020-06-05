@@ -49,6 +49,7 @@
     "gatsby-remark-smartypants": "^2.1.21",
     "gatsby-source-filesystem": "^2.1.5",
     "is-absolute-url": "^3.0.0",
+    "lerna": "^3.20.2",
     "lodash-es": "^4.17.15",
     "prism-react-renderer": "^1.1.0",
     "prismjs": "^1.17.1",
