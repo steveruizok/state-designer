@@ -196,14 +196,14 @@ export default function () {
     },
     actions: {
       resetBall(data) {
-        data.ball.x.set(w / 2)
+        data.ball.x.set((w - ballDiameter) / 2)
         data.ball.y.set(h - paddleHeight - ballDiameter)
         data.ball.dx = 2
         data.ball.dy = -2
         data.paddle.x.set((w - paddleWidth) / 2)
       },
       reset(data) {
-        data.ball.x.set(w / 2)
+        data.ball.x.set((w - ballDiameter) / 2)
         data.ball.y.set(h - paddleHeight - ballDiameter)
         data.ball.dx = 2
         data.ball.dy = -2
