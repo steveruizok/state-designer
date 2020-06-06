@@ -31,7 +31,6 @@ export function createEventChain<D>(options: Options<D>) {
   const { payload } = options
 
   let waiting = false
-  let didBreak = false
 
   let finalOutcome: Outcome<D> = {
     data: options.data,
@@ -65,10 +64,6 @@ export function createEventChain<D>(options: Options<D>) {
     eventHandler: S.EventHandler<D>,
     draft: Draft<Core<D>>
   ) {
-    if (didBreak) {
-      return
-    }
-
     if (finalOutcome.shouldBreak) {
       return
     }
@@ -77,9 +72,7 @@ export function createEventChain<D>(options: Options<D>) {
 
     if (nextHandlerObject === undefined) {
       return
-    }
-
-    if (nextHandlerObject.wait !== undefined) {
+    } else if (nextHandlerObject.wait !== undefined) {
       // Calculate wait time from finalOutcome draft
       const waitTime =
         nextHandlerObject.wait((draft.data as D) as D, payload, draft.result) *
@@ -110,7 +103,11 @@ export function createEventChain<D>(options: Options<D>) {
       // Stop this chain
     } else {
       // Continue with chain
-      processHandlerObject(nextHandlerObject, draft)
+      const shouldContinue = processHandlerObject(nextHandlerObject, draft)
+
+      if (shouldContinue) {
+        processEventHandler(eventHandler, draft)
+      }
     }
   }
 
@@ -190,6 +187,7 @@ export function createEventChain<D>(options: Options<D>) {
 
         finalOutcome.shouldBreak = true
         finalOutcome.shouldNotify = true
+        return false
       }
 
       // Secret Transitions
@@ -205,6 +203,13 @@ export function createEventChain<D>(options: Options<D>) {
       if (handler.then !== undefined) {
         processEventHandler([...handler.then], draft)
       }
+
+      // Break
+      if (handler.break !== undefined) {
+        if (handler.break(draft.data as D, payload, tResult)) {
+          return false
+        }
+      }
     } else {
       // Else
       if (handler.else !== undefined) {
@@ -212,7 +217,7 @@ export function createEventChain<D>(options: Options<D>) {
       }
     }
 
-    processEventHandler(handlers, draft)
+    return true
   }
 
   processEventHandler(handlers, draftCore)

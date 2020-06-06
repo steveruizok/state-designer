@@ -20,6 +20,8 @@ import SnakeStarter from "tutorials/snake/starter"
 import SnakeComplete from "tutorials/snake/complete"
 import BreakoutStarter from "tutorials/breakout/starter"
 import BreakoutComplete from "tutorials/breakout/complete"
+import DrawingStarter from "tutorials/drawing/starter"
+import DrawingComplete from "tutorials/drawing/complete"
 
 export default [
   {
@@ -76,5 +78,10 @@ export default [
     name: "breakout",
     Starter: BreakoutStarter,
     Complete: BreakoutComplete,
+  },
+  {
+    name: "drawing",
+    Starter: DrawingStarter,
+    Complete: DrawingComplete,
   },
 ]

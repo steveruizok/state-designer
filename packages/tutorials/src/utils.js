@@ -3,6 +3,7 @@ import cloneDeep from "lodash-es/cloneDeep"
 import sample from "lodash-es/sample"
 
 export { cloneDeep, sample }
+
 // Shared helper functions for tutorials.
 
 /**
@@ -60,7 +61,22 @@ export function shuffle(arr) {
   return arr
 }
 
-export function useKeyboardInputs({ onKeyDown = {}, onKeyUp = {} }) {
+/**
+ * Clamps a number (num) between the minimum and maximum values.
+ * @param {*} num
+ * @param {*} min
+ * @param {*} max
+ */
+export function clamp(num, min, max) {
+  return Math.max(Math.min(num, Math.max(min, max)), Math.min(min, max))
+}
+
+/**
+ * A hook for responding to key down and key up events.
+ * @param {options} handlers An object containing callbacks for onKeyDown and onKeyUp.
+ */
+export function useKeyboardInputs(handlers = { onKeyDown: {}, onKeyUp: {} }) {
+  const { onKeyDown = {}, onKeyUp = {} } = handlers
   React.useEffect(() => {
     function handleKeydown(event) {
       if (onKeyDown[event.key] !== undefined) {

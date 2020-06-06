@@ -11,8 +11,11 @@
 import { jsx } from "@emotion/core"
 
 import * as React from "react"
+
+import { motion } from "framer-motion"
 import { useLocation, Link } from "react-router-dom"
 import { keyframes } from "@emotion/core"
+import theme from "theme"
 import {
   Box,
   Button,
@@ -605,4 +608,112 @@ export const Snake = {
   })),
 }
 
-export { Button, Divider, Heading, IconButton, Switch, Text }
+/* -------------------- Breakout -------------------- */
+
+const MotionBox = motion.custom(Box)
+
+const Brick = withDefaultProps(MotionBox, {
+  bg: "blue.500",
+  position: "absolute",
+  top: 0,
+  left: 0,
+})
+
+const Paddle = withDefaultProps(MotionBox, {
+  bg: "blue.500",
+  position: "absolute",
+  top: 0,
+  left: 0,
+})
+
+const Ball = withDefaultProps(MotionBox, {
+  bg: "red.500",
+  borderRadius: "100%",
+  position: "absolute",
+  top: 0,
+  left: 0,
+})
+
+export const Breakout = {
+  Layout: withDefaultProps(Layout, () => ({
+    gridGap: 4,
+    w: "min-content",
+  })),
+  PlayField: withDefaultProps(Grid, (p) => ({
+    position: "relative",
+    width: 400,
+    height: 240,
+    bg: p.colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100",
+  })),
+  Brick,
+  Paddle,
+  Ball,
+  Button: withDefaultProps(Button, (p) => ({
+    width: "100%",
+    variantColor: p.highlight ? "blue" : "gray",
+  })),
+  Stats: withDefaultProps(Grid, (p) => {
+    return {
+      textAlign: "right",
+      templateColumns: "min-content auto",
+    }
+  }),
+  Label: withDefaultProps(Text, (p) => {
+    return {
+      textAlign: "left",
+      display: "inline",
+      fontWeight: "bold",
+    }
+  }),
+}
+
+/* --------------------- Drawing -------------------- */
+
+const CanvasFrame = React.forwardRef((props, ref) => {
+  return (
+    <Box
+      position="relative"
+      height={400}
+      width={320}
+      css={{
+        "& > *": {
+          position: "absolute",
+          top: 0,
+          left: 0,
+        },
+      }}
+      bg="gray.100"
+      {...props}
+      ref={ref}
+    />
+  )
+})
+
+export const Drawing = {
+  Layout: withDefaultProps(Layout, () => ({
+    gridGap: 4,
+    w: "min-content",
+  })),
+  CanvasFrame,
+  Buttons: withDefaultProps(Grid, {
+    gridAutoFlow: "column",
+    gap: 1,
+  }),
+  ColorButton: withDefaultProps(Button, (p) => ({
+    variantColor: p.color,
+    borderBottomWidth: 5,
+    borderStyle: "solid",
+    borderColor: p.highlight ? p.color + ".500" : "transparent",
+  })),
+  SizeButton: withDefaultProps(Button, (p) => ({
+    borderBottomWidth: 5,
+    borderStyle: "solid",
+    borderColor: p.highlight ? "gray.500" : "transparent",
+  })),
+  Button: withDefaultProps(Button, (p) => ({
+    width: "1fr",
+    variantColor: p.highlight ? "blue" : "gray",
+  })),
+}
+
+export { theme, Button, Divider, Heading, IconButton, Switch, Text }

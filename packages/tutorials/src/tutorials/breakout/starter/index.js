@@ -1,8 +1,10 @@
 import React from "react"
-import { Snake as S } from "components"
-import { useKeyboardInputs, range2d } from "utils"
+import { Breakout as B } from "components"
+import { motionValue } from "framer-motion"
+import { useKeyboardInputs, range2d, clamp } from "utils"
 
 var ballRadius = 10,
+  ballDiameter = ballRadius * 2,
   w = 400,
   h = 240,
   paddleHeight = 10,
@@ -16,22 +18,46 @@ var ballRadius = 10,
   brickOffsetLeft = 30
 
 export default function () {
-  useKeyboardInputs({
-    onKeyDown: {},
-    onKeyUp: {},
-  })
-
-  const rCanvas = React.useRef()
-
-  React.useEffect(() => {
-    const cvs = rCanvas.current
-    const ctx = cvs.getContext("2d")
-  }, [])
-
   return (
-    <S.Layout w="fit-content">
-      <canvas ref={rCanvas} height={h} width={w} />
-      <S.Button highlight={false}>Start</S.Button>
-    </S.Layout>
+    <B.Layout>
+      <B.PlayField>
+        <B.Brick
+          style={{
+            x: brickOffsetLeft,
+            y: brickOffsetTop,
+            width: brickWidth,
+            height: brickHeight,
+          }}
+        />
+        <B.Brick
+          style={{
+            x: brickWidth + brickPadding + brickOffsetLeft,
+            y: brickHeight + brickPadding + brickOffsetTop,
+            width: brickWidth,
+            height: brickHeight,
+          }}
+        />
+        <B.Ball
+          style={{
+            x: (w - ballDiameter) / 2,
+            y: h - paddleHeight - ballDiameter,
+            width: ballDiameter,
+            height: ballDiameter,
+          }}
+        />
+        <B.Paddle
+          style={{
+            x: (w - paddleWidth) / 2,
+            y: h - paddleHeight,
+            width: paddleWidth,
+            height: paddleHeight,
+          }}
+        />
+      </B.PlayField>
+      <B.Button highlight={true}>Play</B.Button>
+      <B.Stats>
+        <B.Label>Score</B.Label>0<B.Label>Lives</B.Label>0
+      </B.Stats>
+    </B.Layout>
   )
 }

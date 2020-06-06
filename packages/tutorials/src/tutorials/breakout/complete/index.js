@@ -1,9 +1,11 @@
 import React from "react"
 import { useStateDesigner } from "@state-designer/react"
-import { Snake as S } from "components"
-import { useKeyboardInputs, range2d } from "utils"
+import { Breakout as B } from "components"
+import { motionValue } from "framer-motion"
+import { useKeyboardInputs, range2d, clamp } from "utils"
 
 var ballRadius = 10,
+  ballDiameter = ballRadius * 2,
   w = 400,
   h = 240,
   paddleHeight = 10,
@@ -21,13 +23,22 @@ export default function () {
     data: {
       bricks: range2d(brickColumnCount, brickRowCount).map((row, y) =>
         row.map((x) => ({
+          id: y * brickColumnCount + x,
           x: x * (brickWidth + brickPadding) + brickOffsetLeft,
           y: y * (brickHeight + brickPadding) + brickOffsetTop,
           status: 1,
         }))
       ),
-      ball: { x: w / 2, y: h - 30, dx: 2, dy: -2 },
-      paddleX: (w - paddleWidth) / 2,
+      ball: {
+        x: motionValue((w - ballDiameter) / 2),
+        y: motionValue(h - paddleHeight - ballDiameter),
+        dx: 2,
+        dy: -2,
+      },
+      paddle: {
+        x: motionValue((w - paddleWidth) / 2),
+        y: h - paddleHeight,
+      },
       score: 0,
       lives: 3,
     },
@@ -41,29 +52,35 @@ export default function () {
         repeat: {
           onRepeat: [
             {
-              if: "ballIsTouchingLeftOrRightEdge",
-              secretlyDo: "bounceBallX",
-            },
-            {
-              ifAny: ["ballIsTouchingTopEdge", "ballIsTouchingPaddle"],
-              secretlyDo: "bounceBallY",
-            },
-            {
-              get: "touchingBrick",
-              if: "hasTouchingBrick",
-              secretlyDo: ["destroyBrick", "increaseScore", "bounceBallY"],
+              unless: "hasLivesRemaining",
+              to: "gameover",
             },
             {
               if: "allBricksAreDestroyed",
               to: "gameover",
             },
             {
-              if: "ballIsTouchingBottomEdge",
-              secretlyDo: ["loseOneLife", "resetBall"],
+              get: "nextBallBounds",
+              if: "ballIsTouchingPaddle",
+              secretlyDo: ["moveBallToPaddleTop", "bounceBallY"],
             },
             {
-              unless: "hasLivesRemaining",
-              to: "gameover",
+              if: "ballIsTouchingLeftOrRightEdge",
+              secretlyDo: "bounceBallX",
+            },
+            {
+              if: "ballIsTouchingTopEdge",
+              secretlyDo: "bounceBallY",
+            },
+            {
+              if: "ballIsTouchingBottomEdge",
+              do: ["loseOneLife", "resetBall"],
+              to: "paused",
+            },
+            {
+              get: "touchingBrick",
+              if: "hasTouchingBrick",
+              do: ["destroyBrick", "increaseScore", "bounceBallY"],
             },
             { secretlyDo: "moveBall" },
           ],
@@ -108,19 +125,28 @@ export default function () {
       },
     },
     results: {
-      touchingBrick(data) {
-        const nx = data.ball.x + data.ball.dx
-        const ny = data.ball.y + data.ball.dy
+      nextBallBounds(data) {
+        const bl = data.ball.x.get() + data.ball.dx,
+          bt = data.ball.y.get() + data.ball.dy,
+          br = bl + ballDiameter,
+          bb = bt + ballDiameter
+
+        return { left: bl, top: bt, right: br, bottom: bb }
+      },
+      touchingBrick(data, payload, result) {
+        const { left, right, top, bottom } = result
 
         for (let y = 0; y < brickColumnCount; y++) {
           for (let x = 0; x < brickRowCount; x++) {
             const brick = data.bricks[y][x]
             if (brick.status === 1) {
               if (
-                nx > brick.x &&
-                nx < brick.x + brickWidth &&
-                ny > brick.y &&
-                ny < brick.y + brickHeight
+                !(
+                  right < brick.x ||
+                  left > brick.x + brickWidth ||
+                  bottom < brick.y ||
+                  top > brick.y + brickHeight
+                )
               ) {
                 return brick
               }
@@ -133,35 +159,36 @@ export default function () {
       hasTouchingBrick(data, payload, brick) {
         return brick !== undefined
       },
-      ballIsTouchingPaddle(data) {
-        const nx = data.ball.x + data.ball.dx
-        const ny = data.ball.y + data.ball.dy
-        return (
-          nx > data.paddleX &&
-          nx < data.paddleX + paddleWidth &&
-          ny > h - paddleHeight - ballRadius
+      ballIsTouchingPaddle(data, payload, result) {
+        const { left, right, top, bottom } = result
+
+        return !(
+          right < data.paddle.x.get() ||
+          left > data.paddle.x.get() + paddleWidth ||
+          bottom < data.paddle.y ||
+          top > data.paddle.y + paddleHeight
         )
       },
-      ballIsTouchingLeftOrRightEdge(data) {
-        const nx = data.ball.x + data.ball.dx
-        return nx > w - ballRadius || nx < ballRadius
+      ballIsTouchingLeftOrRightEdge(data, payload, result) {
+        const { left, right } = result
+        return right > w || left < 0
       },
-      ballIsTouchingTopEdge(data) {
-        const ny = data.ball.y + data.ball.dy
-        return ny < ballRadius
+      ballIsTouchingTopEdge(data, payload, result) {
+        const { top } = result
+        return top < 0
       },
-      ballIsTouchingBottomEdge(data) {
-        const ny = data.ball.y + data.ball.dy
-        return ny > h - ballRadius
+      ballIsTouchingBottomEdge(data, payload, result) {
+        const { bottom } = result
+        return bottom > h
       },
       hasLivesRemaining(data) {
         return data.lives >= 0
       },
       paddleCanMoveLeft(data) {
-        return data.paddleX > 0
+        return data.paddle.x.get() > 0
       },
       paddleCanMoveRight(data) {
-        return data.paddleX < w - paddleWidth
+        return data.paddle.x.get() < w - paddleWidth
       },
       allBricksAreDestroyed(data) {
         return data.score === brickColumnCount * brickRowCount
@@ -169,12 +196,19 @@ export default function () {
     },
     actions: {
       resetBall(data) {
-        Object.assign(data, {
-          ball: { x: w / 2, y: h - 30, dx: 2, dy: -2 },
-          paddleX: (w - paddleWidth) / 2,
-        })
+        data.ball.x.set(w / 2)
+        data.ball.y.set(h - paddleHeight - ballDiameter)
+        data.ball.dx = 2
+        data.ball.dy = -2
+        data.paddle.x.set((w - paddleWidth) / 2)
       },
       reset(data) {
+        data.ball.x.set(w / 2)
+        data.ball.y.set(h - paddleHeight - ballDiameter)
+        data.ball.dx = 2
+        data.ball.dy = -2
+        data.paddle.x.set((w - paddleWidth) / 2)
+
         Object.assign(data, {
           bricks: range2d(brickColumnCount, brickRowCount).map((row, y) =>
             row.map((x) => ({
@@ -183,8 +217,6 @@ export default function () {
               status: 1,
             }))
           ),
-          ball: { x: w / 2, y: h - 30, dx: 2, dy: -2 },
-          paddleX: (w - paddleWidth) / 2,
           score: 0,
           lives: 3,
         })
@@ -196,14 +228,16 @@ export default function () {
         data.lives--
       },
       moveBall(data) {
-        data.ball.x += data.ball.dx
-        data.ball.y += data.ball.dy
+        data.ball.x.set(data.ball.x.get() + data.ball.dx)
+        data.ball.y.set(data.ball.y.get() + data.ball.dy)
       },
       movePaddleLeft(data) {
-        data.paddleX -= 5
+        const x = clamp(data.paddle.x.get() - 7, 0, w - paddleWidth)
+        data.paddle.x.set(x)
       },
       movePaddleRight(data) {
-        data.paddleX += 5
+        const x = clamp(data.paddle.x.get() + 7, 0, w - paddleWidth)
+        data.paddle.x.set(x)
       },
       bounceBallX(data) {
         data.ball.dx *= -1
@@ -211,8 +245,25 @@ export default function () {
       bounceBallY(data) {
         data.ball.dy *= -1
       },
+      moveBallToPaddleTop(data) {
+        data.ball.y.set(data.paddle.y - ballDiameter)
+      },
       increaseScore(data) {
         data.score++
+      },
+    },
+    values: {
+      bricks(data) {
+        let bricks = []
+
+        for (let row of data.bricks) {
+          for (let col of row) {
+            if (col.status === 1) {
+              bricks.push(col)
+            }
+          }
+        }
+        return bricks
       },
     },
   })
@@ -229,77 +280,38 @@ export default function () {
     },
   })
 
-  const rCanvas = React.useRef()
-
-  React.useEffect(() => {
-    const cvs = rCanvas.current
-    const ctx = cvs.getContext("2d")
-
-    function drawBall() {
-      ctx.beginPath()
-      ctx.arc(state.data.ball.x, state.data.ball.y, ballRadius, 0, Math.PI * 2)
-      ctx.fillStyle = "#0095DD"
-      ctx.fill()
-      ctx.closePath()
-    }
-
-    function drawPaddle() {
-      ctx.beginPath()
-      ctx.rect(state.data.paddleX, h - paddleHeight, paddleWidth, paddleHeight)
-      ctx.fillStyle = "#0095DD"
-      ctx.fill()
-      ctx.closePath()
-    }
-
-    function drawBricks() {
-      for (var c = 0; c < brickColumnCount; c++) {
-        for (var r = 0; r < brickRowCount; r++) {
-          if (state.data.bricks[c][r].status == 1) {
-            var brickX = r * (brickWidth + brickPadding) + brickOffsetLeft
-            var brickY = c * (brickHeight + brickPadding) + brickOffsetTop
-            state.data.bricks[c][r].x = brickX
-            state.data.bricks[c][r].y = brickY
-            ctx.beginPath()
-            ctx.rect(brickX, brickY, brickWidth, brickHeight)
-            ctx.fillStyle = "#0095DD"
-            ctx.fill()
-            ctx.closePath()
-          }
-        }
-      }
-    }
-
-    function drawScore() {
-      ctx.font = "16px Arial"
-      ctx.fillStyle = "#0095DD"
-      ctx.fillText("Score: " + state.data.score, 8, 20)
-    }
-    function drawLives() {
-      ctx.font = "16px Arial"
-      ctx.fillStyle = "#0095DD"
-      ctx.fillText("Lives: " + state.data.lives, w - 65, 20)
-    }
-
-    let frame = 0
-
-    function loop() {
-      ctx.clearRect(0, 0, w, h)
-      drawBall()
-      drawBricks()
-      drawPaddle()
-      drawScore()
-      drawLives()
-      frame = requestAnimationFrame(loop)
-    }
-
-    frame = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(frame)
-  }, [])
-
   return (
-    <S.Layout w="fit-content">
-      <canvas ref={rCanvas} height={h} width={w} />
-      <S.Button
+    <B.Layout>
+      <B.PlayField>
+        {state.values.bricks.map((brick) => (
+          <B.Brick
+            key={brick.id}
+            style={{
+              x: brick.x,
+              y: brick.y,
+              width: brickWidth,
+              height: brickHeight,
+            }}
+          />
+        ))}
+        <B.Ball
+          style={{
+            x: state.data.ball.x,
+            y: state.data.ball.y,
+            width: ballDiameter,
+            height: ballDiameter,
+          }}
+        />
+        <B.Paddle
+          style={{
+            x: state.data.paddle.x,
+            y: state.data.paddle.y,
+            width: paddleWidth,
+            height: paddleHeight,
+          }}
+        />
+      </B.PlayField>
+      <B.Button
         highlight={!state.isIn("playing")}
         onClick={() => state.send("STARTED")}
       >
@@ -309,7 +321,13 @@ export default function () {
           paused: "Resume",
           gameover: "Play Again",
         })}
-      </S.Button>
-    </S.Layout>
+      </B.Button>
+      <B.Stats>
+        <B.Label>Score</B.Label>
+        {state.data.score}
+        <B.Label>Lives</B.Label>
+        {state.data.lives}
+      </B.Stats>
+    </B.Layout>
   )
 }
