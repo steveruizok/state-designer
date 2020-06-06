@@ -49,8 +49,6 @@ export function createState<
 
   type Core = S.DesignedState<D, ReturnedValues<D, V>>
 
-  // Update (internal update state)
-
   /* ------------------ Subscriptions ----------------- */
 
   // A set of subscription callbacks. The subscribe function
@@ -96,7 +94,7 @@ export function createState<
 
   /* --------------------- Updates -------------------- */
 
-  // Run eve nt handler that updates the global `updates` object,
+  // Run event handler that updates the global `updates` object,
   // useful for (more or less) synchronous events
   function runEventHandlerChain(
     eventHandler: S.EventHandler<D>,
@@ -142,8 +140,6 @@ export function createState<
       shouldHalt: outcome.shouldBreak,
       shouldNotify: outcome.shouldNotify,
     }
-
-    // return runEventHandler(state, eventHandler, payload, result)
   }
 
   // Try to run an event on a state. If active, it will run the corresponding
@@ -320,6 +316,11 @@ export function createState<
         let elapsed = 0
         let realInterval = 0
 
+        // TODO: Batch frame-delay repeat events to prevent multiple updates per frame.
+        // If more than one active state has a frame-delay repeat event then these will
+        // cause more than one update per frame. Unlike fixed-delay repeat events, these
+        // can be batched and run once.
+
         if (delay === undefined) {
           // Run on every animation frame
           const loop = (ms: number) => {
@@ -346,7 +347,6 @@ export function createState<
             }
           }
 
-          console.log("setting animation loop", state.name)
           state.times.animationFrame = requestAnimationFrame(loop)
         } else {
           // Run on provided delay amount
@@ -416,6 +416,7 @@ export function createState<
     const next = sendQueue.shift()
 
     if (isUndefined(next)) {
+      // If no more events to handle, return core
       return core
     } else {
       // Handle the event and set the current handleEventOnState

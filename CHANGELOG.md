@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.10
+
+- Adds `then`. Works like `else`, but for handlers that have passed their conditions.
+
 ## 1.2.9
 
 - Adds `unlessAny`, the opposite of `ifAny`. An `unlessAny` check will stop a handler if any of the provided conditions return `true`.

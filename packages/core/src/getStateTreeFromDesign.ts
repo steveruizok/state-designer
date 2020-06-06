@@ -116,16 +116,17 @@ export function getStateTreeFromDesign<
     return {
       get: getResults(itemCfg.get),
       if: getConditions(itemCfg.if),
+      ifAny: getConditions(itemCfg.ifAny),
       unless: getConditions(itemCfg.unless),
       unlessAny: getConditions(itemCfg.unlessAny),
-      ifAny: getConditions(itemCfg.ifAny),
       do: getActions(itemCfg.do),
       secretlyDo: getActions(itemCfg.secretlyDo),
       to: castToFunction(itemCfg.to),
+      secretlyTo: castToFunction(itemCfg.secretlyTo),
       send: getSend(itemCfg.send),
-      sendToParent: getSend(itemCfg.sendToParent),
       wait: getTime(itemCfg.wait),
       break: castToFunction(itemCfg.break),
+      then: itemCfg.then ? getEventHandler(itemCfg.then) : undefined,
       else: itemCfg.else ? getEventHandler(itemCfg.else) : undefined,
     }
   }
@@ -157,6 +158,10 @@ export function getStateTreeFromDesign<
     })
   }
 
+  /**
+   * Convert an `initial` property (if present) into an initial state.
+   * @param initial The provided design for the state's initial state. Either a string or an object design (with or without logic).
+   */
   function getInitialState(
     initial?: string | S.InitialStateObjectDesign<D, C, R>
   ): S.InitialStateObject<D> | undefined {
@@ -164,33 +169,12 @@ export function getStateTreeFromDesign<
       return
     }
 
-    if (
-      (initial as S.InitialStateObjectDesignWithLogic<D, C, R>).else !==
-      undefined
-    ) {
-      const init = initial as S.InitialStateObjectDesignWithLogic<D, C, R>
-      return {
-        get: getResults(init.get),
-        if: getConditions(init.if),
-        unless: getConditions(init.unless),
-        ifAny: getConditions(init.ifAny),
-        unlessAny: getConditions(init.unlessAny),
-        to: isFunction(init.to) ? init.to : castToNamedFunction(init.to),
-        else: getInitialState(init.else),
-      }
-    } else {
-      const init = initial as S.InitialStateObjectDesignWithoutLogic<D>
+    const withoutLogic = initial as S.InitialStateObjectDesignWithoutLogic<D>
+    const withLogic = initial as S.InitialStateObjectDesignWithLogic<D, C, R>
 
-      if (typeof init === "string") {
-        return {
-          get: [],
-          if: [],
-          unless: [],
-          ifAny: [],
-          unlessAny: [],
-          to: castToNamedFunction(init),
-        }
-      }
+    if (withLogic.else === undefined) {
+      const init = withoutLogic
+      const target = typeof init === "string" ? init : init.to
 
       return {
         get: [],
@@ -198,7 +182,23 @@ export function getStateTreeFromDesign<
         unless: [],
         ifAny: [],
         unlessAny: [],
+        to: isFunction(target) ? target : castToNamedFunction(target),
+      }
+    } else {
+      const init = withLogic
+
+      if (init.to === undefined) {
+      }
+
+      return {
+        get: getResults(init.get),
+        if: getConditions(init.if),
+        unless: getConditions(init.unless),
+        ifAny: getConditions(init.ifAny),
+        unlessAny: getConditions(init.unlessAny),
         to: isFunction(init.to) ? init.to : castToNamedFunction(init.to),
+        then: getInitialState(init.then),
+        else: getInitialState(init.else),
       }
     }
   }

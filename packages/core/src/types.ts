@@ -84,6 +84,7 @@ export type InitialStateObject<D> = {
   unlessAny: Condition<D>[]
   ifAny: Condition<D>[]
   to: Target<D>
+  then?: InitialStateObject<D>
   else?: InitialStateObject<D>
 }
 
@@ -105,8 +106,9 @@ export type InitialStateObjectDesignWithLogic<D, C, R> = {
   unless?: MaybeArray<ConditionDesign<D, C>>
   ifAny?: MaybeArray<ConditionDesign<D, C>>
   unlessAny?: MaybeArray<ConditionDesign<D, C>>
-  to: TargetDesign<D>
   else: InitialStateObjectDesign<D, C, R>
+  to: TargetDesign<D>
+  then: InitialStateObjectDesign<D, C, R>
 }
 
 export type InitialStateDesign<D, C, R> =
@@ -124,10 +126,11 @@ export type EventHandlerObject<D> = {
   do: Action<D>[]
   secretlyDo: Action<D>[]
   to?: Target<D>
+  secretlyTo?: Target<D>
   send?: Send<D>
-  sendToParent?: Send<D>
   wait?: Time<D>
   break?: Break<D>
+  then?: EventHandler<D>
   else?: EventHandler<D>
 }
 
@@ -164,17 +167,17 @@ export type EventHandlerObjectDesign<D, R, C, A, T> = {
    */
   secretlyDo?: MaybeArray<ActionDesign<D, A>>
   /**
-   * A transition target: either a state's name or path. Defining a target will cause this event to trigger an update.
+   * A transition target: either a state's name or path. Defining a target will cause this handler to trigger an update.
    */
   to?: TargetDesign<D>
+  /**
+   * A transition target: either a state's name or path. Defining a target will not cause this handler to trigger an update.
+   */
+  secretlyTo?: TargetDesign<D>
   /**
    * An event name and (optionally) payload to send to the state.
    */
   send?: SendDesign<D>
-  /**
-   * An event name and (optionally) payload to send to a spawned state's parent state.
-   */
-  sendToParent?: SendDesign<D>
   /**
    * A delay (in seconds) to wait before running this handler object.
    */
@@ -183,6 +186,10 @@ export type EventHandlerObjectDesign<D, R, C, A, T> = {
    * Whether this item should stop the event's other handlers objects from running.
    */
   break?: BreakDesign<D>
+  /**
+   * An additional event handler to run if this event handler object passed its conditions.
+   */
+  then?: EventHandlerDesign<D, R, C, A, T>
   /**
    * An event handler to run instead if this event handler object did not pass its conditions.
    */

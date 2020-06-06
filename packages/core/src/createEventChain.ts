@@ -191,7 +191,22 @@ export function createEventChain<D>(options: Options<D>) {
         finalOutcome.shouldBreak = true
         finalOutcome.shouldNotify = true
       }
+
+      // Secret Transitions
+      if (handler.secretlyTo !== undefined) {
+        finalOutcome.pendingTransition = handler.secretlyTo(
+          draft.data as D,
+          payload,
+          tResult
+        )
+      }
+
+      // Then
+      if (handler.then !== undefined) {
+        processEventHandler([...handler.then], draft)
+      }
     } else {
+      // Else
       if (handler.else !== undefined) {
         processEventHandler([...handler.else], draft)
       }

@@ -201,6 +201,12 @@ export function getInitialState<D>(
     }
 
     if (passedConditions) {
+      // TODO: The initial state object design should not allow both a `then` and `else` property.
+      if (initial.then !== undefined) {
+        return getInitialState(initial.then, payload, data)
+      } else {
+        return initial.to(data, payload, result)
+      }
       return initial.to(data, payload, result)
     } else {
       return getInitialState(initial.else, payload, data)
@@ -249,7 +255,6 @@ export function endStateIntervals<D, V>(state: S.State<D, V>) {
   }
 
   if (!isUndefined(animationFrame)) {
-    console.log("clearing animationg loop", state.name)
     cancelAnimationFrame(animationFrame)
     state.times.animationFrame = undefined
   }

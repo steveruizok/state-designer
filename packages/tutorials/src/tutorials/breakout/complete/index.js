@@ -42,16 +42,16 @@ export default function () {
           onRepeat: [
             {
               if: "ballIsTouchingLeftOrRightEdge",
-              do: "bounceBallX",
+              secretlyDo: "bounceBallX",
             },
             {
               ifAny: ["ballIsTouchingTopEdge", "ballIsTouchingPaddle"],
-              do: "bounceBallY",
+              secretlyDo: "bounceBallY",
             },
             {
               get: "touchingBrick",
               if: "hasTouchingBrick",
-              do: ["destroyBrick", "increaseScore", "bounceBallY"],
+              secretlyDo: ["destroyBrick", "increaseScore", "bounceBallY"],
             },
             {
               if: "allBricksAreDestroyed",
@@ -59,42 +59,42 @@ export default function () {
             },
             {
               if: "ballIsTouchingBottomEdge",
-              do: ["loseOneLife", "resetBall"],
+              secretlyDo: ["loseOneLife", "resetBall"],
             },
             {
               unless: "hasLivesRemaining",
               to: "gameover",
             },
-            "moveBall",
+            { secretlyDo: "moveBall" },
           ],
         },
         initial: "idle",
         states: {
           idle: {
             on: {
-              STARTED_MOVING_LEFT: { to: "movingLeft" },
-              STARTED_MOVING_RIGHT: { to: "movingRight" },
+              STARTED_MOVING_LEFT: { secretlyTo: "movingLeft" },
+              STARTED_MOVING_RIGHT: { secretlyTo: "movingRight" },
             },
           },
           movingLeft: {
             on: {
-              STOPPED_MOVING: { to: "idle" },
+              STOPPED_MOVING: { secretlyTo: "idle" },
             },
             repeat: {
               onRepeat: {
                 if: "paddleCanMoveLeft",
-                do: "movePaddleLeft",
+                secretlyDo: "movePaddleLeft",
               },
             },
           },
           movingRight: {
             on: {
-              STOPPED_MOVING: { to: "idle" },
+              STOPPED_MOVING: { secretlyTo: "idle" },
             },
             repeat: {
               onRepeat: {
                 if: "paddleCanMoveRight",
-                do: "movePaddleRight",
+                secretlyDo: "movePaddleRight",
               },
             },
           },
@@ -167,7 +167,6 @@ export default function () {
         return data.score === brickColumnCount * brickRowCount
       },
     },
-
     actions: {
       resetBall(data) {
         Object.assign(data, {
@@ -270,16 +269,31 @@ export default function () {
       }
     }
 
-    function handleUpdate() {
+    function drawScore() {
+      ctx.font = "16px Arial"
+      ctx.fillStyle = "#0095DD"
+      ctx.fillText("Score: " + state.data.score, 8, 20)
+    }
+    function drawLives() {
+      ctx.font = "16px Arial"
+      ctx.fillStyle = "#0095DD"
+      ctx.fillText("Lives: " + state.data.lives, w - 65, 20)
+    }
+
+    let frame = 0
+
+    function loop() {
       ctx.clearRect(0, 0, w, h)
       drawBall()
       drawBricks()
       drawPaddle()
+      drawScore()
+      drawLives()
+      frame = requestAnimationFrame(loop)
     }
 
-    state.getUpdate(handleUpdate)
-
-    return state.onUpdate(handleUpdate)
+    frame = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   return (
