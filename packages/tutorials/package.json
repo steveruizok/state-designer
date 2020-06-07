@@ -15,6 +15,8 @@
     "@testing-library/user-event": "^11.0.0",
     "emotion-theming": "10.0.27",
     "framer-motion": "^1.11.0",
+    "lodash": "^4.17.15",
+    "lodash-es": "^4.17.15",
     "mdn-polyfills": "5.20.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",
@@ -22,6 +24,7 @@
     "react-scripts": "3.4.1"
   },
   "devDependencies": {
+    "jest-canvas-mock": "^2.2.0",
     "typescript": "3.8.3"
   },
   "scripts": {

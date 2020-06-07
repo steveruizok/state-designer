@@ -241,19 +241,28 @@ export function setIntitialStates<D>(
 }
 
 export function endStateIntervals<D, V>(state: S.State<D, V>) {
-  const { timeouts, interval, animationFrame } = state.times
+  const { cancelAsync, timeouts, interval, animationFrame } = state.times
 
+  // If state is waiting on an asynchronous event, cancel it
+  if (cancelAsync !== undefined) {
+    cancelAsync()
+    state.times.cancelAsync = undefined
+  }
+
+  // If state is waiting on timeouts, clear them
   for (let timeout of timeouts) {
     clearTimeout(timeout)
   }
 
   state.times.timeouts = []
 
+  // If state is repeating an event on an interval, stop it
   if (!isUndefined(interval)) {
     clearInterval(interval)
     state.times.interval = undefined
   }
 
+  // If the state is repeating an event on an animation frame, stop it
   if (!isUndefined(animationFrame)) {
     cancelAnimationFrame(animationFrame)
     state.times.animationFrame = undefined

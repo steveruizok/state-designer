@@ -3,4 +3,5 @@ module.exports = {
   displayName: "sandbox",
   testMatch: ["**/complete.test.js"],
   testURL: "http://localhost",
+  setupFiles: ["jest-canvas-mock"],
 }

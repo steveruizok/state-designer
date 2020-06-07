@@ -256,6 +256,7 @@ export interface State<D, V> {
     timeouts: any[]
     interval?: any
     animationFrame?: number
+    cancelAsync?: () => void
   }
   on: Record<string, EventHandler<D> & ThisType<DesignedState<D, V>>>
   onEnter?: EventHandler<D>
@@ -287,7 +288,7 @@ export interface Design<
   C extends Record<string, Condition<D>> = any,
   A extends Record<string, Action<D>> = any,
   Y extends Record<string, Async<D>> = any,
-  T extends Record<string, Time<D>> = any,
+  T extends Record<string, number | Time<D>> = any,
   V extends Record<string, Value<D>> = any
 > extends StateDesign<D, R, C, A, Y, T, V> {
   id?: string
@@ -306,7 +307,7 @@ export interface DesignWithHelpers<
   C extends Record<string, Condition<D>> = any,
   A extends Record<string, Action<D>> = any,
   Y extends Record<string, Async<D>> = any,
-  T extends Record<string, Time<D>> = any,
+  T extends Record<string, number | Time<D>> = any,
   V extends Record<string, Value<D>> = any
 > extends Design<D, R, C, A, Y, T, V> {
   createEventHandlerDesign: (
@@ -369,3 +370,31 @@ export type StateWithDesign<
     [key in keyof State["values"]]: ReturnType<State["values"][key]>
   }
 >
+
+// Event Handler Chains
+
+export type EventChainOptions<D> = {
+  state: State<D, any>
+  data: D
+  result: any
+  payload: any
+  handler: EventHandler<D>
+  onDelayedOutcome: EventChainCallback<D>
+  getFreshDataAfterWait: () => D
+}
+
+export type EventChainCore<D> = {
+  data: D
+  result: any
+}
+
+export type EventChainOutcome<D> = {
+  data: D
+  result: any
+  shouldBreak: boolean
+  shouldNotify: boolean
+  pendingTransition?: string
+  pendingSend?: Event
+}
+
+export type EventChainCallback<D> = (outcome: EventChainOutcome<D>) => void

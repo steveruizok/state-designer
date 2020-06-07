@@ -19,9 +19,16 @@ export function getStateTreeFromDesign<
   C extends Record<string, S.Condition<D>>,
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>,
-  T extends Record<string, S.Time<D>>,
+  T extends Record<string, number | S.Time<D>>,
   V extends Record<string, S.Value<D>>
 >(config: S.Design<D, R, C, A, Y, T, V>, id: string) {
+  // Convert times from raw numbers to EventFns
+  let times = Object.fromEntries(
+    Object.entries(config.times || {}).map(([k, v]) => {
+      return [k, castToFunction(v)]
+    })
+  ) as Record<Extract<keyof T, string>, S.Time<D>>
+
   /**
    * Convert an event function config into an event function.
    * @param item
@@ -93,9 +100,10 @@ export function getStateTreeFromDesign<
 
   function getTime(item: S.TimeDesign<D, T> | undefined) {
     if (isUndefined(item)) return undefined
+
     return isNumber(item)
       ? castToNamedFunction(item)
-      : getEventFn(item, config.times, "times")
+      : getEventFn(item, times, "times")
   }
 
   function getSend(item: S.SendDesign<D> | undefined): S.Send<D> | undefined {
@@ -187,9 +195,6 @@ export function getStateTreeFromDesign<
     } else {
       const init = withLogic
 
-      if (init.to === undefined) {
-      }
-
       return {
         get: getResults(init.get),
         if: getConditions(init.if),
@@ -267,6 +272,5 @@ export function getStateTreeFromDesign<
       ),
     }
   }
-
   return createState(config, "root", id + ".", true)
 }

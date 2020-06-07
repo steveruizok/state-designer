@@ -16,14 +16,15 @@ var ballRadius = 10,
   brickHeight = 20,
   brickPadding = 10,
   brickOffsetTop = 30,
-  brickOffsetLeft = 30
+  brickOffsetLeft = 30,
+  i = 0
 
 export default function () {
   const state = useStateDesigner({
     data: {
       bricks: range2d(brickColumnCount, brickRowCount).map((row, y) =>
         row.map((x) => ({
-          id: y * brickColumnCount + x,
+          id: i++,
           x: x * (brickWidth + brickPadding) + brickOffsetLeft,
           y: y * (brickHeight + brickPadding) + brickOffsetTop,
           status: 1,

@@ -94,52 +94,49 @@ export function createState<
 
   /* --------------------- Updates -------------------- */
 
+  function handleEventHandlerChainOutcome(
+    outcome: S.EventChainOutcome<D>,
+    payload: any
+  ) {
+    core.data = outcome.data
+
+    if (outcome.pendingSend) {
+      const { event, payload: pendingPayload } = outcome.pendingSend
+      send(event, pendingPayload)
+    }
+
+    if (outcome.pendingTransition) {
+      runTransition(outcome.pendingTransition, payload, outcome.result)
+    }
+  }
+
   // Run event handler that updates the global `updates` object,
   // useful for (more or less) synchronous events
   function runEventHandlerChain(
+    state: S.State<D, V>,
     eventHandler: S.EventHandler<D>,
-    payload: any = undefined,
-    result: any = undefined
+    payload: any,
+    result: any
   ) {
     const outcome = createEventChain<D>({
+      state,
       data: core.data,
       result,
       payload,
       handler: eventHandler,
-      onAsyncUpdate: (update) => {
-        core.data = update.data
+      onDelayedOutcome: (outcome) => {
+        handleEventHandlerChainOutcome(outcome, payload)
 
-        if (update.shouldNotify) {
+        if (outcome.shouldNotify) {
           notifySubscribers()
         }
-
-        if (update.pendingSend) {
-          const { event, payload } = update.pendingSend
-          send(event, payload)
-        }
-
-        if (update.pendingTransition) {
-          runTransition(update.pendingTransition)
-        }
       },
-      onRefreshDataAfterWait: () => core.data,
+      getFreshDataAfterWait: () => core.data,
     })
 
-    core.data = outcome.data
+    handleEventHandlerChainOutcome(outcome, payload)
 
-    if (outcome.pendingSend) {
-      const { event, payload } = outcome.pendingSend
-      send(event, payload)
-    }
-
-    if (outcome.pendingTransition) {
-      runTransition(outcome.pendingTransition)
-    }
-
-    return {
-      shouldHalt: outcome.shouldBreak,
-      shouldNotify: outcome.shouldNotify,
-    }
+    return outcome
   }
 
   // Try to run an event on a state. If active, it will run the corresponding
@@ -159,9 +156,12 @@ export function createState<
 
       const eventHandler = state.on[sent.event]
 
+      let outcome: S.EventChainOutcome<D> | undefined = undefined
+
       // Run event handler, if present
       if (!isUndefined(eventHandler)) {
-        const outcome = runEventHandlerChain(
+        outcome = runEventHandlerChain(
+          state,
           eventHandler,
           sent.payload,
           undefined
@@ -171,7 +171,7 @@ export function createState<
           record.shouldNotify = true
         }
 
-        if (outcome.shouldHalt) {
+        if (outcome.shouldBreak) {
           record.shouldNotify = true
           record.shouldHalt = true
           return record
@@ -180,17 +180,18 @@ export function createState<
 
       // Run onEvent, if present
       if (!isUndefined(state.onEvent)) {
-        const outcome = runEventHandlerChain(
+        outcome = runEventHandlerChain(
+          state,
           state.onEvent,
           sent.payload,
-          undefined
+          outcome?.result
         )
 
         if (outcome.shouldNotify) {
           record.shouldNotify = true
         }
 
-        if (outcome.shouldHalt) {
+        if (outcome.shouldBreak) {
           record.shouldNotify = true
           record.shouldHalt = true
           return record
@@ -198,13 +199,13 @@ export function createState<
       }
       // Run event on states
       for (let childState of activeChildren) {
-        const outcome = handleEventOnState(childState, sent)
+        const childRecord = handleEventOnState(childState, sent)
 
-        if (outcome.shouldNotify) {
+        if (childRecord.shouldNotify) {
           record.shouldNotify = true
         }
 
-        if (outcome.shouldHalt) {
+        if (childRecord.shouldHalt) {
           record.shouldNotify = true
           record.shouldHalt = true
           return record
@@ -215,11 +216,7 @@ export function createState<
     return record
   }
 
-  function runTransition(
-    path: string,
-    payload: any = undefined,
-    result: any = undefined
-  ) {
+  function runTransition(path: string, payload: any, result: any) {
     // Is this a restore transition?
 
     const isPreviousTransition = path.endsWith(".previous")
@@ -295,8 +292,13 @@ export function createState<
       state.activeId++
 
       if (!isUndefined(onExit)) {
-        const outcome = runEventHandlerChain(onExit, payload, result)
-        if (outcome.shouldHalt) return
+        const onExitOutcome = runEventHandlerChain(
+          state,
+          onExit,
+          payload,
+          result
+        )
+        if (onExitOutcome.shouldBreak) return
       }
     }
 
@@ -333,7 +335,7 @@ export function createState<
 
             lastTime = ms
 
-            const outcome = runEventHandlerChain(onRepeat, payload, {
+            const outcome = runEventHandlerChain(state, onRepeat, payload, {
               interval: realInterval,
               elapsed,
             })
@@ -360,7 +362,7 @@ export function createState<
             elapsed += realInterval
             lastTime = now
 
-            const outcome = runEventHandlerChain(onRepeat, payload, {
+            const outcome = runEventHandlerChain(state, onRepeat, payload, {
               interval: realInterval,
               elapsed,
             })
@@ -373,16 +375,28 @@ export function createState<
       }
 
       if (!isUndefined(onEnter)) {
-        const onEnterRecord = runEventHandlerChain(onEnter, payload, result)
-        if (onEnterRecord.shouldHalt) {
+        const onEnterOutcome = runEventHandlerChain(
+          state,
+          onEnter,
+          payload,
+          result
+        )
+        if (onEnterOutcome.shouldBreak) {
           return
         }
       }
 
       if (!isUndefined(async)) {
+        let finished = false
+
+        state.times.cancelAsync = () => (finished = true)
+
         async.await(core.data, payload, result).then(
           (resolved) => {
+            if (finished) return
+
             const localUpdate = runEventHandlerChain(
+              state,
               async.onResolve,
               payload,
               resolved
@@ -392,7 +406,10 @@ export function createState<
           },
           (rejected) => {
             if (!isUndefined(async.onReject)) {
+              if (finished) return
+
               const localUpdate = runEventHandlerChain(
+                state,
                 async.onReject,
                 payload,
                 rejected
@@ -402,10 +419,8 @@ export function createState<
             }
           }
         )
-      }
-    }
-
-    return
+      } // End async handling
+    } // End for newlyActivatedStates
   }
 
   /* -------------- Sent Event Processing ------------- */
@@ -670,7 +685,7 @@ export function createState<
 
   // Deactivate the tree, then activate it again to set initial active states.
   StateTree.deactivateState(core.stateTree)
-  runTransition("root") // Will onEnter events matter?
+  runTransition("root", undefined, undefined) // Will onEnter events matter?
   core.values = getValues(core.data, design.values)
   core.active = StateTree.getActiveStates(core.stateTree)
 

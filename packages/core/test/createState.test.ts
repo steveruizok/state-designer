@@ -1,6 +1,8 @@
 import { createState } from "../src"
 import { state, design, counterDesign } from "./shared"
 
+jest.useFakeTimers()
+
 describe("createState", () => {
   it("Should create a state.", () => {
     expect(createState({})).toBeTruthy()
@@ -169,8 +171,6 @@ describe("createState", () => {
     done()
   })
 
-  // Do onEnter / onExit events work?
-
   // Do onExit events work?
 
   it("Should support onEnter and onExit events.", async (done) => {
@@ -184,6 +184,47 @@ describe("createState", () => {
     expect(update.data.activations).toBe(1)
     expect(update.data.deactivations).toBe(1)
     done()
+  })
+
+  it("Should preserve payloads and results between transitions.", () => {
+    const state = createState({
+      data: { count: 0, final: { result: 0, payload: 0 } },
+      initial: "ready",
+      states: {
+        ready: {
+          on: {
+            FETCHED: {
+              get: () => 20,
+              to: "loading",
+            },
+          },
+        },
+        loading: {
+          on: {
+            CANCELLED: { to: "ready" },
+          },
+          async: {
+            await: (_, __, r) => new Promise((resolve) => resolve(r)),
+            onResolve: {
+              to: "success",
+            },
+          },
+        },
+        success: {
+          onEnter: (data, payload, result) => {
+            data.final = { payload, result }
+          },
+        },
+        fail: {},
+      },
+    })
+
+    state.send("FETCHED", 10)
+
+    setTimeout(() => {
+      expect(state.data.final.payload).toBe(10)
+      expect(state.data.final.result).toBe(20)
+    }, 1000)
   })
 
   // Does causing a transition prevent further updates?
@@ -327,15 +368,16 @@ describe("createState", () => {
             do: (d) => d.count++,
           },
           {
-            do: (d) => (d.count += 10),
-            wait: 0.5,
+            do: (d) => d.count++,
+            wait: 0.25,
           },
           {
             do: (d) => d.count++,
+            wait: 0.25,
           },
           {
-            do: (d) => (d.count += 10),
-            wait: 0.5,
+            do: (d) => d.count++,
+            wait: 0.25,
           },
         ],
       },
@@ -343,8 +385,8 @@ describe("createState", () => {
 
     state.send("TRIGGERED")
     expect(state.data.count).toBe(1)
-    await new Promise((resolve) => setTimeout(() => resolve(), 2000))
-    expect(state.data.count).toBe(22)
+    jest.runAllTimers()
+    expect(state.data.count).toBe(4)
     done()
   })
 

@@ -1,6 +1,5 @@
 import * as React from "react"
-import cloneDeep from "lodash-es/cloneDeep"
-import sample from "lodash-es/sample"
+import { cloneDeep, sample } from "lodash"
 
 export { cloneDeep, sample }
 
@@ -69,6 +68,14 @@ export function shuffle(arr) {
  */
 export function clamp(num, min, max) {
   return Math.max(Math.min(num, Math.max(min, max)), Math.min(min, max))
+}
+
+/**
+ * Add a delay into an asynchronous function.
+ * @param {number} ms
+ */
+export async function delay(ms = 1000) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**

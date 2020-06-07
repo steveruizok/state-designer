@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.11
+
+- Fixes issue where `wait` event handlers would still run after a state became inactive due to a transition.
+- Fixes issue where async event handlers would still run after a state became inactive due to a transition.
+- Fixes issue where event handlers with multiple `wait`ed handler objects would not stop after the first `wait`ed handler object.
+- Fixes issue where payloads and results were not preserved after transitions (and asyncs).
+
 ## 1.2.10
 
 - Adds `then`. Works like `else`, but for handlers that have passed their conditions.

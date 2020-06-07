@@ -131,10 +131,12 @@ export default function () {
     const cvs = rMarksCanvas.current
     const ctx = cvs.getContext("2d")
 
-    ctx.clearRect(0, 0, w, h)
+    if (ctx) {
+      ctx.clearRect(0, 0, w, h)
 
-    for (let mark of state.data.marks) {
-      drawMark(ctx, mark)
+      for (let mark of state.data.marks) {
+        drawMark(ctx, mark)
+      }
     }
   }, [state.data.marks])
 
@@ -146,15 +148,17 @@ export default function () {
       const cvs = rCurrentCanvas.current
       const ctx = cvs.getContext("2d")
 
-      // Draw current mark
-      if (state.data.currentMark !== undefined) {
-        ctx.clearRect(0, 0, w, h)
-        drawMark(ctx, state.data.currentMark)
-      } else {
-        ctx.clearRect(0, 0, w, h)
-      }
+      if (ctx) {
+        // Draw current mark
+        if (state.data.currentMark !== undefined) {
+          ctx.clearRect(0, 0, w, h)
+          drawMark(ctx, state.data.currentMark)
+        } else {
+          ctx.clearRect(0, 0, w, h)
+        }
 
-      frame = requestAnimationFrame(loop)
+        frame = requestAnimationFrame(loop)
+      }
     }
 
     frame = requestAnimationFrame(loop)

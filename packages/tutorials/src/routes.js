@@ -12,6 +12,8 @@ import StopwatchStarter from "tutorials/6_stopwatch/starter"
 import StopwatchComplete from "tutorials/6_stopwatch/complete"
 import TimerStarter from "tutorials/7_timer/starter"
 import TimerComplete from "tutorials/7_timer/complete"
+import DogsStarter from "tutorials/dogs/starter"
+import DogsComplete from "tutorials/dogs/complete"
 import TilesStarter from "tutorials/8_tiles/starter"
 import TilesComplete from "tutorials/8_tiles/complete"
 import TetrisStarter from "tutorials/tetris/starter"
@@ -58,6 +60,11 @@ export default [
     name: "timer",
     Starter: TimerStarter,
     Complete: TimerComplete,
+  },
+  {
+    name: "dogs",
+    Starter: DogsStarter,
+    Complete: DogsComplete,
   },
   {
     name: "tiles",

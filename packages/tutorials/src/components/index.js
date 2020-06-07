@@ -716,4 +716,25 @@ export const Drawing = {
   })),
 }
 
+/* ---------------------- Dogs ---------------------- */
+
+export const Dogs = {
+  Layout: withDefaultProps(Layout, () => ({
+    gridGap: 4,
+  })),
+  Image: withDefaultProps(Box, (p) => ({
+    w: 280,
+    h: 280,
+    bg: p.colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100",
+    style: {
+      backgroundImage: `url(${p.image})`,
+      backgroundSize: "cover",
+    },
+  })),
+  Button: withDefaultProps(Button, (p) => ({
+    width: "1fr",
+    variantColor: p.highlight ? "blue" : "gray",
+  })),
+}
+
 export { theme, Button, Divider, Heading, IconButton, Switch, Text }

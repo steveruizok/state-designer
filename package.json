@@ -34,7 +34,7 @@
   "scripts": {
     "lerna": "lerna",
     "dev": "lerna run start --stream --parallel",
-    "test": "lerna run test --",
+    "test": "lerna run test",
     "build": "lerna run build",
     "prepublish": "lerna run prepublish",
     "publish-canary": "lerna version prerelease --preid canary --force-publish && release --pre",
