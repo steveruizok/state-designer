@@ -24,6 +24,8 @@ import BreakoutStarter from "tutorials/breakout/starter"
 import BreakoutComplete from "tutorials/breakout/complete"
 import DrawingStarter from "tutorials/drawing/starter"
 import DrawingComplete from "tutorials/drawing/complete"
+import CalculatorStarter from "tutorials/calculator/starter"
+import CalculatorComplete from "tutorials/calculator/complete"
 
 export default [
   {
@@ -90,5 +92,10 @@ export default [
     name: "drawing",
     Starter: DrawingStarter,
     Complete: DrawingComplete,
+  },
+  {
+    name: "calculator",
+    Starter: CalculatorStarter,
+    Complete: CalculatorComplete,
   },
 ]

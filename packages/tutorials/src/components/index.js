@@ -737,4 +737,34 @@ export const Dogs = {
   })),
 }
 
+/* ------------------- Calculator ------------------- */
+
+export const Calculator = {
+  Layout: withDefaultProps(Layout, () => ({
+    gridGap: 4,
+    gridTemplateColumns: "repeat(4, 48px)",
+  })),
+  Operation: withDefaultProps(Text, (p) => ({
+    textAlign: "right",
+    gridColumn: "span 4",
+    height: 5,
+    p: 0,
+    mb: 1,
+  })),
+  Value: withDefaultProps(Heading, (p) => ({
+    textAlign: "right",
+    gridColumn: "span 4",
+    size: "2xl",
+    p: 2,
+    bg: p.colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100",
+  })),
+  Button: withDefaultProps(Button, (p) => ({
+    variantColor: p.highlight ? "blue" : "gray",
+  })),
+  ZeroButton: withDefaultProps(Button, (p) => ({
+    gridColumn: "span 2",
+    variantColor: p.highlight ? "blue" : "gray",
+  })),
+}
+
 export { theme, Button, Divider, Heading, IconButton, Switch, Text }
