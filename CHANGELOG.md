@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.12
+
+- Batches `onRepeat` events that occur on each frame.
+
 ## 1.2.11
 
 - Fixes issue where `wait` event handlers would still run after a state became inactive due to a transition.

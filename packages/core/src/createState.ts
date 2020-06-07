@@ -45,10 +45,6 @@ export function createState<
     [key in keyof V]: ReturnType<V[key]>
   }
 > {
-  /* ------------------ Mutable Data ------------------ */
-
-  type Core = S.DesignedState<D, ReturnedValues<D, V>>
-
   /* ------------------ Subscriptions ----------------- */
 
   // A set of subscription callbacks. The subscribe function
@@ -74,13 +70,13 @@ export function createState<
       subscribers.delete(callbackFn)
     }
 
-    // TODO: Prevent persistant intervals (in a smarter way)
     /* In some cases, intervals may persist past reloads, or when a 
     state is no longer needed. This solution is too blunt though: I can 
     imagine users wanting to keep a state's time ticking even when
     components that depend on it are unmounted. Public method for
     pause and resume? Activities with cleanup? */
     if (subscribers.size === 0) {
+      stopLoop()
       StateTree.recursivelyEndStateIntervals(core.stateTree)
     }
   }
@@ -285,6 +281,7 @@ export function createState<
 
     deactivatedStates.forEach((state) => {
       StateTree.endStateIntervals(state)
+      removeOnFrameEventHandler(state)
     })
 
     for (let state of deactivatedStates) {
@@ -308,48 +305,19 @@ export function createState<
     // - bail if we've transitioned
 
     for (let state of newlyActivatedStates) {
-      const { async, repeat, onEnter, activeId } = state
+      const { async, repeat, onEnter } = state
 
       if (!isUndefined(repeat)) {
         const { onRepeat, delay } = repeat
 
         let now = performance.now()
-        let lastTime: number | undefined = undefined
+        // let lastTime: number | undefined = undefined
         let elapsed = 0
         let realInterval = 0
 
-        // TODO: Batch frame-delay repeat events to prevent multiple updates per frame.
-        // If more than one active state has a frame-delay repeat event then these will
-        // cause more than one update per frame. Unlike fixed-delay repeat events, these
-        // can be batched and run once.
-
         if (delay === undefined) {
-          // Run on every animation frame
-          const loop = (ms: number) => {
-            if (isUndefined(lastTime)) {
-              lastTime = ms
-            }
-
-            realInterval = ms - lastTime
-            elapsed += realInterval
-
-            lastTime = ms
-
-            const outcome = runEventHandlerChain(state, onRepeat, payload, {
-              interval: realInterval,
-              elapsed,
-            })
-
-            if (outcome.shouldNotify) {
-              notifySubscribers()
-            }
-
-            if (state.activeId === activeId) {
-              state.times.animationFrame = requestAnimationFrame(loop)
-            }
-          }
-
-          state.times.animationFrame = requestAnimationFrame(loop)
+          // Add state to batched frame events
+          addOnFrameState(state, { payload, start: now })
         } else {
           // Run on provided delay amount
           let lastTime = performance.now()
@@ -367,9 +335,7 @@ export function createState<
               elapsed,
             })
 
-            if (outcome.shouldNotify) {
-              notifySubscribers()
-            }
+            if (outcome.shouldNotify) notifySubscribers()
           }, Math.max(1 / 60, s * 1000))
         }
       }
@@ -381,9 +347,8 @@ export function createState<
           payload,
           result
         )
-        if (onEnterOutcome.shouldBreak) {
-          return
-        }
+
+        if (onEnterOutcome.shouldBreak) return
       }
 
       if (!isUndefined(async)) {
@@ -439,12 +404,96 @@ export function createState<
       const { shouldNotify } = handleEventOnState(core.stateTree, next)
 
       // Notify subscribers, if we should
-      if (shouldNotify) {
-        notifySubscribers()
-      }
+      if (shouldNotify) notifySubscribers()
 
       // Then process the next sent event
       return processSendQueue()
+    }
+  }
+
+  /* ----------------- Per Framer Loop ---------------- */
+
+  // When states have an `onRepeat` event without a delay,
+  // that event will be handled on every animation frame (usually
+  // sixty times per second). These events are "batched" —
+  // iterated through on each frame, producing at most a single
+  // synchronous update. We wouldn't want to have multiple
+  // onRepeat events producing multiple separate updates per frame.
+
+  let lastTime = -1
+  let interval = -1
+  let frameInterval: number | undefined = undefined
+  type OnFrameInfo = { payload: any; start: number }
+  const onFrameStates = new Map<S.State<D, V>, OnFrameInfo>([])
+
+  // Main loop to run while we have onFrameStates
+  function loop(ms: number) {
+    let shouldNotify = false
+
+    interval = ms - lastTime
+    lastTime = ms
+
+    const states = Array.from(onFrameStates.entries())
+
+    for (let [state, info] of states) {
+      if (state.repeat?.onRepeat !== undefined) {
+        const outcome = runEventHandlerChain(
+          state,
+          state.repeat.onRepeat,
+          info.payload,
+          {
+            interval,
+            elapsed: ms - info.start,
+          }
+        )
+
+        if (outcome.shouldNotify) {
+          shouldNotify = true
+        }
+
+        if (outcome.shouldBreak) {
+          break
+        }
+      }
+    }
+
+    if (shouldNotify) notifySubscribers()
+
+    if (frameInterval === undefined) return
+
+    frameInterval = requestAnimationFrame(loop)
+  }
+
+  // Stop the animation loop
+  function stopLoop() {
+    if (frameInterval !== undefined) {
+      cancelAnimationFrame(frameInterval)
+      frameInterval = undefined
+      lastTime = -1
+      interval = -1
+    }
+  }
+
+  // Start the animation loop
+  function startLoop() {
+    frameInterval = requestAnimationFrame(loop)
+  }
+
+  // Add a state to onFrameStates and start the loop, if it isn't already running
+  function addOnFrameState(state: S.State<D, V>, info: OnFrameInfo) {
+    onFrameStates.set(state, info)
+    if (frameInterval === undefined) {
+      startLoop()
+    }
+  }
+
+  // Remove a state from onFrameStates and stop the loop if there are no more repeating states
+  function removeOnFrameEventHandler(state: S.State<D, V>) {
+    if (onFrameStates.has(state)) {
+      onFrameStates.delete(state)
+      if (onFrameStates.size === 0) {
+        stopLoop()
+      }
     }
   }
 
@@ -661,6 +710,8 @@ export function createState<
   }
 
   /* --------------------- Kickoff -------------------- */
+
+  type Core = S.DesignedState<D, ReturnedValues<D, V>>
 
   const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
 
