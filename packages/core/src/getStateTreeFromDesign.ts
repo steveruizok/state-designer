@@ -57,11 +57,9 @@ export function getStateTreeFromDesign<
   }
 
   function castToNamedFunction<T>(item: T): () => T {
-    return {
-      [item as any]() {
-        return item
-      },
-    }[item as any]
+    const fn = () => item
+    Object.defineProperty(fn, "name", { value: item, writable: false })
+    return fn
   }
 
   function castToFunction<T>(

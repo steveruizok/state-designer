@@ -46,74 +46,22 @@ Your exact usage will depend on your framework:
 - [Usage in JavaScript](https://github.com/state-designer/core#usage)
 - [Usage in React](https://github.com/state-designer/react#usage)
 
-## Example
+## Examples
 
-**Note:** This example uses the [React](https://github.com/state-designer/react) package.
-
-[![Edit little-snowflake-rmu8q](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/little-snowflake-rmu8q?fontsize=14&hidenavigation=1&theme=dark)
-
-```jsx
-import React from "react"
-import { useStateDesigner } from "@state-designer/react"
-
-function App() {
-  const { data, send, can, whenIn } = useStateDesigner({
-    data: { count: 1 },
-    initial: "inactive",
-    states: {
-      inactive: {
-        on: { TOGGLED: { to: "active" } },
-      },
-      active: {
-        on: {
-          TOGGLED: { to: "inactive" },
-          CLICKED_PLUS: { if: "belowMax", do: "increment" },
-          CLICKED_MINUS: "decrement",
-        },
-      },
-    },
-    actions: {
-      increment(d) {
-        d.count++
-      },
-      decrement(d) {
-        d.count--
-      },
-    },
-    conditions: {
-      belowMax(d) {
-        return d.count < 10
-      },
-    },
-  })
-
-  return (
-    <div className="App">
-      <h2>{data.count}</h2>
-      <button
-        disabled={!can("CLICKED_MINUS")}
-        onClick={() => send("CLICKED_MINUS")}
-      >
-        -1
-      </button>
-      <button
-        disabled={!can("CLICKED_PLUS")}
-        onClick={() => send("CLICKED_PLUS")}
-      >
-        +1
-      </button>
-      <button onClick={() => send("TOGGLED")}>
-        {whenIn({
-          active: "Turn Off",
-          inactive: "Turn On",
-        })}
-      </button>
-    </div>
-  )
-}
-
-export default App
-```
+- [Counter](/examples/counter)
+- [Toggle](/examples/toggle)
+- [Input](/examples/input)
+- [Todo](/examples/todo)
+- [Todos](/examples/todos)
+- [Stopwatch](/examples/stopwatch)
+- [Timer](/examples/timer)
+- [Calculator](/examples/calculator)
+- [Drawing](/examples/drawing)
+- [Tiles](/examples/tiles)
+- [Dogs](/examples/dogs)
+- [Breakout](/examples/breakout)
+- [Snake](/examples/snake)
+- [Tetris](/examples/tetris)
 
 ## Inspiration
 

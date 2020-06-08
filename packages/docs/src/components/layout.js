@@ -32,7 +32,7 @@ export default ({ children }) => {
           <Container py={0}>
             <div
               sx={{
-                display: [null, "flex"],
+                display: "flex",
                 mt: [7, 0],
               }}
             >

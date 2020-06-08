@@ -1,4 +1,4 @@
-import prismTheme from "@theme-ui/prism/presets/github"
+import prismTheme from "@theme-ui/prism/presets/dracula"
 import "./styles.css"
 
 const heading = {
@@ -14,16 +14,18 @@ const heading = {
 
 export default {
   space: [0, 4, 8, 16, 24, 32, 48, 64, 128, 256, 512],
-  breakpoints: ["52em", "90em", "100em"],
+  breakpoints: ["50em", "90em", "100em"],
   colors: {
+    flat: "#0d0d0d",
     text: "#1d1d1d",
     lowText: "#2d2d2d",
     code: "#272727",
-    codeBg: "#eff1f5",
-    codeHl: "#eff1f5",
-    muted: "#f6f8fa",
+    codeBg: "#f2f2f2",
+    codeHl: "#f8f8f8",
+    muted: "#f2f2f2",
+    quote: "#f0f0f0",
     background: "#fff",
-    primary: "#3333ff",
+    primary: "#005da5",
     secondary: "#8855ff",
     highlight: "#03d8ff",
     gray: "#d8dde3",
@@ -37,25 +39,25 @@ export default {
     heading: "'Fira Sans', sans-serif",
     monospace: "'Fira Code', monospace",
   },
-  fontSizes: [14, 16, 18, 22, 28, 32, 44, 48, 56, 64],
+  fontSizes: [14, 16, 18, 22, 28, 32, 41, 48, 56, 64],
   fontWeights: {
     body: "400",
-    code: "400",
+    code: "500",
     quote: "400",
     bold: "600",
     heading: "800",
   },
   lineHeights: {
     tight: 1.5,
-    body: 1.7,
+    body: 1.5,
     heading: 1.25,
-    code: 1.65,
+    code: 1.5,
   },
   textStyles: {
     heading,
     display: {
       variant: "textStyles.heading",
-      fontSize: [7, 8, 8],
+      fontSize: [6, 6, 7],
     },
   },
   borderStyles: {
@@ -81,64 +83,71 @@ export default {
     h1: {
       variant: "textStyles.display",
       mt: 0,
-      mb: 3,
+      mb: [2, 2, 3],
     },
     h2: {
       variant: "textStyles.heading",
-      fontSize: 6,
-      mt: 5,
+      fontSize: 4,
+      mt: 6,
       mb: 2,
     },
     h3: {
       variant: "textStyles.heading",
-      fontSize: 4,
-      mt: 4,
-      mb: 2,
+      fontSize: 3,
+      mt: 5,
+      mb: 0,
     },
     h4: {
       variant: "textStyles.heading",
       fontSize: 3,
-      mt: 3,
-      mb: 2,
+      mt: 4,
+      mb: 0,
     },
     h5: {
       variant: "textStyles.heading",
       fontSize: 2,
-      mt: 3,
-      mb: 2,
+      mt: 4,
+      mb: 0,
     },
     h6: {
       variant: "textStyles.heading",
       fontSize: 2,
       mt: 3,
-      mb: 2,
+      mb: 0,
     },
     a: {
       color: "primary",
-      textDecoration: "none",
+      textDecoration: "underline",
       "& > h1,h2,h3,h4,h5,h6": {
         color: "text",
         "&:hover": {
           color: "code",
         },
       },
+      "& > code": {
+        color: "primary",
+      },
+    },
+    p: {
+      my: 4,
     },
     blockquote: {
-      mx: 0,
       mt: 4,
       mb: 5,
       border: (theme) => `1px solid ${theme.colors.gray}`,
       fontFamily: "quote",
       fontWeight: "quote",
       fontSize: 2,
-      bg: "#f9fafb",
+      bg: "quote",
+      mx: [-3, 0, 0],
+      borderRadius: [0, 4, 4],
       px: 4,
       py: 2,
-      "& code": {
+      "& > p > code": {
         bg: "codeHl",
       },
-      "& pre": {
-        bg: "codeHl",
+      "& pre > code": {
+        bg: "none",
       },
     },
     img: {
@@ -147,13 +156,13 @@ export default {
     pre: {
       ...prismTheme,
       variant: "prism",
-      maxWidth: "100%",
       tabSize: 2,
       fontFamily: "monospace",
       fontSize: 1,
-      p: 3,
+      p: 4,
       my: 4,
-      borderRadius: 4,
+      mx: [-3, 0, 0],
+      borderRadius: [0, 4, 4],
       overflow: "scroll",
       scroll: "auto",
       lineHeight: "code",
@@ -162,7 +171,7 @@ export default {
         bg: "inherit",
         border: "none",
         px: 0,
-        fontWeight: 500,
+        fontWeight: "code",
         fontSize: 0,
         borderRadius: 0,
       },
@@ -170,14 +179,12 @@ export default {
     code: {
       fontFamily: "monospace",
       fontSize: "inherit",
-      bg: "muted",
+      bg: "codeBg",
       px: 1,
+      color: "flat",
       fontWeight: "inherit",
-      letterSpacing: -0.2,
+      letterSpacing: -0.5,
       borderRadius: 4,
-      a: {
-        color: "primary",
-      },
     },
     table: {
       width: "100%",
@@ -223,10 +230,9 @@ export default {
   prism: {
     [[".gatsby-highlight-code-line"]]: {
       display: "block",
-      color: "text",
       mx: -4,
       px: 4,
-      backgroundColor: "codeHl",
+      backgroundColor: "rgba(0,0,0,.5)",
     },
   },
 }

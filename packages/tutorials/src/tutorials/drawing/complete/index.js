@@ -173,6 +173,10 @@ export default function () {
 
   const { data } = state
 
+  console.log(
+    state.stateTree.states.cursor.states.down.on.RAISED_CURSOR[0].to.name
+  )
+
   return (
     <D.Layout w="fit-content">
       <D.CanvasFrame

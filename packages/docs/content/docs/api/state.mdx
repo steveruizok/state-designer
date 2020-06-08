@@ -1,50 +1,43 @@
 # State
 
-Conceptually speaking, a **state** is the "brain" of a user interface or component. It stores all of the information that the user interface relies upon. It also controls how and when that information can change, according the design you've used to create it.
+A `state` is the "brain" of a user interface or component. Its job is to manage critical information that might change later on. It also manages when and how that information can change. And when it does change, the state can notify other parts of your project so that everything stays in sync.
 
-In State Designer, you can create a `state` by passing a [design](/docs/api/design) to the [`createState`](/docs/api/createState) function. The `state` object will contain the state's information (its `data` and a list of its `active` states), together with several methods for using that information and prompting changes through events.
+In State Designer, you can create a `state` by calling the [`createState`](/docs/api/createState) function. This function takes a [design](/docs/api/design) object as its only argument.
 
 ```js
-const state = createState({
-  id: "counter",
-  data: { count: 2 },
-  on: {
-    INCREASE: (data) => data.count++,
-  },
-  initial: "high",
+const state = useStateDesigner({
+  data: { seconds: 0 },
+  initial: "stopped",
   states: {
-    high: {},
-    low: {},
+    stopped: {
+      on: {
+        PLAYED: { to: "running" },
+        RESET: (data) => (data.seconds = 0),
+      },
+    },
+    running: {
+      on: {
+        STOPPED: { to: "stopped" },
+        TICK: (data) => data.seconds++,
+      },
+    },
   },
 })
-
-state.data // { count: 2 }
-state.active // ["#counter.root", "#counter.root.high"]
-state.isIn("high") // true
-state.isIn("low") // false
-state.send("INCREASE")
-state.data // { count: 3 }
 ```
 
-When a state's information changes, the state will send its subscribers an updated version of itself. This update includes the state's original methods. Calling a method like `send` on an update is the same as calling it on the original state.
+> **Tip:** In React, you can also create a state by passing a design to the [`useStateDesigner`](/docs/api/useStateDesigner) hook. The hook will call `createState` under the hood and return the resulting `state`.
 
-```js
-const state = createState(myDesign)
-
-state.onUpdate((updatedStated) => {})
-```
-
-> **Tip:** In React, you can also create a state by passing a design to the [`useStateDesigner`](/docs/api/useStateDesigner) hook, which will call `createState` under the hood.
+This object contains a snapshot of the state's critical information. It also contains several methods to help you use that information, along with the `send` method that you can use to trigger the state's event handlers.
 
 - [`data`](/docs/api/state#data)
 - [`send`](/docs/api/state#send)
 - [`values`](/docs/api/state#values)
-- [`isIn`](/docs/api/state#isIn)
-- [`isInAny`](/docs/api/state#isInAny)
+- [`isIn`](/docs/api/state#is-in)
+- [`isInAny`](/docs/api/state#is-in-any)
 - [`whenIn`](/docs/api/state#whenIn)
-- [`onUpdate`](/docs/api/state#onUpdate)
+- [`onUpdate`](/docs/api/state#on-update)
 - [`active`](/docs/api/state#active)
-- [`stateTree`](/docs/api/state#stateTree)
+- [`stateTree`](/docs/api/state#state-tree)
 
 ## `data`
 
@@ -56,9 +49,9 @@ const state = createState({
   on: { INCREASE: (data) => data.count++ },
 })
 
-state.data.count // 2
+state.data // { count: 2 }
 state.send("INCREASE")
-state.data.count // 3
+state.data // { count: 2 }
 ```
 
 ## `values`
@@ -76,9 +69,9 @@ const state = createState({
   },
 })
 
-state.values.double // 4
+state.values // { double: 4 }
 state.send("INCREASE")
-state.values.double // 6
+state.values // { double: 6 }
 ```
 
 ## `isIn`
@@ -105,7 +98,7 @@ state.isIn("high") // false
 
 ### Using Paths
 
-You can indicate a state either with its name or path.
+You can indicate a state either with its name or its path.
 
 ```js
 state.isIn("active")
@@ -113,9 +106,13 @@ state.isIn("bold.active")
 state.isIn("text.bold.active")
 ```
 
-### Checking Multiple States
+> **Tip:** Technically, the state's name is a path with a depth of only one. A state's path is made up of its parent states, separated by periods. A full path might look something like `#state_id.root.text.bold.active`.
+>
+> Indicating states with paths is useful when your design includes multiple states that share the same name, such as `bold.active` and `italic.active`.
 
-When given multiple names (paths) the `isIn` helper will return `true` only if _all_ of the indicated states are active.
+### Testing Multiple States
+
+You can also use the `isIn` method to test if more than one state is active. When testing multiple states, the method will return `true` only if _all_ of the indicated states are active.
 
 ```js
 const state = createState({
@@ -134,7 +131,7 @@ state.isIn("high", "root") // true
 
 ## `isInAny`
 
-The `isInAny` helper works exactly like `isIn`, with the exception that when given multiple states, it will return `true` if _any_ of the indicated states are active.
+The `isInAny` method works exactly like `isIn` except that when testing multiple states it will return `true` if _any_ of the indicated states are active.
 
 ```js
 const state = createState({
@@ -154,7 +151,88 @@ state.isIn("high", "root") // true
 
 ## `whenIn`
 
-The `whenIn` helper allows you to return different values depending on which states are active.
+The `whenIn` helper method allows you to return different values depending on which states are active.
+
+```js
+buttonText = state.whenIn({
+  stopped: "Play",
+  playing: "Stop",
+}) // "Play"
+
+state.send("PLAYED") // Transition to `playing`
+
+buttonText = state.whenIn({
+  stopped: "Play",
+  playing: "Stop",
+}) // "Stop"
+```
+
+### Using Paths
+
+As with `isIn`, you can indicate a state using a path of any depth.
+
+```js
+state.whenIn({
+  heading: "H1",
+  "text.subheading": "H2",
+  "editing.text.body": "Body",
+})
+```
+
+### Output
+
+By default, the `whenIn` helper will return a value. If multiple indicated states are active, then this value will be the last active state indicated.
+
+```js
+state.whenIn({
+  asleep: "Asleep",
+  awake: "Awake", // Active
+  working: "Working", // Active
+}) // "Working"
+```
+
+You can use the method's second argument to produce different results. This argument is `"value"` by default, but you can also set it to `"array"`.
+
+```js
+state.whenIn(
+  {
+    asleep: "Asleep",
+    awake: "Awake", // Active
+    working: "Working", // Active
+  },
+  "array"
+) // ["Awake", "Working"]
+```
+
+You can also set it to a reducer function. In this case, you can provide the reducer's initial value as the function's third argument.
+
+```js
+state.whenIn(
+  {
+    asleep: "Asleep",
+    awake: "Awake", // Active
+    working: "Working", // Active
+  },
+  (acc, cur) => acc + " and " + cur,
+  "I'm "
+) // "I'm Awake and Working"
+```
+
+> **Tip:** In React, you can use the `whenIn` helper to return different JSX depending on the currently active state(s). When using the `"array"` format, remember to add a unqiue [`key` property](https://reactjs.org/docs/lists-and-keys.html#keys) to each element.
+>
+> ```jsx
+> <ul>
+>   {whenIn({
+>     asleep: <li key="0">Asleep</li>,
+>     awake: <li key="1">Awake</li>,
+>     working: <li key="2">Working</li>,
+>   })}
+> </ul>
+> ```
+
+## `active`
+
+The `active` property contains an array of paths for all active states.
 
 ```js
 const state = createState({
@@ -169,31 +247,100 @@ const state = createState({
   },
 })
 
-state.whenIn({
-  high: "High",
-  low: "Low",
-}) // "High"
-
-state.send("TOGGLE")
-
-state.whenIn({
-  high: "High",
-  low: "Low",
-}) // "Low"
+state.active // ["#state_id.root", "#state.id_root.high"]
 ```
-
-### Output Options
-
-Value, Array, Reducer.
-
-## `onUpdate`
-
-...
-
-## `active`
-
-...
 
 ## `stateTree`
 
-...
+The `stateTree` property includes the full tree of all state nodes.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {
+      on: { TOGGLE: { to: "low" } },
+    },
+    low: {
+      on: { TOGGLE: { to: "high" } },
+    },
+  },
+})
+```
+
+```json
+{
+  "name": "root",
+  "path": "#state_12.root",
+  "active": true,
+  "activeId": 0,
+  "history": ["high"],
+  "times": {
+    "timeouts": []
+  },
+  "initialFn": {
+    "get": [],
+    "if": [],
+    "unless": [],
+    "ifAny": [],
+    "unlessAny": [],
+    "to": "function () { return item; }"
+  },
+  "initial": "high",
+  "on": {},
+  "states": {
+    "high": {
+      "name": "high",
+      "path": "#state_12.root.high",
+      "active": true,
+      "activeId": 0,
+      "history": [],
+      "times": {
+        "timeouts": []
+      },
+      "on": {
+        "TOGGLE": [
+          {
+            "get": [],
+            "if": [],
+            "ifAny": [],
+            "unless": [],
+            "unlessAny": [],
+            "do": [],
+            "secretlyDo": [],
+            "to": "function () { return item; }"
+          }
+        ]
+      },
+      "states": {}
+    },
+    "low": {
+      "name": "low",
+      "path": "#state_12.root.low",
+      "active": false,
+      "activeId": 0,
+      "history": [],
+      "times": {
+        "timeouts": []
+      },
+      "on": {
+        "TOGGLE": [
+          {
+            "get": [],
+            "if": [],
+            "ifAny": [],
+            "unless": [],
+            "unlessAny": [],
+            "do": [],
+            "secretlyDo": [],
+            "to": "function () { return item; }"
+          }
+        ]
+      },
+      "states": {}
+    }
+  }
+}
+```
+
+## `onUpdate`

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.14
+
+- Fixes missing name when casting values to named functions.
+
 ## 1.2.13
 
 - Fixes bug: per-frame `onRepeat` events would receive a wrong `interval` on first call.

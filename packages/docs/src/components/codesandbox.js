@@ -3,7 +3,6 @@ import * as React from "react"
 export default function ({ name, number }) {
   let path = number ? `${number}_${name}` : name
 
-  ;("https://codesandbox.io/embed/github/steveruizok/state-designer/tree/master/packages/tutorials?             fontsize=14&hidenavigation=1&initialpath=%2Fcalcula-complete&module=%2Fsrc%2Ftutorials%2Fcalculator%2Fcomplete%2Findex.js&theme=dark")
   return (
     <iframe
       src={`https://codesandbox.io/embed/github/steveruizok/state-designer/tree/master/packages/tutorials?autoresize=1&fontsize=14&hidenavigation=1&initialpath=%2F${name}-complete&module=%2Fsrc%2Ftutorials%2F${path}%2Fcomplete%2Findex.js&theme=light`}

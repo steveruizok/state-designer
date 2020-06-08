@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { jsx, Container, Flex } from "theme-ui"
+import { jsx, Box, Container, Flex } from "theme-ui"
 import { Link } from "gatsby"
 import { MDXProvider } from "@mdx-js/react"
 
@@ -34,12 +34,20 @@ export default ({ menuOpen, setMenuOpen, nav }) => {
           pb: [2, 5],
           pt: [3, 5],
           height: "100%",
-          borderColor: "text",
-          borderBottomStyle: "solid",
-          borderBottomWidth: "1px",
-          backgroundColor: "#FFFFFF",
+          position: "relative",
         }}
       >
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "-1px",
+            left: 0,
+            width: "100%",
+            borderBottomStyle: "solid",
+            borderBottomWidth: "1px",
+            borderColor: "text",
+          }}
+        />
         <Flex
           sx={{
             alignItems: "center",
