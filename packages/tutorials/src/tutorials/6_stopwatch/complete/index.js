@@ -10,6 +10,7 @@ import { useStateDesigner } from "@state-designer/react"
 
 export default function () {
   const state = useStateDesigner({
+    id: "myState",
     data: { milliseconds: 0 },
     initial: "stopped",
     states: {
@@ -46,6 +47,7 @@ export default function () {
       },
     },
   })
+
   return (
     <StopwatchLayout>
       <Time>{state.values.seconds}</Time>

@@ -343,7 +343,8 @@ export type SubscriberFn<T> = (update: T) => void
 export interface DesignedState<D, V> {
   id: string
   data: D
-  active: State<D, V>[]
+  values: V
+  active: string[]
   stateTree: State<D, V>
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
@@ -353,11 +354,10 @@ export interface DesignedState<D, V> {
     reducer?: "value" | "array" | Reducer<T>,
     initial?: any
   ) => T
-  getDesign: () => any
-  send: (eventName: string, payload?: any) => DesignedState<D, V>
+  send: (eventName: string, payload?: any) => Promise<DesignedState<D, V>>
   onUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => () => void
   getUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => void
-  values: V
+  getDesign: () => any
   clone: () => DesignedState<D, V>
 }
 

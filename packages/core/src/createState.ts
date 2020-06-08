@@ -26,7 +26,7 @@ type ReturnedValues<TD, TV extends Record<string, S.Value<TD>>> = {
 
 /**
  * Create a new state from a designuration object.
- * @param design
+ * @param design The state's design object.
  * @public
  */
 export function createState<
@@ -45,27 +45,30 @@ export function createState<
     [key in keyof V]: ReturnType<V[key]>
   }
 > {
-  /* ------------------ Subscriptions ----------------- */
+  /* ------------------ Subscriptions ----------------- 
+  
+  A state can have one or more subscribers. A state's subscribers
+  are callbacks to fire when the state updates, and which will receive
+  the changed state.
+  */
 
-  // A set of subscription callbacks. The subscribe function
-  // adds a callback to the set; unsubscribe removes it.
-  const subscribers = new Set<S.SubscriberFn<Core>>([])
+  const subscribers = new Set<S.SubscriberFn<Snapshot>>([])
 
   /**
    * Subscribe a callback to this state's updates. On each update, the state
    * will call the callback with the state's new update.
-   * @param callbackFn
+   * @param callbackFn The callback to subscribe.
    */
-  function subscribe(callbackFn: S.SubscriberFn<Core>) {
+  function subscribe(callbackFn: S.SubscriberFn<Snapshot>) {
     subscribers.add(callbackFn)
   }
 
   /**
    * Unsubscribe a callback from the state. The callback will no longer be
    * called when the state changes.
-   * @param callbackFn
+   * @param callbackFn The callback to unsubscribe.
    */
-  function unsubscribe(callbackFn: S.SubscriberFn<Core>) {
+  function unsubscribe(callbackFn: S.SubscriberFn<Snapshot>) {
     if (subscribers.has(callbackFn)) {
       subscribers.delete(callbackFn)
     }
@@ -77,24 +80,31 @@ export function createState<
     pause and resume? Activities with cleanup? */
     if (subscribers.size === 0) {
       stopLoop()
-      StateTree.recursivelyEndStateIntervals(core.stateTree)
+      StateTree.recursivelyEndStateIntervals(snapshot.stateTree)
     }
   }
 
-  // Call each subscriber callback with the state's current update
+  /**
+   * Call each subscriber callback with the current state.
+   */
   function notifySubscribers() {
-    core.values = getValues(core.data, design.values)
-    core.active = StateTree.getActiveStates(core.stateTree)
-    subscribers.forEach((subscriber) => subscriber(core))
+    setValues()
+    setActiveStates()
+    subscribers.forEach((subscriber) => subscriber(snapshot))
   }
 
   /* --------------------- Updates -------------------- */
 
+  /**
+   * Handle the outcome of an event handler chain.
+   * @param outcome The outcome of an event handler chain.
+   * @param payload The payload (if any) sent with the event that led to the event handler chain.
+   */
   function handleEventHandlerChainOutcome(
     outcome: S.EventChainOutcome<D>,
     payload: any
   ) {
-    core.data = outcome.data
+    snapshot.data = outcome.data
 
     if (outcome.pendingSend) {
       const { event, payload: pendingPayload } = outcome.pendingSend
@@ -107,7 +117,7 @@ export function createState<
   }
 
   // Run event handler that updates the global `updates` object,
-  // useful for (more or less) synchronous events
+  // useful for (more or less) synchronous eventss
   function runEventHandlerChain(
     state: S.State<D, V>,
     eventHandler: S.EventHandler<D>,
@@ -116,7 +126,7 @@ export function createState<
   ) {
     const outcome = createEventChain<D>({
       state,
-      data: core.data,
+      data: snapshot.data,
       result,
       payload,
       handler: eventHandler,
@@ -127,7 +137,7 @@ export function createState<
           notifySubscribers()
         }
       },
-      getFreshDataAfterWait: () => core.data,
+      getFreshDataAfterWait: () => snapshot.data,
     })
 
     handleEventHandlerChainOutcome(outcome, payload)
@@ -212,9 +222,14 @@ export function createState<
     return record
   }
 
+  /**
+   * Run a transition.
+   *
+   * @param path The path (or path segment) indicating the transition's target state.
+   * @param payload The payload (if any) sent along with the event that caused the transition.
+   * @param result The current result (if any) passed along from the event handler chain.
+   */
   function runTransition(path: string, payload: any, result: any) {
-    // Is this a restore transition?
-
     const isPreviousTransition = path.endsWith(".previous")
     const isRestoreTransition = path.endsWith(".restore")
 
@@ -227,7 +242,7 @@ export function createState<
     }
 
     // Get all states from the tree that match the target
-    const targets = StateTree.findTransitionTargets(core.stateTree, path)
+    const targets = StateTree.findTransitionTargets(snapshot.stateTree, path)
 
     // Get the deepest matching target state
     const target = last(targets)
@@ -243,26 +258,28 @@ export function createState<
     // Get the path of state names to the target state
     const pathDown = target.path.split(".").slice(1)
 
-    // Get an array of states that are currently active
-    const beforeActive = StateTree.getActiveStates(core.stateTree)
+    // Get an array of states that are currently active (before the transition)
+    const beforeActive = StateTree.getActiveStates(snapshot.stateTree)
 
-    // Deactivate the whole state tree
-    StateTree.deactivateState(core.stateTree)
+    // Ok, time to change which states are active!
 
-    // Update the initial states across the entire state tree.
-    StateTree.setIntitialStates(core.stateTree, payload, core.data)
+    // 1. Deactivate the whole state tree
+    StateTree.deactivateState(snapshot.stateTree)
 
-    // Use the path to activate the tree again
+    // 2. Update the initial states across the entire state tree.
+    StateTree.setIntitialStates(snapshot.stateTree, payload, snapshot.data)
+
+    // 3. Use the path to activate the tree again
     StateTree.activateState(
-      core.stateTree,
+      snapshot.stateTree,
       pathDown,
       beforeActive,
       isPreviousTransition || isRestoreTransition,
       isRestoreTransition
     )
 
-    // Get an array of states that are now active
-    const afterActive = StateTree.getActiveStates(core.stateTree)
+    // Get an array of states that are now active (after the transition)
+    const afterActive = StateTree.getActiveStates(snapshot.stateTree)
 
     // Get an array of states that are no longer active
     const deactivatedStates = beforeActive.filter(
@@ -316,13 +333,13 @@ export function createState<
         let realInterval = 0
 
         if (delay === undefined) {
-          // Add state to batched frame events
+          // Add state to batched frame events and (maybe) start the loop
           addOnFrameState(state, { payload, start: now })
         } else {
           // Run on provided delay amount
           let lastTime = performance.now()
 
-          const s = delay(core.data, payload, result)
+          const s = delay(snapshot.data, payload, result)
 
           state.times.interval = setInterval(() => {
             now = performance.now()
@@ -356,7 +373,7 @@ export function createState<
 
         state.times.cancelAsync = () => (finished = true)
 
-        async.await(core.data, payload, result).then(
+        async.await(snapshot.data, payload, result).then(
           (resolved) => {
             if (finished) return
 
@@ -388,37 +405,95 @@ export function createState<
     } // End for newlyActivatedStates
   }
 
-  /* -------------- Sent Event Processing ------------- */
-
-  const sendQueue: S.Event[] = []
-
-  function processSendQueue(): Core {
-    const next = sendQueue.shift()
-
-    if (isUndefined(next)) {
-      // If no more events to handle, return core
-      return core
-    } else {
-      // Handle the event and set the current handleEventOnState
-      // promise, which will hold any additional sent events
-      const { shouldNotify } = handleEventOnState(core.stateTree, next)
-
-      // Notify subscribers, if we should
-      if (shouldNotify) notifySubscribers()
-
-      // Then process the next sent event
-      return processSendQueue()
-    }
+  function setValues() {
+    snapshot.values = getValues(snapshot.data, design.values)
   }
 
-  /* ----------------- Per Framer Loop ---------------- */
+  function setActiveStates() {
+    _activeStates = StateTree.getActiveStates(snapshot.stateTree)
+    snapshot.active = getActiveStatePaths(_activeStates)
+  }
 
-  // When states have an `onRepeat` event without a delay,
-  // that event will be handled on every animation frame (usually
-  // sixty times per second). These events are "batched" —
-  // iterated through on each frame, producing at most a single
-  // synchronous update. We wouldn't want to have multiple
-  // onRepeat events producing multiple separate updates per frame.
+  /* ---------------- Event Processing ----------------  
+
+   Events sent to the state need to be _processed_ by handling the
+   event in the state tree's active states and then _resolved_ with
+   the resulting state. If an event causes the state to receive more
+   events, then all of those events should resolve the same state and
+   produce as most one notification.
+
+   */
+
+  interface EventWithSettle extends S.Event {
+    onSettle: (snapshot: Snapshot) => void
+  }
+
+  let queueState: "ready" | "processing" = "ready"
+  let processShouldNotify = false
+
+  const eventsToProcess: EventWithSettle[] = []
+  const eventsToResolve: EventWithSettle[] = []
+
+  /**
+   * Process the queue of received events. If no events are left, finish the
+   * queue by (possibly) notifing subscribers, resolving processed events,
+   * and then preparing to receive new events.
+   */
+  function processEventQueue(): Snapshot {
+    queueState = "processing"
+
+    while (eventsToProcess.length > 0) {
+      const processingEvent = eventsToProcess.shift()
+
+      if (processingEvent === undefined) break
+
+      // If we have an event to process, process it by handling it
+      // on all active states, starting from the root state. Then add
+      // it to the eventsToResolve array so we can resolve it later.
+
+      const { shouldNotify } = handleEventOnState(
+        snapshot.stateTree,
+        processingEvent
+      )
+
+      if (shouldNotify) processShouldNotify = true
+
+      eventsToResolve.push(processingEvent)
+    }
+
+    // Notify subscribers, if needed
+    if (processShouldNotify) {
+      notifySubscribers()
+      processShouldNotify = false
+    }
+
+    // Settle all events in queue with final snapshot
+    while (eventsToResolve.length > 0) {
+      eventsToResolve.shift()?.onSettle(snapshot)
+    }
+
+    // We may have received more events after notifying or
+    // settling events. If so, they'll be waiting, so we
+    // should process them now.
+    if (eventsToProcess.length > 0) {
+      return processEventQueue()
+    }
+
+    // Otherwise, finish up by getting ready to receive new events.
+    queueState = "ready"
+    return snapshot
+  }
+
+  /* ----------------- Per Framer Loop ---------------- 
+
+  When states have an `onRepeat` event without a delay,
+  that event will be handled on every animation frame (usually
+  sixty times per second). These events are "batched" —
+  iterated through on each frame, producing at most a single
+  synchronous update. We wouldn't want to have multiple
+  onRepeat events producing multiple separate updates per frame.
+
+  */
 
   let lastTime = -1
   let interval = -1
@@ -426,7 +501,11 @@ export function createState<
   type OnFrameInfo = { payload: any; start: number }
   const onFrameStates = new Map<S.State<D, V>, OnFrameInfo>([])
 
-  // Main loop to run while we have onFrameStates
+  /**
+   * The main loop to run on each animation frame. Handles the `onRepeat` event on all
+   * states that have a per-frame repeat event.
+   * @param ms Current duration of the loop in milliseconds, as returned by requestAnimationFrame.
+   */
   function loop(ms: number) {
     let shouldNotify = false
 
@@ -465,7 +544,9 @@ export function createState<
     frameInterval = requestAnimationFrame(loop)
   }
 
-  // Stop the animation loop
+  /**
+   * Stop the loop.
+   */
   function stopLoop() {
     if (frameInterval !== undefined) {
       cancelAnimationFrame(frameInterval)
@@ -475,12 +556,18 @@ export function createState<
     }
   }
 
-  // Start the animation loop
+  /**
+   * Start the loop.
+   */
   function startLoop() {
     frameInterval = requestAnimationFrame(loop)
   }
 
-  // Add a state to onFrameStates and start the loop, if it isn't already running
+  /**
+   * Add a state to onFrameStates and start the loop, if it isn't already running
+   * @param state The state to add.
+   * @param info The payload and start time for this state's loop.
+   */
   function addOnFrameState(state: S.State<D, V>, info: OnFrameInfo) {
     onFrameStates.set(state, info)
     if (frameInterval === undefined) {
@@ -488,7 +575,11 @@ export function createState<
     }
   }
 
-  // Remove a state from onFrameStates and stop the loop if there are no more repeating states
+  //
+  /**
+   * Remove a state from onFrameStates. Will stop the loop if there are no more repeating states
+   * @param state The state to remove.
+   */
   function removeOnFrameEventHandler(state: S.State<D, V>) {
     if (onFrameStates.has(state)) {
       onFrameStates.delete(state)
@@ -513,7 +604,7 @@ export function createState<
    * if (allDone) cancelUpdates()
    *
    */
-  function onUpdate(callbackFn: S.SubscriberFn<Core>) {
+  function onUpdate(callbackFn: S.SubscriberFn<Snapshot>) {
     subscribe(callbackFn)
     return () => unsubscribe(callbackFn)
   }
@@ -523,20 +614,33 @@ export function createState<
    * @param callbackFn
    * @public
    */
-  function getUpdate(callbackFn: S.SubscriberFn<Core>) {
-    core.active = StateTree.getActiveStates(core.stateTree)
-    callbackFn(core)
+  function getUpdate(callbackFn: S.SubscriberFn<Snapshot>) {
+    setValues()
+    setActiveStates()
+    callbackFn(snapshot)
   }
 
   /**
-   * Send an event to the state machine
+   * Send an event to be processed. The state may be processing another event, so this function
+   * returns a promise that will resolve the next state when the sent event has been processed.
    * @param eventName The name of the event
    * @param payload A payload of any type
    * @public
    */
-  function send(eventName: string, payload?: any): Core {
-    sendQueue.push({ event: eventName, payload })
-    return processSendQueue()
+  function send(eventName: string, payload?: any): Promise<Snapshot> {
+    const promise = new Promise<Snapshot>((resolve) => {
+      const onSettle = (snapshot: Snapshot) => {
+        resolve(snapshot)
+      }
+
+      eventsToProcess.push({ event: eventName, payload, onSettle })
+
+      if (queueState === "ready") {
+        processEventQueue()
+      }
+    })
+
+    return promise
   }
 
   /**
@@ -555,7 +659,7 @@ export function createState<
       .map((path) => (path.startsWith(".") ? path : "." + path))
       .every(
         (path) =>
-          core.active.find((state) => state.path.endsWith(path)) !== undefined
+          _activeStates.find((state) => state.path.endsWith(path)) !== undefined
       )
   }
 
@@ -575,7 +679,7 @@ export function createState<
       .map((path) => (path.startsWith(".") ? path : "." + path))
       .some(
         (path) =>
-          core.active.find((state) => state.path.endsWith(path)) !== undefined
+          _activeStates.find((state) => state.path.endsWith(path)) !== undefined
       )
   }
 
@@ -587,7 +691,7 @@ export function createState<
    */
   function can(eventName: string, payload?: any, result?: any): boolean {
     return !isUndefined(
-      core.active.find((state) => {
+      _activeStates.find((state) => {
         const eventHandler = state.on[eventName]
 
         if (!isUndefined(eventHandler)) {
@@ -597,7 +701,7 @@ export function createState<
             result = undefined
 
             for (let resu of handler.get) {
-              result = resu(core.data as D, payload, result)
+              result = resu(snapshot.data as D, payload, result)
             }
 
             // Conditions
@@ -606,25 +710,25 @@ export function createState<
 
             if (passedConditions && handler.if.length > 0) {
               passedConditions = handler.if.every((cond) =>
-                cond(core.data, payload, result)
+                cond(snapshot.data, payload, result)
               )
             }
 
             if (passedConditions && handler.ifAny.length > 0) {
               passedConditions = handler.ifAny.some((cond) =>
-                cond(core.data, payload, result)
+                cond(snapshot.data, payload, result)
               )
             }
 
             if (passedConditions && handler.unless.length > 0) {
               passedConditions = handler.unless.every(
-                (cond) => !cond(core.data, payload, result)
+                (cond) => !cond(snapshot.data, payload, result)
               )
             }
 
             if (passedConditions && handler.unlessAny.length > 0) {
               passedConditions = !handler.unlessAny.some((cond) =>
-                cond(core.data, payload, result)
+                cond(snapshot.data, payload, result)
               )
             }
 
@@ -644,7 +748,7 @@ export function createState<
    * @param initial (optional) The reducer's initial value.
    * @public
    */
-  function whenIn<T = any>(
+  function whenIn<T = unknown>(
     paths: Record<string, any>,
     reducer: "value" | "array" | S.Reducer<T> = "value",
     initialValue?: any
@@ -657,7 +761,7 @@ export function createState<
         entries.push([key, v])
       } else {
         if (
-          core.active.find((v) => {
+          _activeStates.find((v) => {
             let safeKey = key.startsWith(".") ? key : "." + key
             return v.path.endsWith(safeKey)
           })
@@ -712,17 +816,18 @@ export function createState<
 
   /* --------------------- Kickoff -------------------- */
 
-  type Core = S.DesignedState<D, ReturnedValues<D, V>>
+  type Snapshot = S.DesignedState<D, ReturnedValues<D, V>>
 
   const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
+  const initialStateTree = getStateTreeFromDesign(design, id)
 
-  const ___stateTree = getStateTreeFromDesign(design, id)
+  let _activeStates = StateTree.getActiveStates(initialStateTree)
 
-  const core: Core = {
+  const snapshot: Snapshot = {
     id,
     data: produce(design.data, (d) => d) as D,
-    active: StateTree.getActiveStates(___stateTree),
-    stateTree: ___stateTree,
+    active: getActiveStatePaths(_activeStates),
+    stateTree: initialStateTree,
     send,
     isIn,
     isInAny,
@@ -736,12 +841,12 @@ export function createState<
   }
 
   // Deactivate the tree, then activate it again to set initial active states.
-  StateTree.deactivateState(core.stateTree)
+  StateTree.deactivateState(snapshot.stateTree)
   runTransition("root", undefined, undefined) // Will onEnter events matter?
-  core.values = getValues(core.data, design.values)
-  core.active = StateTree.getActiveStates(core.stateTree)
+  setValues()
+  setActiveStates()
 
-  return core
+  return snapshot
 }
 
 /* -------------------------------------------------- */
@@ -763,4 +868,8 @@ function getValues<D, V extends Record<string, S.Value<D>>>(
     },
     {} as S.Values<D, V>
   )
+}
+
+function getActiveStatePaths<D, V>(states: S.State<D, V>[]) {
+  return states.map((state) => state.path)
 }

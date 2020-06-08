@@ -68,15 +68,15 @@ export default {
     },
   },
   styles: {
-    Container: {
-      p: 3,
-      maxWidth: 1024,
-    },
     root: {
       fontFamily: "body",
       lineHeight: ["tight", "body"],
       fontWeight: "body",
-      fontSize: [3, 2],
+      fontSize: [2, 2],
+    },
+    Container: {
+      p: 3,
+      maxWidth: 1024,
     },
     h1: {
       variant: "textStyles.display",

@@ -40,7 +40,7 @@ describe("createState", () => {
 
   // Can I chain events?
 
-  it("Should support chaining.", () => {
+  it("Should support chaining.", async () => {
     const counter = createState({
       initial: "inactive",
       data: { count: 0 },
@@ -53,7 +53,7 @@ describe("createState", () => {
     })
 
     expect(counter.data.count).toBe(0)
-    counter.send("INCREASED").send("INCREASED")
+    await counter.send("INCREASED").then((c) => c.send("INCREASED"))
     expect(counter.data.count).toBe(2)
   })
 
@@ -176,11 +176,11 @@ describe("createState", () => {
   it("Should support onEnter and onExit events.", async (done) => {
     const counter = createState(counterDesign)
     expect(counter.data.activations).toBe(0)
-    let update = counter.send("TOGGLED")
+    let update = await counter.send("TOGGLED")
     expect(update.data.activations).toBe(1)
     expect(update.data.deactivations).toBe(0)
     expect(counter.isIn("active")).toBeTruthy()
-    update = counter.send("TOGGLED")
+    update = await counter.send("TOGGLED")
     expect(update.data.activations).toBe(1)
     expect(update.data.deactivations).toBe(1)
     done()
@@ -250,12 +250,12 @@ describe("createState", () => {
     })
 
     expect(toggler.isIn("inactive")).toBeTruthy()
-    let update = toggler.send("TOGGLED")
+    let update = await toggler.send("TOGGLED")
     expect(toggler.isIn("active")).toBeTruthy()
     expect(update.data.count).toBe(1)
-    update = toggler.send("TOGGLED")
+    update = await toggler.send("TOGGLED")
     expect(toggler.isIn("inactive")).toBeTruthy()
-    update = toggler.send("TOGGLED")
+    update = await toggler.send("TOGGLED")
     expect(toggler.isIn("active")).toBeTruthy()
     expect(update.data.count).toBe(2)
     expect(toggler.data.count).toBe(2)

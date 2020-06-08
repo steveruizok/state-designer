@@ -6,6 +6,7 @@ In State Designer, you can create a `state` by passing a [design](/docs/api/desi
 
 ```js
 const state = createState({
+  id: "counter",
   data: { count: 2 },
   on: {
     INCREASE: (data) => data.count++,
@@ -18,8 +19,11 @@ const state = createState({
 })
 
 state.data // { count: 2 }
-state.active // ["root", "root.high"]
-state.isIn("")
+state.active // ["#counter.root", "#counter.root.high"]
+state.isIn("high") // true
+state.isIn("low") // false
+state.send("INCREASE")
+state.data // { count: 3 }
 ```
 
 When a state's information changes, the state will send its subscribers an updated version of itself. This update includes the state's original methods. Calling a method like `send` on an update is the same as calling it on the original state.
