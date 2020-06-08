@@ -1,10 +1,12 @@
 /** @jsx jsx */
 import { jsx, Container, Flex } from "theme-ui"
+import { Link } from "gatsby"
 import { MDXProvider } from "@mdx-js/react"
 
 import MenuButton from "./menu-button"
 import HeaderLink from "./header-link"
 import Content from "../../content/nav/header.mdx"
+import L from "./lockup.svg"
 
 const components = {
   a: HeaderLink,
@@ -82,6 +84,9 @@ export default ({ menuOpen, setMenuOpen, nav }) => {
               if (navLink) navLink.focus()
             }}
           />
+          <Link to="/" style={{ padding: 0, lineHeight: 0 }}>
+            <img src={L} height={20} />
+          </Link>
           <MDXProvider components={components}>
             <Content />
           </MDXProvider>

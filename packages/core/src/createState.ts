@@ -430,6 +430,7 @@ export function createState<
   function loop(ms: number) {
     let shouldNotify = false
 
+    if (lastTime < 0) lastTime = ms
     interval = ms - lastTime
     lastTime = ms
 

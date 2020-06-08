@@ -15,7 +15,7 @@ export default React.forwardRef((props, ref) => {
       {...scrollProps}
       sx={{
         position: ["absolute", "sticky"],
-        width: ["100%", "fit-content"],
+        width: [props.open ? "100%" : "0%", "fit-content"],
         top: 0,
         left: 0,
         pl: [0, 5],

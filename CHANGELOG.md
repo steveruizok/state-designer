@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.13
+
+- Fixes bug: per-frame `onRepeat` events would receive a wrong `interval` on first call.
+
 ## 1.2.12
 
 - Batches `onRepeat` events that occur on each frame.

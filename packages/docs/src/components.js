@@ -7,6 +7,8 @@ import { GoMarkGithub } from "react-icons/go"
 import { FaTwitter } from "react-icons/fa"
 import LiveView from "./components/live-view"
 import { CounterToggle } from "./components/counter-toggle"
+import CodeSandboxTutorial from "./components/codesandbox"
+import YouTubeEmbed from "./components/youtube"
 
 function Heading1(props) {
   if (typeof props.children === "string") {
@@ -35,7 +37,13 @@ function Heading2(props) {
     )
   }
 
-  return <h2 {...props}>{props.children}</h2>
+  const id = kebabCase(props.children.props.children)
+
+  return (
+    <h2 {...props} id={id}>
+      {props.children}
+    </h2>
+  )
 }
 
 function Heading3(props) {
@@ -50,7 +58,13 @@ function Heading3(props) {
     )
   }
 
-  return <h3 {...props}>{props.children}</h3>
+  const id = kebabCase(props.children.props.children)
+
+  return (
+    <h3 {...props} id={id}>
+      {props.children}
+    </h3>
+  )
 }
 
 function Heading4(props) {
@@ -111,4 +125,6 @@ export default {
   LiveView,
   PageLinks,
   CounterToggle,
+  CodeSandboxTutorial,
+  YouTubeEmbed,
 }

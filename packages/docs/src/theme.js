@@ -16,7 +16,7 @@ export default {
   space: [0, 4, 8, 16, 24, 32, 48, 64, 128, 256, 512],
   breakpoints: ["52em", "90em", "100em"],
   colors: {
-    text: "#000",
+    text: "#1d1d1d",
     lowText: "#2d2d2d",
     code: "#272727",
     codeBg: "#eff1f5",
@@ -37,7 +37,7 @@ export default {
     heading: "'Fira Sans', sans-serif",
     monospace: "'Fira Code', monospace",
   },
-  fontSizes: [14, 16, 17, 18, 22, 28, 32, 44, 56],
+  fontSizes: [14, 16, 18, 22, 28, 32, 44, 48, 56, 64],
   fontWeights: {
     body: "400",
     code: "400",
@@ -46,7 +46,7 @@ export default {
     heading: "800",
   },
   lineHeights: {
-    tight: 1.35,
+    tight: 1.5,
     body: 1.7,
     heading: 1.25,
     code: 1.65,
@@ -169,10 +169,10 @@ export default {
     },
     code: {
       fontFamily: "monospace",
-      fontSize: 1,
+      fontSize: "inherit",
       bg: "muted",
       px: 1,
-      fontWeight: "code",
+      fontWeight: "inherit",
       letterSpacing: -0.2,
       borderRadius: 4,
       a: {

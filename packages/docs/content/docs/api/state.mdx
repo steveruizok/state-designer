@@ -1,23 +1,195 @@
 # State
 
-- [⬜️ `onUpdate`](/docs/api/stateTree)
-- [⬜️ `send`](/docs/api/send)
-- [⬜️ `data`](/docs/api/data)
-- [⬜️ `active`](/docs/api/active)
-- [⬜️ `isIn`](/docs/api/isIn)
-- [⬜️ `isInAny`](/docs/api/isInAny)
-- [⬜️ `whenIn`](/docs/api/whenIn)
-- [⬜️ `stateTree`](/docs/api/stateTree)
-- [⬜️ `values`](/docs/api/values)
+Conceptually speaking, a **state** is the "brain" of a user interface or component. It stores all of the information that the user interface relies upon. It also controls how and when that information can change, according the design you've used to create it.
 
-## State (states)
+In State Designer, you can create a `state` by passing a [design](/docs/api/design) to the [`createState`](/docs/api/createState) function. The `state` object will contain the state's information (its `data` and a list of its `active` states), together with several methods for using that information and prompting changes through events.
 
-- [⬜️ `id`](/docs/api/id)
-- [⬜️ `initial`](/docs/api/initial)
-- [⬜️ `states`](/docs/api/states)
-- [⬜️ `on`](/docs/api/on)
-- [⬜️ `onEnter`](/docs/api/on)
-- [⬜️ `onExit`](/docs/api/on)
-- [⬜️ `onEvent`](/docs/api/on)
-- [⬜️ `repeat`](/docs/api/on)
-- [⬜️ `async`](/docs/api/on)
+```js
+const state = createState({
+  data: { count: 2 },
+  on: {
+    INCREASE: (data) => data.count++,
+  },
+  initial: "high",
+  states: {
+    high: {},
+    low: {},
+  },
+})
+
+state.data // { count: 2 }
+state.active // ["root", "root.high"]
+state.isIn("")
+```
+
+When a state's information changes, the state will send its subscribers an updated version of itself. This update includes the state's original methods. Calling a method like `send` on an update is the same as calling it on the original state.
+
+```js
+const state = createState(myDesign)
+
+state.onUpdate((updatedStated) => {})
+```
+
+> **Tip:** In React, you can also create a state by passing a design to the [`useStateDesigner`](/docs/api/useStateDesigner) hook, which will call `createState` under the hood.
+
+- [`data`](/docs/api/state#data)
+- [`send`](/docs/api/state#send)
+- [`values`](/docs/api/state#values)
+- [`isIn`](/docs/api/state#isIn)
+- [`isInAny`](/docs/api/state#isInAny)
+- [`whenIn`](/docs/api/state#whenIn)
+- [`onUpdate`](/docs/api/state#onUpdate)
+- [`active`](/docs/api/state#active)
+- [`stateTree`](/docs/api/state#stateTree)
+
+## `data`
+
+The `data` property contains the current version of the state design's `data`.
+
+```js
+const state = createState({
+  data: { count: 2 },
+  on: { INCREASE: (data) => data.count++ },
+})
+
+state.data.count // 2
+state.send("INCREASE")
+state.data.count // 3
+```
+
+## `values`
+
+The `values` property contains the current version of the state design's computed `values`. Before each update, the state will re-compute its `values`.
+
+```js
+const state = createState({
+  data: { count: 2 },
+  on: { INCREASE: (data) => data.count++ }
+  values: {
+    double(data) {
+      return data.count * 2
+    },
+  },
+})
+
+state.values.double // 4
+state.send("INCREASE")
+state.values.double // 6
+```
+
+## `isIn`
+
+The `isIn` function will return `true` if the indicated state is currently active.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {
+      on: { TOGGLE: { to: "low" } },
+    },
+    low: {
+      on: { TOGGLE: { to: "high" } },
+    },
+  },
+})
+
+state.isIn("high") // true
+state.send("TOGGLE")
+state.isIn("high") // false
+```
+
+### Using Paths
+
+You can indicate a state either with its name or path.
+
+```js
+state.isIn("active")
+state.isIn("bold.active")
+state.isIn("text.bold.active")
+```
+
+### Checking Multiple States
+
+When given multiple names (paths) the `isIn` helper will return `true` only if _all_ of the indicated states are active.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {},
+    low: {},
+    med: {},
+  },
+})
+
+state.isIn("low", "med") // false
+state.isIn("high", "low") // false
+state.isIn("high", "root") // true
+```
+
+## `isInAny`
+
+The `isInAny` helper works exactly like `isIn`, with the exception that when given multiple states, it will return `true` if _any_ of the indicated states are active.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {},
+    low: {},
+    med: {},
+  },
+})
+
+state.isIn("low", "med") // false
+state.isIn("high", "low") // true
+// highlight-next-line
+state.isIn("high", "root") // true
+```
+
+## `whenIn`
+
+The `whenIn` helper allows you to return different values depending on which states are active.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {
+      on: { TOGGLE: { to: "low" } },
+    },
+    low: {
+      on: { TOGGLE: { to: "high" } },
+    },
+  },
+})
+
+state.whenIn({
+  high: "High",
+  low: "Low",
+}) // "High"
+
+state.send("TOGGLE")
+
+state.whenIn({
+  high: "High",
+  low: "Low",
+}) // "Low"
+```
+
+### Output Options
+
+Value, Array, Reducer.
+
+## `onUpdate`
+
+...
+
+## `active`
+
+...
+
+## `stateTree`
+
+...
