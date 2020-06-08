@@ -35,9 +35,9 @@ This object contains a snapshot of the state's critical information. It also con
 - [`isIn`](/docs/api/state#is-in)
 - [`isInAny`](/docs/api/state#is-in-any)
 - [`whenIn`](/docs/api/state#whenIn)
-- [`onUpdate`](/docs/api/state#on-update)
 - [`active`](/docs/api/state#active)
 - [`stateTree`](/docs/api/state#state-tree)
+- [`onUpdate`](/docs/api/state#on-update)
 
 ## `data`
 
@@ -266,81 +266,71 @@ const state = createState({
     },
   },
 })
+
+// Print the entire state tree
+console.log(
+  JSON.stringify(
+    state.stateTree,
+    (k, v) => (typeof v === "function" ? v.name : v),
+    2
+  )
+)
 ```
 
-```json
-{
-  "name": "root",
-  "path": "#state_12.root",
-  "active": true,
-  "activeId": 0,
-  "history": ["high"],
-  "times": {
-    "timeouts": []
-  },
-  "initialFn": {
-    "get": [],
-    "if": [],
-    "unless": [],
-    "ifAny": [],
-    "unlessAny": [],
-    "to": "function () { return item; }"
-  },
-  "initial": "high",
-  "on": {},
-  "states": {
-    "high": {
-      "name": "high",
-      "path": "#state_12.root.high",
-      "active": true,
-      "activeId": 0,
-      "history": [],
-      "times": {
-        "timeouts": []
-      },
-      "on": {
-        "TOGGLE": [
-          {
-            "get": [],
-            "if": [],
-            "ifAny": [],
-            "unless": [],
-            "unlessAny": [],
-            "do": [],
-            "secretlyDo": [],
-            "to": "function () { return item; }"
-          }
-        ]
-      },
-      "states": {}
-    },
-    "low": {
-      "name": "low",
-      "path": "#state_12.root.low",
-      "active": false,
-      "activeId": 0,
-      "history": [],
-      "times": {
-        "timeouts": []
-      },
-      "on": {
-        "TOGGLE": [
-          {
-            "get": [],
-            "if": [],
-            "ifAny": [],
-            "unless": [],
-            "unlessAny": [],
-            "do": [],
-            "secretlyDo": [],
-            "to": "function () { return item; }"
-          }
-        ]
-      },
-      "states": {}
-    }
-  }
-}
-```
+> **Tip:** For now, at least, this object is mutable—but for heaven's sake, don't mutate it! Use it instead for debugging, visualization, and to better understand the relationship between a state design and the resulting state tree.
 
 ## `onUpdate`
+
+You can subscribe to a state's changes by passing a callback function to the state's `onUpdate` method. When a state changes, it will call each subscribed callback with itself as the only argument.
+
+> **Note:** The state passed to the callback is the same as (or strictly equal to) the state that was originally subscribed to. Its methods, such as `send` will also be the same. However, the state will have new `data` and `active` properties following each update.
+>
+> ```js
+> const state = createState(myDesign)
+>
+> const { data, active, send } = state
+>
+> state.onUpdate((update) => {
+>   console.log(update === state) // true
+>
+>   // Compared with state values
+>   console.log("data", update.data === state.data) // true
+>   console.log("active", update.active === state.active) // true
+>   console.log("send", update.send === state.send) // true
+>
+>   // Compared with destructured values
+>   console.log("data", update.data === data) // false
+>   console.log("active", update.active === active) // false
+>   console.log("send", update.send === send) // true
+> })
+> ```
+
+The `onUpdate` method returns a second function that will cancel the subscription.
+
+```js
+const state = createState(myDesign)
+
+cancel = state.onUpdate((update) => {
+  // Do something
+})
+
+cancel()
+```
+
+> **Tip:** You could use this to cleanup a subscription that you've made in an effect:
+>
+> ```jsx
+> const state = createState(myDesign)
+>
+> function Example() {
+>   const [state, setState] = React.useState()
+>
+>   React.useEffect(() => {
+>     return state.onUpdate((update) => setState(update.data))
+>   }, [])
+>
+>   return <div>...</div>
+> }
+> ```
+>
+> The [`useStateDesigner`](/docs/api/useStateDesigner) hook takes care of this for you, though!
