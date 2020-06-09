@@ -27,7 +27,6 @@
 - [ ] Nested machines
 
   - [ ] Fix frozen object errors
-
   - [ ] Multiple Parallel Transitions?
 
   ```js
@@ -57,6 +56,7 @@
       - [x] send method chaining (async)
 - [ ] Testing
   - [x] initial tests
+  - [x] transition tests
   - [ ] complex tests
 
 ## React
@@ -87,6 +87,23 @@
 - [x] package
 - [ ] design
 - [ ] auth
+
+## Tutorials
+
+- [x] counter
+- [x] toggle
+- [x] input
+- [x] todo
+- [x] todos
+- [x] stopwatch
+- [x] timer
+- [x] dogs
+- [x] tiles
+- [x] snake
+- [x] player
+- [x] breakout
+- [x] drawing
+- [x] calculator
 
 ## Designer
 
