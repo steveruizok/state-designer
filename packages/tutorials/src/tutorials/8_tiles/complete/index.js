@@ -126,9 +126,7 @@ export default function () {
 
   return (
     <TileLayout onMouseLeave={() => state.send("CANCELED_MOVE")}>
-      <TileGrid
-        image={"https://homepages.cae.wisc.edu/~ece533/images/airplane.png"}
-      >
+      <TileGrid image={"https://source.unsplash.com/random/400x400"}>
         {state.data.tiles.map((tile, index) => {
           const x = index % 4
           const y = Math.floor(index / 4)

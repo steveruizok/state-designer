@@ -491,14 +491,14 @@ export const TileGrid = withDefaultProps(Grid, (p) => ({
   templateColumns: "repeat(4, 1fr)",
   templateRows: "repeat(4, 1fr)",
   backgroundImage: `url(${p.image})`,
+  backgroundSize: "600% center",
 }))
 
 export const Tile = withDefaultProps(Box, ({ tile, highlight }) => ({
-  bg: "blue.500",
   height: "100%",
   width: "100%",
   backgroundImage: "inherit",
-  backgroundSize: "500% 500%",
+  backgroundSize: "600% center",
   backgroundPosition: `${(tile % 4) * -100}% ${Math.floor(tile / 4) * -100}%`,
   css: css({
     filter: highlight ? "brightness(1.1)" : "brightness(1)",
