@@ -24,13 +24,11 @@ export default function () {
     states: {
       notDrawing: {
         on: {
-          STARTED_DRAWING: {
-            to: "drawing",
-            do: ["clearRedos", "beginMark"],
-          },
+          STARTED_DRAWING: { to: "drawing" },
         },
       },
       drawing: {
+        onEnter: ["clearRedos", "beginMark"],
         on: {
           STOPPED_DRAWING: {
             to: "notDrawing",
