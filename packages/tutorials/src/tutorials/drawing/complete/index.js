@@ -15,35 +15,30 @@ export default function () {
   const state = useStateDesigner({
     data: {
       color: "red",
-      size: 3,
+      size: 6,
       marks: [],
       currentMark: undefined,
       redos: [],
     },
+    initial: "notDrawing",
     states: {
-      cursor: {
-        initial: "up",
-        states: {
-          down: {
-            on: {
-              RAISED_CURSOR: { to: "up", do: "completeMark" },
-              MOVED_CURSOR: {
-                secretlyDo: "addPointToMark",
-              },
-            },
-          },
-          up: {
-            on: {
-              DOWNED_CURSOR: { to: "down", do: ["clearRedos", "beginMark"] },
-            },
+      notDrawing: {
+        on: {
+          STARTED_DRAWING: {
+            to: "drawing",
+            do: ["clearRedos", "beginMark"],
           },
         },
       },
-      tool: {
-        initial: "pencil",
-        states: {
-          pencil: {},
-          eraser: {},
+      drawing: {
+        on: {
+          STOPPED_DRAWING: {
+            to: "notDrawing",
+            do: "completeMark",
+          },
+          MOVED_CURSOR: {
+            secretlyDo: "addPointToMark",
+          },
         },
       },
     },
@@ -149,12 +144,11 @@ export default function () {
       const ctx = cvs.getContext("2d")
 
       if (ctx) {
+        ctx.clearRect(0, 0, w, h)
+
         // Draw current mark
         if (state.data.currentMark !== undefined) {
-          ctx.clearRect(0, 0, w, h)
           drawMark(ctx, state.data.currentMark)
-        } else {
-          ctx.clearRect(0, 0, w, h)
         }
 
         frame = requestAnimationFrame(loop)
@@ -177,8 +171,8 @@ export default function () {
     <D.Layout w="fit-content">
       <D.CanvasFrame
         ref={rCanvasFrame}
-        onMouseDown={(e) => state.send("DOWNED_CURSOR", getPoint(e))}
-        onMouseUp={(e) => state.send("RAISED_CURSOR", getPoint(e))}
+        onMouseDown={(e) => state.send("STARTED_DRAWING", getPoint(e))}
+        onMouseUp={(e) => state.send("STOPPED_DRAWING", getPoint(e))}
         onMouseMove={(e) => state.send("MOVED_CURSOR", getPoint(e))}
       >
         <canvas ref={rMarksCanvas} width={w} height={h} />

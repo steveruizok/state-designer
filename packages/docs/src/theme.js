@@ -88,7 +88,7 @@ export default {
     h2: {
       variant: "textStyles.heading",
       fontSize: 4,
-      mt: 6,
+      mt: 5,
       mb: 2,
     },
     h3: {
@@ -129,7 +129,8 @@ export default {
       },
     },
     p: {
-      my: 4,
+      mt: 4,
+      mb: 0,
     },
     blockquote: {
       mt: 4,
