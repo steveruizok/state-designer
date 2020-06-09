@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.15
+
+- Fixes bug in previous- and restore-type transitions.
+- Adds transition tests.
+- Adds player tutorial.
+
+## 1.2.14
+
+- Fixes missing name when casting values to named functions.
+
 ## 1.2.13
 
 - Fixes bug: per-frame `onRepeat` events would receive a wrong `interval` on first call.
@@ -7,7 +17,6 @@
 - The `send` method now returns a promise that resolves when that event is processed.
 - While events are handled synchronously, if the state receives additional events while processing an event, those events will be added to a queue of events to handle, in order, once the current event has finished processing. A handler will finish processing once it completes its synchronous handlers, including those that have occurred as the result of transitions. If the handler produces an asynchronous handler, such as a handler chain that include `wait`s, it will "settle" immediately — those asynchronous handlers may complete later, possible after other events in the queue have been handled.
 - Renames types (`core` to `snapshot`).
-- Fixes missing name when casting values to named functions.
 
 ## 1.2.12
 

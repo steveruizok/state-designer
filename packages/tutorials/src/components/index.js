@@ -20,6 +20,10 @@ import {
   Box,
   Button,
   Divider,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
   Checkbox as Cb,
   Flex,
   Grid,
@@ -40,6 +44,8 @@ import {
   DrawerContent,
   DrawerCloseButton,
   useDisclosure,
+  PseudoBox,
+  Progress,
   Link as CLink,
   css,
 } from "@chakra-ui/core"
@@ -765,6 +771,70 @@ export const Calculator = {
     gridColumn: "span 2",
     variantColor: p.highlight ? "blue" : "gray",
   })),
+}
+
+/* --------------------- Player --------------------- */
+
+export const Player = {
+  Layout: withDefaultProps(Stack, (p) => ({
+    flexDirection: "column",
+    spacing: 3,
+    ariaLabel: "container",
+    p: 4,
+    borderRadius: 8,
+    width: "fit-content",
+    maxWidth: 700,
+    margin: "0 auto",
+    boxShadow: "0 4px 12px -4px rgba(0,0,5,.05)",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: p.colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.200",
+    bg: p.colorMode === "dark" ? "whiteAlpha.100" : "gray.50",
+    overflow: "hidden",
+  })),
+  CurrentTime: withDefaultProps(Heading, (p) => ({
+    bg: p.colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100",
+    p: 2,
+    size: "2xl",
+    textAlign: "right",
+    fontFamily: "mono",
+  })),
+  Buttons: withDefaultProps(Grid, {
+    gridAutoFlow: "column",
+    gridTemplateColumns: "repeat(5, 1fr)",
+    gridGap: 2,
+  }),
+  Button: withDefaultProps(IconButton, (p) => ({
+    variantColor: "blue",
+  })),
+  Wheels: withDefaultProps(Flex, (p) => ({
+    bg: p.colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100",
+    padding: 2,
+    justifyContent: "space-between",
+    alignItems: "center",
+    position: "relative",
+    borderRadius: 4,
+    height: "75%",
+    overflow: "hidden",
+  })),
+  Wheel: withDefaultProps(PseudoBox, (p) => ({
+    position: "relative",
+    height: 160,
+    width: 160,
+    transform: `scale(${0.05 + p.value * 0.95})`,
+    borderRadius: "100%",
+    bg: p.colorMode === "dark" ? "whiteAlpha.300" : "blackAlpha.300",
+  })),
+
+  Slider: (p) => {
+    return (
+      <Slider {...p}>
+        <SliderTrack />
+        <SliderFilledTrack bg={"red.500"} />
+        <SliderThumb bg={"red.500"} />
+      </Slider>
+    )
+  },
 }
 
 export { theme, Button, Divider, Heading, IconButton, Switch, Text }

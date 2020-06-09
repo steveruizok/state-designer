@@ -20,6 +20,7 @@
     "mdn-polyfills": "5.20.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",
+    "react-feather": "^2.0.8",
     "react-router-dom": "5.2.0",
     "react-scripts": "3.4.1"
   },

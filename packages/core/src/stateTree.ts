@@ -1,9 +1,5 @@
-import { isUndefined } from "lodash"
+import { forEach, isUndefined, last } from "lodash"
 import * as S from "./types"
-
-/*
-  Note: The functions in this file do not rely on closures.
-*/
 
 /**
  * Deactivate a state and its children.
@@ -40,100 +36,47 @@ export function getActiveStates<D = any>(state: S.State<D, unknown>) {
 /**
  * Activate a state based on a path. This function will recursively activate all states in the path,
  * as well as children of those states as necessary. You should only call this on the root of
- * the state tree.
+ * the state tree. See notes on ACTIVATING STATES.
  *
  * @param state The current state to activate.
  * @param path An array of state names.
- * @param previous Whether this is a previous-type history transition. Will only restore the history
- *                 state of the target (the deepest state in the path).
- * @param restore Whether this is a restore-type history transition. Will restore the history state
- *                of the target (the deepest state in the path) and all of its descendants.
+ * @param before An array of states that were previously active.
+ * @param prev Whether we should try to restore this state.
+ * @param deep Whether we should also try to restore descendant states.
  */
-export function activateState<D = any>(
-  state: S.State<D, unknown>,
+export function activateState<D, V>(
+  state: S.State<D, V>,
   path: string[],
-  beforeActive: S.State<D, unknown>[],
-  previous: boolean,
-  restore: boolean
-): void {
-  // Activate this state
+  before: S.State<D, V>[],
+  prev: boolean,
+  deep: boolean
+) {
   state.active = true
 
-  // If this state is next in the path, remove it from path
-  if (state.name === path[0]) {
-    path.shift()
-  }
+  if (state.name === path[0]) path.shift()
 
-  // Only actually restore previous on target state and its descendents
-  const activatePrevious = previous && path.length === 0
-
-  // If state is parallel, activate all child states.
-  // Don't worry about history.
-  if (isUndefined(state.initial)) {
-    for (let childState of Object.values(state.states)) {
-      activateState(childState, path, beforeActive, restore, restore)
-    }
-    return
-  }
-
-  // Branch states will activate either state in path or else,
-  // if at the end of the path (or in a branch outside of it),
-  // either its initial state or previous state (when restoring).
-  const childStates = Object.values(state.states)
-
-  // If the state is in path, then use the path for the next active
-  // state; otherwise, use the state's initial value.
-  const inPath = childStates.find((state) => state.name === path[0])
-
-  // If restore and previous state remaining, pop that state and
-  // activate the child with that name
-  if (activatePrevious) {
-    if (state.history.length > 1) {
-      // Activating previous and remaining history — pop and activate previous
-      const prev = state.history.pop()
-
-      for (let childState of Object.values(state.states)) {
-        if (childState.name === prev) {
-          activateState(childState, path, beforeActive, restore, restore)
-        }
-      }
-    } else {
-      // Activating previous but no history left — activate previous
-      for (let childState of childStates) {
-        if (childState.name === state.history[0]) {
-          activateState(childState, path, beforeActive, restore, restore)
-        }
-      }
-    }
-  } else if (inPath) {
-    // Not activating previous, in path — activate next in path
-    for (let childState of childStates) {
-      if (childState.name === path[0]) {
-        state.history.push(childState.name)
-        activateState(childState, path, beforeActive, previous, restore)
-      }
-    }
+  if (state.initial === undefined) {
+    // Parallel
+    forEach(state.states, (c) => activateState(c, path, before, prev, deep))
+  } else if (prev && path.length === 0) {
+    // Restore
+    const c = state.states[last(state.history) as string]
+    activateState(c, path, before, deep, deep)
+  } else if (state.states[path[0]] !== undefined) {
+    // Path
+    const c = state.states[path[0]]
+    state.history.push(c.name)
+    activateState(c, path, before, prev, deep)
+  } else if (before.includes(state)) {
+    // Before
+    const c = state.states[last(state.history) as string]
+    activateState(c, path, before, false, false)
   } else {
-    // Not activating previous, not in path
-    if (beforeActive.includes(state)) {
-      // but previously active... so restore this branch
-      for (let childState of Object.values(state.states)) {
-        if (childState.name === state.history[state.history.length - 1]) {
-          activateState(childState, path, beforeActive, previous, restore)
-        }
-      }
-    } else {
-      // Not activating previous, not in path — activate initial
-      for (let childState of Object.values(state.states)) {
-        if (childState.name === state.initial) {
-          state.history.push(childState.name)
-          activateState(childState, path, beforeActive, false, false)
-        }
-      }
-    }
+    // Initial
+    const c = state.states[state.initial]
+    state.history.push(c.name)
+    activateState(c, path, before, false, false)
   }
-
-  return
 }
 
 /**
@@ -275,3 +218,37 @@ export function recursivelyEndStateIntervals<D, V>(state: S.State<D, V>) {
     recursivelyEndStateIntervals(child)
   }
 }
+
+/* 
+  ACTIVATING STATES
+
+  Activating states can be complex. We definitely want to make
+  this state active. If this state is next in the path, we 
+  want to remove it from the path.
+
+  Next we check if it's a parallel state. Parallel states are easy. 
+  If state is parallel, we activate all of its child states and 
+  pass on the prev / restore arguments. Don't change their 
+  histories—parallel states don't need them. 
+
+  If it's a branch state, then we'll either need to activate its
+  initial child state, "restore" it by activating its prevly 
+  active state, or activate the next state in the path.
+
+  There are two types of transitions that might cause us to restore
+  a state: 'prev' and 'restore'. A prev transition only 
+  restores the target state; a restore transition also restores the
+  target state's descendants.
+
+  What if we're not restoring this state?
+
+  If this state's children include the next state is in the path,
+  activate the state and pass on the transition's prev and
+  restore values. (We might still have a prev/restore transition 
+  further down the path.)
+  
+  Otherwise, then what we do next depends on whether it was active 
+  before the current transition. If it was active, then we'll want 
+  to restore it back to how it was. If it was not active, then we'll
+  activate it "normally", according to its initial value, and pushing
+  to its history. */

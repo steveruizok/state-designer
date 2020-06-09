@@ -84,6 +84,7 @@ export async function delay(ms = 1000) {
  */
 export function useKeyboardInputs(handlers = { onKeyDown: {}, onKeyUp: {} }) {
   const { onKeyDown = {}, onKeyUp = {} } = handlers
+
   React.useEffect(() => {
     function handleKeydown(event) {
       if (onKeyDown[event.key] !== undefined) {
@@ -101,9 +102,58 @@ export function useKeyboardInputs(handlers = { onKeyDown: {}, onKeyUp: {} }) {
 
     document.body.addEventListener("keydown", handleKeydown)
     document.body.addEventListener("keyup", handleKeyup)
+
     return () => {
       document.body.removeEventListener("keydown", handleKeydown)
       document.body.removeEventListener("keyup", handleKeyup)
     }
   }, [])
+}
+
+export function useMouseInput(
+  handlers = {
+    onMouseUp: () => {},
+    onMouseDown: () => {},
+    onMouseMove: () => {},
+  }
+) {
+  const {
+    onMouseUp = () => {},
+    onMouseDown = () => {},
+    onMouseMove = () => {},
+  } = handlers
+
+  React.useEffect(() => {
+    function handleMouseUp(event) {
+      onMouseUp(event)
+    }
+
+    function handleMouseDown(event) {
+      onMouseDown(event)
+    }
+
+    function handleMouseMove(event) {
+      onMouseMove(event)
+    }
+
+    document.body.addEventListener("mousedown", handleMouseDown)
+    document.body.addEventListener("mouseup", handleMouseUp)
+    document.body.addEventListener("mousemove", handleMouseMove)
+
+    return () => {
+      document.body.removeEventListener("mousedown", handleMouseDown)
+      document.body.removeEventListener("mouseup", handleMouseUp)
+      document.body.removeEventListener("mousemove", handleMouseMove)
+    }
+  }, [])
+}
+
+/**
+ * Interpolate a new between two other numbers.
+ * @param {number} a The low end of the range, shown when t is 0.
+ * @param {number} b The high end of the range, shown when t is 1.
+ * @param {number} t How far to interpolate between the numbers.
+ */
+export function lerp(a, b, t) {
+  return a * (1 - t) + b * t
 }

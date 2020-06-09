@@ -1,4 +1,4 @@
-import { createState } from "../src"
+import { createDesign, createState } from "../src"
 import { state, design, counterDesign } from "./shared"
 
 jest.useFakeTimers()
@@ -42,7 +42,6 @@ describe("createState", () => {
 
   it("Should support chaining.", async () => {
     const counter = createState({
-      initial: "inactive",
       data: { count: 0 },
       actions: {
         increment(d) {
@@ -325,6 +324,125 @@ describe("createState", () => {
   // Do auto events work?
 
   // Does asynchronous send queueing work?
+
+  const previousDesign = createDesign({
+    id: "previous_test",
+    states: {
+      x: {},
+      y: {},
+      z: {
+        initial: "a",
+        states: {
+          a: {
+            on: {
+              TO_B: { to: "b" },
+              BACK_TO_B: { to: "b.previous" },
+              RESTORE_B: { to: "b.restore" },
+            },
+            initial: "aa",
+            states: {
+              aa: { on: { TO_AB: { to: "ab" } } },
+              ab: { on: { TO_AA: { to: "aa" } } },
+            },
+          },
+          b: {
+            on: { TO_A: { to: "a" } },
+            initial: "ba",
+            states: {
+              ba: {
+                on: { TO_BB: { to: "bb" } },
+              },
+              bb: {
+                on: {
+                  TO_BA: { to: "ba" },
+                },
+                initial: "ca",
+                states: {
+                  ca: { on: { TO_CB: { to: "cb" } } },
+                  cb: { on: { TO_CA: { to: "ca" } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  // Are initial active states correctly activated on a transition?
+  it("Should restore initial when returning to a state.", async () => {
+    const state = createState(previousDesign)
+    state.send("TO_AB")
+    state.send("TO_B")
+    state.send("TO_BB")
+    state.send("TO_A")
+    // Should set initial state (aa)
+    expect(state.isIn("aa")).toBeTruthy()
+  })
+
+  // Are previously active states correctly activated on a previous transition?
+  it("Should restore previous.", async () => {
+    const state = createState(previousDesign)
+    state.send("TO_B")
+    state.send("TO_BB")
+    state.send("TO_A")
+    state.send("BACK_TO_B")
+    // Should set previous state (bb)
+    expect(state.isIn("b")).toBeTruthy()
+    expect(state.isIn("ba")).toBeFalsy()
+    expect(state.isIn("bb")).toBeTruthy()
+  })
+
+  // Are previously active states correctly re-activated on multiple previous transitions?
+  it("Should restore previous.", async () => {
+    const state = createState(previousDesign)
+    state.send("TO_B")
+    state.send("TO_BB")
+    state.send("TO_A")
+    state.send("BACK_TO_B")
+    state.send("TO_A")
+    state.send("BACK_TO_B")
+    // Should set previous state (bb)
+    expect(state.isIn("b")).toBeTruthy()
+    expect(state.isIn("ba")).toBeFalsy()
+    expect(state.isIn("bb")).toBeTruthy()
+  })
+
+  // Are deep initial states correctly activated on a previous transition?
+  it("Should restore previous.", async () => {
+    const state = createState(previousDesign)
+    state.send("TO_B")
+    state.send("TO_BB")
+    state.send("TO_CB")
+    expect(state.isIn("ca")).toBeFalsy()
+    expect(state.isIn("cb")).toBeTruthy()
+    state.send("TO_A")
+    state.send("BACK_TO_B")
+    // Should set initial deep state (ca)
+    expect(state.isIn("b")).toBeTruthy()
+    expect(state.isIn("ba")).toBeFalsy()
+    expect(state.isIn("bb")).toBeTruthy()
+    expect(state.isIn("ca")).toBeTruthy()
+    expect(state.isIn("cb")).toBeFalsy()
+  })
+
+  // Are deep states correctly activated on a restore transition?
+  it("Should restore previous.", async () => {
+    const state = createState(previousDesign)
+    state.send("TO_B")
+    state.send("TO_BB")
+    state.send("TO_CB")
+    expect(state.isIn("ca")).toBeFalsy()
+    expect(state.isIn("cb")).toBeTruthy()
+    state.send("TO_A")
+    state.send("RESTORE_B")
+    // Should restore previously activated deep state (cb)
+    expect(state.isIn("b")).toBeTruthy()
+    expect(state.isIn("ba")).toBeFalsy()
+    expect(state.isIn("bb")).toBeTruthy()
+    expect(state.isIn("ca")).toBeFalsy()
+    expect(state.isIn("cb")).toBeTruthy()
+  })
 
   // Does WhenIn work?
   it("Should support whenIn.", () => {
