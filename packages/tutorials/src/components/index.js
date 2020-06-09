@@ -187,7 +187,7 @@ export const TitleBar = () => {
 
 export function Footer() {
   return (
-    <VStack w="100%" justifyItems="center" textAlign="center" mt={40}>
+    <VStack w="100%" justifyItems="center" textAlign="center" mt={40} mb={20}>
       <CLink isExternal href="https://state-designer.com/" ml={1}>
         <Lockup />
       </CLink>
