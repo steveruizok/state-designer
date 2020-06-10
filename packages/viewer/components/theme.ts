@@ -27,6 +27,19 @@ export default {
         opacity: 0.5,
       },
     },
+    icon: {
+      bg: "muted",
+      color: "text",
+      height: "100%",
+      width: "44px",
+      "&:hover": {
+        bg: "secondary",
+        color: "background",
+      },
+      "&:disabled": {
+        color: "grey",
+      },
+    },
   },
   text: {
     state: {

@@ -1,8 +1,8 @@
 # State
 
-A `state` is the "brain" of a user interface or component. Its job is to manage critical information that might change later on. It also manages when and how that information can change. And when it does change, the state can notify other parts of your project so that everything stays in sync.
+A `state` manages information about the state of a user interface. It stores the current version of that information and controls when and how it can change. When the information changes, a `state` can notify other parts of your project so that everything stays in sync.
 
-In State Designer, you can create a `state` by calling the [`createState`](/docs/api/createState) function. This function takes a [design](/docs/api/design) object as its only argument.
+In State Designer, you can create a `state` by passing a [design](/docs/api/design) object to the [`createState`](/docs/api/createState) function.
 
 ```js
 const state = useStateDesigner({
@@ -27,7 +27,7 @@ const state = useStateDesigner({
 
 > **Tip:** In React, you can also create a state by passing a design to the [`useStateDesigner`](/docs/api/useStateDesigner) hook. The hook will call `createState` under the hood and return the resulting `state`.
 
-This object contains a snapshot of the state's critical information. It also contains several methods to help you use that information, along with the `send` method that you can use to trigger the state's event handlers.
+The `state` object stores a snapshot of the state's current information—its [`data`](/docs/api/state#data) and [`active`](/docs/api/state#active) state nodes—together with methods to help you use that information. It also holds the [`send`](/docs/api/state#send) method that you can use to trigger the state's event handlers.
 
 - [`data`](/docs/api/state#data)
 - [`send`](/docs/api/state#send)
@@ -98,7 +98,7 @@ state.isIn("high") // false
 
 ### Using Paths
 
-You can indicate a state either with its name or its path.
+You can indicate a state node with either its name or its path.
 
 ```js
 state.isIn("active")

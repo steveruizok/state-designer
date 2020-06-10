@@ -58,7 +58,6 @@ export const State: React.FC<{
           })}
         </IconButton>
       </Flex>
-
       {isIn("expanded") && (
         <Grid
           columns={hasStates && hasEvents ? ["auto auto"] : ["auto"]}

@@ -814,6 +814,22 @@ export function createState<
     return createState(design)
   }
 
+  /**
+   * Reset state based on original design.
+   */
+  function reset(): Snapshot {
+    Object.assign(snapshot, {
+      data: produce(design.data, (d) => d) as D,
+      stateTree: getStateTreeFromDesign(design, id),
+    })
+
+    StateTree.deactivateState(snapshot.stateTree)
+    runTransition("root", undefined, undefined) // Will onEnter events matter?
+    notifySubscribers()
+
+    return snapshot
+  }
+
   /* --------------------- Kickoff -------------------- */
 
   type Snapshot = S.DesignedState<D, ReturnedValues<D, V>>
@@ -837,6 +853,7 @@ export function createState<
     onUpdate,
     getUpdate,
     clone,
+    reset,
     values: getValues(design.data as D, design.values),
   }
 

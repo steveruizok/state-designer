@@ -359,6 +359,7 @@ export interface DesignedState<D, V> {
   getUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => void
   getDesign: () => any
   clone: () => DesignedState<D, V>
+  reset: () => DesignedState<D, V>
 }
 
 // State with Design

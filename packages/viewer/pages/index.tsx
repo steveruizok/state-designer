@@ -20,7 +20,7 @@ export default class extends App {
     const { Component = Chart, pageProps } = this.props
 
     return (
-      <Container>
+      <div>
         <Head>
           <title>State Designer Viewer</title>
           <link rel="icon" href="/favicon.ico" />
@@ -46,7 +46,7 @@ export default class extends App {
           />
           <main>{Component && <Component {...pageProps} />}</main>
         </ThemeProvider>
-      </Container>
+      </div>
     )
   }
 }

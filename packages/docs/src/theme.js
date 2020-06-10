@@ -24,8 +24,8 @@ export default {
     codeHl: "#f8f8fa",
     muted: "#f2f2f5",
     quote: "#f0f0f3",
-    background: "#fff",
-    primary: "#005da5",
+    background: "#fff9f9",
+    primary: "#0043b8",
     secondary: "#8855ff",
     highlight: "#03d8ff",
     gray: "#d8dde3",
@@ -135,6 +135,9 @@ export default {
     blockquote: {
       mt: 4,
       mb: 5,
+      pt: 2,
+      pb: 5,
+      px: 4,
       border: (theme) => `1px solid ${theme.colors.gray}`,
       fontFamily: "quote",
       fontWeight: "quote",
@@ -142,8 +145,6 @@ export default {
       bg: "quote",
       mx: [-3, 0, 0],
       borderRadius: [0, 4, 4],
-      px: 4,
-      py: 2,
       "& > p > code": {
         bg: "codeHl",
       },
@@ -219,10 +220,10 @@ export default {
       my: 5,
     },
     ul: {
-      my: 2,
+      mt: 4,
     },
     ol: {
-      my: 4,
+      mt: 4,
     },
     li: {
       mb: 2,
