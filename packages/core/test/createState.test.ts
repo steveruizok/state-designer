@@ -282,7 +282,6 @@ describe("createState", () => {
           if: "switchIsFlipped",
           do: "flipSwitch",
           else: {
-            get: "switch", // Is there a way to recycle previous get?
             do: "flipSwitch",
           },
         },
@@ -573,6 +572,43 @@ describe("createState", () => {
     ugly.send("SOME_UGLY_EVENT")
     expect(ugly.data.count).toBe(5)
     done()
+  })
+
+  it("Should throw errors when a state has an initial property but no states.", () => {
+    expect(() =>
+      createState({
+        initial: "inactive",
+        data: { count: 0 },
+        on: { INCREASED: { do: "increment" } },
+        actions: {
+          increment(d) {
+            d.count++
+          },
+        },
+      })
+    ).toThrowError()
+  })
+
+  // Todo: Does it need to PREVENT payload mutation?
+
+  it("Should mutate payloads.", (done) => {
+    const state = createState({
+      data: { count: 0 },
+      on: { INCREASED: { do: ["increment", "testPayload"] } },
+      actions: {
+        increment(d, p) {
+          p.count++
+          d.count++
+        },
+        testPayload(d, p) {
+          expect(d.count).toBe(1)
+          expect(p.count).toBe(1)
+          done()
+        },
+      },
+    })
+
+    state.send("INCREASED", { count: 0 })
   })
 
   // Do value types work?

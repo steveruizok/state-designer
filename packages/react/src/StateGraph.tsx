@@ -66,7 +66,7 @@ export const StateGraph: React.FC<
     state: S.DesignedState<any, any>
   } & React.HTMLProps<HTMLDivElement>
 > = ({ state, ...rest }) => {
-  const { stateTree } = useStateDesigner(state)
+  const { stateTree } = useStateDesigner(state, [state])
 
   return (
     <div {...rest}>

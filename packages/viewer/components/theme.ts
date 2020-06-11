@@ -6,11 +6,11 @@ export default {
     ...deep.styles,
     ul: {
       listStyleType: "none",
-      paddingLeft: 0,
+      pl: 0,
       margin: 0,
     },
     li: {
-      marginBottom: 1,
+      my: 3,
       "&:last-child": {
         marginBottom: 0,
       },

@@ -1,5 +1,5 @@
 import * as S from "./types"
-import { createDraft, finishDraft, Draft, original } from "immer"
+import { createDraft, finishDraft, Draft, current } from "immer"
 
 export function createEventChain<D>(options: S.EventChainOptions<D>) {
   let { state, onDelayedOutcome, getFreshDataAfterWait } = options
@@ -10,6 +10,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
   let core: S.EventChainCore<D> = {
     data: options.data,
+    payload: options.payload,
     result: options.result,
   }
 
@@ -23,9 +24,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
   let draftCore: Draft<S.EventChainCore<D>> = createDraft(core)
 
-  let orig = original(draftCore) as Draft<S.EventChainCore<D>>
-
-  let tResult = orig?.result
+  let tResult = options.result
 
   function complete(draft: Draft<S.EventChainCore<D>>) {
     core = finishDraft(draft) as S.EventChainCore<D>
@@ -35,8 +34,6 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
   function refresh() {
     draftCore = createDraft(core)
-    orig = original(draftCore) as Draft<S.EventChainCore<D>>
-    tResult = orig?.result
   }
 
   function processEventHandler(
@@ -65,7 +62,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
       waiting = true
 
-      // TODO: Does timeouts need to be an array?
+      // TODO: Does timeouts really need to be an array?
       state.times.timeouts[0] = setTimeout(() => {
         core.data = getFreshDataAfterWait() // After the timeout, refresh data
         core.result = undefined // Results can't be carried across!
@@ -95,9 +92,8 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
         onDelayedOutcome(finalOutcome)
       }, waitTime)
 
-      return { shouldBreakDueToWait: true }
-
       // Stop this chain
+      return { shouldBreakDueToWait: true }
     } else {
       // Continue with chain
       const { shouldBreak } = processHandlerObject(nextHandlerObject, draft)
@@ -114,8 +110,6 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
     handler: S.EventHandlerObject<D>,
     draft: Draft<S.EventChainCore<D>>
   ): { shouldBreak: boolean } {
-    let passedConditions = true
-
     // Compute a result using original data and draft result
     if (handler.get.length > 0) {
       for (let resu of handler.get) {
@@ -126,30 +120,14 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
       draft.result = tResult
     }
 
-    // Conditions — use original data / result
-    if (passedConditions && handler.if.length > 0) {
-      passedConditions = handler.if.every((cond) =>
-        cond(draft.data as D, payload, tResult)
-      )
-    }
+    let curr = current(draft)
 
-    if (passedConditions && handler.ifAny.length > 0) {
-      passedConditions = handler.ifAny.some((cond) =>
-        cond(draft.data as D, payload, tResult)
-      )
-    }
-
-    if (passedConditions && handler.unless.length > 0) {
-      passedConditions = handler.unless.every(
-        (cond) => !cond(draft.data as D, payload, tResult)
-      )
-    }
-
-    if (passedConditions && handler.unlessAny.length > 0) {
-      passedConditions = !handler.unlessAny.some((cond) =>
-        cond(draft.data as D, payload, tResult)
-      )
-    }
+    const passedConditions = testEventHandlerConditions(
+      handler,
+      curr.data as D,
+      curr.payload,
+      curr.result
+    )
 
     // Create temporary human-readable copy of data
 
@@ -159,43 +137,48 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
         finalOutcome.shouldNotify = true
 
         for (let action of handler.do) {
-          action(draft.data as D, payload, tResult)
+          action(draft.data as D, curr.payload, curr.result)
         }
       }
 
-      // Side effects
+      // Secret actions
       if (handler.secretlyDo.length > 0) {
         for (let action of handler.secretlyDo) {
-          action(draft.data as D, payload, tResult)
+          action(draft.data as D, curr.payload, curr.result)
         }
       }
+
+      curr = current(draft)
 
       // Sends
       if (handler.send !== undefined) {
-        const event = handler.send(draft.data as D, payload, tResult)
+        const event = handler.send(curr.data as D, curr.payload, curr.result)
         finalOutcome.pendingSend = event
       }
 
       // Transitions
       if (handler.to !== undefined) {
         finalOutcome.pendingTransition = handler.to(
-          draft.data as D,
-          payload,
-          tResult
+          curr.data as D,
+          curr.payload,
+          curr.result
         )
-
         finalOutcome.shouldBreak = true
         finalOutcome.shouldNotify = true
+
         return { shouldBreak: true }
       }
 
-      // Secret Transitions
+      // Secret Transitions (no notify)
       if (handler.secretlyTo !== undefined) {
         finalOutcome.pendingTransition = handler.secretlyTo(
-          draft.data as D,
-          payload,
-          tResult
+          curr.data as D,
+          curr.payload,
+          curr.result
         )
+
+        finalOutcome.shouldBreak = true
+        return { shouldBreak: true }
       }
 
       // Then
@@ -203,9 +186,11 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
         processEventHandler([...handler.then], draft)
       }
 
+      // TODO: Is there a difference between break and halt? Halt breaks all, break breaks just one subchain, like else or then?
+
       // Break
       if (handler.break !== undefined) {
-        if (handler.break(draft.data as D, payload, tResult)) {
+        if (handler.break(curr.data as D, curr.payload, curr.result)) {
           return { shouldBreak: true }
         }
       }
@@ -224,4 +209,17 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
   complete(draftCore)
 
   return finalOutcome
+}
+
+function testEventHandlerConditions<D, P, R>(
+  h: S.EventHandlerObject<D>,
+  d: D,
+  p: P,
+  r: R
+) {
+  if (h.if[0] && !h.if.every((c) => c(d, p, r))) return false
+  if (h.ifAny[0] && !h.ifAny.some((c) => c(d, p, r))) return false
+  if (h.unless[0] && !h.unless.every((c) => !c(d, p, r))) return false
+  if (h.unlessAny[0] && !h.unlessAny.some((c) => c(d, p, r))) return false
+  return true
 }

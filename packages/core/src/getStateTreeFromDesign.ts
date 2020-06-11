@@ -219,6 +219,14 @@ export function getStateTreeFromDesign<
     path: string,
     active: boolean
   ): S.State<D, V> {
+    // Early error detection
+
+    if (state.initial !== undefined && state.states === undefined) {
+      throw Error(
+        `In ${path + name}, you've provided an initial state but no states!`
+      )
+    }
+
     return {
       name,
       path: path + name,

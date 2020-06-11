@@ -386,6 +386,7 @@ export type EventChainOptions<D> = {
 
 export type EventChainCore<D> = {
   data: D
+  payload: any
   result: any
 }
 

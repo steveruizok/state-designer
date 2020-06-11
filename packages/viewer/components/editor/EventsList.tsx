@@ -4,7 +4,7 @@ import { replace } from "lodash"
 import { X, Save, Plus, Delete } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import globalState, { Event } from "./state"
-
+import { Column } from "./shared"
 import {
   Styled,
   Heading,
@@ -49,7 +49,7 @@ export const EventsList: React.FC<{}> = () => {
   })
 
   return (
-    <Grid gap={2}>
+    <Column>
       <Heading>Events List</Heading>
       <Row>
         <Input
@@ -66,7 +66,7 @@ export const EventsList: React.FC<{}> = () => {
           <EventItem key={event.id} event={event} />
         ))}
       </Styled.ul>
-    </Grid>
+    </Column>
   )
 }
 
