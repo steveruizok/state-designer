@@ -28,9 +28,10 @@ export const Row: React.FC<GridProps & { columns?: string; ref?: never }> = ({
 export const CreateRow: React.FC<{
   defaultValue: string
   placeholder: string
+  format?: (value: string) => string
   onSubmit: (value: string) => void
-}> = ({ defaultValue, placeholder, onSubmit }) => {
-  const { data, send, values, isIn } = useStateDesigner({
+}> = ({ defaultValue, placeholder, onSubmit, format }) => {
+  const { send, values } = useStateDesigner({
     data: {
       value: defaultValue,
     },
@@ -47,7 +48,7 @@ export const CreateRow: React.FC<{
         data.value = ""
       },
       setValue(data, payload) {
-        data.value = payload
+        data.value = format !== undefined ? format(payload) : payload
       },
     },
     values: {
@@ -75,7 +76,7 @@ export const CreateRow: React.FC<{
 
 export const InputRow: React.FC<
   {
-    label: string
+    label?: string
     defaultValue: string
     readOnly?: boolean
     onSubmit: (value: string) => void
@@ -152,7 +153,7 @@ export const InputRow: React.FC<
   )
 
   return (
-    <Row columns="min-content 1fr">
+    <Row columns={label ? "min-content 1fr" : "1fr"}>
       {label}
       <Input
         sx={{ width: "1fr" }}
@@ -161,10 +162,13 @@ export const InputRow: React.FC<
         onBlur={() => send("BLURRED")}
         onFocus={() => send("FOCUSED")}
         placeholder={placeholder}
-        onKeyPress={(e) => e.key === "Enter" && send("SUBMITTED")}
+        onKeyUp={(e) => {
+          e.key === "Enter" && send("SUBMITTED")
+          e.key === "Escape" && send("CANCELLED")
+        }}
         onChange={(e) => send("CHANGED_VALUE", e.target.value)}
       />
-      {isIn("editing") && (
+      {isIn("editing") ? (
         <>
           <IconButton
             disabled={!isIn("dirty")}
@@ -176,11 +180,12 @@ export const InputRow: React.FC<
             <X />
           </IconButton>
         </>
-      )}
-      {!readOnly && (
-        <IconButton onClick={() => onDelete()}>
-          <Delete />
-        </IconButton>
+      ) : (
+        !readOnly && (
+          <IconButton onClick={() => onDelete()}>
+            <Delete />
+          </IconButton>
+        )
       )}
     </Row>
   )

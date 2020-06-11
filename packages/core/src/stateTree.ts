@@ -60,7 +60,7 @@ export function activateState<D, V>(
     forEach(state.states, (c) => activateState(c, path, before, prev, deep))
   } else if (prev && path.length === 0) {
     // Restore
-    const c = state.states[last(state.history) as string]
+    const c = state.states[last(state.history) || state.initial]
     activateState(c, path, before, deep, deep)
   } else if (state.states[path[0]] !== undefined) {
     // Path
@@ -69,7 +69,7 @@ export function activateState<D, V>(
     activateState(c, path, before, prev, deep)
   } else if (before.includes(state)) {
     // Before
-    const c = state.states[last(state.history) as string]
+    const c = state.states[last(state.history) || state.initial]
     activateState(c, path, before, false, false)
   } else {
     // Initial

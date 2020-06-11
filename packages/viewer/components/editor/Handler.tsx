@@ -3,16 +3,7 @@ import * as React from "react"
 import { Delete } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import globalState, { TransitionType, State, EventHandler } from "./state"
-import {
-  Flex,
-  Label,
-  Radio,
-  Styled,
-  Select,
-  IconButton,
-  Input,
-  Grid,
-} from "theme-ui"
+import { Flex, Label, Radio, Styled, Select, IconButton, Grid } from "theme-ui"
 import { SelectRow } from "./shared"
 
 export const Handler: React.FC<{ handler: EventHandler; node: State }> = ({

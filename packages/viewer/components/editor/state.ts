@@ -29,11 +29,17 @@ export type State = {
 }
 
 type InitialData = {
+  selection: {
+    state?: string
+  }
   events: Map<string, Event>
   states: Map<string, State>
 }
 
 const initialData: InitialData = {
+  selection: {
+    state: undefined,
+  },
   events: new Map([
     [
       "toggled",
@@ -116,6 +122,10 @@ const initialData: InitialData = {
 const global = createState({
   data: initialData,
   on: {
+    // Editor
+    SELECTED_STATE: "setSelectedState",
+    DESELECTED_STATE: "clearSelectedState",
+    // Events
     ADDED_EVENT: "addEvent",
     UPDATED_EVENT_NAME: "updateEvent",
     DELETED_EVENT: ["deleteEventHandlers", "deleteEvent"],
@@ -133,6 +143,13 @@ const global = createState({
     SET_HANDLER_TRANSITION_TYPE: "setEventHandlerTransitionType",
   },
   actions: {
+    // Selection
+    setSelectedState(data, stateId) {
+      data.selection.state = stateId
+    },
+    clearSelectedState(data) {
+      data.selection.state = undefined
+    },
     // Events
     addEvent(data, name) {
       const id = uniqueId()
@@ -222,6 +239,9 @@ const global = createState({
     },
   },
   values: {
+    editingState(data) {
+      return data.states.get(data.selection.state)
+    },
     states(data) {
       return Array.from(data.states.values())
     },

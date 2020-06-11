@@ -8,10 +8,9 @@ import {
   InputRow,
   SelectRow,
   ListRow,
-  Row,
 } from "./shared"
 import { Handler } from "./Handler"
-import { Styled, Box, Select, Radio, Label } from "theme-ui"
+import { Styled, Box, Button, Radio, Label } from "theme-ui"
 
 export const StateNode: React.FC<{ node: State }> = ({ node }) => {
   const global = useStateDesigner(globalState)
@@ -56,6 +55,14 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
           })
         }
       />
+      {node.parent && (
+        <Button
+          sx={{ width: "100%", bg: "muted" }}
+          onClick={() => global.send("SELECTED_STATE", node.parent)}
+        >
+          {global.data.states.get(node.parent)?.name}
+        </Button>
+      )}
       {/* Events Handlers */}
       <SectionHeader>Event Handlers</SectionHeader>
       <SelectRow
@@ -84,7 +91,7 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
           global.send("CREATED_STATE", { stateId: node.id, name })
         }
       />
-
+      {/* Initial state */}
       {node.states.size > 0 && (
         <Box my={3}>
           Initial
@@ -122,9 +129,17 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
           </form>
         </Box>
       )}
+      {/* Links to Edit Child States */}
       <Styled.ul>
         {childStates.map((stateId) => (
-          <StateNode key={stateId} node={global.data.states.get(stateId)} />
+          <Styled.li key={stateId}>
+            <Button
+              sx={{ width: "100%", bg: "muted" }}
+              onClick={() => global.send("SELECTED_STATE", stateId)}
+            >
+              {global.data.states.get(stateId)?.name}
+            </Button>
+          </Styled.li>
         ))}
       </Styled.ul>
     </Box>
