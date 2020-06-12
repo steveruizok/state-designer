@@ -2,9 +2,20 @@
 import * as React from "react"
 import { X, Save, Plus, Delete } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import { GridProps } from "theme-ui"
 
-import { Box, Styled, Select, IconButton, Input, Grid } from "theme-ui"
+import {
+  Box,
+  Styled,
+  Button,
+  Select,
+  IconButton,
+  Input,
+  Grid,
+  BoxProps,
+  Divider,
+  GridProps,
+  Heading,
+} from "theme-ui"
 
 export const Row: React.FC<GridProps & { columns?: string; ref?: never }> = ({
   columns = "1fr",
@@ -12,15 +23,16 @@ export const Row: React.FC<GridProps & { columns?: string; ref?: never }> = ({
 }) => {
   return (
     <Grid
+      gap={2}
+      mb={2}
+      {...rest}
       sx={{
         gridTemplateColumns: columns,
         gridAutoColumns: "auto",
         gridAutoFlow: "column",
         alignItems: "center",
+        ...rest.sx,
       }}
-      gap={2}
-      mb={2}
-      {...rest}
     />
   )
 }
@@ -37,7 +49,7 @@ export const CreateRow: React.FC<{
     },
     on: {
       CHANGED_VALUE: "setValue",
-      SUBMITTED: ["submitValue", "resetValue"],
+      SUBMITTED: { unless: "valueIsEmpty", do: ["submitValue", "resetValue"] },
     },
     actions: {
       resetValue(data) {
@@ -49,6 +61,11 @@ export const CreateRow: React.FC<{
       },
       setValue(data, payload) {
         data.value = format !== undefined ? format(payload) : payload
+      },
+    },
+    conditions: {
+      valueIsEmpty(data) {
+        return data.value === ""
       },
     },
     values: {
@@ -78,14 +95,23 @@ export const InputRow: React.FC<
   {
     label?: string
     defaultValue: string
+    format?: (value: string) => string
     readOnly?: boolean
     onSubmit: (value: string) => void
-    onDelete: () => void
+    optionsButton?: React.ReactNode
   } & Pick<
     React.HTMLProps<HTMLInputElement>,
     "onBlur" | "onFocus" | "placeholder"
   >
-> = ({ label, defaultValue, readOnly, onSubmit, onDelete, placeholder }) => {
+> = ({
+  label,
+  defaultValue,
+  readOnly,
+  onSubmit,
+  format,
+  placeholder,
+  optionsButton,
+}) => {
   const { data, send, values, isIn } = useStateDesigner(
     {
       data: { value: defaultValue },
@@ -140,7 +166,7 @@ export const InputRow: React.FC<
           onSubmit(data.value)
         },
         setValue(data, payload) {
-          data.value = payload
+          data.value = format ? format(payload) : payload
         },
       },
       values: {
@@ -153,7 +179,7 @@ export const InputRow: React.FC<
   )
 
   return (
-    <Row columns={label ? "min-content 1fr" : "1fr"}>
+    <Row columns={label ? "44px 1fr" : "1fr"}>
       {label}
       <Input
         sx={{ width: "1fr" }}
@@ -181,12 +207,25 @@ export const InputRow: React.FC<
           </IconButton>
         </>
       ) : (
-        !readOnly && (
-          <IconButton onClick={() => onDelete()}>
-            <Delete />
-          </IconButton>
-        )
+        optionsButton
       )}
+    </Row>
+  )
+}
+
+export const ButtonRow: React.FC<{
+  onClick: () => void
+  label: string
+  onDelete: () => void
+}> = ({ onClick, onDelete, label }) => {
+  return (
+    <Row columns="1fr min-content">
+      <Button bg="muted" onClick={() => onClick()}>
+        {label}
+      </Button>
+      <IconButton onClick={() => onDelete()}>
+        <Delete />
+      </IconButton>
     </Row>
   )
 }
@@ -243,31 +282,67 @@ export const ListRow: React.FC<{}> = ({ children }) => {
   )
 }
 
-export const Column: React.FC<{}> = (props) => {
+export const Column: React.FC<BoxProps> = ({ children, ...rest }) => {
   return (
-    <Grid
-      columns={"420px"}
-      sx={{ height: "fit-content" }}
-      p={4}
-      gap={2}
-      {...props}
-    />
+    <Box
+      {...rest}
+      sx={{
+        px: 3,
+        width: "100%",
+        height: ["auto", "100vh"],
+        overflowY: "scroll",
+        ...rest.sx,
+      }}
+    >
+      <Grid sx={{ height: "fit-content" }} py={3} gap={2}>
+        {children}
+      </Grid>
+    </Box>
   )
 }
 
-export const SectionHeader: React.FC<{}> = (props) => {
+export const SectionHeader: React.FC<{}> = ({ children }) => {
   return (
-    <Box
-      sx={{
-        mx: -3,
-        px: 3,
-        my: 3,
-        borderTop: "1px solid #ccc",
-        borderBottom: "1px solid #ccc",
-        bg: "muted",
-        color: "text",
-      }}
-      {...props}
-    />
+    <Box my={4}>
+      <Divider mx={-4} />
+      <Heading>{children}</Heading>
+    </Box>
   )
 }
+
+export const DragHandle: React.FC<BoxProps> = ({ children, ...rest }) => (
+  <Box
+    {...rest}
+    sx={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      height: 16,
+      width: 16,
+      borderColor: "muted",
+      ...rest.sx,
+      "&:hover": {
+        borderColor: "primary",
+        borderRight: "8px solid transparent",
+        borderBottom: "8px solid transparent",
+      },
+    }}
+  >
+    <Box
+      sx={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        height: 16,
+        width: 16,
+        borderTop: "8px solid",
+        borderLeft: "8px solid",
+        borderColor: "inherit",
+        borderRight: "8px solid transparent",
+        borderBottom: "8px solid transparent",
+        cursor: "pointer",
+      }}
+    />
+    {children}
+  </Box>
+)

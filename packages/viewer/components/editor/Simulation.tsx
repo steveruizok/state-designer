@@ -9,10 +9,8 @@ export const Simulation: React.FC<{}> = () => {
   const state = useStateDesigner(values.simulation, [values.simulation])
 
   return (
-    <>
-      <Column>
-        <StateGraph state={state} />
-      </Column>
+    <Column bg={"simulation"}>
+      <StateGraph state={state} />
       <Grid sx={{ height: "fit-content", flexDirection: "column", py: 4 }}>
         {values.events.map((event) => (
           <Button
@@ -24,6 +22,6 @@ export const Simulation: React.FC<{}> = () => {
           </Button>
         ))}
       </Grid>
-    </>
+    </Column>
   )
 }

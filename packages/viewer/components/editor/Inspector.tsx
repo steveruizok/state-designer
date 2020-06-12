@@ -11,7 +11,7 @@ export const Inspector: React.FC<{}> = (props) => {
   const { editingState } = global.values
 
   return (
-    <Column>
+    <Column bg={"panel"}>
       {editingState && <StateNode key={editingState.id} node={editingState} />}
     </Column>
   )
