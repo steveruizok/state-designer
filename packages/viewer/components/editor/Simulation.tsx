@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useStateDesigner, StateGraph } from "@state-designer/react"
-import { Button, Grid } from "theme-ui"
+import { Text, Button, Grid } from "theme-ui"
 import global from "./state"
 import { Column } from "./shared"
 
@@ -11,7 +11,14 @@ export const Simulation: React.FC<{}> = () => {
   return (
     <Column bg={"simulation"}>
       <StateGraph state={state} />
-      <Grid sx={{ height: "fit-content", flexDirection: "column", py: 4 }}>
+      <Grid
+        sx={{
+          height: "fit-content",
+          width: "fit-content",
+          flexDirection: "column",
+          py: 4,
+        }}
+      >
         {values.events.map((event) => (
           <Button
             key={event.id}
@@ -22,6 +29,12 @@ export const Simulation: React.FC<{}> = () => {
           </Button>
         ))}
       </Grid>
+      Data:
+      <Text>
+        <pre>
+          <code>{JSON.stringify(state.data, null, 2)}</code>
+        </pre>
+      </Text>
     </Column>
   )
 }

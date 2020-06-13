@@ -11,7 +11,7 @@ export default {
     muted: "rgba(245, 245, 255, .08)",
     active: "rgba(245, 240, 255, .18)",
     panel: "#25243c",
-    surface: "rgba(245, 240, 255, .10)",
+    surface: "rgba(245, 240, 255, .06)",
     low: "rgba(0,0,0, 0.100)",
   },
   space: [0, 4, 8, 16, 32, 40, 64, 128, 256, 512],
@@ -20,12 +20,21 @@ export default {
     low: "0px 0px 4px rgba(0,0,0,.18)",
     med: "0px 0px 16px rgba(0,0,0,.16)",
     high: "0px 0px 32px rgba(0,0,0,.12)",
+    outline: "",
+    // outline:
+    //   "-1px -1px 0 #000, 1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000",
+  },
+  fonts: {
+    body: '"Helvetica Neue", sans-serif',
+    heading: "inherit",
+    monospace: "Fira Code, monospace",
   },
   styles: {
     ...deep.styles,
     root: {
       fontSize: 2,
       fontWeight: 500,
+      textShadow: "outline",
     },
     ul: {
       listStyleType: "none",
@@ -71,6 +80,8 @@ export default {
   },
   buttons: {
     primary: {
+      fontFamily: "body",
+      textShadow: "outline",
       outline: "transparent",
       cursor: "pointer",
       color: "text",
@@ -79,6 +90,9 @@ export default {
       },
     },
     icon: {
+      cursor: "pointer",
+      fontFamily: "body",
+      textShadow: "outline",
       outline: "transparent",
       bg: "muted",
       color: "primary",
@@ -95,6 +109,8 @@ export default {
   },
   forms: {
     input: {
+      fontFamily: "body",
+      textShadow: "outline",
       borderColor: "transparent",
       outline: "transparent",
       bg: "muted",
@@ -104,11 +120,14 @@ export default {
       },
     },
     select: {
+      fontFamily: "body",
+      textShadow: "outline",
       border: "none",
       outline: "transparent",
       bg: "muted",
     },
     radio: {
+      textShadow: "outline",
       "&:disabled": {
         bg: "red",
       },

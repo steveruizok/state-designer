@@ -2,11 +2,12 @@
 import * as React from "react"
 import { MoreVertical } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import globalState, { Event } from "./state"
+import globalState, { SendEvent } from "./state"
 import { Box, IconButton } from "theme-ui"
+import { SelectOptionHeader } from "./shared"
 
 export const EventOptionsButton: React.FC<{
-  event: Event
+  event: SendEvent
 }> = ({ event }) => {
   const global = useStateDesigner(globalState)
 
@@ -40,7 +41,7 @@ export const EventOptionsButton: React.FC<{
           }
         }}
       >
-        <option></option>
+        <SelectOptionHeader>{event.name}</SelectOptionHeader>
         {event.index > 0 && <option value="move up">Move Up</option>}
         {event.index < global.data.events.size - 1 && (
           <option value="move down">Move Down</option>
@@ -53,7 +54,6 @@ export const EventOptionsButton: React.FC<{
           position: "absolute",
           top: 0,
           left: 0,
-          zIndex: -1,
         }}
       >
         <MoreVertical />

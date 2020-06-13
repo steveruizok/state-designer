@@ -112,7 +112,7 @@ export const InputRow: React.FC<
   placeholder,
   optionsButton,
 }) => {
-  const { data, send, values, isIn } = useStateDesigner(
+  const { send, values, isIn } = useStateDesigner(
     {
       data: { value: defaultValue },
       initial: "idle",
@@ -143,7 +143,6 @@ export const InputRow: React.FC<
               on: {
                 SUBMITTED: {
                   do: "submitValue",
-                  to: "idle",
                 },
               },
             },
@@ -179,7 +178,7 @@ export const InputRow: React.FC<
   )
 
   return (
-    <Row columns={label ? "44px 1fr" : "1fr"}>
+    <Row columns={label ? "56px 1fr" : "1fr"}>
       {label}
       <Input
         sx={{ width: "1fr" }}
@@ -189,8 +188,20 @@ export const InputRow: React.FC<
         onFocus={() => send("FOCUSED")}
         placeholder={placeholder}
         onKeyUp={(e) => {
-          e.key === "Enter" && send("SUBMITTED")
-          e.key === "Escape" && send("CANCELLED")
+          switch (e.key) {
+            case "Enter": {
+              send("SUBMITTED")
+              e.currentTarget.blur()
+              break
+            }
+            case "Escape": {
+              send("CANCELLED")
+              e.currentTarget.blur()
+              break
+            }
+            default: {
+            }
+          }
         }}
         onChange={(e) => send("CHANGED_VALUE", e.target.value)}
       />
@@ -346,3 +357,14 @@ export const DragHandle: React.FC<BoxProps> = ({ children, ...rest }) => (
     {children}
   </Box>
 )
+
+export const SelectOptionHeader: React.FC = ({ children }) => {
+  return (
+    <>
+      <option value="" disabled>
+        {children}
+      </option>
+      <option disabled>─</option>
+    </>
+  )
+}

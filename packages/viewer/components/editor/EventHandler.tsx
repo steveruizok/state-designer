@@ -6,7 +6,8 @@ import { HandlerOptionsButton } from "./HandlerOptionsButton"
 import globalState, { State, EventHandler as EH } from "./state"
 import { Plus } from "react-feather"
 import { EventHandlerLink } from "./EventHandlerLink"
-import { IconButton, Divider, Button, Card, Select, Grid } from "theme-ui"
+import { SelectOptionHeader } from "./shared"
+import { IconButton, Divider, Card, Select, Grid } from "theme-ui"
 
 export const EventHandler: React.FC<{
   handler: EH
@@ -15,9 +16,6 @@ export const EventHandler: React.FC<{
   const global = useStateDesigner(globalState)
   const event = global.data.events.get(handler.event)
 
-  const eventsToAdd = global.values.events.filter(
-    (event) => !node.eventHandlers.has(event.id)
-  )
   const links = sortBy(Array.from(handler.chain.values()), "index")
 
   return (
@@ -32,18 +30,20 @@ export const EventHandler: React.FC<{
         <Select
           defaultValue={event.id}
           onChange={(e) => {
-            globalState.send("CHANGED_EVENT_HANDLER_ON_STATE", {
+            globalState.send("CHANGED_EVENT_HANDLER", {
               stateId: node.id,
-              fromId: event.id,
-              toId: e.target.value,
+              eventId: event.id,
+              id: e.target.value,
             })
           }}
         >
-          <option disabled value={event.id}>
-            {event.name}
-          </option>
-          {eventsToAdd.map((event) => (
-            <option key={event.id} value={event.id}>
+          <SelectOptionHeader>Event</SelectOptionHeader>
+          {global.values.events.map((event) => (
+            <option
+              key={event.id}
+              disabled={node.eventHandlers.has(event.id)}
+              value={event.id}
+            >
               {event.name}
             </option>
           ))}

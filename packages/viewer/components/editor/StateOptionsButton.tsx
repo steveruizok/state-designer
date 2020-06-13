@@ -3,6 +3,7 @@ import * as React from "react"
 import { MoreVertical } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import globalState, { State } from "./state"
+import { SelectOptionHeader } from "./shared"
 import { Box, IconButton } from "theme-ui"
 
 export const StateOptionsButton: React.FC<{
@@ -12,9 +13,16 @@ export const StateOptionsButton: React.FC<{
   const parent = global.data.states.get(node.parent)
 
   return (
-    <Box sx={{ position: "relative" }}>
+    <Box
+      sx={{
+        position: "relative",
+        cursor: "pointer",
+        height: "100%",
+        width: "100%",
+      }}
+    >
       <select
-        style={{ opacity: 0, width: 44, height: 40 }}
+        style={{ opacity: 0, width: 44, height: 40, cursor: "pointer" }}
         value={""}
         onChange={(e) => {
           switch (e.target.value) {
@@ -41,7 +49,7 @@ export const StateOptionsButton: React.FC<{
           }
         }}
       >
-        <option></option>
+        <SelectOptionHeader>{node.name}</SelectOptionHeader>
         {parent && node.index > 0 && <option value="move up">Move Up</option>}
         {parent && node.index < parent?.states.size - 1 && (
           <option value="move down">Move Down</option>
@@ -54,7 +62,6 @@ export const StateOptionsButton: React.FC<{
           position: "absolute",
           top: 0,
           left: 0,
-          zIndex: -1,
         }}
       >
         <MoreVertical />

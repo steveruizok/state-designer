@@ -3,15 +3,16 @@ import * as React from "react"
 import { MoreVertical } from "react-feather"
 import globalState, { State, EventHandler } from "./state"
 import { Box, IconButton } from "theme-ui"
+import { SelectOptionHeader } from "./shared"
 
 export const HandlerOptionsButton: React.FC<{
   node: State
   handler: EventHandler
 }> = ({ node, handler }) => {
   return (
-    <Box sx={{ position: "relative", height: "100%" }}>
+    <Box sx={{ position: "relative", height: "100%", cursor: "pointer" }}>
       <select
-        style={{ opacity: 0, height: "100%" }}
+        style={{ opacity: 0, height: "100%", cursor: "pointer" }}
         value={""}
         onChange={(e) => {
           switch (e.target.value) {
@@ -41,7 +42,7 @@ export const HandlerOptionsButton: React.FC<{
           }
         }}
       >
-        <option></option>
+        <SelectOptionHeader>Event Handler</SelectOptionHeader>
         {handler.index > 0 && <option value="move up">Move Up</option>}
         {handler.index < node.eventHandlers.size - 1 && (
           <option value="move down">Move Down</option>

@@ -1,5 +1,5 @@
 import { uniqueId, sortBy } from "lodash"
-import { createState } from "@state-designer/core"
+import { createState, S } from "@state-designer/core"
 
 export interface EventFunction {
   id: string
@@ -7,6 +7,8 @@ export interface EventFunction {
   name: string
   code: string
 }
+
+export type Id<T extends { id: string }> = T["id"]
 
 export interface Action extends EventFunction {}
 
@@ -18,16 +20,10 @@ export interface Time extends EventFunction {}
 
 export interface Value extends EventFunction {}
 
-export type Event = {
+export type SendEvent = {
   id: string
   index: number
   name: string
-}
-
-export enum TransitionType {
-  Normal = "normal",
-  Previous = "previous",
-  Restore = "restore",
 }
 
 export type EventHandler = {
@@ -37,38 +33,59 @@ export type EventHandler = {
   chain: Map<string, HandlerLink>
 }
 
+export enum TransitionType {
+  Normal = "normal",
+  Previous = "previous",
+  Restore = "restore",
+}
+
 export type HandlerLink = {
   id: string
   index: number
-  to?: string // state id
-  do?: string[]
+  to?: Id<State> // state id
+  do: Id<Action>[] // action id
+  if: Id<Condition>[] // condition id
   transitionType: TransitionType
 }
 
 export type State = {
   id: string
   index: number
-  parent?: string
+  parent?: Id<State>
   depth: number
   name: string
   eventHandlers: Map<string, EventHandler>
-  initial?: string
+  initial?: Id<State>
   states: Set<string>
 }
 
+type Results = {
+  state: State
+  event: SendEvent
+  eventHandler: EventHandler
+  eventHandlers: EventHandler[]
+  link: HandlerLink
+  links: HandlerLink[]
+}
+
 type InitialData = {
+  data: string
   selection: {
-    state?: string
+    state?: Id<State>
   }
-  events: Map<string, Event>
+  events: Map<string, SendEvent>
   states: Map<string, State>
   actions: Map<string, Action>
+  conditions: Map<string, Condition>
 }
 
 const initialData: InitialData = {
   selection: {
-    state: undefined,
+    state: "root",
   },
+  data: `{
+  count: 0
+}`,
   actions: new Map([
     [
       "action1",
@@ -83,9 +100,29 @@ const initialData: InitialData = {
       "action2",
       {
         id: "action2",
-        index: 0,
+        index: 1,
         name: "decrementCount",
         code: `data.count--`,
+      },
+    ],
+  ]),
+  conditions: new Map([
+    [
+      "cond1",
+      {
+        id: "cond1",
+        index: 0,
+        name: "countIsBelowMax",
+        code: `return data.count < 5`,
+      },
+    ],
+    [
+      "cond2",
+      {
+        id: "cond2",
+        index: 1,
+        name: "countIsAboveMin",
+        code: `return data.count > 0`,
       },
     ],
   ]),
@@ -99,19 +136,19 @@ const initialData: InitialData = {
       },
     ],
     [
-      "opened",
+      "incremented",
       {
-        id: "opened",
+        id: "incremented",
         index: 1,
-        name: "OPENED",
+        name: "INCREMENTED",
       },
     ],
     [
-      "closed",
+      "decremented",
       {
-        id: "closed",
+        id: "decremented",
         index: 2,
-        name: "CLOSED",
+        name: "DECREMENTED",
       },
     ],
   ]),
@@ -124,8 +161,51 @@ const initialData: InitialData = {
         depth: 0,
         name: "Root",
         initial: "toggled off",
-        eventHandlers: new Map(),
         states: new Set(["toggled off", "toggled on"]),
+        eventHandlers: new Map([
+          [
+            "incremented",
+            {
+              id: "on_incremented",
+              index: 0,
+              event: "incremented", // id
+              chain: new Map([
+                [
+                  "l0",
+                  {
+                    id: "l0",
+                    index: 0,
+                    to: undefined,
+                    if: ["cond1"],
+                    do: ["action1"],
+                    transitionType: TransitionType.Normal,
+                  },
+                ],
+              ]),
+            },
+          ],
+          [
+            "decremented",
+            {
+              id: "on_decremented",
+              index: 0,
+              event: "decremented", // id
+              chain: new Map([
+                [
+                  "l0",
+                  {
+                    id: "l0",
+                    index: 0,
+                    to: undefined,
+                    if: ["cond2"],
+                    do: ["action2"],
+                    transitionType: TransitionType.Normal,
+                  },
+                ],
+              ]),
+            },
+          ],
+        ]),
       },
     ],
     [
@@ -143,18 +223,7 @@ const initialData: InitialData = {
               id: "on_toggled",
               index: 0,
               event: "toggled", // id
-              chain: new Map([
-                [
-                  "t1",
-                  {
-                    id: "t1",
-                    index: 0,
-                    to: "toggled on",
-                    do: ["action1"],
-                    transitionType: TransitionType.Normal,
-                  },
-                ],
-              ]),
+              chain: new Map(),
             },
           ],
         ]),
@@ -183,6 +252,8 @@ const initialData: InitialData = {
                   {
                     id: "t2",
                     index: 0,
+                    if: [],
+                    do: [],
                     to: "toggled off",
                     transitionType: TransitionType.Normal,
                   },
@@ -204,41 +275,115 @@ const global = createState({
     // Editor
     SELECTED_STATE: "setSelectedState",
     DESELECTED_STATE: "clearSelectedState",
+    // Data
+    SAVED_DATA: "saveData",
     // Events
     ADDED_EVENT: "addEvent",
-    UPDATED_EVENT_NAME: "updateEventName",
-    MOVED_EVENT: "moveEvent",
+    UPDATED_EVENT_NAME: { get: "event", do: "updateEventName" },
+    MOVED_EVENT: { get: "event", do: "moveEvent" },
     DELETED_EVENT: ["deleteEventHandlers", "deleteEvent"],
     // State
     CREATED_STATE: "createState",
-    UPDATED_STATE_NAME: "updateStateName",
-    MOVED_STATE: "moveStateInParentStates",
+    UPDATED_STATE_NAME: { get: "state", do: "updateStateName" },
+    MOVED_STATE: { get: "state", do: "moveStateInParentStates" },
+    SET_INITIAL_STATE_ON_STATE: { get: "state", do: "setInitialState" },
     DELETED_STATE: "deleteState",
-    SET_INITIAL_STATE_ON_STATE: "setInitialState",
     // Event Handlers
-    ADDED_EVENT_HANDLER_TO_STATE: "addEventHandlerToState",
-    MOVED_EVENT_HANDLER: "moveEventHandler",
-    DELETED_EVENT_HANDLER_FROM_STATE: "deleteEventHandlerFromState",
+    ADDED_EVENT_HANDLER_TO_STATE: {
+      get: "state",
+      do: "addEventHandlerToState",
+    },
+    CHANGED_EVENT_HANDLER: { get: "eventHandler", do: "changeEventHandler" },
+    MOVED_EVENT_HANDLER: { get: "eventHandler", do: "moveEventHandler" },
+    DELETED_EVENT_HANDLER_FROM_STATE: {
+      get: "state",
+      do: "deleteEventHandlerFromState",
+    },
     // Handler Links
-    CREATED_LINK: "createLink",
-    MOVED_LINK: "moveLink",
-    SET_LINK_TRANSITION_TARGET: "setLinkTransitionTarget",
-    SET_LINK_TRANSITION_TYPE: "setLinkTransitionType",
-    DELETED_LINK: "deleteLink",
+    CREATED_LINK: { get: "eventHandler", do: "createLink" },
+    MOVED_LINK: { get: "handlerLink", do: "moveLink" },
+    SET_LINK_TRANSITION_TARGET: {
+      get: "handlerLink",
+      do: "setLinkTransitionTarget",
+    },
+    SET_LINK_TRANSITION_TYPE: {
+      get: "handlerLink",
+      do: "setLinkTransitionType",
+    },
+    DELETED_LINK: { get: "eventHandler", do: "deleteLink" },
     // Actions
     CHANGED_LINK_ACTION: {
-      if: "toIdIsEmpty",
+      get: "handlerLink",
+      if: "idIsEmpty",
       do: "deleteChangedLinkAction",
       else: "changeLinkAction",
     },
-    ADDED_LINK_ACTION: "addLinkAction",
+    ADDED_LINK_ACTION: { get: "handlerLink", do: "addLinkAction" },
+    // Conditions
+    CHANGED_LINK_CONDITION: {
+      if: "idIsEmpty",
+      get: "handlerLink",
+      do: "deleteChangedLinkCondition",
+      else: "changeLinkCondition",
+    },
+    ADDED_LINK_CONDITION: "addLinkCondition",
+  },
+  results: {
+    state(data, { stateId }) {
+      const state = data.states.get(stateId)
+      const eventHandlers = sortBy(
+        Array.from(state.eventHandlers.values()),
+        "index"
+      )
+      return { state, eventHandlers }
+    },
+    event(data, { eventId }) {
+      return { event: data.events.get(eventId) }
+    },
+    eventHandler(data, { stateId, eventId }) {
+      const state = data.states.get(stateId)
+      const eventHandlers = sortBy(
+        Array.from(state.eventHandlers.values()),
+        "index"
+      )
+      const eventHandler = state.eventHandlers.get(eventId)
+      return { state, eventHandler, eventHandlers }
+    },
+    handlerLinks(data, { stateId, eventId }) {
+      const state = data.states.get(stateId)
+      const eventHandlers = sortBy(
+        Array.from(state.eventHandlers.values()),
+        "index"
+      )
+      const eventHandler = state.eventHandlers.get(eventId)
+      const links = sortBy(Array.from(eventHandler.chain.values()), "index")
+      return { state, eventHandler, eventHandlers, links }
+    },
+    handlerLink(data, { stateId, eventId, linkId }) {
+      const state = data.states.get(stateId)
+      const eventHandlers = sortBy(
+        Array.from(state.eventHandlers.values()),
+        "index"
+      )
+      const eventHandler = state.eventHandlers.get(eventId)
+      const link = eventHandler.chain.get(linkId)
+      const links = sortBy(Array.from(eventHandler.chain.values()), "index")
+      return { state, eventHandler, eventHandlers, link, links }
+    },
   },
   conditions: {
-    toIdIsEmpty(_, { toId }) {
-      return toId === ""
+    idIsEmpty(_, { id }) {
+      return id === ""
+    },
+    dataIsValid(data) {
+      return true
     },
   },
   actions: {
+    // Data
+    saveData(data, dataString: string) {
+      data.data = dataString
+    },
     // Selection
     setSelectedState(data, stateId) {
       data.selection.state = stateId
@@ -255,20 +400,18 @@ const global = createState({
         index: data.events.size,
       })
     },
-    moveEvent(data, { eventId, delta }) {
-      const e = data.events.get(eventId)
-
+    moveEvent(data, { eventId, delta }, { event }: Results) {
       const events = sortBy(Array.from(data.events.values()), "index")
 
-      events.splice(e.index, 1)
-      events.splice(e.index + delta, 0, e)
+      events.splice(event.index, 1)
+      events.splice(event.index + delta, 0, event)
       events.forEach((event, i) => (event.index = i))
     },
-    updateEventName(data, { eventId, name }) {
+    updateEventName(data, { eventId, name }, { event }: Results) {
       const e = data.events.get(eventId)
       e.name = name
     },
-    deleteEvent(data, { eventId }) {
+    deleteEvent(data, { eventId }, { event }: Results) {
       data.events.delete(eventId)
     },
     // States
@@ -290,36 +433,30 @@ const global = createState({
 
       p.states.add(id)
     },
-    setInitialState(data, { stateId, initialId }) {
-      const s = data.states.get(stateId)
-      s.initial = initialId
+    setInitialState(data, { initialId }, { state }: Results) {
+      state.initial = initialId
     },
-    updateStateName(data, { stateId, name }) {
-      const s = data.states.get(stateId)
-      s.name = name
+    updateStateName(data, { name }, { state }: Results) {
+      state.name = name
     },
-    updateState(data, { stateId, name }) {
-      const s = data.states.get(stateId)
-      s.name = name
+    updateState(data, { name }, { state }: Results) {
+      state.name = name
     },
-    moveState(data, { stateId, delta }) {
-      const s = data.states.get(stateId)
-
+    moveState(data, { delta }, { state }: Results) {
       const states = sortBy(Array.from(data.states.values()), "index")
-      states.splice(s.index, 1)
-      states.splice(s.index + delta, 0, s)
+      states.splice(state.index, 1)
+      states.splice(state.index + delta, 0, state)
       states.forEach((state, i) => (state.index = i))
     },
-    moveStateInParentStates(data, { stateId, delta }) {
-      const s = data.states.get(stateId)
-      const p = data.states.get(s.parent)
+    moveStateInParentStates(data, { delta }, { state }: Results) {
+      const p = data.states.get(state.parent)
 
       const states = sortBy(
         Array.from(p.states.keys()).map((id) => data.states.get(id)),
         "index"
       )
-      states.splice(s.index, 1)
-      states.splice(s.index + delta, 0, s)
+      states.splice(state.index, 1)
+      states.splice(state.index + delta, 0, state)
       states.forEach((state, i) => (state.index = i))
     },
     deleteState(data, { stateId }) {
@@ -340,12 +477,11 @@ const global = createState({
     },
 
     // Event Handlers
-    addEventHandlerToState(data, { stateId, eventId }) {
-      const s = data.states.get(stateId)
+    addEventHandlerToState(_, { eventId }, { state }: Results) {
       const linkId = uniqueId()
-      s.eventHandlers.set(eventId, {
+      state.eventHandlers.set(eventId, {
         id: uniqueId(),
-        index: s.eventHandlers.size,
+        index: state.eventHandlers.size,
         event: eventId,
         chain: new Map([
           [
@@ -353,6 +489,8 @@ const global = createState({
             {
               id: linkId,
               index: 0,
+              if: [],
+              do: [],
               to: undefined,
               transitionType: TransitionType.Normal,
             },
@@ -360,18 +498,18 @@ const global = createState({
         ]),
       })
     },
-    moveEventHandler(data, { stateId, eventId, delta }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-
-      const handlers = sortBy(Array.from(s.eventHandlers.values()), "index")
-      handlers.splice(e.index, 1)
-      handlers.splice(e.index + delta, 0, e)
-      handlers.forEach((h, i) => (h.index = i))
+    changeEventHandler(_, { id }, { state, eventHandler }: Results) {
+      state.eventHandlers.delete(eventHandler.event)
+      eventHandler.event = id
+      state.eventHandlers.set(id, eventHandler)
     },
-    deleteEventHandlerFromState(data, { stateId, eventId }) {
-      const s = data.states.get(stateId)
-      s.eventHandlers.delete(eventId)
+    moveEventHandler(_, { delta }, { eventHandlers, eventHandler }: Results) {
+      eventHandlers.splice(eventHandler.index, 1)
+      eventHandlers.splice(eventHandler.index + delta, 0, eventHandler)
+      eventHandlers.forEach((h, i) => (h.index = i))
+    },
+    deleteEventHandlerFromState(_, { eventId }, { state }: Results) {
+      state.eventHandlers.delete(eventId)
     },
     deleteEventHandlers(data, { eventId }) {
       data.states.forEach((state) => {
@@ -380,68 +518,50 @@ const global = createState({
     },
 
     // Event Handler Links (Handler Objects in the Event Handler Chain)
-    createLink(data, { stateId, eventId }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
+    createLink(_, __, { eventHandler }: Results) {
       const id = uniqueId()
-      e.chain.set(id, {
-        id: id,
-        index: e.chain.size,
+      eventHandler.chain.set(id, {
+        id,
+        index: eventHandler.chain.size,
         to: undefined,
+        do: [],
+        if: [],
         transitionType: TransitionType.Normal,
       })
     },
-    moveLink(data, { stateId, eventId, linkId, delta }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-      const l = e.chain.get(linkId)
-
-      const links = sortBy(Array.from(e.chain.values()), "index")
-
-      links.splice(l.index, 1)
-      links.splice(l.index + delta, 0, l)
+    moveLink(_, { delta }, { link, links }: Results) {
+      links.splice(link.index, 1)
+      links.splice(link.index + delta, 0, link)
       links.forEach((link, i) => (link.index = i))
     },
-    deleteLink(data, { stateId, eventId, linkId }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-
-      e.chain.delete(linkId)
+    deleteLink(_, { linkId }, { eventHandler }: Results) {
+      eventHandler.chain.delete(linkId)
     },
-    setLinkTransitionTarget(data, { stateId, eventId, linkId, targetId }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-      const l = e.chain.get(linkId)
-
-      l.to = targetId
+    setLinkTransitionTarget(_, { id }, { link }: Results) {
+      link.to = id
     },
-    setLinkTransitionType(data, { stateId, eventId, linkId, type }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-      const l = e.chain.get(linkId)
-
-      l.transitionType = type
+    setLinkTransitionType(_, { type }, { link }: Results) {
+      link.transitionType = type
     },
-    changeLinkAction(data, { stateId, eventId, linkId, toId, index }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-      const l = e.chain.get(linkId)
-
-      l.do[index] = toId
+    // Conditions
+    changeLinkCondition(_, { id, index }, { link }: Results) {
+      link.if[index] = id
     },
-    deleteChangedLinkAction(data, { stateId, eventId, linkId, fromId }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-      const l = e.chain.get(linkId)
-
-      l.do.splice(l.do.indexOf(fromId), 1)
+    deleteChangedLinkCondition(_, { id }, { link }: Results) {
+      link.if.splice(link.if.indexOf(id), 1)
     },
-    addLinkAction(data, { stateId, eventId, linkId, actionId }) {
-      const s = data.states.get(stateId)
-      const e = s.eventHandlers.get(eventId)
-      const l = e.chain.get(linkId)
-
-      l.do.push(actionId)
+    addLinkCondition(_, { id }, { link }: Results) {
+      link.if.push(id)
+    },
+    // Actions
+    changeLinkAction(_, { index, id }, { link }: Results) {
+      link.do[index] = id
+    },
+    deleteChangedLinkAction(_, { id }, { link }: Results) {
+      link.do.splice(link.do.indexOf(id), 1)
+    },
+    addLinkAction(_, { id }, { link }: Results) {
+      link.do.push(id)
     },
   },
   values: {
@@ -449,10 +569,16 @@ const global = createState({
       return data.states.get(data.selection.state)
     },
     states(data) {
-      return sortBy(Array.from(data.states.values()), "index")
+      return getIndexSortedValues(data.states)
     },
     events(data) {
-      return sortBy(Array.from(data.events.values()), "index")
+      return getIndexSortedValues(data.events)
+    },
+    actions(data) {
+      return getIndexSortedValues(data.actions)
+    },
+    conditions(data) {
+      return getIndexSortedValues(data.conditions)
     },
     simulation(data) {
       const root = data.states.get("root")
@@ -466,7 +592,9 @@ const global = createState({
       function getLink(link: HandlerLink) {
         const decorator = getDecorator(link.transitionType)
         return {
-          to: data.states.get(link.to)?.name + decorator,
+          if: link.if.map((id) => data.conditions.get(id).name),
+          do: link.do.map((id) => data.actions.get(id).name),
+          to: link.to ? data.states.get(link.to).name + decorator : undefined,
         }
       }
 
@@ -502,15 +630,47 @@ const global = createState({
         ] as const
       }
 
+      function getData(data: string) {
+        return Function(`return ${data}`)()
+      }
+
+      function getCollection(
+        collection: Map<string, EventFunction>
+      ): { [key: string]: any } {
+        return Object.fromEntries(
+          getIndexSortedValues(collection).map((fn) => [
+            fn.name,
+            Function("data", "payload", "result", fn.code) as any,
+          ])
+        )
+      }
+
       const [_, rootState] = getState(root)
 
-      return createState({
+      let fData: any = {}
+
+      try {
+        fData = getData(data.data)
+      } catch (e) {
+        console.log("Error in data", e.message)
+      }
+
+      const finalState = createState({
+        data: fData,
         initial: data.states.get(root.initial)?.name,
         on: rootState.on,
         states: rootState.states,
+        conditions: getCollection(data.conditions),
+        actions: getCollection(data.actions),
       })
+
+      return finalState
     },
   },
 })
 
 export default global
+
+function getIndexSortedValues<T>(map: Map<string, T>) {
+  return sortBy(Array.from(map.values()), "index")
+}

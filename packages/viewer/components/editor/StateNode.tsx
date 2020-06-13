@@ -4,7 +4,7 @@ import { sortBy } from "lodash"
 import { Plus } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import globalState, { State } from "./state"
-import { SectionHeader, CreateRow, InputRow, Row, ListRow } from "./shared"
+import { SelectOptionHeader, CreateRow, InputRow, Row, ListRow } from "./shared"
 import { EventHandler } from "./EventHandler"
 import { StateListItem } from "./StateListItem"
 import {
@@ -45,7 +45,7 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
         }
       />
       {parentNode && (
-        <Row columns="44px 1fr">
+        <Row columns="56px 1fr">
           Parent
           <Button
             sx={{ width: "100%", textAlign: "left" }}
@@ -59,7 +59,14 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
       <Divider mx={-4} />
       <Row>
         <Heading>Event Handlers</Heading>
-        <Box sx={{ position: "relative", width: 44, height: 36 }}>
+        <Box
+          sx={{
+            position: "relative",
+            width: 44,
+            height: 36,
+            cursor: "pointer",
+          }}
+        >
           <IconButton
             sx={{
               height: "100%",
@@ -74,6 +81,7 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
           <select
             style={{
               opacity: 0,
+              cursor: "pointer",
               position: "absolute",
               top: 0,
               left: 0,
@@ -89,9 +97,7 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
               })
             }}
           >
-            <option value="" disabled>
-              Add Event Handler
-            </option>
+            <SelectOptionHeader>Add Event Handler</SelectOptionHeader>
             {eventsToAdd.map((event) => (
               <option key={event.id} value={event.id}>
                 {event.name}

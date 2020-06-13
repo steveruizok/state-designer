@@ -5,14 +5,17 @@ import { useStateDesigner } from "@state-designer/react"
 import globalState, { State } from "./state"
 import { StateListItem } from "./StateListItem"
 import { EventOptionsButton } from "./EventOptionsButton"
+import { DataEditor } from "./DataEditor"
 import { Column, CreateRow, InputRow } from "./shared"
-import { Styled, Heading } from "theme-ui"
+import { Styled, Heading, Textarea } from "theme-ui"
 
 export const ContentPanel: React.FC<{}> = () => {
   const global = useStateDesigner(globalState)
 
   return (
     <Column bg={"panel"}>
+      <Heading>Data</Heading>
+      <DataEditor clean={global.data.data} />
       <Heading>Events List</Heading>
       <CreateRow
         defaultValue=""
