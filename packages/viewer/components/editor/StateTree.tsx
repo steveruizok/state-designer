@@ -49,6 +49,21 @@ const Branch: React.FC<{ branch: StateBranch; selectedId: string }> = ({
                     stateId: state.id,
                     delta: 1,
                   }),
+          ...(!isRoot && isInitial
+            ? {
+                "Clear Initial": () =>
+                  globalState.send("SET_INITIAL_STATE_ON_STATE", {
+                    stateId: state.parent,
+                    initialId: undefined,
+                  }),
+              }
+            : {
+                "Make Initial": () =>
+                  globalState.send("SET_INITIAL_STATE_ON_STATE", {
+                    stateId: state.parent,
+                    initialId: state.id,
+                  }),
+              }),
           Rename: isRoot
             ? null
             : (input) => {

@@ -10,7 +10,7 @@ import { Divider, Heading } from "theme-ui"
 
 export const ContentPanel: React.FC<{}> = () => {
   const global = useStateDesigner(globalState)
-  const width = useMotionValue(358)
+  const width = useMotionValue(357)
   const animation = useAnimation()
 
   return (
@@ -21,7 +21,7 @@ export const ContentPanel: React.FC<{}> = () => {
           height: "100%",
           position: "absolute",
           left: 0,
-          backgroundColor: "rgba(255, 255, 255, .1)",
+          borderLeft: "1px solid rgba(93, 90, 105, 1.000)",
           cursor: "ew-resize",
           x: width,
           zIndex: 999,
@@ -36,9 +36,9 @@ export const ContentPanel: React.FC<{}> = () => {
         onDoubleClick={() => animation.start({ x: 358 })}
       />
       <StateTree />
-      <Divider />
+      {/* <Divider /> */}
       <EventList />
-      <Divider />
+      {/* <Divider /> */}
       <DataEditor
         code={global.data.data}
         onChangeCode={(code) => global.send("CHANGED_DATA", code)}

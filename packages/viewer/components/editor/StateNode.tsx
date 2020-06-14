@@ -125,7 +125,7 @@ const InitialStatePicker: React.FC<{ node: State; childNodes: State[] }> = ({
           <Radio
             name={`${node.id}_initialState`}
             value={undefined}
-            defaultChecked={node.initial === undefined}
+            checked={node.initial === undefined}
             onChange={() =>
               globalState.send("SET_INITIAL_STATE_ON_STATE", {
                 stateId: node.id,

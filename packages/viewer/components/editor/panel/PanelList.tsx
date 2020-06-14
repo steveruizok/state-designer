@@ -3,7 +3,7 @@ import { Heading, Box } from "theme-ui"
 
 export const PanelList: React.FC<{ title: string }> = ({ title, children }) => {
   return (
-    <Box>
+    <Box mb={3}>
       <Box
         sx={{
           px: 2,

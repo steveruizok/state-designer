@@ -11,14 +11,6 @@ export const EventList: React.FC = () => {
 
   return (
     <PanelList title="Events">
-      <Box my={2} px={2}>
-        <CreateRow
-          defaultValue=""
-          placeholder="Create Event"
-          format={(name) => name.replace(" ", "_").toUpperCase()}
-          onSubmit={(name) => global.send("ADDED_EVENT", name)}
-        />
-      </Box>
       {global.values.events.map((event) => {
         const isFirst = event.index === 0
         const isLast = event.index === global.values.events.length - 1
@@ -72,6 +64,14 @@ export const EventList: React.FC = () => {
           />
         )
       })}
+      <Box my={2} px={2}>
+        <CreateRow
+          defaultValue=""
+          placeholder="Create Event"
+          format={(name) => name.replace(" ", "_").toUpperCase()}
+          onSubmit={(name) => global.send("ADDED_EVENT", name)}
+        />
+      </Box>
     </PanelList>
   )
 }

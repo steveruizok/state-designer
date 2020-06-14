@@ -108,14 +108,24 @@ const EventFunctionSelect: React.FC<{
   title?: string
   onChange: (id: string) => void
   placeholder: string
+  dim?: boolean
   fns: EventFunction[]
-}> = ({ value, fns, onChange, variant = "select", title, placeholder }) => {
+}> = ({
+  value,
+  dim,
+  fns,
+  onChange,
+  variant = "select",
+  title,
+  placeholder,
+}) => {
   return (
     <Box sx={{ gridColumn: 2 }}>
       <Select
         variant={variant}
         disabled={fns.length === 0}
         value={value || ""}
+        sx={{ color: dim ? "active" : "text" }}
         onChange={(e) => onChange(e.target.value)}
       >
         {title && <SelectOptionHeader>{title}</SelectOptionHeader>}
@@ -145,7 +155,7 @@ const LinkConditions: React.FC<{
 }> = ({ link, node, handler, conditions }) => {
   return (
     <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
-      If:
+      If
       {link.if.map((condId, index) => (
         <EventFunctionSelect
           key={index}
@@ -168,6 +178,7 @@ const LinkConditions: React.FC<{
         variant="create"
         fns={conditions.filter(({ id }) => !link.if.includes(id))}
         value=""
+        dim={true}
         placeholder="Add Condition"
         onChange={(id) =>
           globalState.send("ADDED_LINK_CONDITION", {
@@ -192,7 +203,7 @@ const LinkActions: React.FC<{
 }> = ({ link, node, actions, handler }) => {
   return (
     <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
-      Do:
+      Do
       {link.do.map((actionId, index) => (
         <EventFunctionSelect
           key={index}
@@ -216,6 +227,7 @@ const LinkActions: React.FC<{
         variant="create"
         placeholder="Add Action"
         fns={actions}
+        dim={true}
         onChange={(id) =>
           globalState.send("ADDED_LINK_ACTION", {
             stateId: node.id,
@@ -239,11 +251,22 @@ const LinkTransitions: React.FC<{
 }> = ({ link, node, handler, targets }) => {
   return (
     <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
-      <div>To: </div>
+      <div>To</div>
       <Select
         defaultValue={link.to}
         variant={link.to ? "select" : "create"}
+        sx={{ color: link.to ? "text" : "active" }}
         onChange={(e) => {
+          if (e.target.value === "Remove Target") {
+            globalState.send("SET_LINK_TRANSITION_TARGET", {
+              stateId: node.id,
+              eventId: handler.event,
+              linkId: link.id,
+              id: undefined,
+            })
+            return
+          }
+
           globalState.send("SET_LINK_TRANSITION_TARGET", {
             stateId: node.id,
             eventId: handler.event,
@@ -252,7 +275,8 @@ const LinkTransitions: React.FC<{
           })
         }}
       >
-        <option>Select target</option>
+        <option>{link.to ? "Remove Target" : "Select Target"}</option>
+        <option disabled>—</option>
         {targets
           .map((state) => ({
             label: state.name,
