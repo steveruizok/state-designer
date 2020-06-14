@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useStateDesigner, StateGraph } from "@state-designer/react"
-import { Text, Button, Grid } from "theme-ui"
+import { Divider, Button, Grid, Styled } from "theme-ui"
 import global from "./state"
 import { Column } from "./shared"
 
@@ -30,11 +30,26 @@ export const Simulation: React.FC<{}> = () => {
         ))}
       </Grid>
       Data:
-      <Text>
-        <pre>
-          <code>{JSON.stringify(state.data, null, 2)}</code>
-        </pre>
-      </Text>
+      <Styled.pre>
+        <Styled.code>{JSON.stringify(state.data, null, 2)}</Styled.code>
+      </Styled.pre>
+      <Divider />
+      Design
+      <Styled.pre>
+        <Styled.code>
+          {JSON.stringify(
+            state.getDesign(),
+            (k, v) =>
+              typeof v === "function"
+                ? v
+                    .toString()
+                    .replace("function anonymous", "function " + k)
+                    .replace("data,payload,result\n)", "data, payload, result)")
+                : v,
+            2
+          )}
+        </Styled.code>
+      </Styled.pre>
     </Column>
   )
 }

@@ -5,12 +5,13 @@ export default {
   colors: {
     ...deep.colors,
     primary: "#4679f6",
-    secondary: "#4679f6",
-    background: "#25243c",
+    secondary: "#ca6bdb",
+    background: "#2a2938",
+    tint: "rgba(69, 122, 246, 0.500)",
     text: "#efefef",
     muted: "rgba(245, 245, 255, .08)",
     active: "rgba(245, 240, 255, .18)",
-    panel: "#25243c",
+    panel: "#2a2938",
     surface: "rgba(245, 240, 255, .06)",
     low: "rgba(0,0,0, 0.100)",
   },
@@ -39,12 +40,14 @@ export default {
     ul: {
       listStyleType: "none",
       pl: 0,
-      margin: 0,
+      m: 0,
     },
     li: {
-      my: 3,
-      "&:last-child": {
-        marginBottom: 0,
+      m: 0,
+      pl: 0,
+      pb: 3,
+      "&:first-child": {
+        pt: 3,
       },
     },
     pre: {
@@ -106,9 +109,43 @@ export default {
         color: "grey",
       },
     },
+    link: {
+      bg: "transparent",
+      textAlign: "left",
+      outline: "transparent",
+      cursor: "pointer",
+      color: "text",
+      p: 2,
+      ml: -2,
+    },
   },
   forms: {
     input: {
+      fontFamily: "body",
+      textShadow: "outline",
+      borderColor: "transparent",
+      outline: "transparent",
+      bg: "muted",
+      "&:focus": {
+        bg: "active",
+        borderColor: "transparent",
+      },
+    },
+    item: {
+      fontFamily: "body",
+      textShadow: "outline",
+      borderColor: "transparent",
+      outline: "transparent",
+      m: 0,
+      bg: "transparent",
+      borderRadius: 0,
+      "&:focus": {
+        bg: "text",
+        color: "background",
+        borderColor: "text",
+      },
+    },
+    textarea: {
       fontFamily: "body",
       textShadow: "outline",
       borderColor: "transparent",
@@ -125,6 +162,21 @@ export default {
       border: "none",
       outline: "transparent",
       bg: "muted",
+      cursor: "pointer",
+      "&:hover": {
+        textDecoration: "underline",
+      },
+    },
+    create: {
+      fontFamily: "body",
+      textShadow: "outline",
+      border: "none",
+      outline: "transparent",
+      bg: "transparent",
+      cursor: "pointer",
+      "&:hover": {
+        textDecoration: "underline",
+      },
     },
     radio: {
       textShadow: "outline",
@@ -136,6 +188,10 @@ export default {
   cards: {
     editor: {
       state: {
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        gridAutoRows: "auto",
+        gridRowGap: 2,
         bg: "surface",
         width: "100%",
         borderColor: "grey",
@@ -145,9 +201,6 @@ export default {
         overflow: "hidden",
         position: "relative",
         boxShadow: "high",
-        "& > *": {
-          mb: 3,
-        },
         "& > hr": {
           my: 4,
         },
@@ -156,7 +209,8 @@ export default {
         mx: -3,
         bg: "surface",
         display: "grid",
-        p: 3,
+        px: 3,
+        py: 4,
         boxShadow: "med",
         gap: 2,
         borderRadius: 16,
@@ -165,7 +219,7 @@ export default {
         position: "relative",
         overflow: "hidden",
         display: "grid",
-        gap: 2,
+        gap: 1,
         ml: 0,
         mr: 0,
         p: 3,

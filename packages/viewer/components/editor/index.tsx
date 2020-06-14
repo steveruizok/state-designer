@@ -2,6 +2,7 @@ import * as React from "react"
 import { useStateDesigner } from "@state-designer/react"
 import { Box } from "theme-ui"
 import { ContentPanel } from "./ContentPanel"
+import { CollectionsPanel } from "./CollectionsPanel"
 import { Inspector } from "./Inspector"
 import { Simulation } from "./Simulation"
 
@@ -10,7 +11,7 @@ export const Editor: React.FC<{}> = () => {
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: ["100%", "360px 480px 1fr"],
+        gridTemplateColumns: ["100%", "auto 480px 1fr 400px"],
         gridTemplateRows: ["auto", "100vh"],
         overflowY: "scroll",
       }}
@@ -18,6 +19,7 @@ export const Editor: React.FC<{}> = () => {
       <ContentPanel />
       <Inspector />
       <Simulation />
+      <CollectionsPanel />
     </Box>
   )
 }

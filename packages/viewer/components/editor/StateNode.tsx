@@ -29,36 +29,16 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
   const eventsToAdd = global.values.events.filter(
     (event) => !node.eventHandlers.has(event.id)
   )
+  const eventHandlers = sortBy(Array.from(node.eventHandlers.values()), "index")
 
   return (
     <Card variant="editor.state">
       {/* Name */}
-      <InputRow
-        label="Name"
-        defaultValue={node.name}
-        readOnly={node.id === "root"}
-        onSubmit={(name) =>
-          globalState.send("UPDATED_STATE_NAME", {
-            ...node,
-            name,
-          })
-        }
-      />
-      {parentNode && (
-        <Row columns="56px 1fr">
-          Parent
-          <Button
-            sx={{ width: "100%", textAlign: "left" }}
-            onClick={() => global.send("SELECTED_STATE", parentNode.id)}
-          >
-            {parentNode.name}
-          </Button>
-        </Row>
-      )}
+      <Heading as={"h3"}>{node.name}</Heading>
       {/* Events Handlers */}
       <Divider mx={-4} />
       <Row>
-        <Heading>Event Handlers</Heading>
+        <Heading as={"h3"}>Event Handlers</Heading>
         <Box
           sx={{
             position: "relative",
@@ -107,17 +87,15 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
         </Box>
       </Row>
       <ListRow>
-        {sortBy(Array.from(node.eventHandlers.values()), "index").map(
-          (handler) => (
-            <Styled.li key={handler.id}>
-              <EventHandler handler={handler} node={node} />
-            </Styled.li>
-          )
-        )}
+        {eventHandlers.map((handler) => (
+          <Styled.li key={handler.id}>
+            <EventHandler handler={handler} node={node} />
+          </Styled.li>
+        ))}
       </ListRow>
       {/* States */}
       <Divider mx={-4} />
-      <Heading>States</Heading>
+      <Heading as="h3">States</Heading>
       <CreateRow
         defaultValue=""
         placeholder="Create State"

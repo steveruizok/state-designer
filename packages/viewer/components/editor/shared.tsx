@@ -24,7 +24,6 @@ export const Row: React.FC<GridProps & { columns?: string; ref?: never }> = ({
   return (
     <Grid
       gap={2}
-      mb={2}
       {...rest}
       sx={{
         gridTemplateColumns: columns,
@@ -305,7 +304,7 @@ export const Column: React.FC<BoxProps> = ({ children, ...rest }) => {
         ...rest.sx,
       }}
     >
-      <Grid sx={{ height: "fit-content" }} py={3} gap={2}>
+      <Grid sx={{ height: "fit-content" }} gap={3}>
         {children}
       </Grid>
     </Box>

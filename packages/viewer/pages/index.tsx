@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { Chart } from "../components/Chart"
+import { Editor } from "../components/editor"
 import App, { Container } from "next/app"
 import { ThemeProvider } from "theme-ui"
 import { Global } from "@emotion/core"
@@ -17,7 +17,7 @@ export default class extends App {
   }
 
   render() {
-    const { Component = Chart, pageProps } = this.props
+    const { Component = Editor, pageProps } = this.props
 
     return (
       <div>

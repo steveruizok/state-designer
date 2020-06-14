@@ -44,7 +44,7 @@ export default class extends App {
               },
             })}
           />
-          <main>{Editor && <Editor {...pageProps} />}</main>
+          <main>{Component && <Component {...pageProps} />}</main>
         </ThemeProvider>
       </div>
     )

@@ -6,14 +6,15 @@ import { InputRow } from "./shared"
 import { Box, Input, Grid, Textarea, IconButton } from "theme-ui"
 import Editor from "react-simple-code-editor"
 import { highlight, languages } from "prismjs/components/prism-core"
-import { PanelList } from "./panel/PanelList"
-import { PanelItem } from "./panel/PanelItem"
 
-export const DataEditor: React.FC<{
+export const CodeEditor: React.FC<{
+  name: string
   code: string
   validate?: (code: string) => boolean
   onChangeCode: (code: string) => void
-}> = ({ code, validate, onChangeCode }) => {
+  onChangeName: (name: string) => void
+  optionsButton?: React.ReactElement
+}> = ({ name, code, validate, onChangeCode, onChangeName, optionsButton }) => {
   const global = useStateDesigner(globalState)
   const state = useStateDesigner(
     {
@@ -78,9 +79,10 @@ export const DataEditor: React.FC<{
         },
         setError(d) {
           let error: string = ""
+          console.log("setting error")
 
           try {
-            Function("return " + d.dirty)
+            Function("data", "payload", "result", d.dirty)(global.values.data)
           } catch (e) {
             error = e.message
           }
@@ -96,47 +98,56 @@ export const DataEditor: React.FC<{
   )
 
   return (
-    <PanelList title="Data">
-      <Editor
-        value={state.data.dirty}
-        highlight={(code) => {
-          return highlight(code, languages.js)
-        }}
-        padding={8}
-        style={{
-          backgroundColor: "#1d1d2d",
-          fontFamily: '"Fira code", "Fira Mono", monospace',
-          fontSize: 14,
-        }}
-        onValueChange={(code) => state.send("CHANGED_CODE", code)}
-        onFocus={() => state.send("STARTED_EDITING")}
-        onBlur={() => state.send("STOPPED_EDITING")}
-        onKeyPress={(e) => {
-          if (e.shiftKey && e.key === "Enter" && state.can("SAVED")) {
-            e.preventDefault()
-            state.send("SAVED")
-            e.currentTarget.blur()
-          }
-        }}
-        onKeyUp={(e) => {
-          if (e.key === "Escape" && state.can("CANCELLED")) {
-            e.preventDefault()
-            state.send("CANCELLED")
-            e.currentTarget.blur()
-          }
-        }}
-      />
-      {state.isIn("editing") && (
-        <Grid
-          gap={2}
-          sx={{
-            mt: 2,
-            mx: 2,
-            gridTemplateColumns: "1fr auto auto",
-            fontFamily: "monospace",
-            borderRadius: 12,
+    <Grid
+      sx={{
+        columnGap: 2,
+        rowGap: 3,
+        bg: "muted",
+        gridTemplateColumns: "1fr auto auto",
+        fontFamily: "monospace",
+        p: 3,
+        borderRadius: 12,
+      }}
+    >
+      <Box sx={{ gridColumn: "span 3" }}>
+        <InputRow
+          defaultValue={name}
+          onSubmit={(name) => onChangeName(name)}
+          optionsButton={optionsButton}
+        />
+      </Box>
+      <Box bg={"low"} sx={{ gridColumn: "span 3" }}>
+        <Editor
+          value={state.data.dirty}
+          highlight={(code) => {
+            return highlight(code, languages.js)
           }}
-        >
+          padding={10}
+          style={{
+            fontFamily: '"Fira code", "Fira Mono", monospace',
+            fontSize: 12,
+          }}
+          onValueChange={(code) => state.send("CHANGED_CODE", code)}
+          onFocus={() => state.send("STARTED_EDITING")}
+          onBlur={() => state.send("STOPPED_EDITING")}
+          onKeyPress={(e) => {
+            if (e.shiftKey && e.key === "Enter" && state.can("SAVED")) {
+              e.preventDefault()
+              state.send("SAVED")
+              e.currentTarget.blur()
+            }
+          }}
+          onKeyUp={(e) => {
+            if (e.key === "Escape" && state.can("CANCELLED")) {
+              e.preventDefault()
+              state.send("CANCELLED")
+              e.currentTarget.blur()
+            }
+          }}
+        />
+      </Box>
+      {state.isIn("editing") && (
+        <>
           <Input
             bg="low"
             readOnly
@@ -153,8 +164,8 @@ export const DataEditor: React.FC<{
           <IconButton onClick={() => state.send("CANCELLED")}>
             <X />
           </IconButton>
-        </Grid>
+        </>
       )}
-    </PanelList>
+    </Grid>
   )
 }

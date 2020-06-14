@@ -1,14 +1,14 @@
 import { uniqueId, sortBy } from "lodash"
 import { createState, S } from "@state-designer/core"
 
+export type Id<T extends { id: string }> = T["id"]
+
 export interface EventFunction {
   id: string
   index: number
   name: string
   code: string
 }
-
-export type Id<T extends { id: string }> = T["id"]
 
 export interface Action extends EventFunction {}
 
@@ -24,6 +24,14 @@ export type SendEvent = {
   id: string
   index: number
   name: string
+}
+
+export type StateBranch = {
+  state: State
+  isInitial: boolean
+  isFirst: boolean
+  isLast: boolean
+  children?: StateBranch[]
 }
 
 export type EventHandler = {
@@ -188,7 +196,7 @@ const initialData: InitialData = {
             "decremented",
             {
               id: "on_decremented",
-              index: 0,
+              index: 1,
               event: "decremented", // id
               chain: new Map([
                 [
@@ -276,15 +284,15 @@ const global = createState({
     SELECTED_STATE: "setSelectedState",
     DESELECTED_STATE: "clearSelectedState",
     // Data
-    SAVED_DATA: "saveData",
+    CHANGED_DATA: "saveData",
     // Events
     ADDED_EVENT: "addEvent",
-    UPDATED_EVENT_NAME: { get: "event", do: "updateEventName" },
+    CHANGED_EVENT_NAME: { get: "event", do: "updateEventName" },
     MOVED_EVENT: { get: "event", do: "moveEvent" },
     DELETED_EVENT: ["deleteEventHandlers", "deleteEvent"],
     // State
     CREATED_STATE: "createState",
-    UPDATED_STATE_NAME: { get: "state", do: "updateStateName" },
+    CHANGED_STATE_NAME: { get: "state", do: "updateStateName" },
     MOVED_STATE: { get: "state", do: "moveStateInParentStates" },
     SET_INITIAL_STATE_ON_STATE: { get: "state", do: "setInitialState" },
     DELETED_STATE: "deleteState",
@@ -311,7 +319,6 @@ const global = createState({
       do: "setLinkTransitionType",
     },
     DELETED_LINK: { get: "eventHandler", do: "deleteLink" },
-    // Actions
     CHANGED_LINK_ACTION: {
       get: "handlerLink",
       if: "idIsEmpty",
@@ -319,14 +326,25 @@ const global = createState({
       else: "changeLinkAction",
     },
     ADDED_LINK_ACTION: { get: "handlerLink", do: "addLinkAction" },
-    // Conditions
     CHANGED_LINK_CONDITION: {
       if: "idIsEmpty",
       get: "handlerLink",
       do: "deleteChangedLinkCondition",
       else: "changeLinkCondition",
     },
-    ADDED_LINK_CONDITION: "addLinkCondition",
+    ADDED_LINK_CONDITION: { get: "handlerLink", do: "addLinkCondition" },
+    // Actions
+    CREATED_ACTION: "createAction",
+    MOVED_ACTION: { get: "action", do: "moveEventFn" },
+    CHANGED_ACTION_NAME: { get: "action", do: "setEventFnName" },
+    CHANGED_ACTION_CODE: { get: "action", do: "setEventFnCode" },
+    DELETED_ACTION: "deleteAction",
+    // Conditions
+    CREATED_CONDITION: "createCondition",
+    MOVED_CONDITION: { get: "condition", do: "moveEventFn" },
+    CHANGED_CONDITION_NAME: { get: "condition", do: "setEventFnName" },
+    CHANGED_CONDITION_CODE: { get: "condition", do: "setEventFnCode" },
+    DELETED_CONDITION: "deleteCondition",
   },
   results: {
     state(data, { stateId }) {
@@ -370,13 +388,20 @@ const global = createState({
       const links = sortBy(Array.from(eventHandler.chain.values()), "index")
       return { state, eventHandler, eventHandlers, link, links }
     },
+    action(data, { id }) {
+      const fn = data.actions.get(id)
+      const fns = sortBy(Array.from(data.actions.values()), "index")
+      return { fn, fns }
+    },
+    condition(data, { id }) {
+      const fn = data.conditions.get(id)
+      const fns = sortBy(Array.from(data.conditions.values()), "index")
+      return { fn, fns }
+    },
   },
   conditions: {
     idIsEmpty(_, { id }) {
       return id === ""
-    },
-    dataIsValid(data) {
-      return true
     },
   },
   actions: {
@@ -563,10 +588,88 @@ const global = createState({
     addLinkAction(_, { id }, { link }: Results) {
       link.do.push(id)
     },
+    // Event Functions
+    setEventFnName(_, { name }, { fn }) {
+      fn.name = name
+    },
+    setEventFnCode(_, { code }, { fn }) {
+      fn.code = code
+    },
+    moveEventFn(
+      _,
+      { delta },
+      { fn, fns }: { fn: EventFunction; fns: EventFunction[] }
+    ) {
+      fns.splice(fn.index, 1)
+      fns.splice(fn.index + delta, 0, fn)
+      fns.forEach((fn, i) => (fn.index = i))
+    },
+    // Actions
+    createAction(data, name) {
+      const id = uniqueId()
+      data.actions.set(id, {
+        id,
+        index: data.actions.size,
+        name,
+        code: "",
+      })
+    },
+    deleteAction(data, { id }) {
+      data.actions.delete(id)
+
+      data.states.forEach((state) =>
+        state.eventHandlers.forEach((handler) =>
+          handler.chain.forEach(
+            (link) => (link.do = link.do.filter((_id) => _id !== id))
+          )
+        )
+      )
+    },
+    // Conditions
+    createCondition(data, name) {
+      const id = uniqueId()
+      data.conditions.set(id, {
+        id,
+        index: data.conditions.size,
+        name,
+        code: "return true",
+      })
+    },
+    deleteCondition(data, { id }) {
+      data.conditions.delete(id)
+
+      data.states.forEach((state) =>
+        state.eventHandlers.forEach((handler) =>
+          handler.chain.forEach(
+            (link) => (link.if = link.if.filter((_id) => _id !== id))
+          )
+        )
+      )
+    },
   },
   values: {
     editingState(data) {
       return data.states.get(data.selection.state)
+    },
+    stateTree(data) {
+      function getStateNode(id: string): StateBranch {
+        const node = data.states.get(id)
+        const parent = data.states.get(node.parent)
+        const isInitial = parent ? parent.initial === node.id : true
+        const children = sortBy(
+          Array.from(node.states.values()).map((id) => getStateNode(id)),
+          "state.index"
+        )
+        return {
+          state: node,
+          children,
+          isInitial,
+          isFirst: parent ? node.index === 0 : false,
+          isLast: parent ? node.index === parent.states.size - 1 : false,
+        }
+      }
+
+      return getStateNode("root")
     },
     states(data) {
       return getIndexSortedValues(data.states)
@@ -579,6 +682,9 @@ const global = createState({
     },
     conditions(data) {
       return getIndexSortedValues(data.conditions)
+    },
+    data(d) {
+      return Function(`return ${d.data}`)()
     },
     simulation(data) {
       const root = data.states.get("root")
@@ -638,10 +744,21 @@ const global = createState({
         collection: Map<string, EventFunction>
       ): { [key: string]: any } {
         return Object.fromEntries(
-          getIndexSortedValues(collection).map((fn) => [
-            fn.name,
-            Function("data", "payload", "result", fn.code) as any,
-          ])
+          getIndexSortedValues(collection).map((fn) => {
+            const eventFn = Function(
+              "data",
+              "payload",
+              "result",
+              fn.code
+            ) as any
+
+            Object.defineProperty(eventFn, "name", {
+              value: fn.name,
+              writable: false,
+            })
+
+            return [fn.name, eventFn]
+          })
         )
       }
 
@@ -671,6 +788,6 @@ const global = createState({
 
 export default global
 
-function getIndexSortedValues<T>(map: Map<string, T>) {
-  return sortBy(Array.from(map.values()), "index")
+function getIndexSortedValues<T>(source: Map<string, T> | Set<T>) {
+  return sortBy(Array.from(source.values()), "index")
 }

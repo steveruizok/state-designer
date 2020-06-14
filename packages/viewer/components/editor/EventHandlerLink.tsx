@@ -10,9 +10,11 @@ import globalState, {
   Action,
   Condition,
 } from "./state"
+import { Plus } from "react-feather"
+import { SelectOptionHeader } from "./shared"
 import { DragHandle } from "./shared"
 import { Segment } from "./Segment"
-import { Box, Divider, Card, Select, Grid } from "theme-ui"
+import { Box, Divider, Card, Select, Grid, Field } from "theme-ui"
 
 export const EventHandlerLink: React.FC<{
   link: HandlerLink
@@ -102,19 +104,27 @@ export const EventHandlerLink: React.FC<{
 
 const EventFunctionSelect: React.FC<{
   value?: string
+  variant?: string
+  title?: string
   onChange: (id: string) => void
   placeholder: string
   fns: EventFunction[]
-}> = ({ value, fns, onChange, placeholder }) => {
+}> = ({ value, fns, onChange, variant = "select", title, placeholder }) => {
   return (
     <Box sx={{ gridColumn: 2 }}>
       <Select
+        variant={variant}
         disabled={fns.length === 0}
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option value="">{placeholder}</option>
-        <option disabled>──────────</option>
+        {title && <SelectOptionHeader>{title}</SelectOptionHeader>}
+        {placeholder && (
+          <>
+            <option value="">{placeholder}</option>
+            <option disabled>—</option>
+          </>
+        )}
         {fns.map(({ id, name }) => (
           <option key={id} value={id}>
             {name}
@@ -134,13 +144,14 @@ const LinkConditions: React.FC<{
   conditions: Condition[]
 }> = ({ link, node, handler, conditions }) => {
   return (
-    <Grid columns={"40px auto"} gap={2} sx={{ alignItems: "center" }}>
+    <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
       If:
       {link.if.map((condId, index) => (
         <EventFunctionSelect
           key={index}
           fns={conditions}
           value={condId}
+          title="Condition"
           placeholder="Remove Condition"
           onChange={(id) =>
             globalState.send("CHANGED_LINK_CONDITION", {
@@ -154,6 +165,7 @@ const LinkConditions: React.FC<{
         />
       ))}
       <EventFunctionSelect
+        variant="create"
         fns={conditions.filter(({ id }) => !link.if.includes(id))}
         value=""
         placeholder="Add Condition"
@@ -172,28 +184,6 @@ const LinkConditions: React.FC<{
 
 /* --------------------- Actions -------------------- */
 
-const ActionSelect: React.FC<{
-  value?: string
-  onChange: (actionId: string) => void
-  placeholder: string
-}> = ({ value, placeholder, onChange }) => {
-  const global = useStateDesigner(globalState)
-  const fns = global.values.actions
-  return (
-    <Box sx={{ gridColumn: 2 }}>
-      <Select value={value || ""} onChange={(e) => onChange(e.target.value)}>
-        <option value="">{placeholder}</option>
-        <option disabled>──────────</option>
-        {fns.map(({ id, name }) => (
-          <option key={id} value={id}>
-            {name}
-          </option>
-        ))}
-      </Select>
-    </Box>
-  )
-}
-
 const LinkActions: React.FC<{
   link: HandlerLink
   node: State
@@ -201,13 +191,14 @@ const LinkActions: React.FC<{
   actions: Action[]
 }> = ({ link, node, actions, handler }) => {
   return (
-    <Grid columns={"40px auto"} gap={2} sx={{ alignItems: "center" }}>
+    <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
       Do:
       {link.do.map((actionId, index) => (
         <EventFunctionSelect
           key={index}
           value={actionId}
           fns={actions}
+          title="Action"
           placeholder="Remove Action"
           onChange={(id) =>
             globalState.send("CHANGED_LINK_ACTION", {
@@ -222,6 +213,7 @@ const LinkActions: React.FC<{
       ))}
       <EventFunctionSelect
         value=""
+        variant="create"
         placeholder="Add Action"
         fns={actions}
         onChange={(id) =>
@@ -240,22 +232,23 @@ const LinkActions: React.FC<{
 /* ------------------- Transition ------------------- */
 
 const LinkTransitions: React.FC<{
-  link: HandlerLink
   node: State
   handler: EventHandler
   targets: State[]
+  link: HandlerLink
 }> = ({ link, node, handler, targets }) => {
   return (
-    <Grid columns={"40px auto"} gap={2} sx={{ alignItems: "center" }}>
+    <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
       <div>To: </div>
       <Select
         defaultValue={link.to}
+        variant={link.to ? "select" : "create"}
         onChange={(e) => {
           globalState.send("SET_LINK_TRANSITION_TARGET", {
             stateId: node.id,
             eventId: handler.event,
             linkId: link.id,
-            targetId: e.target.value,
+            id: e.target.value,
           })
         }}
       >
