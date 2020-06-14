@@ -5,7 +5,7 @@ A `state` manages information about the state of a user interface. It stores the
 In State Designer, you can create a `state` by passing a [design](/docs/api/design) object to the [`createState`](/docs/api/createState) function.
 
 ```js
-const state = useStateDesigner({
+const state = createState({
   data: { seconds: 0 },
   initial: "stopped",
   states: {
@@ -222,11 +222,14 @@ state.whenIn(
 >
 > ```jsx
 > <ul>
->   {whenIn({
->     asleep: <li key="0">Asleep</li>,
->     awake: <li key="1">Awake</li>,
->     working: <li key="2">Working</li>,
->   })}
+>   {state.whenIn(
+>     {
+>       asleep: <li key="0">Asleep</li>,
+>       awake: <li key="1">Awake</li>,
+>       working: <li key="2">Working</li>,
+>     },
+>     "array"
+>   )}
 > </ul>
 > ```
 
