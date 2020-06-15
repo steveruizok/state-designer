@@ -231,7 +231,19 @@ const initialData: InitialData = {
               id: "on_toggled",
               index: 0,
               event: "toggled", // id
-              chain: new Map(),
+              chain: new Map([
+                [
+                  "t1",
+                  {
+                    id: "t1",
+                    index: 0,
+                    if: [],
+                    do: [],
+                    to: "toggled on",
+                    transitionType: TransitionType.Normal,
+                  },
+                ],
+              ]),
             },
           ],
         ]),

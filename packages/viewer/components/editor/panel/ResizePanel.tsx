@@ -23,39 +23,41 @@ export const ResizePanel: React.FC<{
   resizeDirection = "left",
   children,
 }) => {
-  const initialX = width - 3
-  const dragX = useMotionValue(initialX)
+  const dragX = useMotionValue(width)
   const titleOpacity = useTransform(dragX, [minWidth - 44, minWidth], [0, 1])
   const bodyOpacity = useTransform(dragX, [collapsedWidth, minWidth], [0, 1])
 
   const state = useStateDesigner({
     data: {
-      width: initialX,
+      width,
     },
     initial: "expanded",
     states: {
       expanded: {
-        initial: "default",
-        states: {
-          default: {
-            on: {
-              RESIZE_STARTED: {
-                to: "resized",
-              },
-            },
-          },
-          resized: {
-            on: {
-              RESIZE_ENDED: {
-                if: "dragIndicatesCollapse",
-                to: "collapsed",
-              },
-              RESET: { to: "default" },
-            },
-          },
-        },
         on: {
           TOGGLED_COLLAPSE: { to: "collapsed" },
+          RESIZE_STARTED: {
+            to: "between",
+          },
+          RESIZE_ENDED: {
+            if: "dragIndicatesCollapse",
+            to: "collapsed",
+          },
+        },
+        initial: "normal",
+        states: {
+          normal: {
+            on: { RESET: { to: "min" } },
+          },
+          between: {
+            on: { RESET: { to: "normal" } },
+          },
+          min: {
+            on: { RESET: { to: "max" } },
+          },
+          max: {
+            on: { RESET: { to: "normal" } },
+          },
         },
       },
       collapsed: {
@@ -117,7 +119,9 @@ export const ResizePanel: React.FC<{
           expanded: { left: minWidth, right: maxWidth },
         })}
         variants={{
-          default: { x: width - 3 },
+          normal: { x: width },
+          min: { x: minWidth },
+          max: { x: maxWidth },
           collapsed: { x: collapsedWidth },
         }}
         animate={activeNames}

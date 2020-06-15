@@ -11,7 +11,7 @@ export const Inspector: React.FC<{}> = (props) => {
   const { editingState } = global.values
 
   return (
-    <ResizePanel title="State">
+    <ResizePanel title="State" width={540}>
       <Grid gap={2} p={2}>
         {editingState && (
           <StateNode key={editingState.id} node={editingState} />

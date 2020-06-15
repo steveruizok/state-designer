@@ -6,7 +6,7 @@ import { DataEditor } from "./DataEditor"
 
 export const ContentPanel: React.FC<{}> = () => {
   return (
-    <ResizePanel title="Content" resizeDirection="left">
+    <ResizePanel title="Content" minWidth={220} resizeDirection="left">
       <StateTree />
       <EventList />
       <DataEditor />

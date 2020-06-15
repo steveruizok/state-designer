@@ -13,7 +13,7 @@ export const CollectionsPanel: React.FC<{}> = () => {
   const global = useStateDesigner(globalState)
 
   return (
-    <ResizePanel title="Collections">
+    <ResizePanel title="Collections" width={420}>
       <Grid gap={2} p={2}>
         <Heading>Actions</Heading>
         <CreateRow
