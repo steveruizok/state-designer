@@ -1,18 +1,22 @@
 // @refresh reset
 import * as React from "react"
 import { useStateDesigner } from "@state-designer/react"
-import globalState, { State } from "./state"
-import { Column } from "./shared"
+import globalState from "./state"
 import { StateNode } from "./StateNode"
-import { Styled, Box, Button, Radio, Label } from "theme-ui"
+import { ResizePanel } from "./panel/ResizePanel"
+import { Grid } from "theme-ui"
 
 export const Inspector: React.FC<{}> = (props) => {
   const global = useStateDesigner(globalState)
   const { editingState } = global.values
 
   return (
-    <Column bg={"panel"}>
-      {editingState && <StateNode key={editingState.id} node={editingState} />}
-    </Column>
+    <ResizePanel title="State">
+      <Grid gap={2} p={2}>
+        {editingState && (
+          <StateNode key={editingState.id} node={editingState} />
+        )}
+      </Grid>
+    </ResizePanel>
   )
 }

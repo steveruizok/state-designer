@@ -1,7 +1,7 @@
 import React from "react"
 import routes from "routes"
 import { Route } from "react-router-dom"
-import { Heading, Text, Link } from "@chakra-ui/core"
+import { Heading, Text } from "@chakra-ui/core"
 import { Layout, TitleBar, HStack, VStack, Footer, NavLinks } from "components"
 
 export default function App() {

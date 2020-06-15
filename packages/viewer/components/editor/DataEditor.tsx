@@ -9,16 +9,12 @@ import { highlight, languages } from "prismjs/components/prism-core"
 import { PanelList } from "./panel/PanelList"
 import { PanelItem } from "./panel/PanelItem"
 
-export const DataEditor: React.FC<{
-  code: string
-  validate?: (code: string) => boolean
-  onChangeCode: (code: string) => void
-}> = ({ code, validate, onChangeCode }) => {
+export const DataEditor: React.FC<{}> = () => {
   const global = useStateDesigner(globalState)
   const state = useStateDesigner(
     {
       data: {
-        dirty: code,
+        dirty: global.data.data,
         error: "",
       },
       initial: "idle",
@@ -60,10 +56,10 @@ export const DataEditor: React.FC<{
       },
       conditions: {
         codeIsValid(data) {
-          return validate === undefined ? true : validate(data.dirty)
+          return true
         },
         codeMatchesClean(data) {
-          return data.dirty === code
+          return data.dirty === global.data.data
         },
         errorIsClear(data) {
           return data.error === ""
@@ -74,7 +70,7 @@ export const DataEditor: React.FC<{
           data.dirty = payload
         },
         resetCode(data) {
-          data.dirty = code
+          data.dirty = global.data.data
         },
         setError(d) {
           let error: string = ""
@@ -88,11 +84,11 @@ export const DataEditor: React.FC<{
           d.error = error
         },
         saveCode(data) {
-          onChangeCode(data.dirty)
+          global.send("CHANGED_DATA", data.dirty)
         },
       },
     },
-    [code]
+    [global.data.data]
   )
 
   return (

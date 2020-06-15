@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useStateDesigner } from "@state-designer/react"
 import { Box } from "theme-ui"
 import { ContentPanel } from "./ContentPanel"
 import { CollectionsPanel } from "./CollectionsPanel"
@@ -10,16 +9,17 @@ export const Editor: React.FC<{}> = () => {
   return (
     <Box
       sx={{
+        position: "relative",
         display: "grid",
-        gridTemplateColumns: ["100%", "auto 480px 1fr 400px"],
+        gridTemplateColumns: "auto auto auto 1fr",
         gridTemplateRows: ["auto", "100vh"],
         overflowY: "scroll",
       }}
     >
       <ContentPanel />
       <Inspector />
-      <Simulation />
       <CollectionsPanel />
+      <Simulation />
     </Box>
   )
 }
