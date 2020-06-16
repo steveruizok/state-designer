@@ -1,11 +1,12 @@
 // @refresh reset
 import * as React from "react"
-import globalState, { State } from "./state"
+import globalState from "./state"
+import * as T from "./types"
 import { StateOptionsButton } from "./StateOptionsButton"
 import { Row } from "./shared"
 import { Button } from "theme-ui"
 
-export const StateListItem: React.FC<{ node: State; depth: number }> = ({
+export const StateListItem: React.FC<{ node: T.StateNode; depth: number }> = ({
   node,
   depth,
 }) => {

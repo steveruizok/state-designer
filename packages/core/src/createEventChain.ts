@@ -19,7 +19,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
     shouldBreak: false,
     shouldNotify: false,
     pendingSend: undefined,
-    pendingTransition: undefined,
+    pendingTransition: [],
   }
 
   let draftCore: Draft<S.EventChainCore<D>> = createDraft(core)
@@ -157,11 +157,9 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
       }
 
       // Transitions
-      if (handler.to !== undefined) {
-        finalOutcome.pendingTransition = handler.to(
-          curr.data as D,
-          curr.payload,
-          curr.result
+      if (handler.to.length > 0) {
+        finalOutcome.pendingTransition.push(
+          ...handler.to.map((t) => t(curr.data as D, curr.payload, curr.result))
         )
         finalOutcome.shouldBreak = true
         finalOutcome.shouldNotify = true
@@ -170,11 +168,11 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
       }
 
       // Secret Transitions (no notify)
-      if (handler.secretlyTo !== undefined) {
-        finalOutcome.pendingTransition = handler.secretlyTo(
-          curr.data as D,
-          curr.payload,
-          curr.result
+      if (handler.secretlyTo.length > 0) {
+        finalOutcome.pendingTransition.push(
+          ...handler.secretlyTo.map((t) =>
+            t(curr.data as D, curr.payload, curr.result)
+          )
         )
 
         finalOutcome.shouldBreak = true

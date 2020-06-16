@@ -2,12 +2,13 @@
 import * as React from "react"
 import { MoreVertical } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import globalState, { State } from "./state"
+import globalState from "./state"
+import * as T from "./types"
 import { SelectOptionHeader } from "./shared"
 import { Box, IconButton } from "theme-ui"
 
 export const StateOptionsButton: React.FC<{
-  node: State
+  node: T.StateNode
 }> = ({ node }) => {
   const global = useStateDesigner(globalState)
   const parent = global.data.states.get(node.parent)

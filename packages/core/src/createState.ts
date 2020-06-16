@@ -104,8 +104,8 @@ export function createState<
       send(event, pendingPayload)
     }
 
-    if (outcome.pendingTransition) {
-      runTransition(outcome.pendingTransition, payload, outcome.result)
+    for (let transition of outcome.pendingTransition) {
+      runTransition(transition, payload, outcome.result)
     }
   }
 

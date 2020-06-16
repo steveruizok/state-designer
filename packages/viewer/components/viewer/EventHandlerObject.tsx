@@ -20,13 +20,15 @@ export const EventHandlerObject: React.FC<{
         <EventFns title="ifAny" eventFns={item.ifAny} />
       )}
       {item.do.length > 0 && <EventFns title="do" eventFns={item.do} />}
-      {item.to && (
+      {item.to.length > 0 && (
         <Card variant="eventFns">
           <Styled.pre>to</Styled.pre>
-          {item.to.name === "to" ? (
-            <EventFn eventFn={item.to} showName={false} />
-          ) : (
-            <Styled.pre>{item.to.name}</Styled.pre>
+          {item.to.map((t) =>
+            t.name === "to" ? (
+              <EventFn eventFn={t} showName={false} />
+            ) : (
+              <Styled.pre>{t.name}</Styled.pre>
+            )
           )}
         </Card>
       )}

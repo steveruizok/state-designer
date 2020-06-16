@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.2.16
+
+- Adds support for serial transitions. You can now provide transition targets as an array to the `to` property of an event handler object. When this handler object runs, it will produce multiple transitions. Each transition will run after the previous transition has settled. The best use for this technique is to trigger transitions in parallel states.
+
+  ```js
+  createState({
+    states: {
+      a: {
+        initial: "a1",
+        states: {
+          a1: {},
+          a2: {},
+        },
+      },
+      b: {
+        initial: "b1",
+        states: {
+          b1: {},
+          b2: {},
+        },
+      },
+    },
+    on: {
+      FLIP: { to: ["a2", "b2"] },
+    },
+  })
+
+  state.isIn("a1", "b1") // true
+  state.send("FLIP")
+  state.isIn("a2", "b2") // true
+  ```
+
+  While you can use this feature to produce multiple transitions in the same branch of the state tree (e.g. `to: ["a", "b", "a"]`) you should avoid doing so. Define that behavior using the second state's `onEnter`, if needed.
+
 ## 1.2.15
 
 - Fixes bug in previous- and restore-type transitions.

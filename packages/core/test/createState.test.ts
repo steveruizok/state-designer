@@ -16,15 +16,12 @@ describe("createState", () => {
     expect(state.isIn).toBeTruthy()
   })
 
-  // Can I run actions?
-
   it("Should support actions.", () => {
-    const toggler = createState({
-      initial: "inactive",
+    const counter = createState({
       data: { count: 0 },
-      states: {
-        inactive: { on: { TOGGLED: { do: "increment", to: "active" } } },
-        active: { on: { TOGGLED: [{ to: "inactive" }, { do: "increment" }] } },
+      on: {
+        INCREASED_BY_ONE: "increment",
+        INCREASED_BY_TWO: ["increment", "increment"],
       },
       actions: {
         increment(d) {
@@ -33,9 +30,50 @@ describe("createState", () => {
       },
     })
 
-    expect(toggler.data.count).toBe(0)
-    toggler.send("TOGGLED")
-    expect(toggler.data.count).toBe(1)
+    expect(counter.data.count).toBe(0)
+    counter.send("INCREASED_BY_ONE")
+    expect(counter.data.count).toBe(1)
+    counter.send("INCREASED_BY_TWO")
+    expect(counter.data.count).toBe(3)
+  })
+
+  it("Should support conditions.", () => {
+    const counter = createState({
+      data: { count: 0 },
+      on: {
+        A: { if: "alwaysFail", do: "increment" },
+        B: { if: "neverFail", do: "increment" },
+        C: { if: "upToThree", do: "increment" },
+      },
+      actions: {
+        increment(data) {
+          data.count++
+        },
+      },
+      conditions: {
+        alwaysFail() {
+          return false
+        },
+        neverFail() {
+          return true
+        },
+        upToThree(data) {
+          return data.count < 3
+        },
+      },
+    })
+
+    expect(counter.data.count).toBe(0)
+    counter.send("A")
+    expect(counter.data.count).toBe(0)
+    counter.send("B")
+    expect(counter.data.count).toBe(1)
+    counter.send("C")
+    counter.send("C")
+    counter.send("C")
+    counter.send("C")
+    counter.send("C")
+    expect(counter.data.count).toBe(3)
   })
 
   // Can I chain events?
@@ -137,37 +175,79 @@ describe("createState", () => {
   // Do down-level activations work?
   // Do onEvent events work?
 
-  it("Should handle transitions.", async (done) => {
-    const { stateTree } = state
-    const inactiveToInactive = stateTree.states.inactive.on.TOGGLE[0].to
-    expect(inactiveToInactive).toBeTruthy()
-    expect(inactiveToInactive?.(state.data, undefined, undefined)).toBe(
-      "active"
-    )
+  it("Should handle transitions.", () => {
+    const state = createState({
+      states: {
+        a: {
+          initial: "a1",
+          states: {
+            a1: {},
+            a2: {},
+          },
+        },
+        b: {
+          initial: "b1",
+          states: {
+            b1: {},
+            b2: {},
+          },
+        },
+        c: {
+          initial: "c1",
+          states: {
+            c1: {},
+            c2: {},
+          },
+        },
+      },
+      on: {
+        TRIGGER: {
+          to: "a2",
+        },
+      },
+    })
 
-    expect(state.isIn("inactive")).toBeTruthy()
+    state.send("TRIGGER")
+    expect(state.isIn("a2")).toBeTruthy()
+  })
 
-    state.send("TOGGLE")
+  it("Should support multiple transitions.", () => {
+    const state = createState({
+      states: {
+        a: {
+          initial: "a1",
+          states: {
+            a1: {},
+            a2: {},
+          },
+        },
+        b: {
+          initial: "b1",
+          states: {
+            b1: {},
+            b2: {},
+          },
+        },
+        c: {
+          initial: "c1",
+          states: {
+            c1: {},
+            c2: {},
+          },
+        },
+      },
+      on: {
+        TRIGGER: {
+          to: ["a2", "b2", "c2"],
+        },
+      },
+    })
 
-    expect(state.isIn("active")).toBeTruthy()
-    expect(state.isIn("min")).toBeTruthy()
-    expect(state.isIn("mid")).toBeFalsy()
-    expect(state.isIn("max")).toBeFalsy()
-
-    state.send("CLICKED_PLUS")
-
-    expect(state.isIn("min")).toBeFalsy()
-    expect(state.isIn("mid")).toBeTruthy()
-    expect(state.isIn("max")).toBeFalsy()
-
-    state.send("TOGGLE")
-
-    expect(state.isIn("inactive")).toBeTruthy()
-    expect(state.isIn("min")).toBeFalsy()
-    expect(state.isIn("mid")).toBeFalsy()
-    expect(state.isIn("max")).toBeFalsy()
-
-    done()
+    state.send("TRIGGER")
+    expect(state.isIn("a2")).toBeTruthy()
+    expect(state.isIn("b2")).toBeTruthy()
+    expect(state.isIn("c2")).toBeTruthy()
+    expect(state.isIn("a2", "b2", "c2")).toBeTruthy()
   })
 
   // Do onExit events work?
@@ -481,22 +561,25 @@ describe("createState", () => {
       data: { count: 0 },
       on: {
         TRIGGERED: [
+          "increment",
           {
-            do: (d) => d.count++,
-          },
-          {
-            do: (d) => d.count++,
+            do: "increment",
             wait: 0.25,
           },
           {
-            do: (d) => d.count++,
+            do: "increment",
             wait: 0.25,
           },
           {
-            do: (d) => d.count++,
+            do: "increment",
             wait: 0.25,
           },
         ],
+      },
+      actions: {
+        increment(data) {
+          data.count++
+        },
       },
     })
 

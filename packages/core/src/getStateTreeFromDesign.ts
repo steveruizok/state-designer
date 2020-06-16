@@ -69,6 +69,12 @@ export function getStateTreeFromDesign<
     return isFunction(item) ? item : castToNamedFunction(item)
   }
 
+  function getTransitions(items: S.TargetDesign<D> | undefined): S.Target<D>[] {
+    if (isUndefined(items)) return []
+    const targets = Array.isArray(items) ? items : [items]
+    return targets.map((t) => (isFunction(t) ? t : castToNamedFunction(t)))
+  }
+
   function getResults(items: S.MaybeArray<S.ResultDesign<D, R>> | undefined) {
     if (isUndefined(items)) return []
     return castArray(items).map((item) =>
@@ -127,8 +133,8 @@ export function getStateTreeFromDesign<
       unlessAny: getConditions(itemCfg.unlessAny),
       do: getActions(itemCfg.do),
       secretlyDo: getActions(itemCfg.secretlyDo),
-      to: castToFunction(itemCfg.to),
-      secretlyTo: castToFunction(itemCfg.secretlyTo),
+      to: getTransitions(itemCfg.to),
+      secretlyTo: getTransitions(itemCfg.secretlyTo),
       send: getSend(itemCfg.send),
       wait: getTime(itemCfg.wait),
       break: castToFunction(itemCfg.break),

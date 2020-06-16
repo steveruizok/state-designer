@@ -59,7 +59,7 @@ export type ReturnedValues<D, V extends Record<string, Value<D>>> = {
 
 export type Target<D> = EventFn<D, string>
 
-export type TargetDesign<D> = string | EventFn<D, string>
+export type TargetDesign<D> = MaybeArray<string | EventFn<D, string>>
 
 // Send
 
@@ -75,7 +75,9 @@ export type Break<D> = EventFn<D, boolean>
 
 export type BreakDesign<D> = boolean | EventFn<D, boolean>
 
-// Intitial Object
+// Intitial
+
+export type InitialTargetDesign<D> = string | EventFn<D, string>
 
 export type InitialStateObject<D> = {
   get: Result<D>[]
@@ -88,8 +90,6 @@ export type InitialStateObject<D> = {
   else?: InitialStateObject<D>
 }
 
-// Intitial Object Design
-
 export type InitialStateObjectDesign<D, C, R> =
   | InitialStateObjectDesignWithoutLogic<D>
   | InitialStateObjectDesignWithLogic<D, C, R>
@@ -97,7 +97,7 @@ export type InitialStateObjectDesign<D, C, R> =
 export type InitialStateObjectDesignWithoutLogic<D> =
   | string
   | {
-      to: TargetDesign<D>
+      to: InitialTargetDesign<D>
     }
 
 export type InitialStateObjectDesignWithLogic<D, C, R> = {
@@ -107,7 +107,7 @@ export type InitialStateObjectDesignWithLogic<D, C, R> = {
   ifAny?: MaybeArray<ConditionDesign<D, C>>
   unlessAny?: MaybeArray<ConditionDesign<D, C>>
   else: InitialStateObjectDesign<D, C, R>
-  to: TargetDesign<D>
+  to: InitialTargetDesign<D>
   then: InitialStateObjectDesign<D, C, R>
 }
 
@@ -125,8 +125,8 @@ export type EventHandlerObject<D> = {
   unlessAny: Condition<D>[]
   do: Action<D>[]
   secretlyDo: Action<D>[]
-  to?: Target<D>
-  secretlyTo?: Target<D>
+  to: Target<D>[]
+  secretlyTo: Target<D>[]
   send?: Send<D>
   wait?: Time<D>
   break?: Break<D>
@@ -303,12 +303,12 @@ export interface Design<
 
 export interface DesignWithHelpers<
   D,
-  R extends Record<string, Result<D>> = any,
-  C extends Record<string, Condition<D>> = any,
-  A extends Record<string, Action<D>> = any,
-  Y extends Record<string, Async<D>> = any,
-  T extends Record<string, number | Time<D>> = any,
-  V extends Record<string, Value<D>> = any
+  R extends Record<string, Result<D>>,
+  C extends Record<string, Condition<D>>,
+  A extends Record<string, Action<D>>,
+  Y extends Record<string, Async<D>>,
+  T extends Record<string, number | Time<D>>,
+  V extends Record<string, Value<D>>
 > extends Design<D, R, C, A, Y, T, V> {
   createEventHandlerDesign: (
     design: EventHandlerDesign<D, R, C, A, T>
@@ -395,7 +395,7 @@ export type EventChainOutcome<D> = {
   result: any
   shouldBreak: boolean
   shouldNotify: boolean
-  pendingTransition?: string
+  pendingTransition: string[]
   pendingSend?: Event
 }
 

@@ -2,12 +2,13 @@
 import * as React from "react"
 import { MoreVertical } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import globalState, { SendEvent } from "./state"
+import globalState from "./state"
+import * as T from "./types"
 import { Box, IconButton } from "theme-ui"
 import { SelectOptionHeader } from "./shared"
 
 export const EventOptionsButton: React.FC<{
-  event: SendEvent
+  event: T.SendEvent
 }> = ({ event }) => {
   const global = useStateDesigner(globalState)
 
