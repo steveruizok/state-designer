@@ -4,7 +4,6 @@ import { useStateDesigner } from "@state-designer/react"
 import globalState from "../state"
 import { StateEditor } from "./StateEditor"
 import { ResizePanel } from "../panel/ResizePanel"
-import { DragDropList } from "../DragDropList"
 import { Grid } from "theme-ui"
 
 export const StatePanel: React.FC<{}> = (props) => {

@@ -99,7 +99,7 @@ export default function () {
             if: "coatContainsCash",
             do: ["takeCashFromCoat", "moveCashToBank"],
           },
-          EXITED: { to: "street.previous" },
+          EXITED: { to: "street.restore" },
         },
       },
       loanshark: {
@@ -118,9 +118,15 @@ export default function () {
                 },
                 {
                   unless: "isInDebt",
-                  to: "canBorrow",
+                  to: "paidOff",
                 },
               ],
+            },
+          },
+          paidOff: {
+            onEnter: {
+              to: "canBorrow",
+              wait: 2,
             },
           },
           canBorrow: {
@@ -133,7 +139,7 @@ export default function () {
           },
         },
         on: {
-          EXITED: { to: "street.previous" },
+          EXITED: { to: "street.restore" },
         },
       },
       subway: {
@@ -198,16 +204,6 @@ export default function () {
       sell(data, { price, quantity }) {
         data.coat.cash += price * quantity
       },
-      changeCity(data, { name }) {
-        data.game.city = getCity(name)
-      },
-      changeDay(data) {
-        data.game.day++
-        data.game.debt = Math.round(data.game.debt * 1.1)
-      },
-      dropDrug(data, { name, quantity }) {
-        data.coat.drugs[name] -= quantity
-      },
       reduceDebt(data, { amount }) {
         data.game.debt -= amount
       },
@@ -225,6 +221,16 @@ export default function () {
       },
       moveCashToCoat(data, { amount }) {
         data.coat.cash += amount
+      },
+      changeCity(data, { name }) {
+        data.game.city = getCity(name)
+      },
+      changeDay(data) {
+        data.game.day++
+        data.game.debt = Math.round(data.game.debt * 1.1)
+      },
+      dropDrug(data, { name, quantity }) {
+        data.coat.drugs[name] -= quantity
       },
     },
     values: {
@@ -354,6 +360,7 @@ export default function () {
             <Button onClick={() => state.send("EXITED")}>Exit</Button>
           </VStack>
         ),
+        "loanshark.paidOff": <VStack>Nice doin' business with you!</VStack>,
         "loanshark.canBorrow": (
           <VStack>
             <NumberInput />

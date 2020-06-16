@@ -150,7 +150,6 @@ export function getInitialState<D>(
       } else {
         return initial.to(data, payload, result)
       }
-      return initial.to(data, payload, result)
     } else {
       return getInitialState(initial.else, payload, data)
     }

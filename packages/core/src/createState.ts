@@ -1,11 +1,4 @@
-import {
-  last,
-  castArray,
-  trimEnd,
-  isFunction,
-  uniqueId,
-  isUndefined,
-} from "lodash"
+import { last, castArray, isFunction, uniqueId, isUndefined } from "lodash"
 import { produce, enableAllPlugins, setAutoFreeze } from "immer"
 
 import { createEventChain } from "./createEventChain"
@@ -234,11 +227,9 @@ export function createState<
     const isRestoreTransition = path.endsWith(".restore")
 
     if (isPreviousTransition) {
-      path = trimEnd(path, ".previous")
-    }
-
-    if (isRestoreTransition) {
-      path = trimEnd(path, ".restore")
+      path = path.slice(0, path.length - 9)
+    } else if (isRestoreTransition) {
+      path = path.slice(0, path.length - 8)
     }
 
     // Get all states from the tree that match the target
