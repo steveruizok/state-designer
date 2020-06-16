@@ -391,7 +391,9 @@ export default function () {
         {Static.Cities.map((city) => (
           <Button
             key={city.name}
-            disabled={city.name === state.data.game.city.name}
+            disabled={
+              !state.can("MOVED") || city.name === state.data.game.city.name
+            }
             onClick={() => state.send("MOVED", { name: city.name })}
           >
             {city.name} {city.name === state.data.coat.home && "(Home)"}
