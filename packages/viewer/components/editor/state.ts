@@ -1,90 +1,26 @@
 import { uniqueId, sortBy } from "lodash"
 import { createState, S } from "@state-designer/core"
-
-export type Id<T extends { id: string }> = T["id"]
-
-export interface EventFunction {
-  id: string
-  index: number
-  name: string
-  code: string
-}
-
-export interface Action extends EventFunction {}
-
-export interface Condition extends EventFunction {}
-
-export interface Result extends EventFunction {}
-
-export interface Time extends EventFunction {}
-
-export interface Value extends EventFunction {}
-
-export type SendEvent = {
-  id: string
-  index: number
-  name: string
-}
-
-export type StateBranch = {
-  state: State
-  isInitial: boolean
-  isFirst: boolean
-  isLast: boolean
-  children?: StateBranch[]
-}
-
-export type EventHandler = {
-  id: string
-  index: number
-  event: string // id
-  chain: Map<string, HandlerLink>
-}
-
-export enum TransitionType {
-  Normal = "normal",
-  Previous = "previous",
-  Restore = "restore",
-}
-
-export type HandlerLink = {
-  id: string
-  index: number
-  to?: Id<State> // state id
-  do: Id<Action>[] // action id
-  if: Id<Condition>[] // condition id
-  transitionType: TransitionType
-}
-
-export type State = {
-  id: string
-  index: number
-  parent?: Id<State>
-  depth: number
-  name: string
-  eventHandlers: Map<string, EventHandler>
-  initial?: Id<State>
-  states: Set<string>
-}
+import * as T from "./types"
 
 type Results = {
-  state: State
-  event: SendEvent
-  eventHandler: EventHandler
-  eventHandlers: EventHandler[]
-  link: HandlerLink
-  links: HandlerLink[]
+  state: T.StateNode
+  event: T.SendEvent
+  eventHandler: T.EventHandler
+  eventHandlers: T.EventHandler[]
+  link: T.HandlerLink
+  links: T.HandlerLink[]
 }
 
 type InitialData = {
   data: string
   selection: {
-    state?: Id<State>
+    state?: string
   }
-  events: Map<string, SendEvent>
-  states: Map<string, State>
-  actions: Map<string, Action>
-  conditions: Map<string, Condition>
+  events: Map<string, T.SendEvent>
+  states: Map<string, T.StateNode>
+  actions: Map<string, T.Action>
+  conditions: Map<string, T.Condition>
+  values: Map<string, T.Value>
 }
 
 const initialData: InitialData = {
@@ -131,6 +67,26 @@ const initialData: InitialData = {
         index: 1,
         name: "countIsAboveMin",
         code: `return data.count > 0`,
+      },
+    ],
+  ]),
+  values: new Map([
+    [
+      "value1",
+      {
+        id: "value1",
+        index: 0,
+        name: "triple",
+        code: `return data.count * 3`,
+      },
+    ],
+    [
+      "value2",
+      {
+        id: "value2",
+        index: 1,
+        name: "progress",
+        code: `return data.count / 5 * 100 + "%"`,
       },
     ],
   ]),
@@ -186,7 +142,7 @@ const initialData: InitialData = {
                     to: undefined,
                     if: ["cond1"],
                     do: ["action1"],
-                    transitionType: TransitionType.Normal,
+                    transitionType: T.TransitionType.Normal,
                   },
                 ],
               ]),
@@ -207,7 +163,7 @@ const initialData: InitialData = {
                     to: undefined,
                     if: ["cond2"],
                     do: ["action2"],
-                    transitionType: TransitionType.Normal,
+                    transitionType: T.TransitionType.Normal,
                   },
                 ],
               ]),
@@ -240,7 +196,7 @@ const initialData: InitialData = {
                     if: [],
                     do: [],
                     to: "toggled on",
-                    transitionType: TransitionType.Normal,
+                    transitionType: T.TransitionType.Normal,
                   },
                 ],
               ]),
@@ -275,7 +231,7 @@ const initialData: InitialData = {
                     if: [],
                     do: [],
                     to: "toggled off",
-                    transitionType: TransitionType.Normal,
+                    transitionType: T.TransitionType.Normal,
                   },
                 ],
               ]),
@@ -301,7 +257,7 @@ const global = createState({
     ADDED_EVENT: "addEvent",
     CHANGED_EVENT_NAME: { get: "event", do: "updateEventName" },
     MOVED_EVENT: { get: "event", do: "moveEvent" },
-    DELETED_EVENT: ["deleteEventHandlers", "deleteEvent"],
+    DELETED_EVENT: { get: "event", do: ["deleteEventHandlers", "deleteEvent"] },
     // State
     CREATED_STATE: "createState",
     CHANGED_STATE_NAME: { get: "state", do: "updateStateName" },
@@ -357,6 +313,12 @@ const global = createState({
     CHANGED_CONDITION_NAME: { get: "condition", do: "setEventFnName" },
     CHANGED_CONDITION_CODE: { get: "condition", do: "setEventFnCode" },
     DELETED_CONDITION: "deleteCondition",
+    // Values
+    CREATED_VALUE: "createValue",
+    MOVED_VALUE: { get: "value", do: "moveEventFn" },
+    CHANGED_VALUE_NAME: { get: "value", do: "setEventFnName" },
+    CHANGED_VALUE_CODE: { get: "value", do: "setEventFnCode" },
+    DELETED_VALUE: "deleteValue",
   },
   results: {
     state(data, { stateId }) {
@@ -408,6 +370,11 @@ const global = createState({
     condition(data, { id }) {
       const fn = data.conditions.get(id)
       const fns = sortBy(Array.from(data.conditions.values()), "index")
+      return { fn, fns }
+    },
+    value(data, { id }) {
+      const fn = data.values.get(id)
+      const fns = sortBy(Array.from(data.values.values()), "index")
       return { fn, fns }
     },
   },
@@ -529,7 +496,7 @@ const global = createState({
               if: [],
               do: [],
               to: undefined,
-              transitionType: TransitionType.Normal,
+              transitionType: T.TransitionType.Normal,
             },
           ],
         ]),
@@ -563,7 +530,7 @@ const global = createState({
         to: undefined,
         do: [],
         if: [],
-        transitionType: TransitionType.Normal,
+        transitionType: T.TransitionType.Normal,
       })
     },
     moveLink(_, { delta }, { link, links }: Results) {
@@ -610,7 +577,7 @@ const global = createState({
     moveEventFn(
       _,
       { delta },
-      { fn, fns }: { fn: EventFunction; fns: EventFunction[] }
+      { fn, fns }: { fn: T.EventFunction; fns: T.EventFunction[] }
     ) {
       fns.splice(fn.index, 1)
       fns.splice(fn.index + delta, 0, fn)
@@ -658,23 +625,36 @@ const global = createState({
         )
       )
     },
+    // Values
+    createValue(data, name) {
+      const id = uniqueId()
+      data.values.set(id, {
+        id,
+        index: data.values.size,
+        name,
+        code: "return true",
+      })
+    },
+    deleteValue(data, { id }) {
+      data.values.delete(id)
+    },
   },
   values: {
     editingState(data) {
       return data.states.get(data.selection.state)
     },
     stateTree(data) {
-      function getStateNode(id: string): StateBranch {
+      function getStateNode(id: string): T.StateBranch {
         const node = data.states.get(id)
         const parent = data.states.get(node.parent)
         const isInitial = parent ? parent.initial === node.id : true
-        const children = sortBy(
+        const descendants = sortBy(
           Array.from(node.states.values()).map((id) => getStateNode(id)),
           "state.index"
         )
         return {
           state: node,
-          children,
+          descendants,
           isInitial,
           isFirst: parent ? node.index === 0 : false,
           isLast: parent ? node.index === parent.states.size - 1 : false,
@@ -695,19 +675,22 @@ const global = createState({
     conditions(data) {
       return getIndexSortedValues(data.conditions)
     },
+    values(data) {
+      return getIndexSortedValues(data.values)
+    },
     data(d) {
       return Function(`return ${d.data}`)()
     },
     simulation(data) {
       const root = data.states.get("root")
 
-      function getDecorator(type: TransitionType) {
-        if (type === TransitionType.Normal) return ""
-        if (type === TransitionType.Previous) return ".previous"
-        if (type === TransitionType.Restore) return ".restore"
+      function getDecorator(type: T.TransitionType) {
+        if (type === T.TransitionType.Normal) return ""
+        if (type === T.TransitionType.Previous) return ".previous"
+        if (type === T.TransitionType.Restore) return ".restore"
       }
 
-      function getLink(link: HandlerLink) {
+      function getLink(link: T.HandlerLink) {
         const decorator = getDecorator(link.transitionType)
         return {
           if: link.if.map((id) => data.conditions.get(id).name),
@@ -716,7 +699,7 @@ const global = createState({
         }
       }
 
-      function getEventHandler(handler: EventHandler) {
+      function getEventHandler(handler: T.EventHandler) {
         const event = data.events.get(handler.event)
 
         return [
@@ -725,7 +708,7 @@ const global = createState({
         ] as const
       }
 
-      function getState(state: State) {
+      function getState(state: T.StateNode) {
         const eventHandlers = sortBy(
           Array.from(state.eventHandlers.values()),
           "index"
@@ -753,7 +736,7 @@ const global = createState({
       }
 
       function getCollection(
-        collection: Map<string, EventFunction>
+        collection: Map<string, T.EventFunction>
       ): { [key: string]: any } {
         return Object.fromEntries(
           getIndexSortedValues(collection).map((fn) => {
@@ -791,6 +774,7 @@ const global = createState({
         states: rootState.states,
         conditions: getCollection(data.conditions),
         actions: getCollection(data.actions),
+        values: getCollection(data.values),
       })
 
       return finalState
@@ -800,6 +784,6 @@ const global = createState({
 
 export default global
 
-function getIndexSortedValues<T>(source: Map<string, T> | Set<T>) {
+export function getIndexSortedValues<T>(source: Map<string, T> | Set<T>) {
   return sortBy(Array.from(source.values()), "index")
 }

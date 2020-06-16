@@ -40,15 +40,44 @@ export const CreateRow: React.FC<{
   defaultValue: string
   placeholder: string
   format?: (value: string) => string
+  validate?: (value: string) => boolean
   onSubmit: (value: string) => void
-}> = ({ defaultValue, placeholder, onSubmit, format }) => {
-  const { send, values } = useStateDesigner({
+}> = ({ defaultValue = "", validate, placeholder, onSubmit, format }) => {
+  const { send, values, isIn, can } = useStateDesigner({
     data: {
       value: defaultValue,
     },
-    on: {
-      CHANGED_VALUE: "setValue",
-      SUBMITTED: { unless: "valueIsEmpty", do: ["submitValue", "resetValue"] },
+    initial: "idle",
+    states: {
+      idle: {
+        on: { FOCUSED: { to: "editing" } },
+      },
+      editing: {
+        initial: "invalid",
+        states: {
+          valid: {
+            on: {
+              SUBMITTED: {
+                do: ["submitValue", "resetValue"],
+                to: "invalid",
+              },
+            },
+          },
+          invalid: {},
+        },
+        on: {
+          BLURRED: { unless: "valueHasContent", to: "idle" },
+          CANCELLED: { do: "resetValue", to: "idle" },
+          CHANGED_VALUE: [
+            "setValue",
+            {
+              if: ["valueIsValid", "valueHasContent"],
+              to: "valid",
+              else: { to: "invalid" },
+            },
+          ],
+        },
+      },
     },
     actions: {
       resetValue(data) {
@@ -63,8 +92,11 @@ export const CreateRow: React.FC<{
       },
     },
     conditions: {
-      valueIsEmpty(data) {
-        return data.value === ""
+      valueIsValid(data) {
+        return validate ? validate(data.value) : true
+      },
+      valueHasContent(data) {
+        return data.value !== ""
       },
     },
     values: {
@@ -75,18 +107,51 @@ export const CreateRow: React.FC<{
   })
 
   return (
-    <Row>
+    <Box sx={{ position: "relative" }}>
       <Input
-        sx={{ width: "100%" }}
+        sx={{
+          width: "100%",
+          bg: "transparent",
+          border: "1px solid",
+          borderColor: "muted",
+          color: "text",
+          "&:hover": {
+            borderColor: "active",
+          },
+          "&:focus": {
+            bg: "muted",
+            borderColor: "transparent",
+          },
+        }}
         value={values.value}
         placeholder={placeholder}
+        onFocus={() => send("FOCUSED")}
+        onBlur={() => send("BLURRED")}
+        onKeyUp={(e) => {
+          if (e.key === "Escape") {
+            send("CANCELLED")
+            e.currentTarget.blur()
+          }
+        }}
         onKeyPress={(e) => e.key === "Enter" && send("SUBMITTED")}
         onChange={(e) => send("CHANGED_VALUE", e.target.value)}
       />
-      <IconButton onClick={() => send("SUBMITTED")}>
+      <IconButton
+        sx={{
+          visibility: isIn("editing") ? "visible" : "hidden",
+          position: "absolute",
+          right: 1,
+          top: 1,
+          height: 32,
+          width: 32,
+          bg: "low",
+        }}
+        disabled={!can("SUBMITTED")}
+        onClick={() => send("SUBMITTED")}
+      >
         <Plus />
       </IconButton>
-    </Row>
+    </Box>
   )
 }
 

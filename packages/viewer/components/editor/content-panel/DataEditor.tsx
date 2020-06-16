@@ -1,20 +1,20 @@
 import * as React from "react"
-import { useStateDesigner } from "@state-designer/react"
-import { Save, X } from "react-feather"
-import globalState from "./state"
-import { InputRow } from "./shared"
-import { Box, Input, Grid, Textarea, IconButton } from "theme-ui"
 import Editor from "react-simple-code-editor"
 import { highlight, languages } from "prismjs/components/prism-core"
-import { PanelList } from "./panel/PanelList"
-import { PanelItem } from "./panel/PanelItem"
+import { Save, X } from "react-feather"
+import { Input, Grid, IconButton } from "theme-ui"
+import { useStateDesigner } from "@state-designer/react"
+import { PanelHeading } from "../panel/PanelHeading"
+import globalState from "../state"
 
-export const DataEditor: React.FC<{}> = () => {
-  const global = useStateDesigner(globalState)
+export const DataEditor: React.FC<{
+  code: string
+  onChange: (code: string) => void
+}> = ({ code, onChange }) => {
   const state = useStateDesigner(
     {
       data: {
-        dirty: global.data.data,
+        dirty: code,
         error: "",
       },
       initial: "idle",
@@ -59,7 +59,7 @@ export const DataEditor: React.FC<{}> = () => {
           return true
         },
         codeMatchesClean(data) {
-          return data.dirty === global.data.data
+          return data.dirty === code
         },
         errorIsClear(data) {
           return data.error === ""
@@ -70,7 +70,7 @@ export const DataEditor: React.FC<{}> = () => {
           data.dirty = payload
         },
         resetCode(data) {
-          data.dirty = global.data.data
+          data.dirty = code
         },
         setError(d) {
           let error: string = ""
@@ -84,15 +84,50 @@ export const DataEditor: React.FC<{}> = () => {
           d.error = error
         },
         saveCode(data) {
-          global.send("CHANGED_DATA", data.dirty)
+          onChange(data.dirty)
         },
       },
     },
-    [global.data.data]
+    [code]
   )
 
   return (
-    <PanelList title="Data">
+    <>
+      <PanelHeading title="Data">
+        {state.isIn("editing") && (
+          <Grid
+            gap={2}
+            sx={{
+              alignItems: "center",
+              gridTemplateColumns: "1fr auto auto",
+              fontFamily: "monospace",
+              borderRadius: 12,
+            }}
+          >
+            <Input
+              bg="transparent"
+              readOnly
+              sx={{ textAlign: "right" }}
+              autoComplete={"off"}
+              autoCapitalize={"off"}
+              defaultValue={state.data.error}
+            />
+            <IconButton
+              sx={{ height: 32, width: 32 }}
+              disabled={!state.isIn("valid")}
+              onClick={() => state.send("SAVED")}
+            >
+              <Save />
+            </IconButton>
+            <IconButton
+              sx={{ height: 32, width: 32 }}
+              onClick={() => state.send("CANCELLED")}
+            >
+              <X />
+            </IconButton>
+          </Grid>
+        )}
+      </PanelHeading>
       <Editor
         value={state.data.dirty}
         highlight={(code) => {
@@ -100,7 +135,6 @@ export const DataEditor: React.FC<{}> = () => {
         }}
         padding={8}
         style={{
-          backgroundColor: "#1d1d2d",
           fontFamily: '"Fira code", "Fira Mono", monospace',
           fontSize: 14,
         }}
@@ -122,35 +156,6 @@ export const DataEditor: React.FC<{}> = () => {
           }
         }}
       />
-      {state.isIn("editing") && (
-        <Grid
-          gap={2}
-          sx={{
-            mt: 2,
-            mx: 2,
-            gridTemplateColumns: "1fr auto auto",
-            fontFamily: "monospace",
-            borderRadius: 12,
-          }}
-        >
-          <Input
-            bg="low"
-            readOnly
-            autoComplete={"off"}
-            autoCapitalize={"off"}
-            defaultValue={state.data.error}
-          />
-          <IconButton
-            disabled={!state.isIn("valid")}
-            onClick={() => state.send("SAVED")}
-          >
-            <Save />
-          </IconButton>
-          <IconButton onClick={() => state.send("CANCELLED")}>
-            <X />
-          </IconButton>
-        </Grid>
-      )}
-    </PanelList>
+    </>
   )
 }

@@ -33,6 +33,10 @@ export const Simulation: React.FC<{}> = () => {
       <Styled.pre>
         <Styled.code>{JSON.stringify(state.data, null, 2)}</Styled.code>
       </Styled.pre>
+      Values:
+      <Styled.pre>
+        <Styled.code>{JSON.stringify(state.values, null, 2)}</Styled.code>
+      </Styled.pre>
       <Divider />
       Design
       <Styled.pre>

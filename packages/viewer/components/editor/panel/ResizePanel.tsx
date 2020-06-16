@@ -9,181 +9,200 @@ import { motion, useMotionValue, useTransform } from "framer-motion"
 
 const collapsedWidth = 44
 
-export const ResizePanel: React.FC<{
+type Props = React.PropsWithChildren<{
   title?: string
   resizeDirection?: "left" | "right"
   minWidth?: number
   width?: number
   maxWidth?: number
-}> = ({
-  title = "Title",
-  width = 400,
-  minWidth = 320,
-  maxWidth = 600,
-  resizeDirection = "left",
-  children,
-}) => {
-  const dragX = useMotionValue(width)
-  const titleOpacity = useTransform(dragX, [minWidth - 44, minWidth], [0, 1])
-  const bodyOpacity = useTransform(dragX, [collapsedWidth, minWidth], [0, 1])
+}>
 
-  const state = useStateDesigner({
-    data: {
-      width,
+export const ResizePanel = React.forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      title = "Title",
+      width = 400,
+      minWidth = 320,
+      maxWidth = 600,
+      resizeDirection = "left",
+      children,
     },
-    initial: "expanded",
-    states: {
-      expanded: {
-        on: {
-          TOGGLED_COLLAPSE: { to: "collapsed" },
-          RESIZE_STARTED: {
-            to: "between",
+    ref
+  ) => {
+    const dragX = useMotionValue(width)
+    const titleOpacity = useTransform(dragX, [minWidth - 44, minWidth], [0, 1])
+    const bodyOpacity = useTransform(dragX, [collapsedWidth, minWidth], [0, 1])
+
+    const state = useStateDesigner({
+      data: {
+        width,
+      },
+      initial: "expanded",
+      states: {
+        expanded: {
+          on: {
+            TOGGLED_COLLAPSE: { to: "collapsed" },
+            RESIZE_STARTED: {
+              to: "between",
+            },
+            RESIZE_ENDED: {
+              if: "dragIndicatesCollapse",
+              to: "collapsed",
+            },
           },
-          RESIZE_ENDED: {
-            if: "dragIndicatesCollapse",
-            to: "collapsed",
+          initial: "normal",
+          states: {
+            normal: {
+              on: { RESET: { to: "min" } },
+            },
+            between: {
+              on: { RESET: { to: "normal" } },
+            },
+            min: {
+              on: { RESET: { to: "max" } },
+            },
+            max: {
+              on: { RESET: { to: "normal" } },
+            },
           },
         },
-        initial: "normal",
-        states: {
-          normal: {
-            on: { RESET: { to: "min" } },
-          },
-          between: {
-            on: { RESET: { to: "normal" } },
-          },
-          min: {
-            on: { RESET: { to: "max" } },
-          },
-          max: {
-            on: { RESET: { to: "normal" } },
+        collapsed: {
+          on: {
+            RESET: { to: "expanded" },
+            RESIZE_ENDED: { if: "dragIndicatesExpand", to: "expanded" },
+            TOGGLED_COLLAPSE: { to: "expanded" },
           },
         },
       },
-      collapsed: {
-        on: {
-          RESET: { to: "expanded" },
-          RESIZE_ENDED: { if: "dragIndicatesExpand", to: "expanded" },
-          TOGGLED_COLLAPSE: { to: "expanded" },
+      on: {
+        RESIZED: "setWidth",
+      },
+      conditions: {
+        dragIndicatesCollapse(_, { width }) {
+          return width < minWidth - 44
+        },
+        dragIndicatesExpand(_, { width }) {
+          return width > collapsedWidth + 44
         },
       },
-    },
-    on: {
-      RESIZED: "setWidth",
-    },
-    conditions: {
-      dragIndicatesCollapse(_, { width }) {
-        return width < minWidth - 44
+      actions: {
+        setWidth(data, { width }) {
+          data.width = width
+        },
       },
-      dragIndicatesExpand(_, { width }) {
-        return width > collapsedWidth + 44
-      },
-    },
-    actions: {
-      setWidth(data, { width }) {
-        data.width = width
-      },
-    },
-  })
+    })
 
-  const activeNames = state.active.map((path) => last(path.split(".")))
+    const activeNames = state.active.map((path) => last(path.split(".")))
 
-  return (
-    <motion.div
-      style={{ width: dragX }}
-      sx={{
-        position: "relative",
-        overflowX: "hidden",
-        overflowY: "scroll",
-      }}
-    >
+    return (
       <motion.div
-        style={{ x: dragX }}
+        ref={ref}
+        style={{ width: dragX }}
         sx={{
-          width: 3,
-          height: "100%",
-          position: "absolute",
-          left: "-3px",
-          borderRight: "1px solid",
-          borderColor: "rgba(79, 76, 89, 1.000)",
-          cursor: "ew-resize",
-          zIndex: 999,
-          "&:hover": {
-            borderColor: "rgba(89, 86, 99, 1.000)",
-          },
-        }}
-        drag="x"
-        dragMomentum={false}
-        dragConstraints={state.whenIn({
-          collapsed: { left: collapsedWidth, right: collapsedWidth },
-          expanded: { left: minWidth, right: maxWidth },
-        })}
-        variants={{
-          normal: { x: width },
-          min: { x: minWidth },
-          max: { x: maxWidth },
-          collapsed: { x: collapsedWidth },
-        }}
-        animate={activeNames}
-        onDoubleClick={() => state.send("RESET")}
-        onDragStart={() => state.send("RESIZE_STARTED")}
-        onDragEnd={() =>
-          state.send("RESIZE_ENDED", {
-            width: dragX.get(),
-          })
-        }
-        onAnimationComplete={() =>
-          state.send("RESIZE_ENDED", { width: dragX.get() })
-        }
-      />
-      <Flex
-        sx={{
-          position: "sticky",
-          top: 0,
-          p: 2,
-          height: 40,
-          alignItems: "center",
-          justifyContent: "space-between",
-          zIndex: 888,
-          borderBottom: "1px solid",
-          borderColor: "bright",
-          bg: "flat",
-          "&:hover > button": {
-            visibility: "visible",
-          },
+          position: "relative",
+          overflowX: "hidden",
         }}
       >
-        <motion.div style={{ opacity: titleOpacity, minWidth }}>
-          {title}
-        </motion.div>
-        <IconButton
+        <motion.div
+          style={{ x: dragX }}
           sx={{
+            width: 3,
+            height: "100%",
             position: "absolute",
-            right: 2,
-            cursor: "pointer",
-            height: 28,
-            width: 28,
-            visibility: "hidden",
+            left: "-3px",
+            borderRight: "1px solid",
+            borderColor: "rgba(255, 255, 255, 0.100)",
+            cursor: "ew-resize",
+            zIndex: 999,
+            "&:hover": {
+              borderColor: "rgba(89, 86, 99, 1.000)",
+            },
           }}
-          onClick={() => state.send("TOGGLED_COLLAPSE")}
-        >
-          {state.whenIn({
-            collapsed:
-              resizeDirection === "left" ? <ChevronsRight /> : <ChevronsLeft />,
-            default:
-              resizeDirection === "left" ? <ChevronsLeft /> : <ChevronsRight />,
+          drag="x"
+          dragMomentum={false}
+          dragConstraints={state.whenIn({
+            collapsed: { left: collapsedWidth, right: collapsedWidth },
+            expanded: { left: minWidth, right: maxWidth },
           })}
-        </IconButton>
-      </Flex>
-      <motion.div
-        style={{
-          minWidth,
-          opacity: bodyOpacity,
-          pointerEvents: state.isIn("collapsed") ? "none" : "all",
-        }}
-      >
-        {children}
+          variants={{
+            normal: { x: width },
+            min: { x: minWidth },
+            max: { x: maxWidth },
+            collapsed: { x: collapsedWidth },
+          }}
+          animate={activeNames}
+          onDoubleClick={() => state.send("RESET")}
+          onDragStart={() => state.send("RESIZE_STARTED")}
+          onDragEnd={() =>
+            state.send("RESIZE_ENDED", {
+              width: dragX.get(),
+            })
+          }
+          onAnimationComplete={() =>
+            state.send("RESIZE_ENDED", { width: dragX.get() })
+          }
+        />
+        <Flex
+          sx={{
+            position: "sticky",
+            top: 0,
+            p: 2,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "space-between",
+            zIndex: 888,
+            borderBottom: "1px solid",
+            borderColor: "bright",
+            bg: "flat",
+            "&:hover > button": {
+              visibility: "visible",
+            },
+          }}
+        >
+          <motion.div style={{ opacity: titleOpacity, minWidth }}>
+            {title}
+          </motion.div>
+          <IconButton
+            sx={{
+              position: "absolute",
+              right: 2,
+              cursor: "pointer",
+              height: 28,
+              width: 28,
+              visibility: "hidden",
+            }}
+            onClick={() => state.send("TOGGLED_COLLAPSE")}
+          >
+            {state.whenIn({
+              collapsed:
+                resizeDirection === "left" ? (
+                  <ChevronsRight />
+                ) : (
+                  <ChevronsLeft />
+                ),
+              default:
+                resizeDirection === "left" ? (
+                  <ChevronsLeft />
+                ) : (
+                  <ChevronsRight />
+                ),
+            })}
+          </IconButton>
+        </Flex>
+        <motion.div
+          style={{
+            minWidth,
+            opacity: bodyOpacity,
+            pointerEvents: state.isIn("collapsed") ? "none" : "all",
+          }}
+        >
+          {children}
+        </motion.div>
       </motion.div>
-    </motion.div>
-  )
-}
+    )
+  }
+)
+
+const ResizePanelWithRef = (
+  props: Props & { ref: React.Ref<HTMLDivElement> }
+) => {}

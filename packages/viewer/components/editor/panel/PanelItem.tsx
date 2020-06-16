@@ -2,14 +2,16 @@ import * as React from "react"
 import { useStateDesigner } from "@state-designer/react"
 import { SelectOptionHeader } from "../shared"
 import { MoreHorizontal } from "react-feather"
-import { Circle, Disc } from "react-feather"
+import { Circle, Disc, Square } from "react-feather"
 import { Box, Flex, Button, Input } from "theme-ui"
+import { DraggableProvided } from "react-beautiful-dnd"
 
 export const PanelItem: React.FC<{
   isActive: boolean
   value: string
   depth?: number
-  icon?: "circle" | "disc"
+  provided?: DraggableProvided
+  icon?: "circle" | "disc" | "square"
   options?: {
     title: string
     functions: Record<
@@ -29,6 +31,7 @@ export const PanelItem: React.FC<{
   icon,
   isActive,
   onChange,
+  provided,
   children,
 }) => {
   const { send, values, isIn } = useStateDesigner(
@@ -102,15 +105,16 @@ export const PanelItem: React.FC<{
   const rInput = React.useRef<HTMLInputElement>()
 
   return (
-    <li>
+    <li ref={provided?.innerRef} {...provided?.draggableProps}>
       <Flex
         sx={{
-          justifyContent: "space-between",
           width: "100%",
           py: 0,
           pl: 0,
           pr: 0,
           border: "1px solid",
+          alignItems: "center",
+          justifyContent: "flex-start",
           borderColor: "transparent",
           bg: isActive ? "primary" : "transparent",
           "&:hover": {
@@ -120,16 +124,43 @@ export const PanelItem: React.FC<{
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
+        {icon && (
+          <Flex
+            {...provided?.dragHandleProps}
+            sx={{
+              cursor: "grab",
+              height: 32,
+              width: 32 + depth * 16,
+              alignItems: "center",
+              justifyContent: "center",
+              pr: 1,
+              pl: depth * 16 + "px",
+              pb: "1px",
+              opacity: 0.7,
+            }}
+          >
+            {icon === "disc" ? (
+              <Disc size={12} style={{ marginLeft: 8 }} />
+            ) : icon === "circle" ? (
+              <Circle size={12} style={{ marginLeft: 8 }} />
+            ) : icon === "square" ? (
+              <Square size={10} style={{ marginLeft: 10 }} />
+            ) : null}
+          </Flex>
+        )}
         <Button
           variant="link"
           sx={{
             display: "grid",
-            gridTemplateColumns: icon ? "auto 1fr" : "1fr",
+            gridTemplateColumns: "1fr",
             gridAutoColumns: "auto",
             width: "100%",
             p: 0,
             m: 0,
             userSelect: "none",
+            "&:hover > div": {
+              opacity: 1,
+            },
           }}
           onDoubleClick={() => {
             send("FOCUSED")
@@ -141,24 +172,6 @@ export const PanelItem: React.FC<{
           }}
           onClick={() => onSelect && onSelect()}
         >
-          {icon && (
-            <Flex
-              sx={{
-                height: "100%",
-                width: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-                paddingLeft: depth * 16 + "px",
-                paddingRight: 1,
-              }}
-            >
-              {icon === "disc" ? (
-                <Disc size={12} style={{ marginLeft: 8 }} />
-              ) : icon === "circle" ? (
-                <Circle size={12} style={{ marginLeft: 8 }} />
-              ) : null}
-            </Flex>
-          )}
           <label
             style={{
               pointerEvents: isIn("editing") ? "all" : "none",

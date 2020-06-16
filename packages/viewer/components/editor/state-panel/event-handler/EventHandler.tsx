@@ -3,15 +3,16 @@ import * as React from "react"
 import { sortBy } from "lodash"
 import { useStateDesigner } from "@state-designer/react"
 import { HandlerOptionsButton } from "./HandlerOptionsButton"
-import globalState, { State, EventHandler as EH } from "./state"
+import globalState from "../../state"
+import * as T from "../../types"
 import { Plus } from "react-feather"
 import { EventHandlerLink } from "./EventHandlerLink"
-import { SelectOptionHeader } from "./shared"
+import { SelectOptionHeader } from "../../shared"
 import { IconButton, Divider, Card, Select, Grid } from "theme-ui"
 
 export const EventHandler: React.FC<{
-  handler: EH
-  node: State
+  handler: T.EventHandler
+  node: T.StateNode
 }> = ({ node, handler }) => {
   const global = useStateDesigner(globalState)
   const event = global.data.events.get(handler.event)

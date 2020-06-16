@@ -3,10 +3,17 @@ import * as React from "react"
 import { sortBy } from "lodash"
 import { Plus } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import globalState, { State } from "./state"
-import { SelectOptionHeader, CreateRow, InputRow, Row, ListRow } from "./shared"
-import { EventHandler } from "./EventHandler"
-import { StateListItem } from "./StateListItem"
+import globalState from "../state"
+import * as T from "../types"
+import {
+  SelectOptionHeader,
+  CreateRow,
+  InputRow,
+  Row,
+  ListRow,
+} from "../shared"
+import { EventHandler } from "./event-handler/EventHandler"
+import { StateListItem } from "../StateListItem"
 import {
   Divider,
   Heading,
@@ -17,12 +24,10 @@ import {
   Radio,
   IconButton,
   Label,
-  Select,
 } from "theme-ui"
 
-export const StateNode: React.FC<{ node: State }> = ({ node }) => {
+export const StateNode: React.FC<{ node: T.StateNode }> = ({ node }) => {
   const global = useStateDesigner(globalState)
-  const parentNode = global.data.states.get(node.parent)
   const childNodes = Array.from(node.states.values()).map((id) =>
     global.data.states.get(id)
   )
@@ -113,10 +118,10 @@ export const StateNode: React.FC<{ node: State }> = ({ node }) => {
   )
 }
 
-const InitialStatePicker: React.FC<{ node: State; childNodes: State[] }> = ({
-  node,
-  childNodes,
-}) => {
+const InitialStatePicker: React.FC<{
+  node: T.StateNode
+  childNodes: T.StateNode[]
+}> = ({ node, childNodes }) => {
   return (
     <Box my={3}>
       Initial
@@ -156,7 +161,7 @@ const InitialStatePicker: React.FC<{ node: State; childNodes: State[] }> = ({
   )
 }
 
-const ChildStateNodeLinks: React.FC<{ childNodes: State[] }> = ({
+const ChildStateNodeLinks: React.FC<{ childNodes: T.StateNode[] }> = ({
   childNodes,
 }) => {
   return (

@@ -41,16 +41,18 @@ export default {
       textShadow: "outline",
     },
     ul: {
+      width: "100%",
+      margin: 0,
+      padding: 0,
+      paddingLeft: 0,
       listStyleType: "none",
-      pl: 0,
-      m: 0,
     },
     li: {
       m: 0,
       pl: 0,
-      pb: 3,
-      "&:first-child": {
-        pt: 3,
+      pb: 1,
+      "&:first-of-type": {
+        pt: 1,
       },
     },
     pre: {
@@ -217,6 +219,10 @@ export default {
         boxShadow: "med",
         gap: 2,
         borderRadius: 16,
+        mb: 3,
+        "&:nth-last-of-type": {
+          mb: 0,
+        },
       },
       link: {
         position: "relative",

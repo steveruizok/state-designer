@@ -1,32 +1,23 @@
 // @refresh reset
 import * as React from "react"
 import { useStateDesigner } from "@state-designer/react"
-import globalState, {
-  TransitionType,
-  State,
-  EventHandler,
-  HandlerLink,
-  EventFunction,
-  Action,
-  Condition,
-} from "./state"
-import { Plus } from "react-feather"
-import { SelectOptionHeader } from "./shared"
-import { DragHandle } from "./shared"
-import { Segment } from "./Segment"
+import globalState from "../../state"
+import * as T from "../../types"
+import { SelectOptionHeader, DragHandle } from "../../shared"
+import { Segment } from "../../Segment"
 import { Box, Divider, Card, Select, Grid, Field } from "theme-ui"
 
 export const EventHandlerLink: React.FC<{
-  link: HandlerLink
-  handler: EventHandler
-  node: State
+  link: T.HandlerLink
+  handler: T.EventHandler
+  node: T.StateNode
 }> = ({ node, handler, link }) => {
   const global = useStateDesigner(globalState)
   const { states, actions, conditions } = global.values
   const targets = states.filter((s) => ![node.id, "root"].includes(s.id))
 
   return (
-    <Card variant="editor.link">
+    <Card variant="editor.link" sx={{ zIndex: 99999 }}>
       <DragHandle>
         <select
           style={{
@@ -109,7 +100,7 @@ const EventFunctionSelect: React.FC<{
   onChange: (id: string) => void
   placeholder: string
   dim?: boolean
-  fns: EventFunction[]
+  fns: T.EventFunction[]
 }> = ({
   value,
   dim,
@@ -148,10 +139,10 @@ const EventFunctionSelect: React.FC<{
 /* ------------------- Conditions ------------------- */
 
 const LinkConditions: React.FC<{
-  link: HandlerLink
-  node: State
-  handler: EventHandler
-  conditions: Condition[]
+  link: T.HandlerLink
+  node: T.StateNode
+  handler: T.EventHandler
+  conditions: T.Condition[]
 }> = ({ link, node, handler, conditions }) => {
   return (
     <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
@@ -196,10 +187,10 @@ const LinkConditions: React.FC<{
 /* --------------------- Actions -------------------- */
 
 const LinkActions: React.FC<{
-  link: HandlerLink
-  node: State
-  handler: EventHandler
-  actions: Action[]
+  link: T.HandlerLink
+  node: T.StateNode
+  handler: T.EventHandler
+  actions: T.Action[]
 }> = ({ link, node, actions, handler }) => {
   return (
     <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
@@ -244,10 +235,10 @@ const LinkActions: React.FC<{
 /* ------------------- Transition ------------------- */
 
 const LinkTransitions: React.FC<{
-  node: State
-  handler: EventHandler
-  targets: State[]
-  link: HandlerLink
+  node: T.StateNode
+  handler: T.EventHandler
+  targets: T.StateNode[]
+  link: T.HandlerLink
 }> = ({ link, node, handler, targets }) => {
   return (
     <Grid columns={"40px auto"} gap={1} sx={{ alignItems: "center" }}>
@@ -292,7 +283,7 @@ const LinkTransitions: React.FC<{
         <Segment
           sx={{ gridColumn: 2 }}
           value={link.transitionType}
-          options={Object.values(TransitionType)}
+          options={Object.values(T.TransitionType)}
           onChange={(type) =>
             globalState.send("SET_LINK_TRANSITION_TYPE", {
               stateId: node.id,
