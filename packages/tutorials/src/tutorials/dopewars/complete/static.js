@@ -1,5 +1,5 @@
-export const Drugs = [
-  {
+export const Drugs = {
+  acid: {
     name: "acid",
     minimum_price: 1000,
     maximum_price: 4400,
@@ -12,7 +12,7 @@ export const Drugs = [
       maximum_price: 8000,
     },
   },
-  {
+  cocaine: {
     name: "cocaine",
     minimum_price: 15000,
     maximum_price: 29000,
@@ -21,7 +21,7 @@ export const Drugs = [
       maximum_price: 70000,
     },
   },
-  {
+  hash: {
     name: "hash",
     minimum_price: 480,
     maximum_price: 1280,
@@ -30,7 +30,7 @@ export const Drugs = [
       maximum_price: 400,
     },
   },
-  {
+  heroin: {
     name: "heroin",
     minimum_price: 5500,
     maximum_price: 13000,
@@ -39,7 +39,7 @@ export const Drugs = [
       maximum_price: 19000,
     },
   },
-  {
+  glue: {
     name: "glue",
     minimum_price: 11,
     maximum_price: 75,
@@ -48,12 +48,12 @@ export const Drugs = [
       maximum_price: 15,
     },
   },
-  {
+  ecstasy: {
     name: "ecstasy",
     minimum_price: 1500,
     maximum_price: 4400,
   },
-  {
+  opium: {
     name: "opium",
     minimum_price: 540,
     maximum_price: 1250,
@@ -62,17 +62,17 @@ export const Drugs = [
       maximum_price: 68000,
     },
   },
-  {
+  pcp: {
     name: "pcp",
     minimum_price: 1000,
     maximum_price: 2500,
   },
-  {
+  mush: {
     name: "mush",
     minimum_price: 630,
     maximum_price: 1300,
   },
-  {
+  speed: {
     name: "speed",
     minimum_price: 90,
     maximum_price: 250,
@@ -81,7 +81,7 @@ export const Drugs = [
       maximum_price: 5000,
     },
   },
-  {
+  marijuana: {
     name: "marijuana",
     minimum_price: 315,
     maximum_price: 890,
@@ -90,66 +90,40 @@ export const Drugs = [
       maximum_price: 220,
     },
   },
-]
+}
 
-export const DrugsDict = Object.fromEntries(
-  Drugs.map((drug) => [drug.name, drug])
-)
-
-export const Cities = [
-  {
-    name: "laval",
+export const Cities = {
+  bronx: {
+    name: "bronx",
     cops: 10,
     min_drugs: 5,
     max_drugs: 10,
   },
-  {
-    name: "vieux-port",
+  brooklyn: {
+    name: "brooklyn",
     cops: 70,
     min_drugs: 4,
     max_drugs: 10,
   },
-  {
-    name: "mont-royal",
+  "central park": {
+    name: "central park",
     cops: 5,
     min_drugs: 7,
     max_drugs: 100,
   },
-  {
-    name: "lafontaine-park",
+  manhattan: {
+    name: "manhattan",
     cops: 15,
     min_drugs: 6,
     max_drugs: 100,
   },
-  {
-    name: "berry-uqam-metro",
+  "coney island": {
+    name: "coney island",
     cops: 80,
     min_drugs: 4,
     max_drugs: 100,
   },
-  {
-    name: "sainte-helene-island",
-    cops: 30,
-    min_drugs: 6,
-    max_drugs: 100,
-  },
-  {
-    name: "westmount",
-    cops: 70,
-    min_drugs: 6,
-    max_drugs: 100,
-  },
-  {
-    name: "notre-dame-de-grace",
-    cops: 20,
-    min_drugs: 5,
-    max_drugs: 100,
-  },
-]
-
-export const CitiesDict = Object.fromEntries(
-  Cities.map((city) => [city.name, city])
-)
+}
 
 export const Messages = [
   100000000,

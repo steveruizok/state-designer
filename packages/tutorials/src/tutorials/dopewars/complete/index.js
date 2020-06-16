@@ -1,406 +1,277 @@
 import React from "react"
-import { sample, random, shuffle, range } from "lodash"
-import { Layout, HStack, VStack } from "components"
+import { Layout, VStack } from "components"
 import { useStateDesigner } from "@state-designer/react"
-import { Heading, NumberInput, Button, Divider } from "@chakra-ui/core"
-import * as Static from "./static"
-
-function getCity(name) {
-  const city = Static.CitiesDict[name]
-  const drugs = shuffle(Static.Drugs).slice(
-    0,
-    random(city.min_drugs, city.max_drugs)
-  )
-
-  return {
-    name: city.name,
-    drugs: drugs.map((drug) => drug.name),
-    prices: Object.fromEntries(
-      drugs.map((drug, i) => {
-        return [drug.name, random(drug.minimum_price, drug.maximum_price)]
-      })
-    ),
-  }
-}
+import { Text, Heading, NumberInput, Button, Divider } from "@chakra-ui/core"
+import game from "./game"
+import { Cities, Drugs } from "./static"
+const CitiesArr = Object.values(Cities)
 
 export default function () {
-  const home = sample(Static.Cities).name
-
-  const state = useStateDesigner({
-    data: {
-      game: {
-        day: 1,
-        end: 30,
-        debt: 550,
-        bank: 0,
-        stoneLevel: 0,
-        city: getCity(home),
-      },
-      coat: {
-        drugs: Object.fromEntries(Static.Drugs.map((drug) => [drug.name, 0])),
-        cash: 2000,
-        guns: [],
-        health: 100,
-        totalSpace: 100,
-        home,
-      },
-    },
-    initial: "street",
-    states: {
-      street: {
-        onEnter: {
-          if: "ranOutOfDays",
-          to: "gameover",
-        },
-        on: {
-          BOUGHT: {
-            get: "availableSpace",
-            if: "canFitDrugsInCoat",
-            then: {
-              get: "amount",
-              if: "canAffordAmount",
-              do: ["buy", "addDrugToCoat"],
-            },
-          },
-          SOLD: {
-            if: "hasDrugsInCoat",
-            do: ["removeDrugFromCoat", "sell"],
-          },
-          MOVED: {
-            to: "subway",
-          },
-        },
-        initial: {
-          if: "cityIsHome",
-          to: "home",
-          else: { to: "away" },
-        },
-        states: {
-          home: {
-            on: {
-              VISITED_LOAN_SHARK: {
-                to: "loanshark",
-              },
-              VISITED_BANK: {
-                to: "bank",
-              },
-            },
-          },
-          away: {},
-        },
-      },
-      bank: {
-        on: {
-          WITHDREW_CASH: {
-            if: "bankContainsCash",
-            do: ["takeCashFromBank", "moveCashToCoat"],
-          },
-          DEPOSITED_CASH: {
-            if: "coatContainsCash",
-            do: ["takeCashFromCoat", "moveCashToBank"],
-          },
-          EXITED: { to: "street.restore" },
-        },
-      },
-      loanshark: {
-        initial: {
-          if: "isInDebt",
-          to: "inDebt",
-          else: { to: "canBorrow" },
-        },
-        states: {
-          inDebt: {
-            on: {
-              PAID_LOAN: [
-                {
-                  if: "coatContainsCash",
-                  do: ["takeCashFromCoat", "reduceDebt"],
-                },
-                {
-                  unless: "isInDebt",
-                  to: "paidOff",
-                },
-              ],
-            },
-          },
-          paidOff: {
-            onEnter: {
-              to: "canBorrow",
-              wait: 2,
-            },
-          },
-          canBorrow: {
-            on: {
-              TOOK_LOAN: {
-                do: ["moveCashToCoat", "increaseDebt"],
-                to: "inDebt",
-              },
-            },
-          },
-        },
-        on: {
-          EXITED: { to: "street.restore" },
-        },
-      },
-      subway: {
-        onEnter: [
-          {
-            to: "street",
-            do: ["changeCity", "changeDay"],
-            wait: 1,
-          },
-        ],
-      },
-      gameover: {},
-    },
-    results: {
-      amount(data, { price, quantity }) {
-        return price * quantity
-      },
-      availableSpace(data) {
-        let remainingSpace = data.coat.totalSpace
-        for (let key in data.coat.drugs) {
-          remainingSpace -= data.coat.drugs[key]
-        }
-        return remainingSpace
-      },
-    },
-    conditions: {
-      cityIsHome(data) {
-        return data.game.city.name === data.coat.home
-      },
-      ranOutOfDays(data) {
-        return data.game.day > data.game.end
-      },
-      isInDebt(data) {
-        return data.game.debt > 0
-      },
-      canFitDrugsInCoat(data, { quantity }, availableSpace) {
-        return availableSpace >= quantity
-      },
-      canAffordAmount(data, _, amount) {
-        return data.coat.cash >= amount
-      },
-      hasDrugsInCoat(data, { name, quantity }) {
-        return data.coat.drugs[name] >= quantity
-      },
-      coatContainsCash(data, { amount }) {
-        return data.coat.cash >= amount
-      },
-      bankContainsCash(data, { amount }) {
-        return data.game.bank >= amount
-      },
-    },
-    actions: {
-      addDrugToCoat(data, { name, quantity }) {
-        data.coat.drugs[name] += quantity
-      },
-      removeDrugFromCoat(data, { name, quantity }) {
-        data.coat.drugs[name] -= quantity
-      },
-      buy(data, { price, quantity }) {
-        data.coat.cash -= price * quantity
-      },
-      sell(data, { price, quantity }) {
-        data.coat.cash += price * quantity
-      },
-      reduceDebt(data, { amount }) {
-        data.game.debt -= amount
-      },
-      increaseDebt(data, { amount }) {
-        data.game.debt += amount
-      },
-      takeCashFromBank(data, { amount }) {
-        data.game.bank -= amount
-      },
-      moveCashToBank(data, { amount }) {
-        data.game.bank += amount
-      },
-      takeCashFromCoat(data, { amount }) {
-        data.coat.cash -= amount
-      },
-      moveCashToCoat(data, { amount }) {
-        data.coat.cash += amount
-      },
-      changeCity(data, { name }) {
-        data.game.city = getCity(name)
-      },
-      changeDay(data) {
-        data.game.day++
-        data.game.debt = Math.round(data.game.debt * 1.1)
-      },
-      dropDrug(data, { name, quantity }) {
-        data.coat.drugs[name] -= quantity
-      },
-    },
-    values: {
-      quantities(data) {
-        let remainingSpace = data.coat.totalSpace
-
-        for (let key in data.coat.drugs) {
-          remainingSpace -= data.coat.drugs[key]
-        }
-
-        return Object.fromEntries(
-          data.game.city.drugs.map((name) => [
-            name,
-            {
-              buy: Math.floor(
-                Math.min(
-                  remainingSpace,
-                  data.coat.cash / data.game.city.prices[name]
-                )
-              ),
-              sell: data.coat.drugs[name],
-            },
-          ])
-        )
-      },
-      score(data) {
-        let score = data.coat.cash - data.game.debt
-
-        for (let name of data.game.city.drugs) {
-          score += data.coat.drugs[name] * data.game.city.prices[name]
-        }
-
-        return score
-      },
-    },
-  })
+  const state = useStateDesigner(game)
 
   return (
     <Layout>
-      <Heading size="md">Score: {state.values.score}</Heading>
-      <Heading size="md">Cash: ${state.data.coat.cash.toFixed(2)}</Heading>
-      <Heading size="md">Bank: ${state.data.game.bank.toFixed(2)}</Heading>
-      <Heading size="md">Debt: ${state.data.game.debt.toFixed(2)}</Heading>
-      <Divider />
-      <Heading size="md">Day: {state.data.game.day}</Heading>
+      <Stats />
       <Heading>
         {state.whenIn({
-          city: state.data.game.city.name,
+          street: state.data.game.city.name,
           subway: "Subway...",
           gameover: "Game over!",
         })}
       </Heading>
       <Divider />
+      {state.whenIn({
+        loanshark: <LoanSharkScreen />,
+        bank: <BankScreen />,
+        buying: <BuyScreen />,
+        selling: <SellScreen />,
+        idle: (
+          <>
+            <Menu />
+            {state.isIn("home") && <TravelLinks />}
+            <CityLinks />
+          </>
+        ),
+      })}
+    </Layout>
+  )
+}
+
+function Stats() {
+  const state = useStateDesigner(game)
+  return (
+    <>
+      <Heading size="sm">Score: {state.values.score}</Heading>
+      <Heading size="sm">Cash: ${state.data.coat.cash.toFixed(2)}</Heading>
+      <Heading size="sm">Bank: ${state.data.game.bank.toFixed(2)}</Heading>
+      <Heading size="sm">Debt: ${state.data.game.debt.toFixed(2)}</Heading>{" "}
+      <Heading size="sm">Day: {state.data.game.day}</Heading>
+      <Divider />
+    </>
+  )
+}
+
+function BuyScreen() {
+  const state = useStateDesigner(game)
+  return (
+    <VStack>
+      <Heading size="md">
+        Buying {state.data.selection.name} $
+        {state.data.selection.price?.toFixed()}
+      </Heading>
+      <NumberInput
+        min={0}
+        max={state.values.quantities[state.data.selection.name]?.buy}
+        value={state.data.selection.quantity}
+        onChange={(quantity) => state.send("CHANGED_QUANTITY", { quantity })}
+      />
+      <Button
+        onClick={() =>
+          state.send("CHANGED_QUANTITY", {
+            quantity: state.values.quantities[state.data.selection.name]?.buy,
+          })
+        }
+      >
+        Max
+      </Button>
+      <Button onClick={() => state.send("BOUGHT", state.data.selection)}>
+        Buy
+      </Button>
+      <Button onClick={() => state.send("CANCELLED")}>Cancel</Button>
+    </VStack>
+  )
+}
+
+function SellScreen() {
+  const state = useStateDesigner(game)
+  return (
+    <VStack>
+      <Heading size="md">
+        Selling {state.data.selection.name} $
+        {state.data.selection.price?.toFixed()}
+      </Heading>
+      <NumberInput
+        min={0}
+        max={state.values.quantities[state.data.selection.name]?.sell}
+        value={state.data.selection.quantity}
+        onChange={(quantity) => state.send("CHANGED_QUANTITY", { quantity })}
+      />
+      <Button
+        onClick={() =>
+          state.send("CHANGED_QUANTITY", {
+            quantity: state.values.quantities[state.data.selection.name]?.sell,
+          })
+        }
+      >
+        Max
+      </Button>
+      <Button onClick={() => state.send("SOLD", state.data.selection)}>
+        Sell
+      </Button>
+      <Button onClick={() => state.send("CANCELLED")}>Cancel</Button>
+    </VStack>
+  )
+}
+
+function Menu() {
+  const state = useStateDesigner(game)
+  return (
+    <>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "80px auto 72px 64px 72px 64px",
+          gridTemplateColumns: "auto auto 72px 72px",
           gridColumnGap: 16,
           gridRowGap: 4,
           alignItems: "center",
         }}
       >
-        <div style={{ gridColumn: "3 / span 2", textAlign: "center" }}>Buy</div>
-        <div style={{ gridColumn: "5 / span 2", textAlign: "center" }}>
-          Sell
-        </div>
         {state.data.game.city.drugs.map((name) => {
-          const { buy, sell } = state.values.quantities[name]
+          const drug = Drugs[name]
           const price = state.data.game.city.prices[name]
-          const drug = Static.DrugsDict[name]
+          const quantity = state.data.coat.drugs[name]
+
+          const isCheap =
+            price <
+            drug.minimum_price + (drug.maximum_price - drug.minimum_price) / 5
+
+          const isExpensive =
+            price >
+            drug.maximum_price - (drug.maximum_price - drug.minimum_price) / 5
 
           return (
             <React.Fragment key={drug.name}>
-              <div>
-                {drug.name} ({state.data.coat.drugs[drug.name]})
-              </div>
-              <div style={{ textAlign: "right" }}>${price}</div>
+              <Text>
+                {drug.name} ({quantity})
+              </Text>
+              <Text
+                style={{
+                  textAlign: "right",
+                  color: isCheap ? "green" : isExpensive ? "red" : "text",
+                }}
+              >
+                ${price}
+              </Text>
               <Button
-                onClick={() =>
-                  state.send("BOUGHT", { name, price, quantity: 1 })
-                }
+                disabled={price > state.data.coat.cash}
+                onClick={() => state.send("STARTED_BUYING", { name, price })}
               >
                 Buy
               </Button>
               <Button
-                onClick={() =>
-                  state.send("BOUGHT", { name, price, quantity: buy })
-                }
-              >
-                Max
-              </Button>
-              <Button
-                onClick={() => state.send("SOLD", { name, price, quantity: 1 })}
+                disabled={quantity === 0}
+                onClick={() => state.send("STARTED_SELLING", { name, price })}
               >
                 Sell
-              </Button>
-              <Button
-                onClick={() =>
-                  state.send("SOLD", { name, price, quantity: sell })
-                }
-              >
-                Max
               </Button>
             </React.Fragment>
           )
         })}
       </div>
       <Divider />
+    </>
+  )
+}
+
+function TravelLinks() {
+  return (
+    <VStack>
+      <Heading size="md">Home</Heading>
+      <Button onClick={() => game.send("VISITED_BANK")}>Visit Bank</Button>
+      <Button onClick={() => game.send("VISITED_LOAN_SHARK")}>
+        Visit Loan Shark
+      </Button>
+      <Divider />
+    </VStack>
+  )
+}
+
+function LoanSharkScreen() {
+  const state = useStateDesigner(game)
+  return (
+    <div>
+      hello
       {state.whenIn({
-        "street.home": (
+        inDebt: (
           <VStack>
-            <Heading size="md">Home</Heading>
-            <Button onClick={() => state.send("VISITED_BANK")}>
-              Visit Bank
-            </Button>
-            <Button onClick={() => state.send("VISITED_LOAN_SHARK")}>
-              Visit Loan Shark
-            </Button>
-          </VStack>
-        ),
-        "loanshark.inDebt": (
-          <VStack>
-            <NumberInput />
-            <Button onClick={() => state.send("PAID_LOAN", { amount: 50 })}>
+            <NumberInput
+              min={0}
+              max={state.data.game.debt}
+              value={state.data.selection.amount}
+              onChange={(amount) => state.send("CHANGED_AMOUNT", { amount })}
+            />
+            <Button
+              onClick={() => state.send("PAID_LOAN", state.data.selection)}
+            >
               Pay Debt
             </Button>
             <Button onClick={() => state.send("EXITED")}>Exit</Button>
           </VStack>
         ),
-        "loanshark.paidOff": <VStack>Nice doin' business with you!</VStack>,
-        "loanshark.canBorrow": (
+        paidOff: <VStack>Nice doin' business with you!</VStack>,
+        canBorrow: (
           <VStack>
-            <NumberInput />
-            <Button onClick={() => state.send("TOOK_LOAN", { amount: 50 })}>
+            <NumberInput
+              min={0}
+              value={state.data.selection.amount}
+              onChange={(amount) => state.send("CHANGED_AMOUNT", { amount })}
+            />
+            <Button
+              onClick={() => state.send("TOOK_LOAN", state.data.selection)}
+            >
               Borrow
             </Button>
             <Button onClick={() => state.send("EXITED")}>Exit</Button>
           </VStack>
         ),
-        bank: (
-          <VStack>
-            <NumberInput />
-            <Button
-              onClick={() => state.send("DEPOSITED_CASH", { amount: 10 })}
-            >
-              Deposit
-            </Button>
-            <NumberInput />
-            <Button onClick={() => state.send("WITHDREW_CASH", { amount: 10 })}>
-              Withdraw
-            </Button>
-            <Button onClick={() => state.send("EXITED")}>Exit</Button>
-          </VStack>
-        ),
       })}
-      <VStack>
-        <Heading size="md">Move To</Heading>
-        {Static.Cities.map((city) => (
-          <Button
-            key={city.name}
-            disabled={
-              !state.can("MOVED") || city.name === state.data.game.city.name
-            }
-            onClick={() => state.send("MOVED", { name: city.name })}
-          >
-            {city.name} {city.name === state.data.coat.home && "(Home)"}
-          </Button>
-        ))}
-      </VStack>
-      <Divider />
-    </Layout>
+    </div>
+  )
+}
+
+function BankScreen() {
+  const state = useStateDesigner(game)
+  return (
+    <VStack>
+      <NumberInput
+        min={0}
+        max={Math.max(state.data.coat.cash, state.data.game.bank)}
+        value={state.data.selection.amount}
+        onChange={(amount) => state.send("CHANGED_AMOUNT", { amount })}
+      />
+      <Button
+        disabled={!state.can("DEPOSITED_CASH", state.data.selection)}
+        onClick={() => state.send("DEPOSITED_CASH", { amount: 10 })}
+      >
+        Deposit
+      </Button>
+      <Button
+        disabled={!state.can("WITHDREW_CASH", state.data.selection)}
+        onClick={() => state.send("WITHDREW_CASH", state.data.selection)}
+      >
+        Withdraw
+      </Button>
+      <Button onClick={() => state.send("EXITED")}>Exit</Button>
+    </VStack>
+  )
+}
+
+function CityLinks() {
+  const state = useStateDesigner(game)
+  return (
+    <VStack>
+      <Heading size="md">Move To</Heading>
+      {CitiesArr.map((city) => (
+        <Button
+          key={city.name}
+          disabled={
+            !state.can("MOVED") || city.name === state.data.game.city.name
+          }
+          onClick={() => state.send("MOVED", { name: city.name })}
+        >
+          {city.name} {city.name === state.data.coat.home && "(Home)"}
+        </Button>
+      ))}
+    </VStack>
   )
 }
