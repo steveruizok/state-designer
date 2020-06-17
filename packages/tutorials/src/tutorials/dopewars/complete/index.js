@@ -36,15 +36,24 @@ export default function () {
 
 function Stats() {
   const state = useStateDesigner(game)
+  const { cash } = state.data.coat
+  const { bank, debt, day, city } = state.data.game
   return (
     <>
-      <Heading size="sm">Score: {state.values.score}</Heading>
-      <Heading size="sm">Cash: ${state.data.coat.cash.toFixed(2)}</Heading>
-      <Heading size="sm">Bank: ${state.data.game.bank.toFixed(2)}</Heading>
-      <Heading size="sm">Debt: ${state.data.game.debt.toFixed(2)}</Heading>{" "}
-      <Heading size="sm">Day: {state.data.game.day}</Heading>
+      <VStack templateColumns="repeat(2, min-content 1fr)" gridColumnGap={10}>
+        <Text>Cash: </Text>
+        <Text textAlign="right">${cash.toFixed(2)}</Text>
+        <Text>Day:</Text>
+        <Text textAlign="right">{day} / 30</Text>
+        <Text>Debt: </Text>
+        <Text textAlign="right">${debt.toFixed(2)}</Text>
+        <Text>Score: </Text>
+        <Text textAlign="right">{state.values.score}</Text>
+        <Text>Bank: </Text>
+        <Text textAlign="right">${bank.toFixed(2)}</Text>
+      </VStack>
       <Divider />
-      <Heading>{state.data.game.city.name}</Heading>
+      <Heading>{city.name}</Heading>
       <Divider />
     </>
   )
@@ -69,6 +78,87 @@ function TravelLinks() {
     </VStack>
   )
 }
+
+function Menu() {
+  const state = useStateDesigner(game)
+  const { colorMode } = useColorMode()
+  return (
+    <>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto auto 72px 72px auto",
+          gridColumnGap: 16,
+          gridRowGap: 4,
+          alignItems: "center",
+        }}
+      >
+        {state.data.game.city.drugs.map((name) => {
+          const drug = Drugs[name]
+          const { minimum_price, maximum_price } = drug
+          const price = state.data.game.city.prices[name]
+          const quantity = state.data.coat.drugs[name]
+          const maxSell = state.values.quantities[name]?.sell
+          const maxBuy = state.values.quantities[name]?.buy
+
+          const normal =
+            (price - minimum_price) / (maximum_price - minimum_price)
+
+          const textColor =
+            colorMode === "dark" ? "rgb(255,255,255)" : "rgb(0,0,0)"
+
+          const color = transform(
+            normal,
+            [0, 0.5, 1],
+            ["rgb(0, 128, 1)", textColor, "rgb(250, 3, 5)"]
+          )
+
+          return (
+            <React.Fragment key={drug.name}>
+              <Text>{drug.name}</Text>
+              <Text
+                style={{
+                  textAlign: "right",
+                  color,
+                }}
+              >
+                ${price}
+              </Text>
+              <Button
+                disabled={price > state.data.coat.cash}
+                onClick={(e) => {
+                  if (e.shiftKey) {
+                    state.send("BOUGHT", { name, price, quantity: maxBuy })
+                  } else {
+                    state.send("STARTED_BUYING", { name, price })
+                  }
+                }}
+              >
+                Buy
+              </Button>
+              <Button
+                disabled={quantity === 0}
+                onClick={(e) => {
+                  if (e.shiftKey) {
+                    state.send("SOLD", { name, price, quantity: maxSell })
+                  } else {
+                    state.send("STARTED_SELLING", { name, price })
+                  }
+                }}
+              >
+                Sell
+              </Button>
+              <Text textAlign="right">{quantity}</Text>
+            </React.Fragment>
+          )
+        })}
+      </div>
+      <Divider />
+    </>
+  )
+}
+
+/* --------------------- Modals --------------------- */
 
 function ModalModal({ children, isOpen, onClose, title }) {
   return (
@@ -177,72 +267,6 @@ function SellModal() {
   )
 }
 
-function Menu() {
-  const state = useStateDesigner(game)
-  const { colorMode } = useColorMode()
-  return (
-    <>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "auto auto 72px 72px",
-          gridColumnGap: 16,
-          gridRowGap: 4,
-          alignItems: "center",
-        }}
-      >
-        {state.data.game.city.drugs.map((name) => {
-          const drug = Drugs[name]
-          const { minimum_price, maximum_price } = drug
-          const price = state.data.game.city.prices[name]
-          const quantity = state.data.coat.drugs[name]
-
-          const normal =
-            (price - minimum_price) / (maximum_price - minimum_price)
-
-          const textColor =
-            colorMode === "dark" ? "rgb(255,255,255)" : "rgb(0,0,0)"
-
-          const color = transform(
-            normal,
-            [0, 0.5, 1],
-            ["rgb(0, 128, 1)", textColor, "rgb(250, 3, 5)"]
-          )
-
-          return (
-            <React.Fragment key={drug.name}>
-              <Text>
-                {drug.name} ({quantity})
-              </Text>
-              <Text
-                style={{
-                  textAlign: "right",
-                  color,
-                }}
-              >
-                ${price}
-              </Text>
-              <Button
-                disabled={price > state.data.coat.cash}
-                onClick={() => state.send("STARTED_BUYING", { name, price })}
-              >
-                Buy
-              </Button>
-              <Button
-                disabled={quantity === 0}
-                onClick={() => state.send("STARTED_SELLING", { name, price })}
-              >
-                Sell
-              </Button>
-            </React.Fragment>
-          )
-        })}
-      </div>
-      <Divider />
-    </>
-  )
-}
-
 function LoanSharkModal() {
   const state = useStateDesigner(game)
   const { amount } = state.data.selection
@@ -343,7 +367,10 @@ function SubwayModal() {
   const state = useStateDesigner(game)
   return (
     <ModalModal
-      title={state.isIn("subway.selecting") ? `Subway` : "Traveling..."}
+      title={state.whenIn({
+        "subway.selecting": `Subway`,
+        "subway.riding": "Riding...",
+      })}
       isOpen={state.isIn("subway")}
       onClose={state.thenSend("EXITED")}
     >

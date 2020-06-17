@@ -4,6 +4,8 @@ import { Cities, Drugs } from "./static"
 const CitiesArr = Object.values(Cities)
 const DrugsArr = Object.values(Drugs)
 
+// Riffing on https://github.com/316k/DopeWars.js
+
 function getCity(name) {
   const city = Cities[name]
   const drugs = shuffle(DrugsArr).slice(
@@ -85,6 +87,21 @@ export default createState({
                 VISITED_SUBWAY: {
                   to: "subway",
                 },
+                BOUGHT: [
+                  {
+                    get: "availableSpace",
+                    if: "canFitDrugsInCoat",
+                    then: {
+                      get: "amount",
+                      if: "canAffordAmount",
+                      do: ["buy", "addDrugToCoat"],
+                    },
+                  },
+                ],
+                SOLD: {
+                  if: "hasDrugsInCoat",
+                  do: ["removeDrugFromCoat", "sell"],
+                },
               },
               initial: "dealing",
               states: {
@@ -98,29 +115,20 @@ export default createState({
                   on: {
                     EXITED: { do: "resetSelection", to: "dealing" },
                     CHANGED_QUANTITY: "setSelectionQuantity",
-                    BOUGHT: [
-                      {
-                        get: "availableSpace",
-                        if: "canFitDrugsInCoat",
-                        then: {
-                          get: "amount",
-                          if: "canAffordAmount",
-                          do: ["buy", "addDrugToCoat", "resetSelection"],
-                          to: "dealing",
-                        },
-                      },
-                    ],
+                    BOUGHT: {
+                      do: "resetSelection",
+                      to: "dealing",
+                    },
                   },
                 },
                 selling: {
                   on: {
                     EXITED: { do: "resetSelection", to: "dealing" },
                     CHANGED_QUANTITY: "setSelectionQuantity",
-                    SOLD: {
-                      if: "hasDrugsInCoat",
-                      do: ["removeDrugFromCoat", "sell", "resetSelection"],
-                      to: "dealing",
-                    },
+                  },
+                  SOLD: {
+                    do: "resetSelection",
+                    to: "dealing",
                   },
                 },
               },
@@ -189,11 +197,11 @@ export default createState({
               states: {
                 selecting: {
                   on: {
-                    MOVED: { to: "traveling" },
+                    MOVED: { to: "riding" },
                     EXITED: { do: "resetSelection", to: "street" },
                   },
                 },
-                traveling: {
+                riding: {
                   onEnter: [
                     {
                       do: ["changeCity", "changeDay"],
@@ -239,7 +247,6 @@ export default createState({
       return data.coat.cash >= amount
     },
     hasDrugsInCoat(data, { name, quantity }) {
-      console.log(name, data.coat.drugs[name], quantity)
       return data.coat.drugs[name] >= quantity
     },
     coatContainsCash(data, { amount }) {
@@ -332,7 +339,7 @@ export default createState({
       )
     },
     score(data) {
-      let score = data.coat.cash - data.game.debt
+      let score = data.coat.cash + data.game.bank - data.game.debt
 
       for (let name of data.game.city.drugs) {
         score += data.coat.drugs[name] * data.game.city.prices[name]
