@@ -1,38 +1,35 @@
 import React from "react"
-import { Layout, VStack } from "components"
+import { startCase } from "lodash"
+import { Layout, HStack, VStack } from "components"
 import { useStateDesigner } from "@state-designer/react"
-import { Text, Heading, NumberInput, Button, Divider } from "@chakra-ui/core"
+import { transform } from "framer-motion"
+import {
+  useColorMode,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  Text,
+  Heading,
+  NumberInput,
+  Button,
+  Divider,
+} from "@chakra-ui/core"
 import game from "./game"
 import { Cities, Drugs } from "./static"
-const CitiesArr = Object.values(Cities)
 
 export default function () {
-  const state = useStateDesigner(game)
-
   return (
     <Layout>
       <Stats />
-      <Heading>
-        {state.whenIn({
-          street: state.data.game.city.name,
-          subway: "Subway...",
-          gameover: "Game over!",
-        })}
-      </Heading>
-      <Divider />
-      {state.whenIn({
-        loanshark: <LoanSharkScreen />,
-        bank: <BankScreen />,
-        buying: <BuyScreen />,
-        selling: <SellScreen />,
-        idle: (
-          <>
-            <Menu />
-            {state.isIn("home") && <TravelLinks />}
-            <CityLinks />
-          </>
-        ),
-      })}
+      <Menu />
+      <TravelLinks />
+      {/* Modals */}
+      <BuyModal />
+      <SellModal />
+      <BankModal />
+      <LoanSharkModal />
+      <SubwayModal />
     </Layout>
   )
 }
@@ -47,74 +44,142 @@ function Stats() {
       <Heading size="sm">Debt: ${state.data.game.debt.toFixed(2)}</Heading>{" "}
       <Heading size="sm">Day: {state.data.game.day}</Heading>
       <Divider />
+      <Heading>{state.data.game.city.name}</Heading>
+      <Divider />
     </>
   )
 }
 
-function BuyScreen() {
+function TravelLinks() {
   const state = useStateDesigner(game)
+
   return (
     <VStack>
-      <Heading size="md">
-        Buying {state.data.selection.name} $
-        {state.data.selection.price?.toFixed()}
-      </Heading>
-      <NumberInput
-        min={0}
-        max={state.values.quantities[state.data.selection.name]?.buy}
-        value={state.data.selection.quantity}
-        onChange={(quantity) => state.send("CHANGED_QUANTITY", { quantity })}
-      />
-      <Button
-        onClick={() =>
-          state.send("CHANGED_QUANTITY", {
-            quantity: state.values.quantities[state.data.selection.name]?.buy,
-          })
-        }
-      >
-        Max
-      </Button>
-      <Button onClick={() => state.send("BOUGHT", state.data.selection)}>
-        Buy
-      </Button>
-      <Button onClick={() => state.send("CANCELLED")}>Cancel</Button>
+      <Heading size="md">Travel</Heading>
+      <Button onClick={() => game.send("VISITED_SUBWAY")}>Enter Subway</Button>
+      {state.isIn("home") && (
+        <>
+          <Button onClick={() => game.send("VISITED_BANK")}>Visit Bank</Button>
+          <Button onClick={game.thenSend("VISITED_LOAN_SHARK")}>
+            Visit Loan Shark
+          </Button>
+        </>
+      )}
+      <Divider />
     </VStack>
   )
 }
 
-function SellScreen() {
-  const state = useStateDesigner(game)
+function ModalModal({ children, isOpen, onClose, title }) {
   return (
-    <VStack>
-      <Heading size="md">
-        Selling {state.data.selection.name} $
-        {state.data.selection.price?.toFixed()}
-      </Heading>
-      <NumberInput
-        min={0}
-        max={state.values.quantities[state.data.selection.name]?.sell}
-        value={state.data.selection.quantity}
-        onChange={(quantity) => state.send("CHANGED_QUANTITY", { quantity })}
-      />
-      <Button
-        onClick={() =>
-          state.send("CHANGED_QUANTITY", {
-            quantity: state.values.quantities[state.data.selection.name]?.sell,
-          })
-        }
-      >
-        Max
+    <Modal isCentered isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent borderRadius={8} w="fit-content">
+        <Layout>
+          <HStack pb={5}>
+            <Heading size="md">{title}</Heading>
+            <ModalCloseButton />
+          </HStack>
+          <VStack>{children}</VStack>
+        </Layout>
+      </ModalContent>
+    </Modal>
+  )
+}
+
+function BuyModal() {
+  const state = useStateDesigner(game)
+
+  const { quantities } = state.values
+  const { name, price, quantity } = state.data.selection
+
+  return (
+    <ModalModal
+      title={`Buying ${startCase(name)}`}
+      isOpen={state.isIn("buying")}
+      onClose={state.thenSend("EXITED")}
+    >
+      <HStack width="100%" templateColumns="1fr 1fr auto">
+        <Text>
+          {startCase(name)} @ ${price?.toFixed()}
+        </Text>
+        <NumberInput
+          sx={{ textAlign: "right" }}
+          min={0}
+          max={quantities[name]?.buy}
+          value={quantity}
+          onChange={(quantity) => state.send("CHANGED_QUANTITY", { quantity })}
+        />
+        <Button
+          onClick={() =>
+            state.send("CHANGED_QUANTITY", {
+              quantity: quantities[name]?.buy,
+            })
+          }
+        >
+          Max
+        </Button>
+      </HStack>
+      <HStack width="100%" templateColumns="1fr fit-content">
+        <Text>Cash: ${state.data.coat.cash}</Text>
+        <Text textAlign="right">Total: ${quantity * price}</Text>
+      </HStack>
+      <Button onClick={() => state.send("BOUGHT", { name, price, quantity })}>
+        Buy
       </Button>
-      <Button onClick={() => state.send("SOLD", state.data.selection)}>
+      <Button onClick={state.thenSend("EXITED")}>Cancel</Button>
+    </ModalModal>
+  )
+}
+
+function SellModal() {
+  const state = useStateDesigner(game)
+
+  const { quantities } = state.values
+  const { name, price, quantity } = state.data.selection
+
+  return (
+    <ModalModal
+      title={`Selling ${startCase(name)}`}
+      isOpen={state.isIn("selling")}
+      onClose={state.thenSend("EXITED")}
+    >
+      <HStack width="100%" templateColumns="1fr 1fr auto">
+        <Text>
+          {startCase(name)} @ ${price?.toFixed()}
+        </Text>
+        <NumberInput
+          sx={{ textAlign: "right" }}
+          min={0}
+          max={quantities[name]?.sell}
+          value={quantity}
+          onChange={(quantity) => state.send("CHANGED_QUANTITY", { quantity })}
+        />
+        <Button
+          onClick={() =>
+            state.send("CHANGED_QUANTITY", {
+              quantity: quantities[name]?.sell,
+            })
+          }
+        >
+          Max
+        </Button>
+      </HStack>
+      <HStack width="100%" templateColumns="1fr fit-content">
+        <Text>Cash: ${state.data.coat.cash}</Text>
+        <Text textAlign="right">Total: ${quantity * price}</Text>
+      </HStack>
+      <Button onClick={() => state.send("SOLD", { name, price, quantity })}>
         Sell
       </Button>
-      <Button onClick={() => state.send("CANCELLED")}>Cancel</Button>
-    </VStack>
+      <Button onClick={state.thenSend("EXITED")}>Cancel</Button>
+    </ModalModal>
   )
 }
 
 function Menu() {
   const state = useStateDesigner(game)
+  const { colorMode } = useColorMode()
   return (
     <>
       <div
@@ -128,16 +193,21 @@ function Menu() {
       >
         {state.data.game.city.drugs.map((name) => {
           const drug = Drugs[name]
+          const { minimum_price, maximum_price } = drug
           const price = state.data.game.city.prices[name]
           const quantity = state.data.coat.drugs[name]
 
-          const isCheap =
-            price <
-            drug.minimum_price + (drug.maximum_price - drug.minimum_price) / 5
+          const normal =
+            (price - minimum_price) / (maximum_price - minimum_price)
 
-          const isExpensive =
-            price >
-            drug.maximum_price - (drug.maximum_price - drug.minimum_price) / 5
+          const textColor =
+            colorMode === "dark" ? "rgb(255,255,255)" : "rgb(0,0,0)"
+
+          const color = transform(
+            normal,
+            [0, 0.5, 1],
+            ["rgb(0, 128, 1)", textColor, "rgb(250, 3, 5)"]
+          )
 
           return (
             <React.Fragment key={drug.name}>
@@ -147,7 +217,7 @@ function Menu() {
               <Text
                 style={{
                   textAlign: "right",
-                  color: isCheap ? "green" : isExpensive ? "red" : "text",
+                  color,
                 }}
               >
                 ${price}
@@ -173,95 +243,111 @@ function Menu() {
   )
 }
 
-function TravelLinks() {
-  return (
-    <VStack>
-      <Heading size="md">Home</Heading>
-      <Button onClick={() => game.send("VISITED_BANK")}>Visit Bank</Button>
-      <Button onClick={() => game.send("VISITED_LOAN_SHARK")}>
-        Visit Loan Shark
-      </Button>
-      <Divider />
-    </VStack>
-  )
-}
-
-function LoanSharkScreen() {
+function LoanSharkModal() {
   const state = useStateDesigner(game)
+  const { amount } = state.data.selection
+
   return (
-    <div>
-      hello
+    <ModalModal
+      title={`Loan Shark`}
+      isOpen={state.isIn("loanshark")}
+      onClose={state.thenSend("EXITED")}
+    >
       {state.whenIn({
         inDebt: (
-          <VStack>
+          <>
             <NumberInput
               min={0}
               max={state.data.game.debt}
-              value={state.data.selection.amount}
+              value={amount}
               onChange={(amount) => state.send("CHANGED_AMOUNT", { amount })}
             />
             <Button
-              onClick={() => state.send("PAID_LOAN", state.data.selection)}
+              onClick={() =>
+                state.send("CHANGED_AMOUNT", {
+                  amount: Math.min(state.data.coat.cash, state.data.game.debt),
+                })
+              }
             >
+              Max
+            </Button>
+            <Button onClick={() => state.send("PAID_LOAN", { amount })}>
               Pay Debt
             </Button>
-            <Button onClick={() => state.send("EXITED")}>Exit</Button>
-          </VStack>
+            <Button onClick={state.thenSend("EXITED")}>Exit</Button>
+          </>
         ),
-        paidOff: <VStack>Nice doin' business with you!</VStack>,
+        paidOff: "Nice doin' business with you!",
         canBorrow: (
-          <VStack>
+          <>
             <NumberInput
               min={0}
-              value={state.data.selection.amount}
+              value={amount}
               onChange={(amount) => state.send("CHANGED_AMOUNT", { amount })}
             />
-            <Button
-              onClick={() => state.send("TOOK_LOAN", state.data.selection)}
-            >
+            <Button onClick={() => state.send("TOOK_LOAN", { amount })}>
               Borrow
             </Button>
-            <Button onClick={() => state.send("EXITED")}>Exit</Button>
-          </VStack>
+            <Button onClick={state.thenSend("EXITED")}>Exit</Button>
+          </>
         ),
       })}
-    </div>
+    </ModalModal>
   )
 }
 
-function BankScreen() {
+function BankModal() {
   const state = useStateDesigner(game)
+  const { amount } = state.data.selection
+
   return (
-    <VStack>
+    <ModalModal
+      title={`Bank`}
+      isOpen={state.isIn("bank")}
+      onClose={state.thenSend("EXITED")}
+    >
       <NumberInput
         min={0}
         max={Math.max(state.data.coat.cash, state.data.game.bank)}
-        value={state.data.selection.amount}
+        value={amount}
         onChange={(amount) => state.send("CHANGED_AMOUNT", { amount })}
       />
       <Button
-        disabled={!state.can("DEPOSITED_CASH", state.data.selection)}
-        onClick={() => state.send("DEPOSITED_CASH", { amount: 10 })}
+        disabled={!state.can("DEPOSITED_CASH", { amount })}
+        onClick={() => state.send("DEPOSITED_CASH", { amount })}
       >
         Deposit
       </Button>
       <Button
-        disabled={!state.can("WITHDREW_CASH", state.data.selection)}
-        onClick={() => state.send("WITHDREW_CASH", state.data.selection)}
+        disabled={!state.can("WITHDREW_CASH", { amount: Math.max(1, amount) })}
+        onClick={() => state.send("WITHDREW_CASH", { amount })}
       >
         Withdraw
       </Button>
-      <Button onClick={() => state.send("EXITED")}>Exit</Button>
-    </VStack>
+      <Button
+        disabled={!state.can("WITHDREW_CASH", { amount: 1 })}
+        onClick={() =>
+          state.send("CHANGED_AMOUNT", {
+            amount: state.data.game.bank,
+          })
+        }
+      >
+        Max
+      </Button>
+      <Button onClick={state.thenSend("EXITED")}>Exit</Button>
+    </ModalModal>
   )
 }
 
-function CityLinks() {
+function SubwayModal() {
   const state = useStateDesigner(game)
   return (
-    <VStack>
-      <Heading size="md">Move To</Heading>
-      {CitiesArr.map((city) => (
+    <ModalModal
+      title={state.isIn("subway.selecting") ? `Subway` : "Traveling..."}
+      isOpen={state.isIn("subway")}
+      onClose={state.thenSend("EXITED")}
+    >
+      {Object.values(Cities).map((city) => (
         <Button
           key={city.name}
           disabled={
@@ -272,6 +358,6 @@ function CityLinks() {
           {city.name} {city.name === state.data.coat.home && "(Home)"}
         </Button>
       ))}
-    </VStack>
+    </ModalModal>
   )
 }

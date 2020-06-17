@@ -28,7 +28,7 @@ export default createState({
   data: {
     selection: {
       name: undefined,
-      price: undefined,
+      price: 0,
       quantity: 0,
       amount: 0,
     },
@@ -49,58 +49,11 @@ export default createState({
       home,
     },
   },
-  initial: "street",
+  initial: "playing",
   states: {
-    street: {
-      onEnter: {
-        if: "ranOutOfDays",
-        to: "gameover",
-      },
+    playing: {
       states: {
-        activity: {
-          initial: "idle",
-          states: {
-            idle: {
-              on: {
-                MOVED: {
-                  to: "subway",
-                },
-                STARTED_BUYING: { do: "setSelection", to: "buying" },
-                STARTED_SELLING: { do: "setSelection", to: "selling" },
-              },
-            },
-            buying: {
-              on: {
-                CANCELLED: { to: "idle" },
-                CHANGED_QUANTITY: "setSelectionQuantity",
-                BOUGHT: [
-                  {
-                    get: "availableSpace",
-                    if: "canFitDrugsInCoat",
-                    then: {
-                      get: "amount",
-                      if: "canAffordAmount",
-                      do: ["buy", "addDrugToCoat", "resetSelection"],
-                      to: "idle",
-                    },
-                  },
-                ],
-              },
-            },
-            selling: {
-              on: {
-                CANCELLED: { to: "idle" },
-                CHANGED_QUANTITY: "setSelectionQuantity",
-                SOLD: {
-                  if: "hasDrugsInCoat",
-                  do: ["removeDrugFromCoat", "sell", "resetSelection"],
-                  to: "idle",
-                },
-              },
-            },
-          },
-        },
-        location: {
+        city: {
           initial: {
             if: "cityIsHome",
             to: "home",
@@ -120,71 +73,140 @@ export default createState({
             away: {},
           },
         },
-      },
-    },
-    bank: {
-      on: {
-        WITHDREW_CASH: {
-          if: "bankContainsCash",
-          do: ["takeCashFromBank", "moveCashToCoat", "resetSelection"],
-        },
-        DEPOSITED_CASH: {
-          if: "coatContainsCash",
-          do: ["takeCashFromCoat", "moveCashToBank", "resetSelection"],
-        },
-        CHANGED_AMOUNT: "setSelectionAmount",
-        EXITED: { to: "street.restore" },
-      },
-    },
-    loanshark: {
-      initial: {
-        if: "isInDebt",
-        to: "inDebt",
-        else: { to: "canBorrow" },
-      },
-      states: {
-        inDebt: {
-          on: {
-            PAID_LOAN: [
-              {
-                if: "coatContainsCash",
-                do: ["takeCashFromCoat", "reduceDebt", "resetSelection"],
+        location: {
+          initial: "street",
+          states: {
+            street: {
+              onEnter: {
+                if: "ranOutOfDays",
+                to: "gameover",
               },
-              {
-                unless: "isInDebt",
-                to: "paidOff",
+              on: {
+                VISITED_SUBWAY: {
+                  to: "subway",
+                },
               },
-            ],
-          },
-        },
-        paidOff: {
-          onEnter: {
-            to: "canBorrow",
-            wait: 2,
-          },
-        },
-        canBorrow: {
-          on: {
-            TOOK_LOAN: {
-              do: ["moveCashToCoat", "increaseDebt", "resetSelection"],
-              to: "inDebt",
+              initial: "dealing",
+              states: {
+                dealing: {
+                  on: {
+                    STARTED_BUYING: { do: "setSelection", to: "buying" },
+                    STARTED_SELLING: { do: "setSelection", to: "selling" },
+                  },
+                },
+                buying: {
+                  on: {
+                    EXITED: { do: "resetSelection", to: "dealing" },
+                    CHANGED_QUANTITY: "setSelectionQuantity",
+                    BOUGHT: [
+                      {
+                        get: "availableSpace",
+                        if: "canFitDrugsInCoat",
+                        then: {
+                          get: "amount",
+                          if: "canAffordAmount",
+                          do: ["buy", "addDrugToCoat", "resetSelection"],
+                          to: "dealing",
+                        },
+                      },
+                    ],
+                  },
+                },
+                selling: {
+                  on: {
+                    EXITED: { do: "resetSelection", to: "dealing" },
+                    CHANGED_QUANTITY: "setSelectionQuantity",
+                    SOLD: {
+                      if: "hasDrugsInCoat",
+                      do: ["removeDrugFromCoat", "sell", "resetSelection"],
+                      to: "dealing",
+                    },
+                  },
+                },
+              },
+            },
+            bank: {
+              on: {
+                WITHDREW_CASH: {
+                  if: "bankContainsCash",
+                  do: ["takeCashFromBank", "moveCashToCoat", "resetSelection"],
+                },
+                DEPOSITED_CASH: {
+                  if: "coatContainsCash",
+                  do: ["takeCashFromCoat", "moveCashToBank", "resetSelection"],
+                },
+                CHANGED_AMOUNT: "setSelectionAmount",
+                EXITED: { do: "resetSelection", to: "street" },
+              },
+            },
+            loanshark: {
+              initial: {
+                if: "isInDebt",
+                to: "inDebt",
+                else: { to: "canBorrow" },
+              },
+              states: {
+                inDebt: {
+                  on: {
+                    PAID_LOAN: [
+                      {
+                        if: "coatContainsCash",
+                        do: [
+                          "takeCashFromCoat",
+                          "reduceDebt",
+                          "resetSelection",
+                        ],
+                      },
+                      {
+                        unless: "isInDebt",
+                        to: "paidOff",
+                      },
+                    ],
+                  },
+                },
+                paidOff: {
+                  onEnter: {
+                    to: "canBorrow",
+                    wait: 2,
+                  },
+                },
+                canBorrow: {
+                  on: {
+                    TOOK_LOAN: {
+                      do: ["moveCashToCoat", "increaseDebt", "resetSelection"],
+                      to: "inDebt",
+                    },
+                  },
+                },
+              },
+              on: {
+                CHANGED_AMOUNT: "setSelectionAmount",
+                EXITED: { do: "resetSelection", to: "street" },
+              },
+            },
+            subway: {
+              initial: "selecting",
+              states: {
+                selecting: {
+                  on: {
+                    MOVED: { to: "traveling" },
+                    EXITED: { do: "resetSelection", to: "street" },
+                  },
+                },
+                traveling: {
+                  onEnter: [
+                    {
+                      do: ["changeCity", "changeDay"],
+                      to: ["city", "street"],
+                      wait: 1.5,
+                    },
+                  ],
+                },
+              },
             },
           },
         },
       },
-      on: {
-        CHANGED_AMOUNT: "setSelectionAmount",
-        EXITED: { to: "street.restore" },
-      },
-    },
-    subway: {
-      onEnter: [
-        {
-          to: "street",
-          do: ["changeCity", "changeDay"],
-          wait: 1,
-        },
-      ],
     },
     gameover: {},
   },
@@ -231,7 +253,7 @@ export default createState({
     resetSelection(data) {
       data.selection = {
         name: undefined,
-        price: undefined,
+        price: 0,
         quantity: 0,
         amount: 0,
       }

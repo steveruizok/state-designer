@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.2.17
+
+- Adds `thenSend`, a function to use in place of common `send` calls. The function only accepts an event name (not a payload) and will return a memoized call to `send`. In the example below, button's `onClick` prop would never change.
+
+  ```jsx
+  const state = createState({})
+  const sendAccepted = () => state.send("ACCEPTED")
+
+  function Example() {
+    return <Button onClick={sendAccepted}>Accept</Button>
+  }
+  ```
+
+  In the example above, the button's `onClick` property would never change—its value on each render would be strictly equal to its previous value, and so would not cause the button component to render.
+
+  ```jsx
+  function Example() {
+    const { thenSend } = useStateDesigner(state)
+
+    return <button onClick={thenSend("ACCEPTED")}>Accept</button>
+  }
+  ```
+
+  The same is true for the example above. So long as the event name doesn't change, the function returned from `thenSend` will always be re-used from previous calls.
+
+- Adjusts the transition algorithm so that (normally) targeting a state will activate that state and reset its children to their initial states, even if those states were previously active. Previously, those descendants of the target would not change their active status if they were already active before the transition.
+
+  ```js
+  const state = createState({
+    initial: "a",
+    states: {
+      a: {
+        initial: "a1",
+        states: {
+          a1: {
+            on: { TO_A2: { to: "a2" } },
+          },
+          a2: {
+            on: { TO_A: { to: "a" } },
+          },
+        },
+      },
+      b: {},
+    },
+  })
+
+  state.isIn("a1") // true
+  state.send("TO_A2")
+  state.isIn("a1") // false
+  state.send("TO_A")
+  state.isIn("a1") // true
+  ```
+
 ## 1.2.16
 
 - Adds support for serial transitions. You can now provide transition targets as an array to the `to` property of an event handler object. When this handler object runs, it will produce multiple transitions. Each transition will run after the previous transition has settled. The best use for this technique is to trigger transitions in parallel states.

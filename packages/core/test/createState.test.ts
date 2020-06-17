@@ -1,5 +1,5 @@
 import { createDesign, createState } from "../src"
-import { state, design, counterDesign } from "./shared"
+import { design, counterDesign } from "./shared"
 
 jest.useFakeTimers()
 
@@ -7,13 +7,17 @@ describe("createState", () => {
   it("Should create a state.", () => {
     expect(createState({})).toBeTruthy()
     expect(createState(design)).toBeTruthy()
+  })
 
-    expect(state.stateTree).toBeTruthy()
-    expect(state.active).toBeTruthy()
-    expect(state.can).toBeTruthy()
-    expect(state.whenIn).toBeTruthy()
-    expect(state.data).toBeTruthy()
-    expect(state.isIn).toBeTruthy()
+  it("Should support send.", () => {
+    let i = 0
+
+    const state = createState({
+      on: { TICK: () => i++ },
+    })
+
+    state.send("TICK")
+    expect(i).toBe(1)
   })
 
   it("Should support actions.", () => {
@@ -94,27 +98,6 @@ describe("createState", () => {
     expect(counter.data.count).toBe(2)
   })
 
-  it("Should correctly bail on transitions.", () => {
-    const toggler = createState({
-      initial: "inactive",
-      data: { count: 0 },
-      states: {
-        inactive: { on: { TOGGLED: { do: "increment", to: "active" } } },
-        active: { on: { TOGGLED: [{ to: "inactive" }, { do: "increment" }] } },
-      },
-      actions: {
-        increment(d) {
-          d.count++
-        },
-      },
-    })
-
-    expect(toggler.data.count).toBe(0)
-    toggler.send("TOGGLED") // Should run first increment
-    toggler.send("TOGGLED") // Should not run second increment
-    expect(toggler.data.count).toBe(1)
-  })
-
   // Does the `isIn` helper work?
 
   it("Should support the isIn helper.", async (done) => {
@@ -175,7 +158,7 @@ describe("createState", () => {
   // Do down-level activations work?
   // Do onEvent events work?
 
-  it("Should handle transitions.", () => {
+  it("Should support transitions.", () => {
     const state = createState({
       states: {
         a: {
@@ -189,26 +172,91 @@ describe("createState", () => {
           initial: "b1",
           states: {
             b1: {},
-            b2: {},
-          },
-        },
-        c: {
-          initial: "c1",
-          states: {
-            c1: {},
-            c2: {},
+            b2: {
+              initial: "bb1",
+              states: {
+                bb1: {},
+                bb2: {},
+              },
+            },
           },
         },
       },
       on: {
-        TRIGGER: {
+        TARGET: {
           to: "a2",
+        },
+        TARGET_TOP: {
+          to: "a",
+        },
+        TARGET_DEEP: {
+          to: "b.b2",
         },
       },
     })
 
-    state.send("TRIGGER")
+    state.send("TARGET")
     expect(state.isIn("a2")).toBeTruthy()
+    state.send("TARGET_TOP")
+    expect(state.isIn("a1")).toBeTruthy()
+    state.send("TARGET_DEEP")
+    expect(state.isIn("b2")).toBeTruthy()
+    expect(state.isIn("bb1")).toBeTruthy()
+    expect(state.isIn("bb2")).toBeFalsy()
+  })
+
+  it("Should support resetting targeted branches.", () => {
+    const state = createState({
+      initial: "a",
+      states: {
+        a: {
+          initial: "a1",
+          states: {
+            a1: {
+              on: { TO_A2: { to: "a2" } },
+            },
+            a2: {
+              on: { TO_A: { to: "a" } },
+            },
+          },
+        },
+        b: {},
+      },
+    })
+
+    state.send("TO_A2")
+    expect(state.isIn("a2")).toBeTruthy() // true
+    state.send("TO_A")
+    expect(state.isIn("a1")).toBeTruthy() // true
+  })
+
+  it("Should correctly bail on transitions.", () => {
+    const toggler = createState({
+      data: { count: 0 },
+      initial: "inactive",
+      states: {
+        inactive: {
+          on: {
+            TOGGLED: [{ do: "increment" }, { to: "active" }],
+          },
+        },
+        active: {
+          on: {
+            TOGGLED: [{ to: "inactive" }, { do: "increment" }],
+          },
+        },
+      },
+      actions: {
+        increment(d) {
+          d.count++
+        },
+      },
+    })
+
+    expect(toggler.data.count).toBe(0)
+    toggler.send("TOGGLED") // Should run first increment
+    toggler.send("TOGGLED") // Should not run second increment
+    expect(toggler.data.count).toBe(1)
   })
 
   it("Should support multiple transitions.", () => {
@@ -306,7 +354,6 @@ describe("createState", () => {
     }, 1000)
   })
 
-  // Does causing a transition prevent further updates?
   it("Should support onEnter and onExit events.", async (done) => {
     const toggler = createState({
       initial: "inactive",
@@ -329,14 +376,14 @@ describe("createState", () => {
     })
 
     expect(toggler.isIn("inactive")).toBeTruthy()
-    let update = await toggler.send("TOGGLED")
+    toggler.send("TOGGLED")
     expect(toggler.isIn("active")).toBeTruthy()
-    expect(update.data.count).toBe(1)
-    update = await toggler.send("TOGGLED")
+    expect(toggler.data.count).toBe(1)
+    toggler.send("TOGGLED")
     expect(toggler.isIn("inactive")).toBeTruthy()
-    update = await toggler.send("TOGGLED")
+    toggler.send("TOGGLED")
     expect(toggler.isIn("active")).toBeTruthy()
-    expect(update.data.count).toBe(2)
+    expect(toggler.data.count).toBe(2)
     expect(toggler.data.count).toBe(2)
     done()
   })
@@ -393,14 +440,6 @@ describe("createState", () => {
     expect(state.data.switches[0].switched).toBeFalsy()
     expect(state.data.switches[1].switched).toBeTruthy()
   })
-
-  // Do asynchronous actions block further updates?
-
-  // Do data mutations work?
-
-  // Do updates work?
-
-  // Do auto events work?
 
   // Does asynchronous send queueing work?
 

@@ -1,4 +1,5 @@
 import { forEach, isUndefined, last } from "lodash"
+import { testEventHandlerConditions } from "./createState"
 import * as S from "./types"
 
 /**
@@ -51,28 +52,34 @@ export function activateState<D, V>(
   prev: boolean,
   deep: boolean
 ) {
+  let isTarget = false
   state.active = true
 
-  if (state.name === path[0]) path.shift()
+  if (state.name === path[0]) {
+    path.shift()
+    if (path.length === 0) {
+      isTarget = true
+    }
+  }
 
   if (state.initial === undefined) {
-    // Parallel
+    // Skipping Parallel
     forEach(state.states, (c) => activateState(c, path, before, prev, deep))
   } else if (prev && path.length === 0) {
-    // Restore
+    // Restoring target (down-tree from target)
     const c = state.states[last(state.history) || state.initial]
     activateState(c, path, before, deep, deep)
   } else if (state.states[path[0]] !== undefined) {
-    // Path
+    // Activating Next in Path
     const c = state.states[path[0]]
     state.history.push(c.name)
     activateState(c, path, before, prev, deep)
-  } else if (before.includes(state)) {
-    // Before
+  } else if (!isTarget && before.includes(state)) {
+    // Restoring Unrelated (not target, not in path branch)
     const c = state.states[last(state.history) || state.initial]
     activateState(c, path, before, false, false)
   } else {
-    // Initial
+    // Activating Initial
     const c = state.states[state.initial]
     state.history.push(c.name)
     activateState(c, path, before, false, false)
@@ -125,25 +132,7 @@ export function getInitialState<D>(
       result = resu(data, payload, result)
     }
 
-    let passedConditions = true
-
-    if (passedConditions && initial.if.length > 0) {
-      passedConditions = initial.if.every((cond) => cond(data, payload, result))
-    }
-
-    if (passedConditions && initial.unless.length > 0) {
-      passedConditions = initial.unless.every(
-        (cond) => !cond(data, payload, result)
-      )
-    }
-
-    if (passedConditions && initial.ifAny.length > 0) {
-      passedConditions = initial.ifAny.some((cond) =>
-        cond(data, payload, result)
-      )
-    }
-
-    if (passedConditions) {
+    if (testEventHandlerConditions(initial, data, payload, result)) {
       // TODO: The initial state object design should not allow both a `then` and `else` property.
       if (initial.then !== undefined) {
         return getInitialState(initial.then, payload, data)

@@ -354,6 +354,9 @@ export interface DesignedState<D, V> {
     reducer?: "value" | "array" | Reducer<T>,
     initial?: any
   ) => T
+  thenSend: (
+    eventName: string
+  ) => (eventName: string, payload?: any) => Promise<DesignedState<D, V>>
   send: (eventName: string, payload?: any) => Promise<DesignedState<D, V>>
   onUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => () => void
   getUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => void

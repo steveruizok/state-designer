@@ -240,7 +240,7 @@ export function createState<
 
     if (isUndefined(target)) {
       if (__DEV__) {
-        throw Error("No state with that path in the tree!")
+        throw Error(`No state with that path (${path}) in the tree!`)
       } else {
         return
       }
@@ -402,7 +402,7 @@ export function createState<
 
   function setActiveStates() {
     _activeStates = StateTree.getActiveStates(snapshot.stateTree)
-    snapshot.active = getActiveStatePaths(_activeStates)
+    snapshot.active = getPaths(_activeStates)
   }
 
   /* ---------------- Event Processing ----------------  
@@ -634,6 +634,24 @@ export function createState<
     return promise
   }
 
+  const sendCache = new Map<
+    string,
+    (eventName: string, payload?: any) => Promise<Snapshot>
+  >([])
+
+  function thenSend(
+    eventName: string
+  ): (eventName: string, payload?: any) => Promise<Snapshot> {
+    let cached = sendCache.get(eventName)
+
+    if (!cached) {
+      cached = () => send(eventName)
+      sendCache.set(eventName, cached)
+    }
+
+    return cached
+  }
+
   /**
    * Accepts one or more paths and returns true if the state tree has matching active states for every path.
    * @param paths The paths to check
@@ -675,7 +693,7 @@ export function createState<
   }
 
   /**
-   * Return true if the event exists and would pass its conditions, given the current state and payload.
+   * Return true if the event could be handled and at least one of its handlers would pass its conditions, given the current state and payload.
    * @param eventName The name of the event
    * @param payload A payload of any type
    * @public
@@ -684,50 +702,22 @@ export function createState<
     return !isUndefined(
       _activeStates.find((state) => {
         const eventHandler = state.on[eventName]
+        if (isUndefined(eventHandler)) return
 
-        if (!isUndefined(eventHandler)) {
-          for (let handler of eventHandler) {
-            // Result
+        return eventHandler.some((handler) => {
+          result = undefined
 
-            result = undefined
-
-            for (let resu of handler.get) {
-              result = resu(snapshot.data as D, payload, result)
-            }
-
-            // Conditions
-
-            let passedConditions = true
-
-            if (passedConditions && handler.if.length > 0) {
-              passedConditions = handler.if.every((cond) =>
-                cond(snapshot.data, payload, result)
-              )
-            }
-
-            if (passedConditions && handler.ifAny.length > 0) {
-              passedConditions = handler.ifAny.some((cond) =>
-                cond(snapshot.data, payload, result)
-              )
-            }
-
-            if (passedConditions && handler.unless.length > 0) {
-              passedConditions = handler.unless.every(
-                (cond) => !cond(snapshot.data, payload, result)
-              )
-            }
-
-            if (passedConditions && handler.unlessAny.length > 0) {
-              passedConditions = !handler.unlessAny.some((cond) =>
-                cond(snapshot.data, payload, result)
-              )
-            }
-
-            if (passedConditions) return true
+          for (let resu of handler.get) {
+            result = resu(snapshot.data as D, payload, result)
           }
-        }
 
-        return false
+          return testEventHandlerConditions(
+            handler,
+            snapshot.data,
+            payload,
+            result
+          )
+        })
       })
     )
   }
@@ -833,9 +823,10 @@ export function createState<
   const snapshot: Snapshot = {
     id,
     data: produce(design.data, (d) => d) as D,
-    active: getActiveStatePaths(_activeStates),
+    active: getPaths(_activeStates),
     stateTree: initialStateTree,
     send,
+    thenSend,
     isIn,
     isInAny,
     can,
@@ -862,7 +853,35 @@ export function createState<
 /* -------------------------------------------------- */
 
 /**
- * Hideously compute values based on the current data.
+ * Get paths from an array of states.
+ * @param states A set of states
+ */
+function getPaths<D, V>(states: S.State<D, V>[]) {
+  return states.map((state) => state.path)
+}
+
+/**
+ * Test whether a handler object would pass its conditions, given the current data, payload, and result.
+ * @param h Handler
+ * @param d Data
+ * @param p Payload
+ * @param r Result
+ */
+export function testEventHandlerConditions<D, P, R>(
+  h: S.EventHandlerObject<D> | S.InitialStateObject<D>,
+  d: D,
+  p: P,
+  r: R
+) {
+  if (h.if[0] && !h.if.every((c) => c(d, p, r))) return false
+  if (h.ifAny[0] && !h.ifAny.some((c) => c(d, p, r))) return false
+  if (h.unless[0] && !h.unless.every((c) => !c(d, p, r))) return false
+  if (h.unlessAny[0] && !h.unlessAny.some((c) => c(d, p, r))) return false
+  return true
+}
+
+/**
+ * Compute values based on the current data. A horrible affront to typescript.
  * @param data The current data state.
  */
 function getValues<D, V extends Record<string, S.Value<D>>>(
@@ -876,8 +895,4 @@ function getValues<D, V extends Record<string, S.Value<D>>>(
     },
     {} as S.Values<D, V>
   )
-}
-
-function getActiveStatePaths<D, V>(states: S.State<D, V>[]) {
-  return states.map((state) => state.path)
 }
