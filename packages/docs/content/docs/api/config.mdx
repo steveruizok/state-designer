@@ -1,9 +1,45 @@
 # Config
 
-- [⬜️ `id`](/docs/api/id)
-- [⬜️ `data`](/docs/api/data)
-- [⬜️ `actions`](/docs/api/actions)
-- [⬜️ `conditions`](/docs/api/conditions)
-- [⬜️ `results`](/docs/api/results)
-- [⬜️ `asyncs`](/docs/api/asyncs)
-- [⬜️ `times`](/docs/api/times)
+```js live=true log=true
+const state = createState({
+  data: { count: 0 },
+  onEnter: (data) => data.count++,
+})
+
+return log(state.data) // { count: 1 }
+```
+
+```jsx live=true
+// prettier-ignore
+function Counter() {
+  const state = useStateDesigner({
+    data: { count: 0 },
+    on: { INCREASED: (data) => data.count++ },
+  })
+
+  return (
+    <Button onClick={() => state.send("INCREASED")}> 
+      {state.data.count}
+    </Button>
+  )
+}
+```
+
+```js
+const state = createState({
+  data: { count: 0 },
+  onEnter: (data) => data.count++, // highlight-line
+})
+
+return log(state.data) // { count: 1 }
+```
+
+<!--
+```js live=true
+const state = createState({
+  data: { count: 0 },
+  onEnter: () => data.count++,
+})
+
+state.data // { count: 1 }
+``` -->

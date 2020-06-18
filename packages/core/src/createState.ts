@@ -148,67 +148,67 @@ export function createState<
   ): { shouldHalt: boolean; shouldNotify: boolean } {
     const record = { shouldHalt: false, shouldNotify: false }
 
-    if (state.active) {
-      const activeChildren = Object.values(state.states).filter(
-        (state) => state.active
+    if (!state.active) return record
+
+    const activeChildren = Object.values(state.states).filter(
+      (state) => state.active
+    )
+
+    const eventHandler = state.on[sent.event]
+
+    let outcome: S.EventChainOutcome<D> | undefined = undefined
+
+    // Run event handler, if present
+    if (!isUndefined(eventHandler)) {
+      outcome = runEventHandlerChain(
+        state,
+        eventHandler,
+        sent.payload,
+        undefined
       )
 
-      const eventHandler = state.on[sent.event]
-
-      let outcome: S.EventChainOutcome<D> | undefined = undefined
-
-      // Run event handler, if present
-      if (!isUndefined(eventHandler)) {
-        outcome = runEventHandlerChain(
-          state,
-          eventHandler,
-          sent.payload,
-          undefined
-        )
-
-        if (outcome.shouldNotify) {
-          record.shouldNotify = true
-        }
-
-        if (outcome.shouldBreak) {
-          record.shouldNotify = true
-          record.shouldHalt = true
-          return record
-        }
+      if (outcome.shouldNotify) {
+        record.shouldNotify = true
       }
 
-      // Run onEvent, if present
-      if (!isUndefined(state.onEvent)) {
-        outcome = runEventHandlerChain(
-          state,
-          state.onEvent,
-          sent.payload,
-          outcome?.result
-        )
-
-        if (outcome.shouldNotify) {
-          record.shouldNotify = true
-        }
-
-        if (outcome.shouldBreak) {
-          record.shouldNotify = true
-          record.shouldHalt = true
-          return record
-        }
+      if (outcome.shouldBreak) {
+        record.shouldNotify = true
+        record.shouldHalt = true
+        return record
       }
-      // Run event on states
-      for (let childState of activeChildren) {
-        const childRecord = handleEventOnState(childState, sent)
+    }
 
-        if (childRecord.shouldNotify) {
-          record.shouldNotify = true
-        }
+    // Run onEvent, if present
+    if (!isUndefined(state.onEvent)) {
+      outcome = runEventHandlerChain(
+        state,
+        state.onEvent,
+        sent.payload,
+        outcome?.result
+      )
 
-        if (childRecord.shouldHalt) {
-          record.shouldNotify = true
-          record.shouldHalt = true
-          return record
-        }
+      if (outcome.shouldNotify) {
+        record.shouldNotify = true
+      }
+
+      if (outcome.shouldBreak) {
+        record.shouldNotify = true
+        record.shouldHalt = true
+        return record
+      }
+    }
+    // Run event on states
+    for (let childState of activeChildren) {
+      const childRecord = handleEventOnState(childState, sent)
+
+      if (childRecord.shouldNotify) {
+        record.shouldNotify = true
+      }
+
+      if (childRecord.shouldHalt) {
+        record.shouldNotify = true
+        record.shouldHalt = true
+        return record
       }
     }
 

@@ -9,6 +9,7 @@ import LiveView from "./components/live-view"
 import { CounterToggle } from "./components/counter-toggle"
 import CodeSandboxTutorial from "./components/codesandbox"
 import YouTubeEmbed from "./components/youtube"
+import Code from "./components/CodeBlock"
 
 function Heading1(props) {
   if (typeof props.children === "string") {
@@ -127,4 +128,6 @@ export default {
   CounterToggle,
   CodeSandboxTutorial,
   YouTubeEmbed,
+  pre: (props) => <div {...props} />,
+  code: Code,
 }

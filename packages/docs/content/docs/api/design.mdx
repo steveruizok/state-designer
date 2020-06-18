@@ -2,20 +2,554 @@
 
 A `design` is a blueprint for your [`state`](/docs/api/state). While a `state` manages information, it does so according to the `design` you provide.
 
-In State Designer, you define your `design` in a single object. This object may include your state's initial `data` value, a tree of state nodes with associated event handlers, and collections of functions that can be used across those event handlers.
+In State Designer, your `design` is a regular JavaScript object. This object contains everything there is to know about your state: its initial `data` value, a tree of state nodes with associated event handlers, and collections of functions that can be used across those event handlers.
 
-## Designing
+You're free to use only the features you need—or none at all!
 
-Remember that State Designer is treats state management as a _design_ problem. Rath. Its API was crafted around the idea that you'll use it to _decide_ how the state should work.
+```js
+const state = useStateDesigner({})
+```
 
-## State (states)
+Here's a very simple design:
 
-- [⬜️ `id`](/docs/api/id)
+```js
+const state = useStateDesigner({
+  initial: "notChecked",
+  states: {
+    notChecked: {
+      on: { CHECKED: { to: "checked" } },
+    },
+    notChecked: {
+      on: { CHECKED: { to: "notChecked" } },
+    },
+  },
+})
+```
+
+Here's something more complex:
+
+```js
+const state = useStateDesigner({
+  data: { seconds: 0 },
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: {
+        STARTED: { to: "running" },
+        RESET: { unless: "timeIsZero", do: "resetTime" },
+      },
+    },
+    running: {
+      on: {
+        STOPPED: { to: "stopped" },
+        RESET: { do: "resetTime", to: "stopped" },
+      },
+      repeat: {
+        onRepeat: "addSecond",
+        delay: 1,
+      },
+    },
+  },
+  conditions: {
+    timeIsZero(data) {
+      return data.seconds === 0
+    },
+  },
+  actions: {
+    addSecond(data) {
+      data.seconds++
+    },
+    resetTime(data) {
+      data.seconds = 0
+    },
+  },
+  values: {
+    seconds(data) {
+      return data.seconds % 60
+    },
+    minutes(data) {
+      return Math.floor(data.seconds / 60)
+    },
+  },
+})
+```
+
+You can create a state by passing the object to the [`createState`](/docs/api/createState) function (or to [`useStateDesigner`](/docs/api/useStateDesigner) in a React project). You can interact with the resulting state using the [`state`](/docs/api/state) API.
+
+## Managing Complexity
+
+A design object can become quite large and complex. State Designer helps manage this complexity in several ways:
+
+- As shown above, you can create **collections** of `actions`, `conditions`, and other functions that can be referenced from your event handlers. This can ensure that your events and states remain readable while keeping your implementations easy to find.
+- Instead of putting everything into "one big state," you can separate your application's logic into **multiple states** that communicate by sending events to one another. For example, in the [Todos](/examples/todos) project, each todo has its own local state that reports up to the global state when the todo changes.
+- The library is written in **TypeScript** and, if your editor supports TypeScript in its Intellisense, you'll get plenty of help throughout the design object. (If you're not using TypeScr, you can add `// @ts-check` to the top of your file to get its suggestions).
+
+## Code Goes Below the Fold
+
+Although a state's design is about how a thing _works_, rather than how it _looks_, the design API does reward aesthetic sensibility. In the example above (and in all of the [examples](https://tutorials.state-designer.com/)) you may have noticed that the top half of a design is written in near-to-natural language, while the bottom half includes more codey-code.
+
+You don't have to follow this pattern, but you might consider it. One of the best parts of working with State Designer is being able to _read through_ your state. Your implementations need to work, too, but they're often a separate problem.
+
+## `id`
+
+A design's `id` is an identifier that will appear at the beginning of each state's `path`. It does not have any functional role in the state, but may help with debugging in projects with multiple states.
+
+```js
+const state = createState({
+  id: "checkbox", // highlight-line
+  initial: "notChecked",
+  states: {
+    notChecked: {
+      on: { CHECKED: { to: "checked" } },
+    },
+    notChecked: {
+      on: { CHECKED: { to: "notChecked" } },
+    },
+  },
+})
+
+state.active // ["#checkbox.root", "#checkbox.root.notChecked"]  // highlight-line
+```
+
+## `data`
+
+A design's `data` property defines the initial value of its `data`. The `data` property can be a value of any type. A _state_ created from the design will have a corresponding `data` property containing the current value. Its current value will be passed to many event handler functions, such as conditions and results, and may be mutated by [action](/api/event-handlers#actions) functions.
+
+```js
+const state = createState({
+  data: { count: 0 }, // highlight-line
+  on: {
+    INCREASED: (data) => data.count++,
+  },
+})
+
+data.count // 0
+data.send("INCREASED")
+data.count // 1
+```
+
+## `values`
+
+The `values` collection is an object that can contain [value](/api/values) functions. A _state_ created from the design will have a corresponding `values` object containing the returned value of each function. It will recompute these values as part of each update.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    INCREASED: (data) => data.count++,
+  },
+  // highlight-start
+  values: {
+    dollars(data) {
+      return "$" + data.count.toFixed(2)
+    },
+  },
+  // highlight-end
+})
+
+data.dollars // $0.00
+data.send("INCREASED")
+data.dollars // $1.00
+```
+
+## `actions`
+
+The `actions` collection is an object that can contain [action](/api/event-handlers#actions) functions. In your event handlers, actions from the `actions` collection may be referenced by their key wherever a condition may appear.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    INCREASED: "incrementCount", // highlight-line
+  },
+  // highlight-start
+  actions: {
+    incrementCount(data) {
+      data.count++
+    },
+  },
+  // highlight-end
+})
+```
+
+## `conditions`
+
+The `conditions` collection is an object that can contain [condition](/api/event-handlers#conditions) functions. In your event handlers, conditions from the `conditions` collection may be referenced by their key wherever a condition may appear.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    INCREASED: {
+      unless: "countIsAtMax", // highlight-line
+      do: "incrementCount",
+    },
+  },
+  // highlight-start
+  conditions: {
+    countIsAtMax(data) {
+      return data.count === 5
+    },
+  },
+  // highlight-end
+  actions: {
+    incrementCount(data) {
+      data.count++
+    },
+  },
+})
+```
+
+## `results`
+
+The `results` collection is an object that can contain [result](/api/event-handlers#results) functions. In your event handlers, results from the `results` collection may be referenced by their key wherever a result may appear.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    CHANGED_COUNT: {
+      get: "nextCount", // highlight-line
+      unless: "nextCountIsAboveMax",
+      do: "setCount",
+    },
+  },
+  // highlight-start
+  results: {
+    nextCount(data, payload) {
+      return data.count + payload
+    },
+  },
+  // highlight-end
+  conditions: {
+    nextCountIsAboveMax(data, payload, result) {
+      return result >= 5
+    },
+  },
+  actions: {
+    setCount(data, payload, result) {
+      data.count = result
+    },
+  },
+})
+```
+
+## `asyncs`
+
+The `asyncs` collection is an object that can contain [asynchronous functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) for use in a state's `async` event. Items from the `asyncs` collection may be referenced by their key in the `await` property of an `async` event.
+
+```js
+const state = createState({
+  async: {
+    await: "fetchDogImage",
+    onResolve: () => console.log("Fetched:", result.message),
+    onReject: () => console.log("Request failed!"),
+  },
+  asyncs: {
+    async fetchDogImage() {
+      const data = await fetch("https://dog.ceo/api/breeds/image/random")
+      return data.json()
+    },
+  },
+})
+```
+
+## State Nodes
+
+A design object supports a tree of states nodes (or "states") that can be either active or inactive. These states nodes serve two purposes: together with `data`, they represent the state of the user interface through which states are active and inactive; and, because events may only be handled on _active_ states, they provide a way to handle the same event differently under certain circumstances.
+
+The design object describes the _root_ state node. Like any other state, this root state may have child states—and these states may have child states of their own, and so on.
+
+All states support the same set of properties.
+
+## `on`
+
+A state's `on` property is an object that defines which _events_ the state can handle, as well as how the event should handle those events. These events are stored as properties of the `on` object, with the property's key being the event's _name_ and one or more _event handlers_ as the property's value.
+
+```js
+const state = createState({
+  // highlight-start
+  on: {
+    WELCOMED: (data) => (data.message = "Hello world!"),
+  },
+  // highlight-end
+})
+```
+
+Events in the `on` object describe things that can happen _outside_ of your state and that, when they occur, should produce some effect _inside_ of it. As far as your design is concerned, an event will "occur" when it is _sent_ to the state using the state's `send` method.
+
+```js
+const state = createState({
+  data: {
+    message: "...",
+  },
+  // highlight-start
+  on: {
+    BORN: (data) => (data.message = "Hello world!"),
+  },
+  // highlight-end
+})
+
+state.data.message // "..."
+state.send("BORN")
+state.data.message // "Hello world!"
+```
+
+There are two types of changes that an event may produce: a change to the state's `data` through an _action_, as shown in the example above, or a change to the state's active and inactive state nodes though a _transition_.
+
+```js
+const state = createState({
+  initial: "low",
+  states: {
+    high: {},
+    low: {},
+  },
+  // highlight-start
+  on: {
+    SET_HIGH: { to: "high" },
+  },
+  // highlight-end
+})
+
+state.isIn("high") // false
+state.send("SET_HIGH")
+state.isIn("high") // true
+```
+
+In your design, you can also define events that should happen _inside of_ your state, either automatically or as the result of some other event.
+
+## `onEnter`
+
+If a state has an `onEnter` event, then that event will be handled whenever the state changes from inactive to active as the result of a transition.
+
+```js
+const state = createState({
+  data: { temperature: 18 },
+  initial: "low",
+  states: {
+    high: {
+      onEnter: (data) => (data.temperature = 30), // highlight-line
+    },
+    low: {},
+  },
+  on: {
+    SET_HIGH: { to: "high" },
+  },
+})
+
+state.data // { temperature: 18 }
+state.send("SET_HIGH")
+return log(state.data) // { temperature: 30 }
+```
+
+An `onEnter` will also occur when a state is first created. (One of the last things that the `createState` function does is to switch the root state from inactive to active.)
+
+```js
+const state = createState({
+  data: { count: 0 },
+  onEnter: () => data.count++,
+})
+
+state.data // { count: 1 }
+```
+
+> **Note:** Because an `onEnter` event's handler may produce its _own_ transition, it's possible to create a design that bounces indefinitely between two states.
+>
+> ```js
+> const state = createState({
+>   initial: "low",
+>   states: {
+>     // highlight-start
+>     high: {
+>       onEnter: { to: "low" },
+>     },
+>     low: {
+>       onEnter: { to: "high" },
+>     },
+>     // highlight-end
+>   },
+>   on: {
+>     SET_HIGH: { to: "high" },
+>   },
+> })
+> ```
+>
+> A state will throw an error if it detects an infinite loop like this at runtime. Best to take care when using an transition in an internal event like `onEnter`.
+
+## `onExit`
+
+A state's `onExit` event will be handled whenever the state changes from active to inactive as the result of a transition.
+
+```js
+const state = createState({
+  data: { exits: 0 },
+  initial: "atHome",
+  states: {
+    atHome: {
+      onExit: (data) => data.exits++,
+    },
+    outside: {},
+  },
+  on: {
+    LEFT_HOUSE: { to: "outside" },
+  },
+})
+
+state.data // { exits: 0 }
+state.send("LEFT_HOUSE")
+return log(state.data) // { exits: 1 }
+```
+
+> **Note:** An `onExit` event defined at the root of a design object will never run because a state's root state node will never become inactive.
+
+## `onEvent`
+
+A state's `onEvent` event will be handled whenever the state receives an event through its `send` method while that state is active. The event does not need to be handled elsewhere in order for the `onEvent` handler to run.
+
+```js
+const state = createState({
+  data: { events: 0 },
+  onEvent: (data) => data.events++,
+})
+
+state.data // { events: 0 }
+state.send("RAISED")
+state.send("LOWERED")
+state.data // { events: 2 }
+```
+
+## `repeat`
+
+A state's `repeat` property allows you to define an event, `onRepeat`, that will be handled on an interval while its state is active.
+
+```js
+const state = createState({
+  data: { seconds: 0 },
+  repeat: {
+    onRepeat: (data) => data.seconds++,
+    delay: 1,
+  },
+})
+
+state.data // { seconds: 0 }
+await twoSecondPause()
+state.data // { seconds: 2 }
+```
+
+The `delay` property is optional: if you leave it out, the event will be handled on every [animation frame](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame), or roughly sixty times per second.
+
+```js live=true
+function Timer() {
+  const state = useStateDesigner({
+    data: { frames: 0 },
+    initial: "stopped",
+    states: {
+      stopped: {},
+      running: {
+        repeat: {
+          onRepeat: { do: (data) => data.frames++ },
+        },
+      },
+    },
+    on: {
+      STARTED: { to: "running" },
+      STOPPED: { to: "stopped" },
+    },
+  })
+
+  return (
+    <Grid gap={2} columns="auto auto 1fr">
+      <Button onClick={() => state.send("STARTED")}>Start</Button>
+      <Button onClick={() => state.send("STOPPED")}>Stop</Button>
+      <Heading as="h1">{state.data.frames}</Heading>
+    </Grid>
+  )
+}
+```
+
+> **Tip:** If a design includes multiple event handlers that repeat on each frame, then these event handlers will be batched so that they produce at most one update per frame.
+
+Updating a React component on every animation frame can lead to performance issues. The `useStateDesigner` hook updates each time the state notifies its subscribers, and a state notifies its subscribers any time that an action or transition occurs. However, you can use the `secretlyDo` and `secretlyTo` event handler properties to run actions and transition without triggering a notification—which will, in turn, prevent it from causing any component updates via `useStateDesigner`.
+
+In the example below, the count will still update on each frame but, unlike the example above, the _component_ will only update when starting or stopping the timer.
+
+```js live=true
+function Timer() {
+  const state = useStateDesigner({
+    data: { frames: 0 },
+    initial: "stopped",
+    states: {
+      stopped: {},
+      running: {
+        repeat: {
+          onRepeat: { secretlyDo: (data) => data.frames++ },
+        },
+      },
+    },
+    on: {
+      STOPPED: { to: "stopped" },
+      STARTED: { to: "running" },
+    },
+  })
+
+  return (
+    <Grid gap={2} columns="auto auto 1fr">
+      <Button onClick={() => state.send("STARTED")}>Start</Button>
+      <Button onClick={() => state.send("STOPPED")}>Stop</Button>
+      <Heading as="h1">{state.data.frames}</Heading>
+    </Grid>
+  )
+}
+```
+
+## `async`
+
+An `async` event allows you to make an asynchronous request and then handle the request differently depending on its outcome.
+
+```js
+const url = "https://dog.ceo/api/breeds/image/random"
+
+const state = createState({
+  data: { events: 0 },
+  async: {
+    await: async function () {
+      const response = await fetch(url)
+      return response.json()
+    },
+    onResolve: (data, _, result) => {
+      data.message = result.message
+    },
+    onReject: () => {
+      data.message = "Result failed!"
+    },
+  },
+})
+```
+
+The `async` property is an object with three properties: `await`, `onResolve`, and `onReject`.
+
+The `await` property accepts either an [async function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) or a function that returns a promise. When the state becomes active, it will wait for this promise to either resolve or reject. If it resolves, then the state will run its `onResolve` event; otherwise, it will run its `onReject` event. Both event handlers will receive the resolved (or rejected) data as its initial `result`.
+
+See the [this project](/examples/dogs) for a more complete example.
+
+## `initial`
+
+The `initial` property takes the name of the state's "initially active" child state. When the parent state becomes active, this child state will also become active, while all other child states will be inactive.
+
+```js live=true log=true
+const state = createState({
+  initial: "low",
+  states: {
+    high: {},
+    low: {},
+  },
+})
+
+return log({
+  low: state.isIn("low"),
+  high: state.isIn("high"),
+})
+```
+
 - [⬜️ `initial`](/docs/api/initial)
 - [⬜️ `states`](/docs/api/states)
-- [⬜️ `on`](/docs/api/on)
-- [⬜️ `onEnter`](/docs/api/on)
-- [⬜️ `onExit`](/docs/api/on)
-- [⬜️ `onEvent`](/docs/api/on)
-- [⬜️ `repeat`](/docs/api/on)
-- [⬜️ `async`](/docs/api/on)

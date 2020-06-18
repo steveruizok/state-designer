@@ -13,10 +13,10 @@ export function createDesign<
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
 >(
-  config: S.Design<D, R, C, A, Y, T, V>
+  design: S.Design<D, R, C, A, Y, T, V>
 ): S.DesignWithHelpers<D, R, C, A, Y, T, V> {
   return {
-    ...config,
+    ...design,
     createEventHandlerDesign: (
       eventHandlerDesign: S.EventHandlerDesign<D, R, C, A, T>
     ) => eventHandlerDesign,

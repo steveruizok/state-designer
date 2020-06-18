@@ -32,7 +32,6 @@ export default function () {
         },
         onEnter: {
           to: "ready",
-          do: () => console.log("times up!"),
           wait: "maxLoadingTime",
         },
       },

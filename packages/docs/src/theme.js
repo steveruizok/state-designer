@@ -1,4 +1,5 @@
-import prismTheme from "@theme-ui/prism/presets/dracula"
+import prism from "@theme-ui/prism/presets/theme-ui"
+import prismtheme from "@theme-ui/prism/presets/dracula.json"
 import "./styles.css"
 
 const heading = {
@@ -20,7 +21,7 @@ export default {
     text: "#1d1d20",
     lowText: "#2d2d30",
     code: "#272727",
-    codeBg: "#f2f2f5",
+    codeBg: "#282a36",
     codeHl: "#f8f8fa",
     muted: "#f2f2f5",
     quote: "#f0f0f3",
@@ -28,6 +29,7 @@ export default {
     primary: "#0043b8",
     secondary: "#8855ff",
     highlight: "#03d8ff",
+    dim: "rgba(0,0,0,.2)",
     gray: "#d8dde3",
   },
   shadows: {
@@ -155,35 +157,34 @@ export default {
     img: {
       my: 5,
     },
+    inlineCode: {
+      bg: "muted",
+      px: 1,
+      py: 0,
+      borderRadius: 4,
+      color: "code",
+      letterSpacing: -0.5,
+      fontFamily: "monospace",
+    },
     pre: {
-      ...prismTheme,
-      variant: "prism",
       tabSize: 2,
       fontFamily: "monospace",
       fontSize: 1,
-      p: 4,
-      my: 4,
+      px: 0,
+      py: 0,
+      my: 0,
       mx: [-3, 0, 0],
       borderRadius: [0, 4, 4],
       overflow: "scroll",
       scroll: "auto",
       lineHeight: "code",
-      code: {
-        color: "inherit",
-        bg: "inherit",
-        border: "none",
-        px: 0,
-        fontWeight: "code",
-        fontSize: 0,
-        borderRadius: 0,
-      },
+      bg: "codeBg",
+      variant: "prism",
     },
     code: {
+      ...prismtheme,
       fontFamily: "monospace",
       fontSize: "inherit",
-      bg: "codeBg",
-      px: 1,
-      color: "flat",
       fontWeight: "inherit",
       letterSpacing: -0.5,
       borderRadius: 4,
@@ -229,12 +230,20 @@ export default {
       mb: 2,
     },
   },
+  xray: {
+    "*": {
+      outline: "1px solid rgba(0, 192, 255, .25)",
+    },
+  },
   prism: {
-    [[".gatsby-highlight-code-line"]]: {
-      display: "block",
-      mx: -4,
-      px: 4,
-      backgroundColor: "rgba(0,0,0,.5)",
+    ...prism,
+    px: 3,
+    py: 2,
+    my: 4,
+    ".highlight": {
+      mx: -3,
+      px: 3,
+      background: "rgba(0,0,0,.5) !important",
     },
   },
 }

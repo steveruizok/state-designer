@@ -25,7 +25,7 @@
     "@pauliescanlon/gatsby-mdx-embed": "^0.0.17",
     "@state-designer/react": "1.2.17",
     "@theme-ui/presets": "^0.2.15",
-    "@theme-ui/prism": "^0.2.21",
+    "@theme-ui/prism": "0.4.0-rc.1",
     "@theme-ui/sidenav": "^0.3.1",
     "@types/prismjs": "^1.16.0",
     "@types/react": "^16.8.23",
