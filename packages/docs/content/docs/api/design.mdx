@@ -532,24 +532,87 @@ The `await` property accepts either an [async function](https://developer.mozill
 
 See the [this project](/examples/dogs) for a more complete example.
 
-## `initial`
+## `states`
 
-The `initial` property takes the name of the state's "initially active" child state. When the parent state becomes active, this child state will also become active, while all other child states will be inactive.
+A state's `states` property is an object containing the state's child states.
 
-```js live=true log=true
+```js
 const state = createState({
-  initial: "low",
   states: {
-    high: {},
-    low: {},
+    land: {},
+    sea: {},
   },
-})
-
-return log({
-  low: state.isIn("low"),
-  high: state.isIn("high"),
 })
 ```
 
-- [⬜️ `initial`](/docs/api/initial)
-- [⬜️ `states`](/docs/api/states)
+States are a repeating pattern: the root state may have child states, and each of those child states may have their own child states, and so on to any depth.
+
+```js
+const state = createState({
+  states: {
+    land: {
+      states: {
+        walking: {},
+        running: {},
+      },
+    },
+    sea: {
+      states: {
+        swimming: {},
+        diving: {},
+      },
+    },
+  },
+})
+```
+
+## `initial`
+
+A state's `initial` property serves two purposes: it identifies this state as a _branch_ state, where only one of its child states may be active at a time, and it indicates which child state should be the "initially active" state. When the parent state becomes active, this initial child state will also become active, while all other child states will be inactive.
+
+```js live=true log=true
+const state = createState({
+  id: "body",
+  initial: "standing",
+  states: {
+    standing: {},
+    sitting: {},
+    walking: {},
+  },
+})
+
+return log(state.active)
+```
+
+In the example above, the root state is a branch state, meaning that one only of its child states will be active at a time.
+
+If the `initial` property is _not_ provided, then the state will be considered a _parallel_ state. In a parallel state, _all_ child states will be active simultaneously whenever the parent state is active.
+
+```js live=true log=true
+const state = createState({
+  id: "body",
+  states: {
+    attitude: {
+      initial: "happy",
+      states: {
+        happy: {},
+        sad: {},
+      },
+    },
+    pose: {
+      initial: "standing",
+      states: {
+        standing: {},
+        sitting: {},
+        walking: {},
+      },
+    },
+  },
+})
+
+return log(state.active)
+```
+
+In the example above, the root state is a parallel state, meaning that _both_ the `attitude` and `pose` states will be active at the same time. However, each of these states are branch states, and will only have one active child state each.
+
+> **Tip:** If we didn't have parallel states, we would need to create separate states for `happyAndStanding`, `sadAndStanding`, `happyAndSitting`, and so on. As you can imagine, it wouldn't take much for this to become a major problem!
