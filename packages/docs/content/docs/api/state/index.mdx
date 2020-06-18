@@ -1,67 +1,116 @@
 # State
 
-A `state` manages information about the state of a user interface. It stores the current version of that information and controls when and how it can change. When the information changes, a `state` can notify other parts of your project so that everything stays in sync.
+This article describes the state API.
 
-In State Designer, you can create a `state` by passing a [design](/docs/api/design) object to the [`createState`](/docs/api/createState) function.
+You can create a state by passing a [design](/docs/api/design) object to the [`createState`](/docs/api/createState) function—or, in a React project, the [`createStateDesigner`](/docs/api/useStateDesigner) hook. Once you've created a state, you can use and interact with it using the values and methods described below.
 
-```js
-const state = useStateDesigner({
-  data: { seconds: 0 },
-  initial: "stopped",
-  states: {
-    stopped: {
-      on: {
-        PLAYED: { to: "running" },
-        RESET: (data) => (data.seconds = 0),
-      },
-    },
-    running: {
-      on: {
-        STOPPED: { to: "stopped" },
-        TICK: (data) => data.seconds++,
-      },
-    },
-  },
-})
-```
+### What is a State?
 
-> **Tip:** In React, you can also create a state by passing a design to the [`useStateDesigner`](/docs/api/useStateDesigner) hook. The hook will call `createState` under the hood and return the resulting `state`.
+A `state` manages information about the state of a user interface. It stores the current version of that information and controls when and how it can change. When the information does change, a `state` can notify other parts of your project so that everything stays in sync.
 
-The `state` object stores a snapshot of the state's current information—its [`data`](/docs/api/state#data) and [`active`](/docs/api/state#active) state nodes—together with methods to help you use that information. It also holds the [`send`](/docs/api/state#send) method that you can use to trigger the state's event handlers.
+The core of the state object is the snapshot of the state's current information:
 
 - [`data`](/docs/api/state#data)
-- [`send`](/docs/api/state#send)
+- [`active`](/docs/api/state#active)
 - [`values`](/docs/api/state#values)
+- [`stateTree`](/docs/api/state#state-tree)
+
+It also contains several helpers to interpret that information:
+
 - [`isIn`](/docs/api/state#is-in)
 - [`isInAny`](/docs/api/state#is-in-any)
 - [`whenIn`](/docs/api/state#whenIn)
-- [`active`](/docs/api/state#active)
-- [`stateTree`](/docs/api/state#state-tree)
+
+It also contains a function that you can use to send events to the state:
+
+- [`send`](/docs/api/state#send)
+
+And a function to subscribe to its changes:
+
 - [`onUpdate`](/docs/api/state#on-update)
+
+---
 
 ## `data`
 
-The `data` property contains the current version of the state design's `data`.
+The `data` property corresponds to the design's `data` property, except that `state.data` will always store the most recent version of the `data`.
 
-```js
+```js live=true log=true
+const state = createState({
+  data: { count: 2 },
+})
+
+return log(state.data)
+```
+
+When an event occurs that changes the state's `data`, the `data` property will store the latest version.
+
+```js live=true log=true
 const state = createState({
   data: { count: 2 },
   on: { INCREASE: (data) => data.count++ },
 })
 
-state.data // { count: 2 }
 state.send("INCREASE")
-state.data // { count: 2 }
+return log(state.data)
+```
+
+The `data` value is immutable: it will be new after each change. Its _properties_ will only be new if those properties have changed during the update.
+
+```js live=true log=true
+const state = createState({
+  data: {
+    user: {
+      name: "Steve",
+      age: 93,
+    },
+    count: 4,
+  },
+  on: {
+    INCREASE: (data) => data.count++,
+    AGE: (data) => data.user.age++,
+  },
+})
+
+const { data } = state
+
+state.send("INCREASE")
+// state.send("AGE")
+
+return log({
+  dataIsNew: state.data !== data,
+  userIsNew: state.data.user !== data.user,
+})
 ```
 
 ## `values`
 
-The `values` property contains the current version of the state design's computed `values`. Before each update, the state will re-compute its `values`.
+The `values` property contains the state's current computed values. This object corresponds to the design object's [`values`](/api/design#values) object, except that the `state.values` object contains the results of the design's functions.
 
-```js
+```js live=true log=true
 const state = createState({
   data: { count: 2 },
-  on: { INCREASE: (data) => data.count++ }
+  values: {
+    double(data) {
+      return data.count * 2
+    },
+    lastUpdated() {
+      return new Date().toLocaleTimeString("en-gb")
+    },
+  },
+})
+
+return log(state.values)
+```
+
+Whenever the state updates, it will re-compute its `values` by running each function again. Like `data`, this object will be new after each update.
+
+```js live=true log=true
+const state = createState({
+  data: { count: 2 },
+  on: {
+    INCREASE: (data) => data.count++,
+  },
   values: {
     double(data) {
       return data.count * 2
@@ -69,9 +118,9 @@ const state = createState({
   },
 })
 
-state.values // { double: 4 }
+const initial = state.values
 state.send("INCREASE")
-state.values // { double: 6 }
+return log([initial, state.values])
 ```
 
 ## `isIn`

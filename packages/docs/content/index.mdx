@@ -7,6 +7,44 @@ As the name suggests, the library treats state as a _design problem_. If you're 
 - [Learn more](/designing-state) about what it means to design for state.
 - [Explore examples](https://tutorials.state-designer.com) like this fun [drawing tool](/examples/drawing/).
 
+```jsx live=true
+function Counter() {
+  const state = useStateDesigner({
+    data: { count: 0 },
+    initial: "stopped",
+    states: {
+      stopped: {
+        on: { TOGGLED: { to: "running" } },
+      },
+      running: {
+        on: { TOGGLED: { to: "stopped" } },
+        repeat: {
+          onRepeat: "incrementCount",
+          delay: 0.2,
+        },
+      },
+    },
+    actions: {
+      incrementCount(data) {
+        data.count++
+      },
+    },
+  })
+
+  return (
+    <Grid columns="auto 1fr">
+      <Button onClick={() => state.send("TOGGLED")}>
+        {state.whenIn({
+          running: "Stop",
+          stopped: "Start",
+        })}
+      </Button>
+      <Heading as="h1">{state.data.count}</Heading>
+    </Grid>
+  )
+}
+```
+
 ## Packages
 
 - [`@state-designer/core`](https://github.com/state-designer/core) - Core library.

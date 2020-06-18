@@ -3,31 +3,12 @@
 If you want to use the same design for multiple states, but still get the same TypeScript support while you construct the design object, you can use the `createDesign` function.
 
 ```js
-const design = createDesign({
-  initial: "notChecked",
-  states: {
-    notChecked: {
-      on: { CHECKED: { to: "checked" } },
-    },
-    notChecked: {
-      on: { CHECKED: { to: "notChecked" } },
-    },
-  },
-})
-
-const checkboxIds = ["lights", "camera", "music"]
-
-checkboxIds.forEach((id) => {
-  const state = createState(design)
-  const checkbox = document.getElementById(id)
-
-  checkbox.onChange = () => state.send("CHECKED")
-
-  state.onUpdate((state) => (checkbox.checked = state.isIn("checked")))
-})
+const design = createDesign({ ... })
 ```
 
-Note that this function doesn't _do_ anything special—it just returns the same object that you've passed to the function. Its only purpose is to provide type support. However, having a separate design object means you can get creative with how you use it.
+The `createDesign` function doesn't do anything special—it just returns the same object that you've passed to the function. Its only purpose is to provide type support as you construct a design.
+
+However, having a separate design object might be useful in certain circumstances—and it's much easier to write a state with type support than without it.
 
 ```js
 const design = createDesign({
@@ -38,7 +19,7 @@ const design = createDesign({
   on: { ... },
 })
 
-function createStateWithScore(score) {
+function createStateWithCustomScore(score) {
   return createState({
     ...design,
     data: {
@@ -48,7 +29,7 @@ function createStateWithScore(score) {
   })
 }
 
-function createStateWithLives(lives) {
+function createStateWithCustomLives(lives) {
   return createState({
     ...design,
     data: {
