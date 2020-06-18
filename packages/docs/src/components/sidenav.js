@@ -45,8 +45,9 @@ export default React.forwardRef((props, ref) => {
             pl: 0,
           },
           "& ul ul a::before": {
-            content: "'– '",
+            content: "'- '",
             color: "text",
+            pl: 2,
           },
           "& li": {
             my: 0,

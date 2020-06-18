@@ -1,0 +1,87 @@
+In State Designer, your `design` is a regular JavaScript object. This object contains everything there is to know about your state: its initial `data` value, a tree of state nodes with associated event handlers, and collections of functions that can be used across those event handlers.
+
+You're free to use only the features you need—or none at all!
+
+```js
+const state = useStateDesigner({})
+```
+
+Here's a very simple design:
+
+```js
+const state = useStateDesigner({
+  initial: "notChecked",
+  states: {
+    notChecked: {
+      on: { CHECKED: { to: "checked" } },
+    },
+    notChecked: {
+      on: { CHECKED: { to: "notChecked" } },
+    },
+  },
+})
+```
+
+Here's something more complex:
+
+```js
+const state = useStateDesigner({
+  data: { seconds: 0 },
+  initial: "stopped",
+  states: {
+    stopped: {
+      on: {
+        STARTED: { to: "running" },
+        RESET: { unless: "timeIsZero", do: "resetTime" },
+      },
+    },
+    running: {
+      on: {
+        STOPPED: { to: "stopped" },
+        RESET: { do: "resetTime", to: "stopped" },
+      },
+      repeat: {
+        onRepeat: "addSecond",
+        delay: 1,
+      },
+    },
+  },
+  conditions: {
+    timeIsZero(data) {
+      return data.seconds === 0
+    },
+  },
+  actions: {
+    addSecond(data) {
+      data.seconds++
+    },
+    resetTime(data) {
+      data.seconds = 0
+    },
+  },
+  values: {
+    seconds(data) {
+      return data.seconds % 60
+    },
+    minutes(data) {
+      return Math.floor(data.seconds / 60)
+    },
+  },
+})
+```
+
+You can create a state by passing the object to the [`createState`](/docs/api/createState) function (or to [`useStateDesigner`](/docs/api/useStateDesigner) in a React project). You can interact with the resulting state using the [`state`](/docs/api/state) API.
+
+## Managing Complexity
+
+A design object can become quite large and complex. State Designer helps manage this complexity in several ways:
+
+- As shown above, you can create **collections** of `actions`, `conditions`, and other functions that can be referenced from your event handlers. This can ensure that your events and states remain readable while keeping your implementations easy to find.
+- Instead of putting everything into "one big state," you can separate your application's logic into **multiple states** that communicate by sending events to one another. For example, in the [Todos](/examples/todos) project, each todo has its own local state that reports up to the global state when the todo changes.
+- The library is written in **TypeScript** and, if your editor supports TypeScript in its Intellisense, you'll get plenty of help throughout the design object. (If you're not using TypeScr, you can add `// @ts-check` to the top of your file to get its suggestions).
+
+## Code Goes Below the Fold
+
+Although a state's design is about how a thing _works_, rather than how it _looks_, the design API does reward aesthetic sensibility. In the example above (and in all of the [examples](https://tutorials.state-designer.com/)) you may have noticed that the top half of a design is written in near-to-natural language, while the bottom half includes more codey-code.
+
+You don't have to follow this pattern, but you might consider it. One of the best parts of working with State Designer is being able to _read through_ your state. Your implementations need to work, too, but they're often a separate problem.

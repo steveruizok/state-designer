@@ -1,0 +1,236 @@
+# Design
+
+A `design` is a blueprint for your [`state`](/docs/api/state). While a `state` manages information, it does so according to the `design` you provide. In State Designer, you can design your states using a single JavaScript object.
+
+The **design object**'s properties provide information about the state and how it should work.
+
+On this page, you'll find information about the properties that describe the design generally. These include the [`id`](/docs/api/design#id), initial [`data`](/docs/api/design#data), and computed [`values`](/docs/api/design#values) properties, as well as the object's function collections.
+
+The design object is also a **state node**—the "root" node of a state tree that can grow to include many other state nodes. As such, the design object has several properties in common with all state nodes, including properties that describe its child states, as well as properties about the state node's events. State nodes are separately documented [here](/docs/api/design/state-nodes).
+
+These **event handlers** provide a flexible way of declaring how your state should respond to different events. They're also separately documented [here](/docs/api/design/event-handlers).
+
+---
+
+Most of your time working with State Designer will be spent building out your design object(s) as you learn how your global and component states should work. Some design objects may grow quite large, but don't worry—it's easy to find your way around, and you'll get plenty of TypeScript support through your editor.
+
+- [`actions`](/docs/api/design#actions)
+- [`conditions`](/docs/api/design#conditions)
+- [`results`](/docs/api/design#results)
+- [`asyncs`](/docs/api/design#asyncs)
+- [`times`](/docs/api/design#times)
+
+---
+
+## `id`
+
+A design's `id` is an identifier that will appear at the beginning of each state's `path`. It does not have any functional role in the state, but may help with debugging in projects with multiple states.
+
+```js
+const state = createState({
+  id: "checkbox", // highlight-line
+  initial: "notChecked",
+  states: {
+    notChecked: {
+      on: { CHECKED: { to: "checked" } },
+    },
+    notChecked: {
+      on: { CHECKED: { to: "notChecked" } },
+    },
+  },
+})
+
+state.active // ["#checkbox.root", "#checkbox.root.notChecked"]  // highlight-line
+```
+
+## `data`
+
+A design's `data` property defines the initial value of its `data`. The `data` property can be a value of any type. A _state_ created from the design will have a corresponding `data` property containing the current value. Its current value will be passed to many event handler functions, such as conditions and results, and may be mutated by [action](/api/event-handlers#actions) functions.
+
+```js
+const state = createState({
+  data: { count: 0 }, // highlight-line
+  on: {
+    INCREASED: (data) => data.count++,
+  },
+})
+
+data.count // 0
+data.send("INCREASED")
+data.count // 1
+```
+
+## `values`
+
+The `values` collection is an object that can contain [value](/api/values) functions. A _state_ created from the design will have a corresponding `values` object containing the returned value of each function. It will recompute these values as part of each update.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    INCREASED: (data) => data.count++,
+  },
+  // highlight-start
+  values: {
+    dollars(data) {
+      return "$" + data.count.toFixed(2)
+    },
+  },
+  // highlight-end
+})
+
+data.dollars // $0.00
+data.send("INCREASED")
+data.dollars // $1.00
+```
+
+## `actions`
+
+The `actions` collection is an object that can contain [action](/api/event-handlers#actions) functions. In your event handlers, actions from the `actions` collection may be referenced by their key wherever a condition may appear.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    INCREASED: "incrementCount", // highlight-line
+  },
+  // highlight-start
+  actions: {
+    incrementCount(data) {
+      data.count++
+    },
+  },
+  // highlight-end
+})
+```
+
+## `conditions`
+
+The `conditions` collection is an object that can contain [condition](/api/event-handlers#conditions) functions. In your event handlers, conditions from the `conditions` collection may be referenced by their key wherever a condition may appear.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    INCREASED: {
+      unless: "countIsAtMax", // highlight-line
+      do: "incrementCount",
+    },
+  },
+  // highlight-start
+  conditions: {
+    countIsAtMax(data) {
+      return data.count === 5
+    },
+  },
+  // highlight-end
+  actions: {
+    incrementCount(data) {
+      data.count++
+    },
+  },
+})
+```
+
+## `results`
+
+The `results` collection is an object that can contain [result](/api/event-handlers#results) functions. In your event handlers, results from the `results` collection may be referenced by their key wherever a result may appear.
+
+```js
+const state = createState({
+  data: { count: 0 },
+  on: {
+    CHANGED_COUNT: {
+      get: "nextCount", // highlight-line
+      unless: "nextCountIsAboveMax",
+      do: "setCount",
+    },
+  },
+  // highlight-start
+  results: {
+    nextCount(data, payload) {
+      return data.count + payload
+    },
+  },
+  // highlight-end
+  conditions: {
+    nextCountIsAboveMax(data, payload, result) {
+      return result >= 5
+    },
+  },
+  actions: {
+    setCount(data, payload, result) {
+      data.count = result
+    },
+  },
+})
+```
+
+## `times`
+
+The `times` collection is an object that can contain [functions]() time functions—functions that return a number representing time in seconds. Functions from the `times` collection may be referenced by their key in the `delay` property of an `repeat` event or in the `wait` property of any event handler.
+
+```jsx live=true
+function Echo() {
+  const state = useStateDesigner({
+    data: { echos: [] },
+    on: {
+      SHOUTED: {
+        do: "echo",
+        wait: "distanceDelay",
+      },
+    },
+    actions: {
+      echo(data) {
+        data.echos.push("Echo!")
+      },
+    },
+    times: {
+      distanceDelay: (data, payload) => payload,
+    },
+  })
+
+  return (
+    <Grid>
+      {state.data.echos.map((echo, i) => (
+        <Text key={i}>{echo}</Text>
+      ))}
+      <Button onClick={() => state.send("SHOUTED", 2)}>Shout</Button>
+    </Grid>
+  )
+}
+```
+
+## `asyncs`
+
+The `asyncs` collection is an object that can contain [asynchronous functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) for use in a state's `async` event. Items from the `asyncs` collection may be referenced by their key in the `await` property of an `async` event.
+
+```js
+const state = createState({
+  async: {
+    await: "fetchDogImage",
+    onResolve: () => console.log("Fetched:", result.message),
+    onReject: () => console.log("Request failed!"),
+  },
+  asyncs: {
+    async fetchDogImage() {
+      const data = await fetch("https://dog.ceo/api/breeds/image/random")
+      return data.json()
+    },
+  },
+})
+```
+
+---
+
+- [`id`](/docs/api/design#id)
+- [`data`](/docs/api/design#data)
+- [`values`](/docs/api/design#values)
+- [`initial`](/docs/api/design/states#initial)
+- [`states`](/docs/api/design/states#states)
+- [`on`](/docs/api/design/states/#on)
+- [`onEnter`](/docs/api/design/states/#onEnter)
+- [`onExit`](/docs/api/design/states/#onExit)
+- [`onEvent`](/docs/api/design/states/#onEvent)
+- [`repeat`](/docs/api/design/states/#repeat)
+- [`async`](/docs/api/design/states/#async)
