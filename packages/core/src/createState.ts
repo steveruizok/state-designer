@@ -876,7 +876,7 @@ export function testEventHandlerConditions<D, P, R>(
   if (h.if[0] && !h.if.every((c) => c(d, p, r))) return false
   if (h.ifAny[0] && !h.ifAny.some((c) => c(d, p, r))) return false
   if (h.unless[0] && !h.unless.every((c) => !c(d, p, r))) return false
-  if (h.unlessAny[0] && !h.unlessAny.some((c) => c(d, p, r))) return false
+  if (h.unlessAny[0] && !h.unlessAny.some((c) => !c(d, p, r))) return false
   return true
 }
 

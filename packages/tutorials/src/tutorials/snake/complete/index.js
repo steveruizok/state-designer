@@ -32,7 +32,7 @@ export default function () {
         on: {
           STARTED: { to: "paused" },
           TURNED: {
-            unlessAny: ["nextFacingIsCurrentFacing", "nextFacingIsReverse"],
+            unless: ["nextFacingIsCurrentFacing", "nextFacingIsReverse"],
             do: "changeFacing",
           },
         },
@@ -75,7 +75,6 @@ export default function () {
       },
       snakeBitItself(data) {
         const { x, y } = data.snake.head
-
         return data.snake.tail.find((p) => p.x === x && p.y === y)
       },
       snakeBitApple(data) {

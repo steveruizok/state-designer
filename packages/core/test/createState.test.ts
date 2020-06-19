@@ -80,6 +80,91 @@ describe("createState", () => {
     expect(counter.data.count).toBe(3)
   })
 
+  it("Should support all conditions.", () => {
+    const state = createState({
+      data: {
+        ifT: false,
+        ifF: false,
+        ifTT: false,
+        ifTF: false,
+        ifFF: false,
+        ifAnyT: false,
+        ifAnyF: false,
+        ifAnyTT: false,
+        ifAnyTF: false,
+        ifAnyFF: false,
+        unlessT: false,
+        unlessF: false,
+        unlessTT: false,
+        unlessTF: false,
+        unlessFF: false,
+        unlessAnyT: false,
+        unlessAnyF: false,
+        unlessAnyTT: false,
+        unlessAnyTF: false,
+        unlessAnyFF: false,
+      },
+      on: {
+        RUN: [
+          { if: "true", do: (d) => (d.ifT = true) },
+          { if: "false", do: (d) => (d.ifF = true) },
+          { if: ["true", "true"], do: (d) => (d.ifTT = true) },
+          { if: ["true", "false"], do: (d) => (d.ifTF = true) },
+          { if: ["false", "false"], do: (d) => (d.ifFF = true) },
+          { ifAny: "true", do: (d) => (d.ifAnyT = true) },
+          { ifAny: "false", do: (d) => (d.ifAnyF = true) },
+          { ifAny: ["true", "true"], do: (d) => (d.ifAnyTT = true) },
+          { ifAny: ["true", "false"], do: (d) => (d.ifAnyTF = true) },
+          { ifAny: ["false", "false"], do: (d) => (d.ifAnyFF = true) },
+          { unless: "true", do: (d) => (d.unlessT = true) },
+          { unless: "false", do: (d) => (d.unlessF = true) },
+          { unless: ["true", "true"], do: (d) => (d.unlessT = true) },
+          { unless: ["true", "false"], do: (d) => (d.unlessTF = true) },
+          { unless: ["false", "false"], do: (d) => (d.unlessFF = true) },
+          { unlessAny: "true", do: (d) => (d.unlessAnyT = true) },
+          { unlessAny: "false", do: (d) => (d.unlessAnyF = true) },
+          { unlessAny: ["true", "true"], do: (d) => (d.unlessAnyT = true) },
+          { unlessAny: ["true", "false"], do: (d) => (d.unlessAnyTF = true) },
+          {
+            unlessAny: ["false", "false"],
+            do: (d) => (d.unlessAnyFF = true),
+          },
+        ],
+      },
+      conditions: {
+        false() {
+          return false
+        },
+        true() {
+          return true
+        },
+      },
+    })
+
+    state.send("RUN")
+    const { data } = state
+    expect(data.ifT).toBe(true)
+    expect(data.ifF).toBe(false)
+    expect(data.ifTT).toBe(true)
+    expect(data.ifTF).toBe(false)
+    expect(data.ifFF).toBe(false)
+    expect(data.ifAnyT).toBe(true)
+    expect(data.ifAnyF).toBe(false)
+    expect(data.ifAnyTT).toBe(true)
+    expect(data.ifAnyTF).toBe(true)
+    expect(data.ifAnyFF).toBe(false)
+    expect(data.unlessT).toBe(false)
+    expect(data.unlessF).toBe(true)
+    expect(data.unlessTT).toBe(false)
+    expect(data.unlessTF).toBe(false)
+    expect(data.unlessFF).toBe(true)
+    expect(data.unlessAnyT).toBe(false)
+    expect(data.unlessAnyF).toBe(true)
+    expect(data.unlessAnyTT).toBe(false)
+    expect(data.unlessAnyTF).toBe(true)
+    expect(data.unlessAnyFF).toBe(true)
+  })
+
   // Can I chain events?
 
   it("Should support chaining.", async () => {
