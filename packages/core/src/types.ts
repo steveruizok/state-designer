@@ -248,6 +248,8 @@ export enum VerboseType {
 
 export interface State<D, V> {
   name: string
+  isInitial: boolean
+  depth: number
   type: "branch" | "leaf" | "parallel"
   active: boolean
   path: string

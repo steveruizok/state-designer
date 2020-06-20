@@ -79,7 +79,6 @@ export const CodeEditor: React.FC<{
         },
         setError(d) {
           let error: string = ""
-          console.log("setting error")
 
           try {
             Function("data", "payload", "result", d.dirty)(global.values.data)

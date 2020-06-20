@@ -1,8 +1,10 @@
 import * as React from "react"
 import { sortBy } from "lodash"
+import { Save, X } from "react-feather"
 import {
   Styled,
-  Divider,
+  Input,
+  IconButton,
   Button,
   Grid,
   BoxProps,
@@ -12,519 +14,11 @@ import {
 } from "theme-ui"
 import { Disc, Circle } from "react-feather"
 import { S, createState, useStateDesigner } from "@state-designer/react"
-
-type Dimension = {
-  bottom: number
-  height: number
-  left: number
-  right: number
-  top: number
-  width: number
-  x: number
-  y: number
-}
-
-/*
-  Only one "layer" of depth at a time?
-  Events, transitions, etc should only be shown on the current depth layer.
-*/
-
-type Transition = {
-  event: string
-  from: Node
-  to: Node
-}
-
-class Node {
-  state: S.State<any, any>
-  id: string
-  initial: boolean
-  path: string
-  type: string
-  depth: number
-  width = 0
-  height = 0
-  highlight = false
-  parent: Node | null
-  children: Node[]
-  ref = React.createRef<HTMLDivElement>()
-  dimension: Dimension = {
-    bottom: 0,
-    height: 0,
-    left: 0,
-    right: 0,
-    top: 0,
-    width: 0,
-    x: 0,
-    y: 0,
-  }
-
-  constructor(
-    state: S.State<any, any>,
-    parent: Node | null,
-    depth: number,
-    initial: boolean
-  ) {
-    this.state = state
-    this.id = state.name
-    this.path = state.path
-    this.depth = depth
-    this.parent = parent
-    this.type = state.type
-    this.initial = initial
-    this.children = Object.values(state.states).map(
-      (child) =>
-        new Node(child, this, this.depth + 1, child.name === state.initial)
-    )
-
-    // Apply sizes
-
-    if (this.parent !== null) {
-      this.parent.height++
-    }
-
-    this.width += this.children.length
-  }
-}
-
-export default function () {
-  return (
-    <Box
-      sx={{
-        bg: "#fff",
-        p: 3,
-        margin: [0, "0 auto"],
-      }}
-    >
-      <StateTree source={toggle} />
-      <Divider />
-      <StateTree source={playerState} />
-    </Box>
-  )
-}
-
-const StateTree: React.FC<{
-  source: S.Design<any, any> | S.DesignedState<any, any>
-}> = ({ source }) => {
-  const state = useStateDesigner(source)
-  const local = useStateDesigner({
-    data: {
-      selected: state.stateTree,
-      highlight: [],
-    },
-  })
-
-  // Dynamic, based on state
-  const events = getAllEvents(state.stateTree)
-
-  const eventCounts = getEventCounts(events)
-
-  const [highlight, setHighlight] = React.useState<Node[]>([])
-
-  const root = React.useMemo(() => new Node(state.stateTree, null, 0, true), [])
-
-  // Viewer UI
-  const [current, setCurrent] = React.useState(root)
-
-  // Static, based on source
-  const flatNodes = React.useMemo(() => {
-    return getFlatNodes(current)
-  }, [current])
-
-  const rContainer = React.useRef<HTMLDivElement>()
-
-  flatNodes.forEach((node) => {
-    return (node.highlight = highlight.includes(node))
-  })
-
-  return (
-    <Box
-      ref={rContainer}
-      sx={{
-        color: "#000",
-        fontSize: 16,
-        fontWeight: 700,
-        fontFamily: "monospace",
-      }}
-    >
-      <Grid sx={{ gridTemplateColumns: ["auto", "auto 1fr 1fr auto"] }}>
-        <Flex
-          sx={{
-            gridRow: 1,
-            gridColumn: "1 / span 5",
-            borderBottom: "2px solid #efefef",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {state.id}
-        </Flex>
-        <Box sx={{ width: "fit-content", gridRow: [3, 2] }}>
-          <Heading as={"h4"}>States</Heading>
-          <Styled.ul>
-            {getFlatNodes(root).map((node, i) => (
-              <Styled.li
-                key={i}
-                style={{
-                  margin: 0,
-                  padding: 0,
-                }}
-              >
-                <Button
-                  sx={{
-                    fontFamily: "monospace",
-                    border: "none",
-                    px: 2,
-                    py: 2,
-                    mx: -2,
-                    my: 0,
-                    background: "none",
-                    color: "#000",
-                    fontWeight: 700,
-                    borderRadius: 4,
-                    fontSize: [2, 1],
-                    textAlign: "left",
-                    display: "flex",
-                    alignItems: "center",
-                    "& > *": { mr: 1 },
-                    "&:hover": { background: "#eee" },
-                  }}
-                  onClick={() => setCurrent(node)}
-                  onMouseEnter={() => setHighlight([node])}
-                  onMouseLeave={() => setHighlight([])}
-                >
-                  {Array.from(Array(node.depth)).map((_, i) => (
-                    <Circle key={i} size="4" strokeWidth={3} />
-                  ))}
-                  {node.initial ? (
-                    <Disc
-                      size="12"
-                      strokeWidth={3}
-                      stroke={node.state.active ? "#000" : "#aaa"}
-                    />
-                  ) : (
-                    <Circle
-                      size="12"
-                      strokeWidth={3}
-                      stroke={node.state.active ? "#000" : "#aaa"}
-                    />
-                  )}
-                  {node.id}
-                </Button>
-              </Styled.li>
-            ))}
-          </Styled.ul>
-        </Box>
-        <Flex
-          sx={{
-            alignItems: "flex-start",
-            justifyContent: "center",
-            flexDirection: "column",
-            margin: [0, "0 auto"],
-            gridColumn: ["1 / span 4", "2 / span 3"],
-            borderBottom: ["2px solid #efefef", "none"],
-            gridRow: 2,
-            maxWidth: [null, null, "80%", "62%", "50%"],
-          }}
-        >
-          <StateNode node={current} />
-          <pre>
-            <Styled.code style={{ color: "#000" }}>
-              {JSON.stringify(state.data, null, 2)}
-            </Styled.code>
-          </pre>
-        </Flex>
-        <Box sx={{ width: "fit-content", gridRow: [3, 2] }}>
-          <Heading as={"h4"}>Events</Heading>
-          <Styled.ul>
-            {Object.entries(eventCounts).map(([name, count], i) => (
-              <Styled.li>
-                <Button
-                  key={i}
-                  sx={{
-                    fontFamily: "monospace",
-                    border: "2px solid #000",
-                    background: "none",
-                    color: "#000",
-                    fontWeight: 700,
-                    borderRadius: 8,
-                    fontSize: [2, 1],
-                    "&:disabled": {
-                      border: "2px solid #ddd",
-                      cursor: "default",
-                    },
-                  }}
-                  disabled={!state.can(name)}
-                  onClick={() => {
-                    state.send(name)
-                    setHighlight([])
-                  }}
-                  onMouseEnter={() => {
-                    const nodes: Node[] = []
-                    for (let node of flatNodes) {
-                      if (node.state.on[name]) {
-                        nodes.push(node)
-                      }
-                    }
-
-                    setHighlight(nodes)
-                  }}
-                  onMouseLeave={() => setHighlight([])}
-                >
-                  {name}
-                  {/* {count > 1 && ` x${count}`} */}
-                </Button>
-              </Styled.li>
-            ))}
-          </Styled.ul>
-        </Box>
-      </Grid>
-    </Box>
-  )
-}
-
-const StateNode: React.FC<{
-  node: Node
-}> = ({ node }) => {
-  return (
-    <Box
-      sx={{
-        flexGrow: [1, 1, 1, 0],
-        width: ["100%", "fit-content"],
-        height: "fit-content",
-      }}
-    >
-      {node.type === "parallel" ? (
-        <ParallelStateNode node={node} />
-      ) : node.type === "branch" ? (
-        <BranchStateNode node={node} />
-      ) : (
-        <LeafStateNode node={node} />
-      )}
-    </Box>
-  )
-}
-
-const LeafStateNode: React.FC<{
-  node: Node
-}> = ({ node }) => {
-  return (
-    <NodeBox isActive={node.state.active} isHighlit={node.highlight}>
-      <Flex sx={{ justifyContent: "space-between" }}>
-        <Heading as={"h3"}>{node.id}</Heading>
-        {node.initial && <InitialMarker />}
-      </Flex>
-      <NodeEvents node={node} />
-    </NodeBox>
-  )
-}
-
-const BranchStateNode: React.FC<{
-  node: Node
-}> = ({ node }) => {
-  function getSortedBranchChildNodes(nodes: Node[]) {
-    return sortBy(
-      sortBy(nodes, (n) => n.children.length).reverse(),
-      (n) => !n.initial
-    )
-  }
-
-  return (
-    <NodeBox isActive={node.state.active} isHighlit={node.highlight}>
-      <Flex sx={{ justifyContent: "space-between" }}>
-        <Heading as={"h3"} sx={{ pl: 0 }}>
-          {node.id}
-        </Heading>
-        {node.initial && <InitialMarker />}
-      </Flex>
-      <NodeEvents node={node} />
-      <Flex sx={{ flexWrap: "wrap" }}>
-        {getSortedBranchChildNodes(node.children).map((child, i) => (
-          <StateNode key={i} node={child} />
-        ))}
-      </Flex>
-    </NodeBox>
-  )
-}
-
-const ParallelStateNode: React.FC<{
-  node: Node
-}> = ({ node }) => {
-  function getSortedParallelChildNodes(nodes: Node[]) {
-    return sortBy(nodes, (n) => n.children.length)
-  }
-
-  return (
-    <NodeBox
-      sx={{ p: 0 }}
-      isActive={node.state.active}
-      isHighlit={node.highlight}
-    >
-      <Box
-        sx={{
-          borderBottom: `2px solid ${node.state.active ? "#000" : "#ddd"}`,
-          p: 2,
-        }}
-      >
-        <Flex sx={{ justifyContent: "space-between" }}>
-          <Heading as={"h3"} sx={{ pl: 1 }}>
-            {node.id}
-          </Heading>
-          {node.initial && <InitialMarker />}
-        </Flex>
-        <NodeEvents node={node} pl={16} />
-      </Box>
-      <Grid
-        sx={{
-          gridTemplateColumns: `repeat(${node.children.length}, auto min-content)`,
-          gridAutoRows: "100%",
-          gap: 0,
-          gridAutoFlow: "column",
-          overflow: "hidden",
-          position: "relative",
-          height: "100%",
-        }}
-      >
-        {getSortedParallelChildNodes(node.children).map((child, i) => {
-          return (
-            <React.Fragment key={i}>
-              <ParallelChildBranchNode node={child} />
-              {i < node.children.length - 1 && (
-                <ParallelDivider isActive={node.state.active} />
-              )}
-            </React.Fragment>
-          )
-        })}
-      </Grid>
-    </NodeBox>
-  )
-}
-
-const ParallelChildBranchNode: React.FC<{
-  node: Node
-}> = ({ node }) => {
-  function getSortedParallelChildNodes(nodes: Node[]) {
-    return sortBy(nodes, (n) => n.children.length).reverse()
-  }
-
-  return (
-    <GhostNodeBox
-      ref={node.ref}
-      sx={{
-        minHeight: [null, 76],
-        minWidth: 64,
-        p: 2,
-      }}
-    >
-      <Heading
-        sx={{
-          pl: node.type === "leaf" ? 1 : 2,
-          pt: 1,
-        }}
-        as={"h3"}
-      >
-        {node.id}
-      </Heading>
-      <NodeEvents node={node} pl={16} />
-      <Flex sx={{ flexWrap: "wrap" }}>
-        {getSortedParallelChildNodes(node.children).map((child) => (
-          <StateNode key={child.id} node={child} />
-        ))}
-      </Flex>
-    </GhostNodeBox>
-  )
-}
-
-const NodeBox = React.forwardRef<
-  HTMLDivElement,
-  { isActive: boolean; isHighlit: boolean } & BoxProps
->((props, ref) => (
-  <Box
-    {...props}
-    ref={ref}
-    sx={{
-      bg: "#fff",
-      border: `2px solid ${
-        props.isActive && props.isHighlit
-          ? "#d00"
-          : props.isHighlit
-          ? "#fbb"
-          : props.isActive
-          ? "#000"
-          : "#ddd"
-      }`,
-      borderRadius: 12,
-      padding: 2,
-      m: 2,
-      color: "#000",
-      fontSize: 1,
-      fontFamily: "monospace",
-      overflow: "hidden",
-      minHeight: [null, 120],
-      minWidth: 96,
-      ...props.sx,
-    }}
-  />
-))
-
-const GhostNodeBox = React.forwardRef<HTMLDivElement, BoxProps>(
-  (props, ref) => {
-    return (
-      <Box
-        ref={ref}
-        {...props}
-        sx={{
-          color: "#000",
-          fontSize: 1,
-          fontFamily: "monospace",
-          ...props.sx,
-        }}
-      />
-    )
-  }
-)
-
-const NodeEvents: React.FC<{
-  node: Node
-  pl?: number
-}> = ({ node, pl = 0 }) => {
-  const handlers = [
-    ...Object.entries(node.state.on),
-    node.state.onEnter && ["onEnter"],
-    node.state.onExit && ["onExit"],
-    node.state.onEvent && ["onEvent"],
-    node.state.repeat && ["repeat"],
-    node.state.async && ["async"],
-  ].filter(Boolean)
-
-  return (
-    <Styled.ul style={{ paddingLeft: pl, paddingTop: 4 }}>
-      {/* {handlers.map(([event, handler], i) => (
-        <Styled.li key={i}>{event}</Styled.li>
-      ))} */}
-    </Styled.ul>
-  )
-}
-
-const ParallelDivider: React.FC<{ isActive: boolean }> = ({ isActive }) => {
-  return (
-    <Box
-      sx={{
-        alignSelf: "stretch",
-        height: "100%",
-        borderLeft: `2px dashed ${isActive ? "#000" : "#ddd"}`,
-      }}
-    />
-  )
-}
-
-const InitialMarker: React.FC = () => {
-  return <Disc strokeWidth={3} size={16} style={{ marginLeft: 4 }} />
-}
+import { CodeEditor } from "./CodeEditor"
 
 /* --------------------- States --------------------- */
 
-const playerState = createState({
+const player = `{
   data: {
     ms: 0,
     duration: 60000,
@@ -720,9 +214,9 @@ const playerState = createState({
       return s.toString().padStart(2, "0")
     },
   },
-})
+}`
 
-const toggle = createState({
+const toggle = `{
   initial: "toggledOff",
   states: {
     toggledOff: {
@@ -743,7 +237,742 @@ const toggle = createState({
       },
     },
   },
+}`
+
+/* ---------------------- Main ---------------------- */
+
+type UIData = {
+  code: string
+  captive?: S.DesignedState<any, any>
+  hovered?: string
+  error: string
+  hinted: string[]
+  active: string[]
+  current: string
+}
+
+const initialData: UIData = {
+  code: player,
+  error: "",
+  captive: undefined,
+  hovered: undefined,
+  hinted: [],
+  active: [],
+  current: "root",
+}
+
+export const codeEditor = createState({
+  data: {
+    clean: "",
+    dirty: "",
+    error: "",
+  },
+  initial: "idle",
+  states: {
+    idle: {
+      on: { STARTED_EDITING: { to: "editing" } },
+    },
+    editing: {
+      on: {
+        CANCELLED: { to: "idle", do: "resetCode" },
+        CHANGED_CODE: [
+          "setCode",
+          "setError",
+          {
+            if: "codeMatchesClean",
+            to: "same",
+            else: {
+              if: ["codeIsValid", "errorIsClear"],
+              to: "valid",
+              else: { to: "invalid" },
+            },
+          },
+        ],
+      },
+      initial: "same",
+      states: {
+        same: {
+          on: {
+            SAVED: { to: "idle" },
+            STOPPED_EDITING: { to: "idle" },
+          },
+        },
+        valid: {
+          on: {
+            QUICK_SAVED: [
+              "saveDirtyToClean",
+              "setError",
+              {
+                if: "codeMatchesClean",
+                to: "same",
+                else: {
+                  if: ["codeIsValid", "errorIsClear"],
+                  to: "valid",
+                  else: { to: "invalid" },
+                },
+              },
+            ],
+            SAVED: { do: "saveCode", to: "idle" },
+          },
+        },
+        invalid: {},
+      },
+    },
+  },
+  on: {
+    LOADED_CODE: ["setCleanCode", "setCode"],
+  },
+  conditions: {
+    codeIsValid(data) {
+      return true // validate === undefined ? true : validate(data.dirty)
+    },
+    codeMatchesClean(data) {
+      return data.dirty === data.clean
+    },
+    errorIsClear(data) {
+      return data.error === ""
+    },
+  },
+  actions: {
+    setCleanCode(data, payload) {
+      data.clean = payload
+    },
+    setCode(data, payload) {
+      data.dirty = payload
+    },
+    resetCode(data) {
+      data.dirty = data.clean
+    },
+    setError(d) {
+      let error: string = ""
+
+      try {
+        Function("const test = " + d.dirty)()
+      } catch (e) {
+        error = e.message
+      }
+
+      d.error = error
+    },
+    saveDirtyToClean(data) {
+      data.clean = data.dirty
+    },
+    saveCode(data) {
+      ui.send("CHANGED_CODE", { code: data.dirty })
+    },
+  },
 })
+
+export const ui = createState({
+  data: initialData,
+  initial: "chart",
+  states: {
+    chart: {},
+    code: {},
+  },
+  on: {
+    HOVERED_ON_NODE: {
+      do: ["clearHoveredNode", "setHoveredNode"],
+    },
+    HOVERED_OFF_NODE: {
+      do: "clearHoveredNode",
+    },
+    HOVERED_ON_EVENT: {
+      do: ["clearHintedNodes", "setHintedNodes"],
+    },
+    HOVERED_OFF_EVENT: {
+      do: "clearHintedNodes",
+    },
+    SELECTED_NODE: {
+      do: "setCurrentNode",
+    },
+    CHANGED_CODE: {
+      do: "setCaptiveState",
+    },
+  },
+  actions: {
+    clearHoveredNode(data) {
+      data.hovered = undefined
+    },
+    setHoveredNode(data, { id }) {
+      data.hovered = id
+    },
+    clearHintedNodes(data) {
+      data.hinted = []
+    },
+    setHintedNodes(data, { ids }) {
+      data.hinted = ids
+    },
+    setCurrentNode(data, { id }) {
+      data.current = id
+    },
+    setCaptiveState(data, { code }) {
+      data.code = code
+      try {
+        const design = Function("return " + code)()
+        data.error = ""
+        data.captive = createState(design)
+      } catch (e) {
+        data.error = e.message
+      }
+    },
+  },
+})
+
+export default function () {
+  const local = useStateDesigner(ui)
+  const editor = useStateDesigner(codeEditor)
+
+  React.useEffect(() => {
+    editor.send("LOADED_CODE", player)
+    local.send("CHANGED_CODE", { code: player })
+  }, [])
+
+  return (
+    <Grid
+      sx={{
+        gridTemplateColumns: "auto 25%",
+        gridTemplateRows: "100vh",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        height: ["auto", "auto", "100vh"],
+        width: "100vw",
+        overflow: "hidden",
+        bg: "#fff",
+        p: 3,
+        gap: 4,
+        color: "#000",
+        margin: [0, 0, "0 auto"],
+      }}
+    >
+      {local.data.captive ? (
+        <StateTree source={local.data.captive} />
+      ) : (
+        <Box>{local.data.error}</Box>
+      )}
+      {local.data.captive && (
+        <Grid
+          sx={{
+            maxHeight: "100%",
+            gridTemplateRows: "auto 1fr",
+            color: "#fff",
+            width: "100%",
+            mt: 5,
+            overflow: "scroll",
+            position: "relative",
+          }}
+        >
+          <Grid
+            columns="1fr auto auto"
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              pt: 3,
+              pb: 1,
+              gap: 1,
+              alignItems: "center",
+              width: "100%",
+              background: "#FFF",
+              zIndex: 888,
+            }}
+          >
+            <Input
+              color="#000"
+              readOnly
+              autoComplete={"off"}
+              autoCapitalize={"off"}
+              defaultValue={editor.data.error}
+            />
+            <IconButton
+              color="#d00"
+              disabled={!editor.isIn("valid")}
+              onClick={() => editor.send("SAVED")}
+            >
+              <Save />
+            </IconButton>
+            <IconButton
+              color="#d00"
+              disabled={!editor.isIn("editing")}
+              onClick={() => editor.send("CANCELLED")}
+            >
+              <X />
+            </IconButton>
+          </Grid>
+          <Box sx={{ overflow: "hidden", pt: "64px", pb: 3 }}>
+            <CodeEditor />
+          </Box>
+        </Grid>
+      )}
+    </Grid>
+  )
+}
+
+const StateTree: React.FC<{
+  source: S.Design<any, any> | S.DesignedState<any, any>
+}> = ({ source }) => {
+  const local = useStateDesigner(ui)
+  const state = useStateDesigner(local.data.captive, [local.data.captive])
+
+  // Static, based on source
+  const flatNodes = React.useMemo(() => {
+    return getFlatStates(local.data.captive.stateTree)
+  }, [local.data.captive])
+
+  // Dynamic, based on state
+  const events = getAllEvents(state.stateTree)
+
+  const eventCounts = getEventCounts(events)
+
+  const rContainer = React.useRef<HTMLDivElement>()
+
+  return (
+    <Box
+      ref={rContainer}
+      sx={{
+        color: "#000",
+        fontSize: 16,
+        fontWeight: 700,
+        fontFamily: "monospace",
+        overflow: "scroll",
+      }}
+    >
+      <Flex
+        sx={{
+          position: "fixed",
+          zIndex: 999,
+          background: "#fff",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "56px",
+          borderBottom: "2px solid #efefef",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {state.id}
+      </Flex>
+      <Grid
+        sx={{
+          mt: "48px",
+          gridTemplateColumns: ["auto", "auto", "auto 1fr auto"],
+        }}
+      >
+        <Column>
+          <ColumnHeading>States</ColumnHeading>
+          <Styled.ul>
+            {flatNodes.map((node, i) => (
+              <Styled.li
+                key={i}
+                style={{
+                  margin: 0,
+                  marginLeft: -8,
+                  padding: 0,
+                  width: "100%,",
+                }}
+              >
+                <Button
+                  sx={{
+                    fontFamily: "monospace",
+                    border: "none",
+                    px: 2,
+                    py: 2,
+                    my: 0,
+                    background: "none",
+                    color: "#000",
+                    fontWeight: 700,
+                    width: "100%",
+                    borderRadius: 4,
+                    fontSize: [2, 1],
+                    textAlign: "left",
+                    display: "flex",
+                    alignItems: "center",
+                    "& > *": { mr: 1 },
+                    "&:hover": { background: "#eee", color: "#d00" },
+                  }}
+                  onClick={() => local.send("SELECTED_NODE", { id: node.path })}
+                  onMouseEnter={() =>
+                    local.send("HOVERED_ON_NODE", { id: node.path })
+                  }
+                  onMouseLeave={() => local.send("HOVERED_OFF_NODE")}
+                >
+                  {Array.from(Array(node.depth)).map((_, i) => (
+                    <Circle key={i} size="4" strokeWidth={3} />
+                  ))}
+                  {node.isInitial ? (
+                    <Disc
+                      size="12"
+                      strokeWidth={3}
+                      opacity={node.active ? 1 : 0.5}
+                    />
+                  ) : (
+                    <Circle
+                      size="12"
+                      strokeWidth={3}
+                      opacity={node.active ? 1 : 0.5}
+                    />
+                  )}
+                  {node.name}
+                </Button>
+              </Styled.li>
+            ))}
+          </Styled.ul>
+        </Column>
+        <Flex
+          sx={{
+            alignItems: "flex-start",
+            justifyContent: "center",
+            flexDirection: "column",
+            margin: [0, 0, "0 auto"],
+            gridColumn: ["1 / span 4", "1 / span 4", "2 / span 3"],
+            borderBottom: ["2px solid #efefef", "none"],
+            gridRow: 2,
+            maxWidth: [null, null, "100%", "75%", "50%"],
+          }}
+        >
+          <StateNode
+            node={
+              flatNodes.find((n) => n.path === ui.data.current) ||
+              state.stateTree
+            }
+          />
+          <pre>
+            <Styled.code style={{ color: "#000" }}>
+              {JSON.stringify(state.data, null, 2)}
+            </Styled.code>
+          </pre>
+          <pre>
+            <Styled.code style={{ color: "#000" }}>
+              {JSON.stringify(state.values, null, 2)}
+            </Styled.code>
+          </pre>
+        </Flex>
+        <Column>
+          <ColumnHeading>Events</ColumnHeading>
+          <Styled.ul>
+            {Object.entries(eventCounts).map(([name, count], i) => (
+              <Styled.li key={i}>
+                <Button
+                  sx={{
+                    fontFamily: "monospace",
+                    border: "2px solid #000",
+                    background: "none",
+                    color: "#000",
+                    fontWeight: 700,
+                    borderRadius: 8,
+                    fontSize: [2, 1],
+                    "&:disabled": {
+                      border: "2px solid #ddd",
+                      cursor: "default",
+                    },
+                  }}
+                  disabled={!state.can(name)}
+                  onClick={() => {
+                    state.send(name)
+                    local.send("HOVERED_OFF_EVENT")
+                  }}
+                  onMouseEnter={() => {
+                    const ids: string[] = []
+                    for (let node of flatNodes) {
+                      if (node.on[name]) {
+                        ids.push(node.path)
+                      }
+                    }
+
+                    local.send("HOVERED_ON_EVENT", { ids })
+                  }}
+                  onMouseLeave={() => local.send("HOVERED_OFF_EVENT")}
+                >
+                  {name}
+                  {/* {count > 1 && ` x${count}`} */}
+                </Button>
+              </Styled.li>
+            ))}
+          </Styled.ul>
+        </Column>
+      </Grid>
+    </Box>
+  )
+}
+
+const StateNode: React.FC<{
+  node: S.State<any, any>
+}> = ({ node }) => {
+  return (
+    <Box
+      sx={{
+        flexGrow: [1, 1, 1, 0],
+        width: ["100%", "fit-content"],
+        height: "fit-content",
+      }}
+    >
+      {node.type === "parallel" ? (
+        <ParallelStateNode node={node} />
+      ) : node.type === "branch" ? (
+        <BranchStateNode node={node} />
+      ) : (
+        <LeafStateNode node={node} />
+      )}
+    </Box>
+  )
+}
+
+const LeafStateNode: React.FC<{
+  node: S.State<any, any>
+}> = ({ node }) => {
+  return (
+    <NodeBox node={node}>
+      <Flex sx={{ justifyContent: "space-between" }}>
+        <Heading as={"h3"}>{node.name}</Heading>
+        {node.isInitial && <InitialMarker />}
+      </Flex>
+      <NodeEvents node={node} />
+    </NodeBox>
+  )
+}
+
+const BranchStateNode: React.FC<{
+  node: S.State<any, any>
+}> = ({ node }) => {
+  const childNodes = Object.values(node.states)
+
+  function getSortedBranchChildNodes(nodes: S.State<any, any>[]) {
+    return sortBy(
+      sortBy(nodes, (n) => Object.values(n.states).length).reverse(),
+      (n) => !n.isInitial
+    )
+  }
+
+  return (
+    <NodeBox node={node}>
+      <Flex sx={{ justifyContent: "space-between" }}>
+        <Heading as={"h3"} sx={{ pl: 0 }}>
+          {node.name}
+        </Heading>
+        {node.isInitial && <InitialMarker />}
+      </Flex>
+      <NodeEvents node={node} />
+      <Flex sx={{ flexWrap: "wrap" }}>
+        {getSortedBranchChildNodes(childNodes).map((child, i) => (
+          <StateNode key={i} node={child} />
+        ))}
+      </Flex>
+    </NodeBox>
+  )
+}
+
+const ParallelStateNode: React.FC<{
+  node: S.State<any, any>
+}> = ({ node }) => {
+  const childNodes = Object.values(node.states)
+
+  function getSortedParallelChildNodes(nodes: S.State<any, any>[]) {
+    return sortBy(nodes, (n) => Object.entries(n.states).length)
+  }
+
+  return (
+    <NodeBox sx={{ p: 0 }} node={node}>
+      <Box
+        sx={{
+          borderBottom: `2px solid ${node.active ? "#000" : "#ddd"}`,
+          p: 2,
+        }}
+      >
+        <Flex sx={{ justifyContent: "space-between" }}>
+          <Heading as={"h3"} sx={{ pl: 1 }}>
+            {node.name}
+          </Heading>
+          {node.isInitial && <InitialMarker />}
+        </Flex>
+        <NodeEvents node={node} pl={16} />
+      </Box>
+      <Grid
+        sx={{
+          gridTemplateColumns: `repeat(${childNodes.length}, auto min-content)`,
+          gridAutoRows: "100%",
+          gap: 0,
+          gridAutoFlow: "column",
+          overflow: "hidden",
+          position: "relative",
+          height: "100%",
+        }}
+      >
+        {getSortedParallelChildNodes(childNodes).map((child, i) => {
+          return (
+            <React.Fragment key={i}>
+              <ParallelChildBranchNode node={child} />
+              {i < childNodes.length - 1 && (
+                <ParallelDivider isActive={node.active} />
+              )}
+            </React.Fragment>
+          )
+        })}
+      </Grid>
+    </NodeBox>
+  )
+}
+
+const ParallelChildBranchNode: React.FC<{
+  node: S.State<any, any>
+}> = ({ node }) => {
+  const childNodes = Object.values(node.states)
+
+  function getSortedParallelChildNodes(nodes: S.State<any, any>[]) {
+    return sortBy(nodes, (n) => Object.values(n.states).length).reverse()
+  }
+
+  return (
+    <GhostNodeBox
+      node={node}
+      sx={{
+        minHeight: [null, 76],
+        minWidth: 64,
+        p: 2,
+      }}
+    >
+      <Heading
+        sx={{
+          pl: node.type === "leaf" ? 1 : 2,
+          pt: 1,
+        }}
+        as={"h3"}
+      >
+        {node.name}
+      </Heading>
+      <NodeEvents node={node} pl={16} />
+      <Flex sx={{ flexWrap: "wrap" }}>
+        {getSortedParallelChildNodes(childNodes).map((child) => (
+          <StateNode key={child.path} node={child} />
+        ))}
+      </Flex>
+    </GhostNodeBox>
+  )
+}
+
+const NodeBox = React.forwardRef<
+  HTMLDivElement,
+  {
+    node: S.State<any, any>
+  } & BoxProps
+>(({ node, ...rest }, ref) => {
+  const local = useStateDesigner(ui)
+  const isHinted = local.data.hinted.includes(node.path)
+  const isHovered = local.data.hovered === node.path
+
+  return (
+    <Box
+      {...rest}
+      ref={ref}
+      sx={{
+        bg: "#fff",
+        border: `2px solid ${
+          node.active && isHinted
+            ? "#d00"
+            : isHinted
+            ? "#fbb"
+            : node.active
+            ? "#000"
+            : "#ddd"
+        }`,
+        color: isHovered ? "#d00" : "#000",
+        borderRadius: 12,
+        padding: 2,
+        m: 2,
+        fontSize: 1,
+        fontFamily: "monospace",
+        overflow: "hidden",
+        minHeight: [null, 64, 64, 120],
+        minWidth: 96,
+        ...rest.sx,
+      }}
+    />
+  )
+})
+
+const GhostNodeBox = React.forwardRef<
+  HTMLDivElement,
+  {
+    node: S.State<any, any>
+  } & BoxProps
+>(({ node, ...rest }, ref) => {
+  const local = useStateDesigner(ui)
+  const isHinted = local.data.hinted.includes(node.path)
+  const isHovered = local.data.hovered === node.path
+  return (
+    <Box
+      ref={ref}
+      {...rest}
+      sx={{
+        color: isHovered ? "#d00" : "#000",
+        fontSize: 1,
+        fontFamily: "monospace",
+        ...rest.sx,
+      }}
+    />
+  )
+})
+
+const NodeEvents: React.FC<{
+  node: S.State<any, any>
+  pl?: number
+}> = ({ node, pl = 0 }) => {
+  const handlers = [
+    ...Object.entries(node.on),
+    node.onEnter && ["onEnter"],
+    node.onExit && ["onExit"],
+    node.onEvent && ["onEvent"],
+    node.repeat && ["repeat"],
+    node.async && ["async"],
+  ].filter(Boolean)
+
+  return (
+    <Styled.ul style={{ paddingLeft: pl, paddingTop: 4 }}>
+      {/* {handlers.map(([event, handler], i) => (
+        <Styled.li key={i}>{event}</Styled.li>
+      ))} */}
+    </Styled.ul>
+  )
+}
+
+const ParallelDivider: React.FC<{ isActive: boolean }> = ({ isActive }) => {
+  return (
+    <Box
+      sx={{
+        alignSelf: "stretch",
+        height: "100%",
+        borderLeft: `2px dashed ${isActive ? "#000" : "#ddd"}`,
+      }}
+    />
+  )
+}
+
+const InitialMarker: React.FC = () => {
+  return <Disc strokeWidth={3} size={16} style={{ marginLeft: 4 }} />
+}
+
+const ColumnHeading: React.FC = (props) => {
+  return (
+    <Heading
+      as={"h4"}
+      sx={{
+        position: "sticky",
+        top: "32px",
+        py: 2,
+        mb: 1,
+        left: 0,
+        background: "#FFF",
+        zIndex: 888,
+      }}
+      {...props}
+    />
+  )
+}
+
+const Column: React.FC = (props) => {
+  return <Box sx={{ width: "fit-content", gridRow: [3, 3, 2] }} {...props} />
+}
 
 /* --------------------- Helpers -------------------- */
 
@@ -772,46 +1001,9 @@ function getOffsetFrame(
   }
   return position
 }
-function getFlatNodes(node: Node): Node[] {
-  return [node].concat(...node.children.map(getFlatNodes))
-}
 
-function getTransitionsNodes(root: Node, data: any) {
-  const nodes = [...getFlatNodes(root)]
-
-  const transitions = getFlatNodes(root).map((node) => {
-    if (node.state.on) {
-      Object.entries(node.state.on).map(([event, handlers]) => {
-        return handlers.map((handler) => {
-          if (handler.to) {
-            for (let target of handler.to) {
-              let path = target(data, undefined, undefined)
-
-              const isPreviousTransition = path.endsWith(".previous")
-              const isRestoreTransition = path.endsWith(".restore")
-
-              if (isPreviousTransition) {
-                path = path.slice(0, path.length - 9)
-              } else if (isRestoreTransition) {
-                path = path.slice(0, path.length - 8)
-              }
-
-              let safePath = path.startsWith(".") ? path : "." + path
-
-              const from = node
-              const to = nodes.find((n) => n.path.endsWith(safePath))
-
-              return {
-                from,
-                to,
-                event,
-              }
-            }
-          }
-        })
-      })
-    }
-  })
+function getFlatStates(state: S.State<any, any>): S.State<any, any>[] {
+  return [state].concat(...Object.values(state.states).map(getFlatStates))
 }
 
 function getAllEvents(state: S.State<any, any>): string[][] {

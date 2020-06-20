@@ -223,7 +223,9 @@ export function getStateTreeFromDesign<
     state: S.StateDesign<D, R, C, A, Y, T, V>,
     name: string,
     path: string,
-    active: boolean
+    active: boolean,
+    depth: number,
+    isInitial: boolean
   ): S.State<D, V> {
     // Early error detection
 
@@ -236,6 +238,8 @@ export function getStateTreeFromDesign<
     return {
       name,
       type: state.states ? (state.initial ? "branch" : "parallel") : "leaf",
+      isInitial,
+      depth,
       path: path + name,
       active,
       activeId: 0,
@@ -278,12 +282,19 @@ export function getStateTreeFromDesign<
           ? Object.entries(state.states).map(([childName, childState]) => {
               return [
                 childName,
-                createState(childState, childName, path + name + ".", false),
+                createState(
+                  childState,
+                  childName,
+                  path + name + ".",
+                  false,
+                  depth + 1,
+                  state.initial === childName
+                ),
               ]
             })
           : []
       ),
     }
   }
-  return createState(config, "root", id + ".", true)
+  return createState(config, "root", id + ".", true, 0, true)
 }
