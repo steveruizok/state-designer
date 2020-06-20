@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.18
+
+- Small fix to `unless` / `unlessAny` conditional logic. New tests for this logic should ensure the truth tables stay truthy.
+
 ## 1.2.17
 
 - Adds `thenSend`, a function to use in place of common `send` calls. The function only accepts an event name (not a payload) and will return a memoized call to `send`. In the example below, button's `onClick` prop would never change.

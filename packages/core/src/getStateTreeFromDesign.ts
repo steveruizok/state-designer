@@ -235,6 +235,7 @@ export function getStateTreeFromDesign<
 
     return {
       name,
+      type: state.states ? (state.initial ? "branch" : "parallel") : "leaf",
       path: path + name,
       active,
       activeId: 0,

@@ -32,6 +32,7 @@
     "react-dom": "16.13.1",
     "react-feather": "^2.0.8",
     "react-simple-code-editor": "^0.11.0",
+    "react-use-dimensions": "^1.2.1",
     "rebass": "^4.0.7",
     "theme-ui": "^0.3.1",
     "typescript": "^3.8.3"
