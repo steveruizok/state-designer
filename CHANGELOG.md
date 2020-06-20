@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.19
+
+- Adds node-related properties (`isInitial`, `depth`) to states in `state.stateTree`. These are used in the visualizer.
+
 ## 1.2.18
 
 - Small fix to `unless` / `unlessAny` conditional logic. New tests for this logic should ensure the truth tables stay truthy.
