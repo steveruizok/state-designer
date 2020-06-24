@@ -225,7 +225,8 @@ export function getStateTreeFromDesign<
     path: string,
     active: boolean,
     depth: number,
-    isInitial: boolean
+    isInitial: boolean,
+    parentType: "branch" | "parallel" | "leaf" | null
   ): S.State<D, V> {
     // Early error detection
 
@@ -235,10 +236,13 @@ export function getStateTreeFromDesign<
       )
     }
 
+    const type = state.states ? (state.initial ? "branch" : "parallel") : "leaf"
+
     return {
       name,
-      type: state.states ? (state.initial ? "branch" : "parallel") : "leaf",
+      type,
       isInitial,
+      parentType,
       depth,
       path: path + name,
       active,
@@ -288,7 +292,8 @@ export function getStateTreeFromDesign<
                   path + name + ".",
                   false,
                   depth + 1,
-                  state.initial === childName
+                  state.initial === childName,
+                  type
                 ),
               ]
             })
@@ -296,5 +301,5 @@ export function getStateTreeFromDesign<
       ),
     }
   }
-  return createState(config, "root", id + ".", true, 0, true)
+  return createState(config, "root", id + ".", true, 0, true, null)
 }

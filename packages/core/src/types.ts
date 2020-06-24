@@ -249,6 +249,7 @@ export enum VerboseType {
 export interface State<D, V> {
   name: string
   isInitial: boolean
+  parentType: "branch" | "leaf" | "parallel" | null
   depth: number
   type: "branch" | "leaf" | "parallel"
   active: boolean
@@ -364,6 +365,7 @@ export interface DesignedState<D, V> {
   onUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => () => void
   getUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => void
   getDesign: () => any
+  forceTransition: (target: string, payload?: any) => DesignedState<D, V>
   clone: () => DesignedState<D, V>
   reset: () => DesignedState<D, V>
 }

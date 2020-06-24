@@ -1,6 +1,7 @@
 import * as React from "react"
 import { sortBy } from "lodash"
-import { Save, X } from "react-feather"
+import { Save, RefreshCcw } from "react-feather"
+import Link from "next/link"
 import {
   Styled,
   Input,
@@ -8,15 +9,112 @@ import {
   Button,
   Grid,
   BoxProps,
+  ButtonProps,
   Box,
   Flex,
   Heading,
 } from "theme-ui"
 import { Disc, Circle } from "react-feather"
 import { S, createState, useStateDesigner } from "@state-designer/react"
-import { CodeEditor } from "./CodeEditor"
+import { CodeEditor } from "./code-editor"
 
 /* --------------------- States --------------------- */
+
+const counter = `{
+  data: { count: 0 },
+  on: {
+    DECREASED: { 
+      unless: "countIsAtMin", 
+      do: "decrementCount" 
+    },
+    INCREASED: { 
+      unless: "countIsAtMax", 
+      do: "incrementCount" 
+    },
+  },
+  actions: {
+    decrementCount(data) {
+      data.count--
+    },
+    incrementCount(data) {
+      data.count++
+    },
+  },
+  conditions: {
+    countIsAtMin(data) {
+      return data.count === 0
+    },
+    countIsAtMax(data) {
+      return data.count === 5
+    },
+  },
+}`
+
+const todo = `{
+  data: {
+    content: "",
+    complete: false,
+  },
+  initial: complete ? "complete" : "incomplete",
+  states: {
+    incomplete: {
+      initial: {
+        if: "contentIsEmpty",
+        to: "empty",
+        else: { to: "full" },
+      },
+      states: {
+        empty: {
+          on: {
+            CHANGED_CONTENT: {
+              unless: "contentIsEmpty",
+              to: "full",
+            },
+          },
+        },
+        full: {
+          on: {
+            TOGGLED_COMPLETE: {
+              to: "complete",
+              do: "setComplete",
+            },
+            CHANGED_CONTENT: {
+              if: "contentIsEmpty",
+              to: "empty",
+            },
+          },
+        },
+      },
+      on: {
+        CHANGED_CONTENT: "updateContent",
+      },
+    },
+    complete: {
+      on: {
+        TOGGLED_COMPLETE: {
+          do: "clearComplete",
+          to: "incomplete",
+        },
+      },
+    },
+  },
+  conditions: {
+    contentIsEmpty(data) {
+      return data.content === ""
+    },
+  },
+  actions: {
+    setComplete(data) {
+      data.complete = true
+    },
+    clearComplete(data) {
+      data.complete = false
+    },
+    updateContent(data, payload) {
+      data.content = payload
+    },
+  },
+}`
 
 const player = `{
   data: {
@@ -73,7 +171,6 @@ const player = `{
               },
               on: {
                 PRESSED_PAUSE: { to: "paused" },
-                STARTED_SCRUBBING: { to: "scrubbing" },
               },
             },
             paused: {
@@ -140,7 +237,6 @@ const player = `{
             PRESSED_PLAY: { to: "playing" },
             PRESSED_STOP: { to: "stopped" },
             PRESSED_RW: { to: "rewinding" },
-            STARTED_SCRUBBING: { to: "paused" },
           },
         },
         rewinding: {
@@ -160,14 +256,10 @@ const player = `{
             PRESSED_PLAY: { to: "playing" },
             PRESSED_STOP: { to: "stopped" },
             PRESSED_FF: { to: "fastForwarding" },
-            STARTED_SCRUBBING: { to: "paused" },
           },
         },
       },
     },
-  },
-  on: {
-    STARTED_SCRUBBING: "setProgress",
   },
   results: {
     interval(data, payload, result) {
@@ -224,17 +316,6 @@ const toggle = `{
     },
     toggledOn: {
       on: { TOGGLED: { to: "toggledOff" } },
-      initial: "a",
-      states: {
-        a: {},
-        b: {},
-      },
-    },
-    p: {
-      states: {
-        a: {},
-        b: {},
-      },
     },
   },
 }`
@@ -274,48 +355,35 @@ export const codeEditor = createState({
     },
     editing: {
       on: {
-        CANCELLED: { to: "idle", do: "resetCode" },
-        CHANGED_CODE: [
-          "setCode",
-          "setError",
-          {
-            if: "codeMatchesClean",
-            to: "same",
-            else: {
-              if: ["codeIsValid", "errorIsClear"],
-              to: "valid",
-              else: { to: "invalid" },
-            },
-          },
-        ],
+        CHANGED_CODE: ["setCode", "setError", { to: "editing" }],
       },
-      initial: "same",
+      initial: {
+        if: "codeMatchesClean",
+        to: "same",
+        else: {
+          if: ["codeIsValid", "errorIsClear"],
+          to: "valid",
+          else: { to: "invalid" },
+        },
+      },
       states: {
         same: {
           on: {
-            SAVED: { to: "idle" },
             STOPPED_EDITING: { to: "idle" },
           },
         },
         valid: {
           on: {
-            QUICK_SAVED: [
-              "saveDirtyToClean",
-              "setError",
-              {
-                if: "codeMatchesClean",
-                to: "same",
-                else: {
-                  if: ["codeIsValid", "errorIsClear"],
-                  to: "valid",
-                  else: { to: "invalid" },
-                },
-              },
-            ],
-            SAVED: { do: "saveCode", to: "idle" },
+            CANCELLED: { do: "resetCode", to: "idle" },
+            QUICK_SAVED: ["saveDirtyToClean", { to: "editing" }],
+            SAVED: { do: "shareCode", to: "idle" },
           },
         },
-        invalid: {},
+        invalid: {
+          on: {
+            CANCELLED: { do: ["resetCode", "clearError"], to: "idle" },
+          },
+        },
       },
     },
   },
@@ -323,7 +391,7 @@ export const codeEditor = createState({
     LOADED_CODE: ["setCleanCode", "setCode"],
   },
   conditions: {
-    codeIsValid(data) {
+    codeIsValid() {
       return true // validate === undefined ? true : validate(data.dirty)
     },
     codeMatchesClean(data) {
@@ -343,21 +411,24 @@ export const codeEditor = createState({
     resetCode(data) {
       data.dirty = data.clean
     },
+    saveDirtyToClean(data) {
+      data.clean = data.dirty
+    },
+    clearError(data) {
+      data.error = ""
+    },
     setError(d) {
       let error: string = ""
 
       try {
-        Function("const test = " + d.dirty)()
+        Function("fn", `const test = fn(${d.dirty})`)(createState)
       } catch (e) {
         error = e.message
       }
 
       d.error = error
     },
-    saveDirtyToClean(data) {
-      data.clean = data.dirty
-    },
-    saveCode(data) {
+    shareCode(data) {
       ui.send("CHANGED_CODE", { code: data.dirty })
     },
   },
@@ -419,7 +490,7 @@ export const ui = createState({
   },
 })
 
-export default function () {
+export default function (props: { project: string }) {
   const local = useStateDesigner(ui)
   const editor = useStateDesigner(codeEditor)
 
@@ -486,18 +557,20 @@ export default function () {
               defaultValue={editor.data.error}
             />
             <IconButton
+              title="Save Changes"
               color="#d00"
-              disabled={!editor.isIn("valid")}
+              disabled={!editor.can("SAVED")}
               onClick={() => editor.send("SAVED")}
             >
               <Save />
             </IconButton>
             <IconButton
+              title="Revert Changes"
               color="#d00"
-              disabled={!editor.isIn("editing")}
+              disabled={!editor.can("CANCELLED")}
               onClick={() => editor.send("CANCELLED")}
             >
-              <X />
+              <RefreshCcw />
             </IconButton>
           </Grid>
           <Box sx={{ overflow: "hidden", pt: "64px", pb: 3 }}>
@@ -526,6 +599,11 @@ const StateTree: React.FC<{
   const eventCounts = getEventCounts(events)
 
   const rContainer = React.useRef<HTMLDivElement>()
+
+  function loadExample(code) {
+    codeEditor.send("LOADED_CODE", code)
+    ui.send("CHANGED_CODE", { code })
+  }
 
   return (
     <Box
@@ -574,6 +652,7 @@ const StateTree: React.FC<{
                 }}
               >
                 <Button
+                  title={`Zoom to ${node.name}`}
                   sx={{
                     fontFamily: "monospace",
                     border: "none",
@@ -618,6 +697,22 @@ const StateTree: React.FC<{
                 </Button>
               </Styled.li>
             ))}
+            <hr />
+            <Styled.li>
+              <EventButton onClick={() => loadExample(toggle)}>
+                Toggle Example
+              </EventButton>
+            </Styled.li>
+            <Styled.li>
+              <EventButton onClick={() => loadExample(counter)}>
+                Counter Example
+              </EventButton>
+            </Styled.li>
+            <Styled.li>
+              <EventButton onClick={() => loadExample(player)}>
+                Player Example
+              </EventButton>
+            </Styled.li>
           </Styled.ul>
         </Column>
         <Flex
@@ -638,39 +733,33 @@ const StateTree: React.FC<{
               state.stateTree
             }
           />
-          <pre>
-            <Styled.code style={{ color: "#000" }}>
-              {JSON.stringify(state.data, null, 2)}
-            </Styled.code>
-          </pre>
-          <pre>
-            <Styled.code style={{ color: "#000" }}>
-              {JSON.stringify(state.values, null, 2)}
-            </Styled.code>
-          </pre>
+          {state.data && (
+            <pre>
+              data ={" "}
+              <Styled.code style={{ color: "#000" }}>
+                {JSON.stringify(state.data, null, 2)}
+              </Styled.code>
+            </pre>
+          )}
+          {Object.values(state.values).length > 0 && (
+            <pre>
+              values ={" "}
+              <Styled.code style={{ color: "#000" }}>
+                {JSON.stringify(state.values, null, 2)}
+              </Styled.code>
+            </pre>
+          )}
         </Flex>
         <Column>
           <ColumnHeading>Events</ColumnHeading>
           <Styled.ul>
             {Object.entries(eventCounts).map(([name, count], i) => (
               <Styled.li key={i}>
-                <Button
-                  sx={{
-                    fontFamily: "monospace",
-                    border: "2px solid #000",
-                    background: "none",
-                    color: "#000",
-                    fontWeight: 700,
-                    borderRadius: 8,
-                    fontSize: [2, 1],
-                    "&:disabled": {
-                      border: "2px solid #ddd",
-                      cursor: "default",
-                    },
-                  }}
+                <EventButton
+                  title={`Send ${name} Event`}
                   disabled={!state.can(name)}
                   onClick={() => {
-                    state.send(name)
+                    state.send(name, 0)
                     local.send("HOVERED_OFF_EVENT")
                   }}
                   onMouseEnter={() => {
@@ -687,7 +776,7 @@ const StateTree: React.FC<{
                 >
                   {name}
                   {/* {count > 1 && ` x${count}`} */}
-                </Button>
+                </EventButton>
               </Styled.li>
             ))}
           </Styled.ul>
@@ -952,6 +1041,29 @@ const InitialMarker: React.FC = () => {
   return <Disc strokeWidth={3} size={16} style={{ marginLeft: 4 }} />
 }
 
+const EventButton: React.FC<ButtonProps> = (props) => {
+  return (
+    <Button
+      sx={{
+        width: "100%",
+        textAlign: "left",
+        fontFamily: "monospace",
+        border: "2px solid #000",
+        background: "none",
+        color: "#000",
+        fontWeight: 700,
+        borderRadius: 8,
+        fontSize: [2, 1],
+        "&:disabled": {
+          border: "2px solid #ddd",
+          cursor: "default",
+        },
+      }}
+      {...props}
+    />
+  )
+}
+
 const ColumnHeading: React.FC = (props) => {
   return (
     <Heading
@@ -1002,6 +1114,20 @@ function getOffsetFrame(
   return position
 }
 
+function getEvents(state: S.State<any, any>): string[][] {
+  const localEvents: string[][] = []
+
+  if (state.active) {
+    localEvents.push(...Object.keys(state.on).map((k) => [state.name, k]))
+  }
+
+  for (let child of Object.values(state.states)) {
+    localEvents.push(...getEvents(child))
+  }
+
+  return localEvents
+}
+
 function getFlatStates(state: S.State<any, any>): S.State<any, any>[] {
   return [state].concat(...Object.values(state.states).map(getFlatStates))
 }
@@ -1013,20 +1139,6 @@ function getAllEvents(state: S.State<any, any>): string[][] {
 
   for (let child of Object.values(state.states)) {
     localEvents.push(...getAllEvents(child))
-  }
-
-  return localEvents
-}
-
-function getEvents(state: S.State<any, any>): string[][] {
-  const localEvents: string[][] = []
-
-  if (state.active) {
-    localEvents.push(...Object.keys(state.on).map((k) => [state.name, k]))
-  }
-
-  for (let child of Object.values(state.states)) {
-    localEvents.push(...getEvents(child))
   }
 
   return localEvents

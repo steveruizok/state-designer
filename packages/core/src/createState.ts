@@ -795,6 +795,12 @@ export function createState<
     return createState(design)
   }
 
+  function forceTransition(target: string, payload?: string) {
+    runTransition(target, payload, undefined)
+    notifySubscribers()
+    return snapshot
+  }
+
   /**
    * Reset state based on original design.
    */
@@ -836,6 +842,7 @@ export function createState<
     getUpdate,
     clone,
     reset,
+    forceTransition,
     values: getValues(design.data as D, design.values),
   }
 

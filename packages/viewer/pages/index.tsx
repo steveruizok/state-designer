@@ -1,52 +1,57 @@
-import Head from "next/head"
-import { Editor } from "../components/editor"
-import App, { Container } from "next/app"
-import { ThemeProvider } from "theme-ui"
-import { Global } from "@emotion/core"
-import theme from "../components/theme"
+import useSWR from "swr"
+import Link from "next/link"
+import { useUser } from "../auth/useUser"
 
-export default class extends App {
-  static async getInitialProps({ Component, ctx }) {
-    let pageProps = {}
+const fetcher = (url, token) =>
+  fetch(url, {
+    method: "GET",
+    headers: new Headers({ "Content-Type": "application/json", token }),
+    credentials: "same-origin",
+  }).then((res) => res.json())
 
-    if (Component?.getInitialProps) {
-      pageProps = await Component.getInitialProps(ctx)
-    }
+const Index = () => {
+  const { user, logout } = useUser()
+  const { data, error } = useSWR(
+    user ? ["/api/getFood", user.token] : null,
+    fetcher
+  )
 
-    return { pageProps }
-  }
-
-  render() {
-    const { Component = Editor, pageProps } = this.props
-
+  if (!user) {
     return (
-      <div>
-        <Head>
-          <title>State Designer Viewer</title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-        <ThemeProvider theme={theme}>
-          <Global
-            styles={(theme) => ({
-              body: {
-                fontFamily: theme.fonts.body,
-                lineHeight: theme.lineHeights.body,
-                fontWeight: theme.fontWeights.body,
-                color: theme.colors.text,
-                backgroundColor: theme.colors.background,
-                margin: 0,
-                minHeight: "100vh",
-                display: "flex",
-                flexDirection: "column",
-                "*": {
-                  boxSizing: "border-box",
-                },
-              },
-            })}
-          />
-          <main>{Component && <Component {...pageProps} />}</main>
-        </ThemeProvider>
-      </div>
+      <>
+        <p>Hi there!</p>
+        <p>
+          You are not signed in.{" "}
+          <Link href={"/auth"}>
+            <a>Sign in</a>
+          </Link>
+        </p>
+      </>
     )
   }
+
+  return (
+    <div>
+      <div>
+        <p>You're signed in. Email: {user.email}</p>
+        <p
+          style={{
+            display: "inlinelock",
+            color: "blue",
+            textDecoration: "underline",
+            cursor: "pointer",
+          }}
+          onClick={() => logout()}
+        >
+          Log out
+        </p>
+      </div>
+
+      <Link href={"/project/toggle"}>
+        <a>Toggle Project</a>
+      </Link>
+    </div>
+  )
 }
+
+export default Index

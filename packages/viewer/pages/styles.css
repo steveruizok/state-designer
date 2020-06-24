@@ -1,8 +1,21 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Fira+Sans:wght@400;600&display=swap");
+
+:root {
+  --content-column-offset: 0px;
+  --code-column-offset: 0px;
+  --detail-row-offset: 0px;
+}
+
 html,
 * {
   box-sizing: border-box;
 }
 
+body {
+  overscroll-behavior: none;
+}
+
+/* Syntax highlighting */
 code[class*="language-"],
 pre[class*="language-"] {
   text-align: left;
