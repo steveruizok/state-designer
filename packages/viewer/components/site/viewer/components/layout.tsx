@@ -48,7 +48,6 @@ const Layout: React.FC = ({ children }) => {
         position: "absolute",
         border: "outline",
         borderColor: "border",
-        color: "text",
         gridTemplateColumns: [
           "1fr 1fr 1fr",
           `calc(${BASE_CONTENT_COL_WIDTH}px + var(--content-column-offset)) 
