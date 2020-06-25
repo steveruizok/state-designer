@@ -5,7 +5,7 @@ import { useStateDesigner } from "@state-designer/react"
 
 const Title: React.FC = ({}) => {
   const local = useStateDesigner(ui)
-  const captive = useStateDesigner(local.data.captive)
+  const captive = useStateDesigner(local.data.captive, [local.data.captive])
 
   return (
     <Flex

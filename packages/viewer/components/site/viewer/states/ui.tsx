@@ -1,6 +1,10 @@
 import { S, createState } from "@state-designer/core"
+import { forkProject } from "../../../../utils/firebase"
 
 type UIData = {
+  oid: string
+  uid: string
+  pid: string
   code: string
   captive?: S.DesignedState<any, any>
   hovered?: string
@@ -11,6 +15,9 @@ type UIData = {
 }
 
 const initialData: UIData = {
+  oid: "",
+  uid: "",
+  pid: "",
   code: "{}",
   error: "",
   captive: createState({}),
@@ -19,6 +26,7 @@ const initialData: UIData = {
   active: [],
   zoomed: undefined,
 }
+
 export const ui = createState({
   data: initialData,
   initial: "loading",
@@ -60,6 +68,9 @@ export const ui = createState({
             ZOOMED_OUT: {
               do: "clearCurrentNode",
             },
+            FORKED_PROJECT: {
+              do: "forkProject",
+            },
           },
         },
         code: {},
@@ -85,16 +96,23 @@ export const ui = createState({
     setCurrentNode(data, { path }) {
       data.zoomed = path
     },
-    setCaptiveState(data, { code }) {
-      data.code = code.slice(12, -2) // trim createState call
+    setCaptiveState(d, { code, data }) {
+      d.code = code.slice(12, -2) // trim createState call
       try {
-        const design = Function("return " + data.code)()
-        data.error = ""
-        data.captive = createState(design)
-        data.zoomed = undefined
+        const design = Function("return " + d.code)()
+        d.error = ""
+        d.captive = createState(design)
+        d.zoomed = undefined
+        d.pid = data.pid
+        d.oid = data.oid
+        d.uid = data.uid
       } catch (e) {
-        data.error = e.message
+        d.error = e.message
       }
+    },
+    async forkProject(data) {
+      const { pid, oid, uid } = data
+      await forkProject(pid, oid, uid)
     },
   },
 })

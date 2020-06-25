@@ -1,21 +1,11 @@
 import * as React from "react"
+import NotFound from "./not-found"
 import LoadingScreen from "./loading-screen"
 import Viewer from "./viewer"
 import { ui } from "./viewer/states/ui"
 import { editor } from "./viewer/states/editor"
 import { useStateDesigner, createState } from "@state-designer/react"
-import firebase from "firebase"
-
-const db = firebase.firestore()
-
-type Data = {
-  id: string
-  auth: boolean
-  project: boolean
-  owner: boolean
-  message: string
-  error?: Error
-}
+import { ProjectResponse, subscribeToDocSnapshot } from "../../utils/firebase"
 
 const main = createState({
   initial: "loading",
@@ -36,11 +26,11 @@ const main = createState({
   },
   on: {},
   actions: {
-    loadSourceCode(_, { code }) {
-      ui.send("LOADED_PROJECT", { code })
+    loadSourceCode(_, { code, data }) {
+      ui.send("LOADED_PROJECT", { code, data })
     },
-    loadEditorCode(_, { code, pid }) {
-      editor.send("LOADED_CODE", { code, pid })
+    loadEditorCode(_, { code, data }) {
+      editor.send("LOADED_CODE", { code, data })
     },
     updateSourceCode(_, { code }) {
       ui.send("CHANGED_CODE", { code })
@@ -51,34 +41,34 @@ const main = createState({
   },
 })
 
-const App: React.FC<{ data: Data }> = ({ data, children }) => {
+const App: React.FC<{ data: ProjectResponse }> = ({ data, children }) => {
   const [isLoading, setLoading] = React.useState(true)
   const state = useStateDesigner(main)
 
   React.useEffect(() => {
-    if (data?.id !== undefined) {
-      db.collection("projects")
-        .doc(data.id)
-        .onSnapshot((doc) => {
-          const code = JSON.parse(doc.data().code)
-          state.send("REFRESHED_CODE", { code, pid: data.id })
-          setLoading(false)
-        })
-    }
-  }, [data?.id])
+    if (data?.pid === undefined) return
 
-  let message = ""
+    console.log(data)
+
+    return subscribeToDocSnapshot(data.pid, data.oid, (doc) => {
+      const code = JSON.parse(doc.data().code)
+      state.send("REFRESHED_CODE", { code, data })
+
+      if (isLoading) {
+        setLoading(false)
+      }
+    })
+  }, [data?.pid])
 
   if (!data) {
-    message = "Getting Data"
-  } else if (!data.id) {
-    message = "Getting User"
-  } else if (!data.project) {
-    message = "Getting Project"
+    return <LoadingScreen key="loading">Getting Data</LoadingScreen>
+  } else if (!data.pid) {
+    return <LoadingScreen key="loading">Getting User</LoadingScreen>
+  } else if (!data.isProject) {
+    return <NotFound uid={data.uid} pid={data.pid} />
   }
 
-  // Using the `isLoading` React state for hot reload — I should be able to use `state.isIn("loading"`)
-  return isLoading ? <LoadingScreen>{message}</LoadingScreen> : <Viewer />
+  return isLoading ? <LoadingScreen key="loading"></LoadingScreen> : <Viewer />
 }
 
 export default App

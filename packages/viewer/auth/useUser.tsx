@@ -12,6 +12,16 @@ const useUser = () => {
   const [user, setUser] = useState<any>()
   const router = useRouter()
 
+  useEffect(() => {
+    const cookie = cookies.get("auth")
+    if (!cookie) {
+      router.push("/")
+      return
+    }
+    setUser(JSON.parse(cookie))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const logout = async () => {
     return firebase
       .auth()
@@ -25,16 +35,6 @@ const useUser = () => {
         console.error(e)
       })
   }
-
-  useEffect(() => {
-    const cookie = cookies.get("auth")
-    if (!cookie) {
-      router.push("/")
-      return
-    }
-    setUser(JSON.parse(cookie))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return { user, logout }
 }

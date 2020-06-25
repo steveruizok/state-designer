@@ -1,8 +1,13 @@
 # Changelog
 
+## 1.2.20
+
+- Adds `forceTransition`, a method to immediately transition the state to the desired path, exactly as if an event caused a transition to occur. Be careful with this one: it's not how State Designer is meant to be used, but it needs to be there for the visual tools. I may put it behind a warning in the future.
+- Adds `parentType` to state nodes. Also for visual tools.
+
 ## 1.2.19
 
-- Adds node-related properties (`isInitial`, `depth`) to states in `state.stateTree`. These are used in the visualizer.
+- Adds node-related properties (`isInitial`, `depth`) to state nodes in `state.stateTree`. These are used in the visualizer.
 
 ## 1.2.18
 

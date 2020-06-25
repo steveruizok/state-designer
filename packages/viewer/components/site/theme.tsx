@@ -10,6 +10,7 @@ export default {
     background: "#FFF",
     codeText: "#f8f8f2",
     codeBg: "#282a36",
+    codeHl: "#e8efe5",
     accent: "#F00",
     canvas: "#efefef",
     border: "#000",
@@ -24,6 +25,7 @@ export default {
         background: "#202124",
         codeText: "#f8f8f2",
         codeBg: "#282a36",
+        codeHl: "#e8efe5",
         accent: "#F00",
         canvas: "#313235",
         border: "#555",
@@ -54,6 +56,14 @@ export default {
       fontWeight: 500,
       textShadow: "outline",
       backgroundColor: "background",
+      ".inlineCodeHighlight": {
+        padding: "1px 0",
+        bg: "codeHl",
+        fontWeight: "bold",
+      },
+      ".lineCodeHighlight": {
+        bg: "codeHl",
+      },
     },
     ul: {
       my: 0,
@@ -110,7 +120,14 @@ export default {
   },
   buttons: {
     primary: {
+      bg: "muted",
+      color: "text",
+      fontFamily: "body",
+      borderRadius: 0,
       cursor: "pointer",
+      "&:hover": {
+        color: "accent",
+      },
       "&:disabled": {
         color: "muted",
       },
@@ -155,6 +172,38 @@ export default {
         opacity: 0.5,
       },
     },
+    contentEvent: {
+      py: 2,
+      pr: 2,
+      pl: 2,
+      fontSize: 2,
+      fontWeight: "bold",
+      fontFamily: "body",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      width: "100%",
+      borderRadius: 0,
+      bg: "transparent",
+      color: "text",
+      cursor: "pointer",
+      "&:hover": {
+        bg: "muted",
+      },
+      "&:focus": {
+        outline: "none",
+      },
+      "&:disabled": {
+        cursor: "not-allowed",
+        opacity: 0.5,
+      },
+      "& > *[data-hidey='true']": {
+        visibility: "hidden",
+      },
+      "&:hover > *[data-hidey='true']": {
+        visibility: "visible",
+      },
+    },
   },
   contentHeading: {
     px: 2,
@@ -189,5 +238,17 @@ export default {
     "&:hover > *[data-hidey='true']": {
       visibility: "visible",
     },
+  },
+  fullView: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    placeItems: "center",
+    placeContent: "center",
+    textAlign: "center",
+    margin: 0,
+    flexDirection: "column",
   },
 }

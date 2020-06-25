@@ -1,64 +1,95 @@
 import { createState } from "@state-designer/core"
-import initFirebase from "../../../../auth/initFirebase"
-import firebase from "firebase"
+import { updateProjectCode } from "../../../../utils/firebase"
 
-initFirebase()
+type Data = {
+  highlight: {
+    state?: string
+    event?: string
+  }
+  oid: string
+  uid: string
+  pid: string
+  isOwner: boolean
+  clean: string
+  dirty: string
+  error: string
+}
 
-const db = firebase.firestore()
+const data: Data = {
+  highlight: {
+    state: undefined,
+    event: undefined,
+  },
+  oid: "",
+  uid: "",
+  pid: "",
+  isOwner: false,
+  clean: "",
+  dirty: "",
+  error: "",
+}
 
 export const editor = createState({
-  data: {
-    projectId: "",
-    clean: "",
-    dirty: "",
-    error: "",
-  },
-  initial: "idle",
+  data,
+  initial: "guest",
   states: {
-    idle: {
-      on: { STARTED_EDITING: { to: "editing" } },
-    },
-    editing: {
-      on: {
-        CHANGED_CODE: ["setCode", "setError", { to: "editing" }],
-      },
-      initial: {
-        if: "codeMatchesClean",
-        to: "same",
-        else: {
-          if: "errorIsClear",
-          to: "valid",
-          else: { to: "invalid" },
-        },
-      },
+    guest: {},
+    owner: {
+      initial: "idle",
       states: {
-        same: {
-          on: {
-            STOPPED_EDITING: { to: "idle" },
-          },
+        idle: {
+          on: { STARTED_EDITING: { to: "editing" } },
         },
-        valid: {
+        editing: {
           on: {
-            CANCELLED: { do: "resetCode", to: "idle" },
-            QUICK_SAVED: [
-              "saveDirtyToClean",
-              "updateFirebase",
-              { to: "editing" },
-            ],
-            SAVED: ["saveDirtyToClean", "updateFirebase", { to: "idle" }],
+            CHANGED_CODE: ["setCode", "setError", { to: "editing" }],
           },
-        },
-        invalid: {
-          on: {
-            CANCELLED: { do: ["resetCode", "clearError"], to: "idle" },
+          initial: {
+            if: "codeMatchesClean",
+            to: "same",
+            else: {
+              if: "errorIsClear",
+              to: "valid",
+              else: { to: "invalid" },
+            },
+          },
+          states: {
+            same: {
+              on: {
+                STOPPED_EDITING: { to: "idle" },
+              },
+            },
+            valid: {
+              on: {
+                CANCELLED: { do: "resetCode", to: "idle" },
+                QUICK_SAVED: [
+                  "saveDirtyToClean",
+                  "updateFirebase",
+                  { to: "editing" },
+                ],
+                SAVED: ["saveDirtyToClean", "updateFirebase", { to: "idle" }],
+              },
+            },
+            invalid: {
+              on: {
+                CANCELLED: { do: ["resetCode", "clearError"], to: "idle" },
+              },
+            },
           },
         },
       },
     },
   },
   on: {
-    LOADED_CODE: ["loadProject"],
+    LOADED_CODE: ["loadProject", { if: "isOwner", to: "owner" }],
     CHANGED_CODE: ["setCode"],
+    HOVERED_EVENT: "setHighlightedEvent",
+    UNHOVERED_EVENT: "clearHighlightedEvent",
+    HOVERED_STATE: {
+      unless: "isAlreadyHighlighted",
+      do: "setHighlightedState",
+    },
+    UNHOVERED_STATE: "clearHighlightedState",
   },
   conditions: {
     codeMatchesClean(data) {
@@ -67,13 +98,33 @@ export const editor = createState({
     errorIsClear(data) {
       return data.error === ""
     },
+    isOwner(data) {
+      return data.isOwner
+    },
+    isAlreadyHighlighted(data, { stateName }) {
+      return data.highlight.state === stateName
+    },
   },
   actions: {
-    loadProject(data, { pid, code }) {
-      console.log("loading project code", pid, code)
-      data.projectId = pid
-      data.clean = code
-      data.dirty = code
+    setHighlightedEvent(data, { eventName }) {
+      data.highlight.event = eventName
+    },
+    clearHighlightedEvent(data) {
+      data.highlight.event = undefined
+    },
+    setHighlightedState(data, { stateName }) {
+      data.highlight.state = stateName
+    },
+    clearHighlightedState(data) {
+      data.highlight.state = undefined
+    },
+    loadProject(d, { data, code }) {
+      d.uid = data.uid
+      d.oid = data.oid
+      d.pid = data.pid
+      d.isOwner = data.isOwner
+      d.clean = code
+      d.dirty = code
     },
     setCleanCode(data, payload) {
       data.clean = payload
@@ -102,12 +153,8 @@ export const editor = createState({
       d.error = error
     },
     updateFirebase(data) {
-      console.log(data.projectId)
-      db.collection("projects")
-        .doc(data.projectId)
-        .update({
-          code: JSON.stringify(data.clean),
-        })
+      const { pid, oid, uid } = data
+      updateProjectCode(pid, oid, uid, data.clean)
     },
   },
 })

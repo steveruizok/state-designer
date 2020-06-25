@@ -6,6 +6,7 @@ import { range } from "lodash"
 import { jsx, Box, IconButton, Styled, Button } from "theme-ui"
 import { useStateDesigner } from "@state-designer/react"
 import { ui } from "../states/ui"
+import { editor } from "../states/editor"
 import ContentSection from "./content/content-section"
 import {
   PlayCircle,
@@ -46,10 +47,10 @@ const Content: React.FC = () => {
                   variant="contentRow"
                   title={`Zoom to ${node.name}`}
                   onClick={() => ui.send("SELECTED_NODE", { id: node.path })}
-                  // onMouseEnter={() =>
-                  //   ui.send("HOVERED_ON_NODE", { id: node.path })
-                  // }
-                  // onMouseLeave={() => ui.send("HOVERED_OFF_NODE")}
+                  onMouseEnter={() =>
+                    editor.send("HOVERED_STATE", { stateName: node.name })
+                  }
+                  onMouseLeave={() => editor.send("UNHOVERED_STATE")}
                 >
                   {range(node.depth).map((i) => (
                     <Circle
@@ -126,7 +127,14 @@ const Content: React.FC = () => {
             const disabled = !captive.can(eventName)
             return (
               <ContentRowItem key={i}>
-                <Button variant="contentRow">
+                <Button
+                  variant="contentEvent"
+                  onClick={(e) => captive.send(eventName)}
+                  onMouseEnter={() =>
+                    editor.send("HOVERED_EVENT", { eventName })
+                  }
+                  onMouseLeave={() => editor.send("UNHOVERED_EVENT")}
+                >
                   <Square
                     strokeWidth={3}
                     size={8}
@@ -142,15 +150,13 @@ const Content: React.FC = () => {
                   >
                     {eventName}
                   </Box>
+                  <PlayCircle
+                    data-hidey="true"
+                    size={12}
+                    strokeWidth={2}
+                    sx={{ color: "accent" }}
+                  />
                 </Button>
-                <IconButton
-                  data-hidey="true"
-                  title={`Send ${eventName}`}
-                  disabled={disabled}
-                  onClick={(e) => captive.send(eventName)}
-                >
-                  <PlayCircle size={12} strokeWidth={2} />
-                </IconButton>
               </ContentRowItem>
             )
           })}

@@ -8,12 +8,83 @@ import debounce from "lodash.debounce"
 
 import Editor, { monaco } from "@monaco-editor/react"
 
+let m: any
+
+if (typeof window !== "undefined") {
+  monaco.init().then((e) => (m = e))
+}
+
 const Code: React.FC = (props) => {
   const local = useStateDesigner(editor)
 
   const [colorMode] = useColorMode()
 
   const rEditor = React.useRef<any>(null)
+  const rHighlights = React.useRef<any>([])
+
+  React.useEffect(() => {
+    const eventName = local.data.highlight.event
+    const stateName = local.data.highlight.state
+
+    const lines = local.data.dirty.split("\n")
+
+    const ranges: number[][] = []
+    let rangeIndex = 0
+    let startSpaces = 0
+    let state = "searchingForStart"
+
+    const editor = rEditor.current
+
+    if (editor === null) return
+
+    // Highlight event
+
+    if (eventName === undefined && stateName === undefined) {
+      rHighlights.current = editor.deltaDecorations(rHighlights.current, [])
+    } else {
+      let searchString = ""
+      if (eventName) {
+        searchString = eventName
+      } else if (stateName) {
+        searchString = stateName + ":"
+      }
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        if (state === "searchingForStart") {
+          if (line.includes(searchString)) {
+            startSpaces = line.search(/\S/)
+            state = "searchingForEnd"
+            ranges[rangeIndex] = [i + 1, 1]
+          }
+        } else if (state === "searchingForEnd") {
+          if (i === 0) continue
+          const spaces = line.search(/\S/)
+          const range = ranges[rangeIndex]
+
+          if (spaces <= startSpaces) {
+            range.push(spaces < startSpaces || i === range[0] ? i : i + 1)
+            range.push(1)
+            rangeIndex++
+            state = "searchingForStart"
+          }
+        }
+      }
+      rHighlights.current = editor.deltaDecorations(
+        rHighlights.current,
+        ranges.map((range) => {
+          return {
+            range: new m.Range(...range),
+            options: {
+              isWholeLine: true,
+              inlineClassName: "inlineCodeHighlight",
+              marginClassName: "lineCodeHighlight",
+            },
+          }
+        })
+      )
+    }
+  }, [local.data.highlight])
 
   React.useEffect(() => {
     function updateMonacoLayout() {
@@ -102,6 +173,7 @@ const Code: React.FC = (props) => {
             quickSuggestions: false,
             scrollBeyondLastLine: false,
             fontFamily: "Fira Code",
+            readOnly: local.isIn("guest"),
             minimap: {
               enabled: false,
             },
