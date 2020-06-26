@@ -1,10 +1,12 @@
 import * as React from "react"
 import { useUser } from "../../../../auth/useUser"
 import { Flex, IconButton } from "theme-ui"
-import { Menu as MenuIcon } from "react-feather"
+import { Home } from "react-feather"
+import { useRouter } from "next/router"
 
 const Menu: React.FC = ({}) => {
   const { user, logout } = useUser()
+  const router = useRouter()
 
   return (
     <Flex
@@ -16,8 +18,8 @@ const Menu: React.FC = ({}) => {
         borderColor: "border",
       }}
     >
-      <IconButton>
-        <MenuIcon />
+      <IconButton onClick={() => router.push("/user")}>
+        <Home />
       </IconButton>
     </Flex>
   )

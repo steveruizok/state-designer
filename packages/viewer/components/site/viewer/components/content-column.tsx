@@ -38,12 +38,14 @@ const Content: React.FC = () => {
   const events = getEventsByState(allEvents)
   const states = getFlatStates(captive.stateTree)
 
-  const [selectedEvent, setSelectedEvent] = React.useState<string>(events[0][0])
+  const [selectedEvent, setSelectedEvent] = React.useState<string>(
+    events[0] ? events[0][0] : ""
+  )
   const [payloads, setPayloads] = React.useState<Record<string, string>>({})
 
   React.useEffect(() => {
     if (!events.find(([eventName]) => eventName === selectedEvent)) {
-      setSelectedEvent(events[0][0])
+      setSelectedEvent(events[0] ? events[0][0] : "")
     }
   }, [events])
 
@@ -209,7 +211,7 @@ const Content: React.FC = () => {
             onChange={(e) => setSelectedEvent(e.currentTarget.value)}
           >
             {events.map(([eventName], i) => (
-              <option>{eventName}</option>
+              <option key={i}>{eventName}</option>
             ))}
           </Select>
           <Textarea

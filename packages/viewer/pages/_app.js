@@ -5,7 +5,7 @@ import "prismjs/components/prism-javascript"
 import "./styles.css"
 import { Flex, ThemeProvider } from "theme-ui"
 import { Global } from "@emotion/core"
-import theme from "../components/site/theme"
+import theme from "../components/theme"
 
 function MyApp({ Component, pageProps }) {
   return (

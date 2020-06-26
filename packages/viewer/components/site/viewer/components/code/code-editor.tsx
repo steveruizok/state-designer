@@ -7,24 +7,16 @@ import Editor from "@monaco-editor/react"
 const DEFAULT_UPDATE_DEBOUNCE_DELAY = 100
 
 const CodeEditor: React.FC<{
-  protectFirstLastLines: boolean
   value: string
   clean: string
-  onChange: (value: string, editor: any) => void
+  onChange: (event: string, value: string, editor: any) => void
   editorDidMount: (value: string, editor: any) => void
   height?: string
   width?: string
   theme?: string
   language?: string
   options?: { [key: string]: any }
-}> = ({
-  value,
-  clean,
-  onChange,
-  editorDidMount,
-  protectFirstLastLines,
-  ...props
-}) => {
+}> = ({ value, clean, onChange, editorDidMount, ...props }) => {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       monaco.init()
@@ -35,9 +27,9 @@ const CodeEditor: React.FC<{
   const rEditor = React.useRef<any>()
   const debouncedOnChange = React.useMemo(
     () =>
-      debounce((event: any, value: any) => {
+      debounce((event: any, value: any, editor: any) => {
         previousValue.current = value
-        onChange(event, value)
+        onChange(event, value, editor)
       }, DEFAULT_UPDATE_DEBOUNCE_DELAY),
     [onChange]
   )
@@ -62,13 +54,11 @@ const CodeEditor: React.FC<{
   const handleEditorDidMount = (getValue, editor) => {
     rEditor.current = editor
     editor.setValue(previousValue.current)
-    editor.onDidChangeModelContent((ev) => {
+    editor.onDidChangeModelContent((ev: any) => {
       const currentValue = editor.getValue()
 
-      // End custom
-
       if (currentValue !== previousValue.current) {
-        debouncedOnChange(ev, currentValue)
+        debouncedOnChange(ev, currentValue, editor)
       }
     })
 

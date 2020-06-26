@@ -3,7 +3,7 @@ import { Editor } from "../components/editor"
 import App, { Container } from "next/app"
 import { ThemeProvider } from "theme-ui"
 import { Global } from "@emotion/core"
-import theme from "../components/theme"
+import theme from "../components/editor/theme"
 
 export default class extends App {
   static async getInitialProps({ Component, ctx }) {

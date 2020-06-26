@@ -4,6 +4,7 @@ import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth"
 import firebase from "firebase/app"
 import "firebase/auth"
 import cookie from "js-cookie"
+import { Flex } from "theme-ui"
 import initFirebase from "../auth/initFirebase"
 
 // Init the Firebase app.
@@ -35,7 +36,7 @@ const firebaseAuthConfig = {
       firebase.auth().currentUser.getIdToken(true)
 
       cookie.set("auth", userData, {
-        expires: 1,
+        expires: 60 * 60 * 24 * 5 * 1000,
       })
     },
   },
@@ -53,14 +54,14 @@ const FirebaseAuth = () => {
   }, [])
 
   return (
-    <div>
+    <Flex variant="fullView">
       {renderAuth ? (
         <StyledFirebaseAuth
           uiConfig={firebaseAuthConfig as any} // TODO: What type is correct here?
           firebaseAuth={firebase.auth()}
         />
       ) : null}
-    </div>
+    </Flex>
   )
 }
 

@@ -70,13 +70,22 @@ const StateEditor: React.FC = (props) => {
 
   return (
     <CodeEditor
-      protectFirstLastLines={true}
       theme={colorMode === "dark" ? "dark" : "light"}
       value={local.data.dirty}
       height="100%"
       width="100%"
       clean={local.data.clean}
-      onChange={(_, code) => {
+      onChange={(_, code, editor) => {
+        if (!code.startsWith(`createState({\n`)) {
+          editor.trigger(code, "undo")
+          return
+        }
+
+        if (!code.endsWith(`\n})\n`)) {
+          editor.trigger(code, "undo")
+          return
+        }
+
         local.send("CHANGED_CODE", { code })
       }}
       language="javascript"

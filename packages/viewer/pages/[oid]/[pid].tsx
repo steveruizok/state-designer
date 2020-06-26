@@ -2,10 +2,11 @@ import { useRouter } from "next/router"
 import useSWR from "swr"
 import { useUser } from "../../auth/useUser"
 import dynamic from "next/dynamic"
+import Site from "../../components/site"
 
-const DynamicSiteNoSSR = dynamic(() => import("../../components/site"), {
-  ssr: false,
-})
+// const DynamicSiteNoSSR = dynamic(() => , {
+//   ssr: false,
+// })
 
 const deadFetcher = () => {
   return undefined
@@ -30,7 +31,7 @@ const Index = () => {
     pid && user ? fetcher : deadFetcher
   )
 
-  return <DynamicSiteNoSSR data={data} />
+  return <Site data={data} />
 }
 
 export default Index

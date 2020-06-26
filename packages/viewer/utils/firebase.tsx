@@ -40,12 +40,19 @@ export function getProject(pid: string, oid: string) {
   return db.collection("users").doc(oid).collection("projects").doc(pid)
 }
 
-export function addProject(
+export async function addProject(
   pid: string,
   oid: string,
   template: { [key: string]: any }
 ) {
-  return getProject(pid, oid).set({ ...template, owner: oid })
+  const project = getProject(pid, oid)
+  const initial = await project.get()
+  if (initial.exists) {
+    console.log("That project already exists")
+    return project
+  }
+
+  return project.set({ ...template, owner: oid })
 }
 
 export function updateProject(
@@ -125,24 +132,44 @@ export function subscribeToDocSnapshot(
   return () => unsub && unsub()
 }
 
-export async function forkProject(pid: string, oid: string, uid: string) {
+export async function createNewProject(pid: string, oid: string, uid: string) {
+  await createProject(pid, uid, "toggle")
+  Router.push(`/${uid}/${pid}`)
+}
+
+export async function forkProject(
+  pid: string,
+  oid: string,
+  uid: string,
+  nextpid?: string
+) {
   const project = await getProject(pid, oid).get()
-  const code = project.data().code
-  const doc = db.collection("users").doc(uid).collection("projects").doc(pid)
+
+  if (!project.exists) {
+    console.log("That project doesn't exist!")
+    return
+  }
+
+  const data = project.data()
+
+  const doc = db
+    .collection("users")
+    .doc(uid)
+    .collection("projects")
+    .doc(nextpid ? nextpid : pid)
   const initial = await doc.get()
 
   if (initial.exists) {
-    await doc.update({
-      code,
-    })
+    // Not sure
+    console.log("Project already exists!")
   } else {
     await doc.set({
-      code,
+      ...data,
       owner: uid,
     })
   }
 
-  Router.push(`/${uid}/${pid}`)
+  Router.push(`/${uid}/${nextpid ? nextpid : pid}`)
 }
 
 export async function getProjectInfo(pid: string, oid: string, uid: string) {

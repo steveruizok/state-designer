@@ -49,13 +49,17 @@ const NotFound: React.FC<{ uid: string; pid: string } & BoxProps> = ({
         idle: (
           <Box>
             <p>
-              No project found with the ID <b>{pid}</b>.<br />
-              Would you like to create one?
+              I couldn't find that project.
+              <br />
+              Would you like to create one instead?
             </p>
             <Button
               onClick={() => state.send("CREATED_NEW_PROJECT", { uid, pid })}
             >
               Create Project
+            </Button>
+            <Button onClick={() => router.push("/user")} sx={{ ml: 2 }}>
+              Cancel
             </Button>
           </Box>
         ),

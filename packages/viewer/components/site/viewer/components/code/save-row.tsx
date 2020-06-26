@@ -1,7 +1,11 @@
 // @jsx jsx
-import * as React from "react"
 import { Box, Text, IconButton, Grid, jsx } from "theme-ui"
-import { Circle, Save as SaveIcon, RefreshCcw } from "react-feather"
+import {
+  Circle,
+  Save as SaveIcon,
+  RefreshCcw,
+  AlertOctagon,
+} from "react-feather"
 import { S, useStateDesigner } from "@state-designer/react"
 
 const SaveRow: React.FC<{ state: S.DesignedState<any, any> }> = ({ state }) => {
@@ -15,10 +19,16 @@ const SaveRow: React.FC<{ state: S.DesignedState<any, any> }> = ({ state }) => {
         gridTemplateColumns: "min-content 1fr min-content min-content",
         alignItems: "center",
         width: "100%",
+        borderTop: "outline",
+        borderColor: "border",
+        position: "relative",
+        zIndex: 999,
       }}
     >
       <Box sx={{ color: "accent" }}>
-        {local.data.error.length > 0 && <Circle size={10} />}{" "}
+        {local.data.error.length > 0 && (
+          <AlertOctagon size={14} sx={{ mt: "6px" }} />
+        )}{" "}
       </Box>
       <Text
         sx={{ fontSize: 1, m: 2, whiteSpace: "nowrap", overflow: "hidden" }}

@@ -9,6 +9,7 @@ type UIData = {
   captive?: S.DesignedState<any, any>
   hovered?: string
   error: string
+  isOwner: boolean
   hinted: string[]
   active: string[]
   zoomed?: string
@@ -19,6 +20,7 @@ const initialData: UIData = {
   uid: "",
   pid: "",
   code: "{}",
+  isOwner: false,
   error: "",
   captive: createState({}),
   hovered: undefined,
@@ -106,6 +108,7 @@ export const ui = createState({
       d.pid = data.pid
       d.oid = data.oid
       d.uid = data.uid
+      d.isOwner = data.uid === data.oid
     },
     async forkProject(data) {
       const { pid, oid, uid } = data

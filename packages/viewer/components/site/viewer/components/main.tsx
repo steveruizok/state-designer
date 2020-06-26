@@ -35,21 +35,35 @@ const Main: React.FC = ({}) => {
         code={pres.data.dirty}
         scope={{ ...ThemeUI, useStateDesigner, state: local.data.captive }}
       >
-        <Grid
+        <Flex
           sx={{
             p: 2,
             gridArea: "main",
             height: "100%",
             width: "100%",
-            gridTemplateRows: "1fr min-content",
+            gridTemplateRows: "1fr",
             fontSize: 16,
+            position: "relative",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Flex sx={{ alignItems: "center", justifyContent: "center" }}>
-            <LivePreview />
-          </Flex>
-          <LiveError sx={{ gridRow: "2", fontFamily: "monospace" }} />
-        </Grid>
+          <LivePreview />
+          <LiveError
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              m: 0,
+              padding: 2,
+              width: "100%",
+              fontSize: 1,
+              height: "min-content",
+              fontFamily: "monospace",
+              bg: "scrim",
+            }}
+          />
+        </Flex>
       </LiveProvider>
     ),
     default: <div>...</div>,

@@ -1,285 +1,352 @@
-import { deep } from "@theme-ui/presets"
+import { base } from "@theme-ui/presets"
 
 export default {
-  ...deep,
+  ...base,
+  space: [0, 4, 8, 12, 16, 32, 64, 128, 256, 512],
   colors: {
-    ...deep.colors,
-    primary: "#4679f6",
-    secondary: "rgba(51, 76, 143, 1.000)",
-    background: "rgba(31, 30, 41, 1.000)",
-    tint: "rgba(69, 122, 246, 0.200)",
-    text: "#efefef",
-    bright: "rgba(245, 240, 255, .36)",
-    active: "rgba(245, 240, 255, .18)",
-    muted: "rgba(245, 245, 255, .08)",
-    low: "rgba(0,0,0, 0.100)",
-    deep: "rgba(0,0,0, 0.500)",
-    flat: "#0d0d0f",
-    panel: "rgba(31, 30, 41, 1.000)",
-    surface: "rgba(245, 240, 255, .05)",
+    ...base.colors,
+    text: "#000",
+    muted: "#fafafa",
+    background: "#FFF",
+    codeText: "#f8f8f2",
+    codeBg: "#282a36",
+    codeHl: "#e8efe5",
+    accent: "#F00",
+    canvas: "#efefef",
+    border: "#000",
+    active: "#000",
+    inactive: "#aaa",
+    root: "rgba(255, 255, 255, .5)",
+    node: "rgba(255, 255, 255, .2)",
+    scrim: "rgba(0,0,0,.05)",
+    modes: {
+      dark: {
+        text: "#FFF",
+        muted: "#242529",
+        background: "#202124",
+        codeText: "#f8f8f2",
+        codeBg: "#282a36",
+        codeHl: "#e8efe5",
+        accent: "#F00",
+        canvas: "#313235",
+        border: "#555",
+        active: "#FFF",
+        inactive: "#888",
+        root: "rgba(245, 240, 255, .05)",
+        node: "rgba(245, 240, 255, .01)",
+        scrim: "rgba(255, 255, 255, .05)",
+      },
+    },
   },
-  space: [0, 4, 8, 16, 32, 40, 64, 128, 256, 512],
-  fontSizes: [10, 12, 14],
-  shadows: {
-    low: "0px 0px 4px rgba(0,0,0,.18)",
-    med: "0px 0px 16px rgba(0,0,0,.16)",
-    high: "0px 0px 32px rgba(0,0,0,.12)",
-    outline: "",
-    // outline:
-    //   "-1px -1px 0 #000, 1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000",
+  borders: {
+    outline: "2px solid",
+    dashed: "2px dashed",
   },
+  fontSizes: [10, 12, 14, 16],
   fonts: {
-    body: '"Helvetica Neue", sans-serif',
     heading: "inherit",
+    body: '"Fira Sans", sans-serif',
     monospace: "Fira Code, monospace",
   },
+
+  /* --------------------- Styles --------------------- */
+
   styles: {
-    ...deep.styles,
+    ...base.styles,
     root: {
       fontSize: 2,
       fontWeight: 500,
       textShadow: "outline",
+      backgroundColor: "background",
+      ".inlineCodeHighlight": {
+        padding: "1px 0",
+        bg: "codeHl",
+        fontWeight: "bold",
+      },
+      ".lineCodeHighlight": {
+        bg: "codeHl",
+      },
+    },
+    hr: {
+      my: 5,
+      borderColor: "muted",
     },
     ul: {
-      width: "100%",
-      margin: 0,
-      padding: 0,
-      paddingLeft: 0,
+      my: 0,
+      pl: 0,
       listStyleType: "none",
     },
     li: {
-      m: 0,
       pl: 0,
-      pb: 1,
-      "&:first-of-type": {
-        pt: 1,
-      },
-    },
-    pre: {
-      ...deep.styles.pre,
-      margin: 0,
-      fontSize: 0,
     },
   },
+
+  /* -------------------- Variants -------------------- */
   text: {
-    state: {
-      name: {
-        fontSize: 2,
-        backgroundColor: "rgba(0,0,0,.5)",
-        paddingTop: 1,
-        paddingRight: 2,
-        paddingBottom: 1,
-        paddingLeft: 2,
+    ...base.text,
+    contentHeading: {
+      fontSize: 2,
+    },
+    nodeHeading: {
+      fontSize: 3,
+    },
+  },
+  cards: {
+    node: {
+      bg: "node",
+      border: "outline",
+      borderColor: "active",
+      color: "text",
+      borderRadius: 12,
+      padding: 0,
+      m: 2,
+      fontSize: 1,
+      fontFamily: "monospace",
+      overflow: "hidden",
+      minHeight: [null, 64, 64, 120],
+      minWidth: 96,
+      "&[data-isactive='false']": {
+        borderColor: "inactive",
       },
-      section: {
-        fontSize: 1,
-        paddingTop: 1,
-        paddingBottom: 1,
-        marginBottom: 2,
+      "&[data-isroot='true']": {
+        bg: "root",
       },
     },
-    event: {
-      name: {
-        fontSize: 0,
-        paddingTop: 1,
-        paddingBottom: 1,
+    parallelNode: {
+      color: "text",
+      p: 0,
+      fontSize: 1,
+      fontFamily: "monospace",
+      "&[data-isactive='false']": {
+        borderColor: "inactive",
+      },
+      "&[data-isroot='true']": {
+        bg: "root",
+      },
+    },
+  },
+  forms: {
+    input: {
+      minWidth: 80,
+      overflow: "hidden",
+      fontFamily: "body",
+      fontSize: 2,
+      bg: "muted",
+      fontWeight: 600,
+      border: "none",
+      outline: "none",
+      "&:hover": {
+        color: "accent",
+      },
+      "&:disabled": {
+        color: "muted",
+      },
+      "&:focus": {
+        color: "text",
+        outline: "none",
+        bg: "muted",
+      },
+    },
+    select: {
+      minWidth: 80,
+      overflow: "hidden",
+      fontFamily: "body",
+      fontSize: 2,
+      fontWeight: 600,
+      border: "none",
+      outline: "none",
+      "&:hover": {
+        color: "accent",
+      },
+      "&:disabled": {
+        color: "muted",
+      },
+      "&:focus": {
+        color: "text",
+        outline: "none",
+        bg: "muted",
       },
     },
   },
   buttons: {
     primary: {
-      fontFamily: "body",
-      textShadow: "outline",
-      outline: "transparent",
-      cursor: "pointer",
+      bg: "muted",
       color: "text",
+      fontFamily: "body",
+      borderRadius: 0,
+      fontWeight: 600,
+      minWidth: 80,
+      overflow: "hidden",
+      cursor: "pointer",
+      "&:hover": {
+        color: "accent",
+      },
+      "&:disabled": {
+        opacity: 0.5,
+      },
+      "&:focus": {
+        color: "text",
+        outline: "none",
+      },
+    },
+    secondary: {
+      bg: "muted",
+      color: "text",
+      fontFamily: "body",
+      borderRadius: 0,
+      fontWeight: 600,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      minWidth: 80,
+      overflow: "hidden",
+      cursor: "pointer",
+      "&:hover": {
+        color: "accent",
+      },
+      "&:disabled": {
+        color: "muted",
+      },
+      "&:focus": {
+        color: "text",
+        outline: "none",
+      },
+    },
+    icon: {
+      outline: "none",
+      cursor: "pointer",
+      padding: 2,
+      "&:disabled": {
+        color: "grey",
+      },
+      "&:focus": {
+        color: "text",
+        outline: "none",
+      },
+    },
+    contentRow: {
+      py: 2,
+      pr: 0,
+      pl: 2,
+      fontSize: 2,
+      fontWeight: "bold",
+      fontFamily: "body",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      width: "100%",
+      borderRadius: 0,
+      bg: "transparent",
+      color: "text",
+      "&:hover": {
+        bg: "muted",
+      },
+      "&:focus": {
+        outline: "none",
+      },
       "&:disabled": {
         opacity: 0.5,
       },
     },
-    icon: {
-      cursor: "pointer",
+    contentEvent: {
+      py: 2,
+      pr: 2,
+      pl: 2,
+      fontSize: 2,
+      fontWeight: "bold",
       fontFamily: "body",
-      textShadow: "outline",
-      outline: "transparent",
-      bg: "muted",
-      color: "primary",
-      height: "100%",
-      width: "44px",
-      "&:hover": {
-        bg: "secondary",
-        color: "background",
-      },
-      "&:disabled": {
-        color: "grey",
-      },
-    },
-    link: {
-      bg: "transparent",
-      textAlign: "left",
-      outline: "transparent",
-      cursor: "pointer",
-      color: "text",
-      p: 2,
-      ml: -2,
-    },
-  },
-  forms: {
-    input: {
-      fontFamily: "body",
-      textShadow: "outline",
-      borderColor: "transparent",
-      outline: "transparent",
-      bg: "muted",
-      "&:focus": {
-        bg: "active",
-        borderColor: "transparent",
-      },
-    },
-    item: {
-      fontFamily: "body",
-      textShadow: "outline",
-      borderColor: "transparent",
-      outline: "transparent",
-      m: 0,
-      bg: "transparent",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      width: "100%",
       borderRadius: 0,
-      "&:focus": {
-        bg: "text",
-        color: "background",
-        borderColor: "text",
-      },
-    },
-    textarea: {
-      fontFamily: "body",
-      textShadow: "outline",
-      borderColor: "transparent",
-      outline: "transparent",
-      bg: "muted",
-      "&:focus": {
-        bg: "active",
-        borderColor: "transparent",
-      },
-    },
-    select: {
-      fontFamily: "body",
-      textShadow: "outline",
-      border: "none",
-      outline: "transparent",
-      bg: "muted",
-      cursor: "pointer",
-      "&:hover": {
-        textDecoration: "underline",
-      },
-    },
-    create: {
-      fontFamily: "body",
-      textShadow: "outline",
-      border: "none",
-      outline: "transparent",
       bg: "transparent",
+      color: "text",
       cursor: "pointer",
       "&:hover": {
-        textDecoration: "underline",
+        bg: "muted",
       },
-    },
-    radio: {
-      textShadow: "outline",
+      "&:focus": {
+        outline: "none",
+      },
       "&:disabled": {
-        bg: "red",
+        cursor: "not-allowed",
+        opacity: 0.5,
+      },
+      "& > *[data-hidey='true']": {
+        visibility: "hidden",
+      },
+      "&:hover > *[data-hidey='true']": {
+        visibility: "visible",
       },
     },
   },
-  cards: {
-    editor: {
-      state: {
-        display: "grid",
-        gridTemplateColumns: "1fr",
-        gridAutoRows: "auto",
-        gridRowGap: 2,
-        bg: "surface",
-        width: "100%",
-        borderColor: "grey",
-        p: 4,
-        mb: 3,
-        borderRadius: 16,
-        overflow: "hidden",
-        position: "relative",
-        boxShadow: "high",
-        "& > hr": {
-          my: 4,
-        },
-      },
-      handler: {
-        mx: -3,
-        bg: "surface",
-        display: "grid",
-        px: 3,
-        py: 4,
-        boxShadow: "med",
-        gap: 2,
-        borderRadius: 16,
-        mb: 3,
-        "&:nth-last-of-type": {
-          mb: 0,
-        },
-      },
-      link: {
-        position: "relative",
-        overflow: "hidden",
-        display: "grid",
-        gap: 1,
-        ml: 0,
-        mr: 0,
-        p: 3,
-        bg: "surface",
-        boxShadow: "med",
-        borderRadius: "0px 8px 8px 8px",
-      },
+  contentHeading: {
+    px: 2,
+    mb: 2,
+    height: 44,
+    bg: "muted",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    borderBottom: "outline",
+    borderColor: "border",
+    userSelect: "none",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "space-between",
+    "&[data-iscollapsed='false'] > button": {
+      visibility: "hidden",
     },
-    state: {
-      width: "fit-content",
-      overflow: "hidden",
-      backgroundColor: "rgba(255, 255, 255, .05)",
+    "&:hover > button": {
+      visibility: "visible",
     },
-    states: {
-      padding: 1,
-      // backgroundColor: "rgba(255, 255, 255, .05)",
+  },
+  textarea: {
+    fontFamily: "monospace",
+    fontSize: 2,
+    fontWeight: 500,
+    bg: "muted",
+    border: "outline",
+    borderColor: "border",
+    outline: "none",
+    "&:hover": {
+      color: "accent",
     },
-    events: {
-      padding: 1,
-      // backgroundColor: "rgba(255, 255, 255, .05)",
+    "&:disabled": {
+      color: "muted",
     },
-    eventHandler: {
-      marginBottom: 2,
-      padding: 1,
-      backgroundColor: "rgba(255, 255, 255, .05)",
-      "& > *": {
-        marginBottom: 2,
-      },
-      "& > *:nth-of-type(n-1)": {
-        marginBottom: 0,
-      },
+    "&:focus": {
+      color: "text",
+      outline: "none",
     },
-    EventHandlerObject: {
-      // padding: 1,
-      // backgroundColor: "rgba(255, 255, 255, .05)",
+  },
+  nodeHeading: {
+    py: 2,
+    pl: 3,
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderColor: "active",
+    "&[data-isactive='false']": {
+      borderColor: "inactive",
     },
-    eventFns: {
-      marginTop: 2,
-      display: "grid",
-      gridColumnGap: 1,
-      gridTemplateColumns: "min-content auto",
+    "& > *[data-hidey='true']": {
+      visibility: "hidden",
     },
-    repeat: {
-      padding: 1,
-      backgroundColor: "rgba(255, 255, 255, .05)",
-      "& > *": {
-        marginBottom: 2,
-      },
-      "& > *:nth-of-type(n-1)": {
-        marginBottom: 0,
-      },
+    "&:hover > *[data-hidey='true']": {
+      visibility: "visible",
     },
+  },
+  fullView: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    placeItems: "center",
+    placeContent: "center",
+    textAlign: "center",
+    margin: 0,
+    flexDirection: "column",
   },
 }

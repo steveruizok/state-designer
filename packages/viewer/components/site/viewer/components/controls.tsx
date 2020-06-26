@@ -1,12 +1,14 @@
+// @jsx jsx
 import * as React from "react"
 import { useUser } from "../../../../auth/useUser"
-import Link from "next/link"
-import IconSelect from "./icon-select"
-import { Sun, Moon, User } from "react-feather"
+import { forkProject } from "../../../../utils/firebase"
+import { ui } from "../states/ui"
+import { Sun, Moon, Copy } from "react-feather"
+import { useStateDesigner } from "@state-designer/react"
 import {
   Flex,
   IconButton,
-  Label,
+  jsx,
   Checkbox,
   Button,
   Heading,
@@ -16,6 +18,7 @@ import {
 const Controls: React.FC = ({}) => {
   const { user, logout } = useUser()
   const [colorMode, setColorMode] = useColorMode()
+  const local = useStateDesigner(ui)
 
   return (
     <Flex
@@ -27,6 +30,31 @@ const Controls: React.FC = ({}) => {
         borderColor: "border",
       }}
     >
+      {local.data.isOwner ? (
+        <IconButton
+          onClick={() => {
+            const { pid, oid, uid } = local.data
+            forkProject(pid, oid, uid, pid + "_copy")
+          }}
+        >
+          <Copy />
+        </IconButton>
+      ) : (
+        <Button
+          onClick={() => {
+            const { pid, oid, uid } = local.data
+            forkProject(pid, oid, uid)
+          }}
+          sx={{
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            color: "accent",
+          }}
+        >
+          Copy this Project <Copy size={14} strokeWidth={3} sx={{ ml: 2 }} />
+        </Button>
+      )}
       <IconButton
         onClick={() =>
           setColorMode(colorMode === "default" ? "dark" : "default")
@@ -34,14 +62,6 @@ const Controls: React.FC = ({}) => {
       >
         {colorMode === "dark" ? <Moon /> : <Sun />}
       </IconButton>
-      <IconSelect
-        title={"Account"}
-        icon={<User />}
-        options={{
-          "Sign In": () => console.log("signing in"),
-          "Sign Out": () => logout(),
-        }}
-      />
     </Flex>
   )
 }

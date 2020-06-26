@@ -53,8 +53,8 @@ const CodeColumn: React.FC = (props) => {
       >
         <StateEditor key={"state"} />
         <ReactEditor key={"react"} />
-        <SaveRow state={editor} />
-        <SaveRow state={presentation} />
+        {ui.data.isOwner && <SaveRow state={editor} />}
+        {ui.data.isOwner && <SaveRow state={presentation} />}
       </motion.div>
     </Column>
   )

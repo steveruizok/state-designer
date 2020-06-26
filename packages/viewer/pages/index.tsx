@@ -1,7 +1,7 @@
 import { useRouter } from "next/router"
 import Link from "next/link"
 import { useUser } from "../auth/useUser"
-import { Flex } from "theme-ui"
+import { Flex, Text, Heading } from "theme-ui"
 
 const Index = () => {
   const { user, logout } = useUser()
@@ -13,12 +13,12 @@ const Index = () => {
 
   if (!user) {
     return (
-      <Flex variant="fullView">
-        <p>Hi there!</p>
+      <Flex variant="fullView" sx={{ fontSize: 16 }}>
+        <Heading>State Designer</Heading>
+        <Text>Design Environment</Text>
         <p>
-          You are not signed in.{" "}
           <Link href={"/auth"}>
-            <a>Sign in</a>
+            <a>Sign in / Sign Up</a>
           </Link>
         </p>
       </Flex>
