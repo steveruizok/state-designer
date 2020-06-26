@@ -28,7 +28,6 @@ const NotFound: React.FC<{ uid: string; pid: string } & BoxProps> = ({
       },
       success: {},
       error: {
-        onEnter: (d, p, r) => console.log(r),
         on: {
           CREATED_NEW_PROJECT: { to: "loading" },
         },

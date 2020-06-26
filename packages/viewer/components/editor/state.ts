@@ -764,7 +764,7 @@ const global = createState({
       try {
         fData = getData(data.data)
       } catch (e) {
-        console.log("Error in data", e.message)
+        console.warn("Error in data", e.message)
       }
 
       const finalState = createState({

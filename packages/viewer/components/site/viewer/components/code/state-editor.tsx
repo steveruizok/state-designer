@@ -3,7 +3,7 @@ import { useColorMode } from "theme-ui"
 import { editor } from "../../states/editor"
 import { useStateDesigner } from "@state-designer/react"
 import { codeX } from "../layout"
-import debounce from "lodash.debounce"
+import { debounce } from "lodash"
 import CodeEditor from "./code-editor"
 import { getHighlightRanges } from "./utils"
 

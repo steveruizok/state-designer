@@ -90,7 +90,6 @@ export const ui = createState({
       data.zoomed = path
     },
     setCaptiveState(d, { source, data }) {
-      console.log("Creating captive state")
       const { code } = source
       d.code = JSON.parse(code).slice(12, -2) // trim createState call
 
@@ -98,7 +97,7 @@ export const ui = createState({
         const design = Function("return " + d.code)()
         d.captive = createState(design)
       } catch (e) {
-        console.log("Error building captive state", e)
+        console.warn("Error building captive state", e)
         d.error = e.message
       }
 

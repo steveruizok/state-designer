@@ -4,18 +4,22 @@ import { Flex, jsx, Heading, IconButton } from "theme-ui"
 import { ChevronDown, ChevronUp } from "react-feather"
 import { motion } from "framer-motion"
 
-const ContentSection: React.FC<{ title: string }> = ({ title, children }) => {
+const ContentSection: React.FC<{ title: string; isBottomUp?: boolean }> = ({
+  title,
+  isBottomUp = false,
+  children,
+}) => {
   const [isCollapsed, setCollapsed] = React.useState(false)
 
   return (
     <motion.div
       sx={{
-        borderBottom: "outline",
+        borderBottom: "none",
         borderColor: "border",
         overflow: "hidden",
         pb: 2,
-        "&:nth-last-of-type(1)": {
-          borderBottom: "none",
+        "&:nth-of-type(1)": {
+          borderBottom: "outline",
         },
       }}
       variants={{ open: { height: "auto" }, collapsed: { height: 43 } }}
@@ -35,7 +39,17 @@ const ContentSection: React.FC<{ title: string }> = ({ title, children }) => {
       >
         <Heading variant="contentHeading">{title}</Heading>
         <IconButton onClick={() => setCollapsed((isCollapsed) => !isCollapsed)}>
-          {isCollapsed ? <ChevronDown /> : <ChevronUp />}
+          {isBottomUp ? (
+            isCollapsed ? (
+              <ChevronUp />
+            ) : (
+              <ChevronDown />
+            )
+          ) : isCollapsed ? (
+            <ChevronDown />
+          ) : (
+            <ChevronUp />
+          )}
         </IconButton>
       </Flex>
       {children}

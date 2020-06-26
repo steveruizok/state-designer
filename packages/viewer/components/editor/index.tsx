@@ -19,8 +19,6 @@ export const Editor: React.FC<{}> = () => {
     >
       <DragDropContext
         onDragEnd={(e) => {
-          console.log(e)
-
           const { source, destination } = e
           if (!destination) return
           const id = e.draggableId

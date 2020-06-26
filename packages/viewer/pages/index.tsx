@@ -1,24 +1,19 @@
-import useSWR from "swr"
+import { useRouter } from "next/router"
 import Link from "next/link"
 import { useUser } from "../auth/useUser"
-
-const fetcher = (url, token) =>
-  fetch(url, {
-    method: "GET",
-    headers: new Headers({ "Content-Type": "application/json", token }),
-    credentials: "same-origin",
-  }).then((res) => res.json())
+import { Flex } from "theme-ui"
 
 const Index = () => {
   const { user, logout } = useUser()
-  const { data, error } = useSWR(
-    user ? ["/api/getFood", user.token] : null,
-    fetcher
-  )
+  const router = useRouter()
+
+  if (user) {
+    router.push("/user")
+  }
 
   if (!user) {
     return (
-      <>
+      <Flex variant="fullView">
         <p>Hi there!</p>
         <p>
           You are not signed in.{" "}
@@ -26,32 +21,11 @@ const Index = () => {
             <a>Sign in</a>
           </Link>
         </p>
-      </>
+      </Flex>
     )
   }
 
-  return (
-    <div>
-      <div>
-        <p>You're signed in. Email: {user.email}</p>
-        <p
-          style={{
-            display: "inlinelock",
-            color: "blue",
-            textDecoration: "underline",
-            cursor: "pointer",
-          }}
-          onClick={() => logout()}
-        >
-          Log out
-        </p>
-      </div>
-
-      <Link href={"/project/toggle"}>
-        <a>Toggle Project</a>
-      </Link>
-    </div>
-  )
+  return <div>Logging in...</div>
 }
 
 export default Index

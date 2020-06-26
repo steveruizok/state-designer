@@ -3,7 +3,7 @@ import { useColorMode } from "theme-ui"
 import { presentation } from "../../states/presentation"
 import { useStateDesigner } from "@state-designer/react"
 import { codeX } from "../layout"
-import debounce from "lodash.debounce"
+import { debounce } from "lodash"
 import CodeEditor from "./code-editor"
 
 const StateEditor: React.FC = (props) => {

@@ -1,5 +1,5 @@
 import * as React from "react"
-import debounce from "lodash.debounce"
+import { debounce } from "lodash"
 import { monaco } from "@monaco-editor/react"
 
 import Editor from "@monaco-editor/react"
@@ -35,7 +35,7 @@ const CodeEditor: React.FC<{
   const rEditor = React.useRef<any>()
   const debouncedOnChange = React.useMemo(
     () =>
-      debounce((event, value) => {
+      debounce((event: any, value: any) => {
         previousValue.current = value
         onChange(event, value)
       }, DEFAULT_UPDATE_DEBOUNCE_DELAY),

@@ -42,7 +42,7 @@ const Main: React.FC = ({}) => {
             height: "100%",
             width: "100%",
             gridTemplateRows: "1fr min-content",
-            fontSize: 48,
+            fontSize: 16,
           }}
         >
           <Flex sx={{ alignItems: "center", justifyContent: "center" }}>

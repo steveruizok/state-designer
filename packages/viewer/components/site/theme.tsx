@@ -118,12 +118,61 @@ export default {
       },
     },
   },
+  forms: {
+    select: {
+      minWidth: 80,
+      overflow: "hidden",
+      fontFamily: "body",
+      fontSize: 2,
+      fontWeight: 600,
+      border: "none",
+      outline: "none",
+      "&:hover": {
+        color: "accent",
+      },
+      "&:disabled": {
+        color: "muted",
+      },
+      "&:focus": {
+        color: "text",
+        outline: "none",
+        bg: "muted",
+      },
+    },
+  },
   buttons: {
     primary: {
       bg: "muted",
       color: "text",
       fontFamily: "body",
       borderRadius: 0,
+      fontWeight: 600,
+      minWidth: 80,
+      overflow: "hidden",
+      cursor: "pointer",
+      "&:hover": {
+        color: "accent",
+      },
+      "&:disabled": {
+        color: "muted",
+      },
+      "&:focus": {
+        color: "text",
+        outline: "none",
+      },
+    },
+    secondary: {
+      bg: "muted",
+      color: "text",
+      fontFamily: "body",
+      borderRadius: 0,
+      fontWeight: 600,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      minWidth: 80,
+      overflow: "hidden",
       cursor: "pointer",
       "&:hover": {
         color: "accent",
@@ -210,6 +259,8 @@ export default {
     mb: 2,
     height: 44,
     bg: "muted",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
     borderBottom: "outline",
     borderColor: "border",
     userSelect: "none",
@@ -221,6 +272,25 @@ export default {
     },
     "&:hover > button": {
       visibility: "visible",
+    },
+  },
+  textarea: {
+    fontFamily: "monospace",
+    fontSize: 2,
+    fontWeight: 500,
+    bg: "muted",
+    border: "outline",
+    borderColor: "border",
+    outline: "none",
+    "&:hover": {
+      color: "accent",
+    },
+    "&:disabled": {
+      color: "muted",
+    },
+    "&:focus": {
+      color: "text",
+      outline: "none",
     },
   },
   nodeHeading: {

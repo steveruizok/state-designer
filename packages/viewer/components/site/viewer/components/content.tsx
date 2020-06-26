@@ -3,10 +3,22 @@ import * as React from "react"
 import { getFlatStates, getEventsByState, getAllEvents } from "../utils"
 import Column from "./column"
 import { range } from "lodash"
-import { jsx, Box, IconButton, Styled, Button } from "theme-ui"
+import {
+  jsx,
+  Flex,
+  Grid,
+  Select,
+  Textarea,
+  Box,
+  IconButton,
+  Styled,
+  Button,
+} from "theme-ui"
 import { useStateDesigner } from "@state-designer/react"
 import { ui } from "../states/ui"
 import { editor } from "../states/editor"
+import Payload from "./content/payload"
+import ContentRowItem from "./content/content-row-item"
 import ContentSection from "./content/content-section"
 import {
   PlayCircle,
@@ -26,16 +38,29 @@ const Content: React.FC = () => {
   const events = getEventsByState(allEvents)
   const states = getFlatStates(captive.stateTree)
 
+  const [selectedEvent, setSelectedEvent] = React.useState<string>(events[0][0])
+  const [payloads, setPayloads] = React.useState<Record<string, string>>({})
+
+  React.useEffect(() => {
+    if (!events.find(([eventName]) => eventName === selectedEvent)) {
+      setSelectedEvent(events[0][0])
+    }
+  }, [events])
+
   return (
-    <Column
+    <Grid
       sx={{
+        position: "relative",
+        display: "grid",
+        gap: 0,
+        gridTemplateColumns: "1fr",
+        gridTemplateRows: "min-content min-content 1fr min-content",
         gridArea: "content",
         overflowX: "hidden",
         overflowY: "scroll",
         p: 0,
         borderRight: "outline",
         borderColor: "border",
-        position: "relative",
       }}
     >
       <ContentSection title="States">
@@ -123,13 +148,20 @@ const Content: React.FC = () => {
       </ContentSection>
       <ContentSection title="Events">
         <Styled.ul>
-          {events.map(([eventName, states], i) => {
+          {events.map(([eventName], i) => {
             const disabled = !captive.can(eventName)
             return (
               <ContentRowItem key={i}>
                 <Button
                   variant="contentEvent"
-                  onClick={(e) => captive.send(eventName)}
+                  onClick={() => {
+                    try {
+                      const value = Function(`return ${payloads[eventName]}`)()
+                      captive.send(eventName, value)
+                    } catch (e) {
+                      console.log("Error in event payload:", eventName)
+                    }
+                  }}
                   onMouseEnter={() =>
                     editor.send("HOVERED_EVENT", { eventName })
                   }
@@ -162,43 +194,58 @@ const Content: React.FC = () => {
           })}
         </Styled.ul>
       </ContentSection>
-    </Column>
+      <Box sx={{ borderBottom: "outline", borderColor: "border" }} />
+      <ContentSection isBottomUp={true} title="Event Payloads">
+        <Grid
+          sx={{
+            gridTemplateColumns: "1fr",
+            gridTemplateRows: "40px 1fr 40px",
+            p: 2,
+            width: "100%",
+          }}
+        >
+          <Select
+            value={selectedEvent}
+            onChange={(e) => setSelectedEvent(e.currentTarget.value)}
+          >
+            {events.map(([eventName], i) => (
+              <option>{eventName}</option>
+            ))}
+          </Select>
+          <Textarea
+            placeholder="Payload"
+            value={payloads[selectedEvent] || ""}
+            onChange={(e) => {
+              setPayloads({
+                ...payloads,
+                [selectedEvent]: e.target.value,
+              })
+            }}
+            sx={{ height: "100%", fontFamily: "monospace" }}
+          ></Textarea>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              try {
+                const value = Function(`return ${payloads[selectedEvent]}`)()
+                captive.send(selectedEvent, value)
+              } catch (e) {
+                console.log("Error in event payload:", selectedEvent)
+              }
+            }}
+          >
+            Send Event
+            <PlayCircle
+              data-hidey="true"
+              size={14}
+              strokeWidth={3}
+              sx={{ ml: 2 }}
+            />
+          </Button>
+        </Grid>
+      </ContentSection>
+    </Grid>
   )
 }
 
 export default Content
-
-const ContentRowItem: React.FC = ({ children }) => {
-  return (
-    <Styled.li
-      sx={{
-        bg: "background",
-        display: "flex",
-        alignItems: "center",
-        pr: 1,
-        "& button[data-hidey='true']": {
-          visibility: "hidden",
-        },
-        "&:hover": {
-          bg: "muted",
-          "& button[data-hidey='true']": {
-            bg: "none",
-            visibility: "visible",
-            "&:hover": {
-              bg: "muted",
-              color: "accent",
-            },
-            "&:disabled": {
-              visibility: "hidden",
-            },
-          },
-        },
-        "&:focus": {
-          outline: "none",
-        },
-      }}
-    >
-      {children}
-    </Styled.li>
-  )
-}

@@ -7,6 +7,15 @@ initFirebase()
 
 const db = firebase.firestore()
 
+export type UserProjectsResponse = {
+  oid: string
+  uid: string
+  projects: string[]
+  isOwner: boolean
+  isAuthenticated: boolean
+  error?: Error
+}
+
 export type ProjectResponse = {
   uid: string
   oid: string
@@ -31,8 +40,12 @@ export function getProject(pid: string, oid: string) {
   return db.collection("users").doc(oid).collection("projects").doc(pid)
 }
 
-export function addProject(pid: string, oid: string, code: string) {
-  return getProject(pid, oid).set({ code, owner: oid })
+export function addProject(
+  pid: string,
+  oid: string,
+  template: { [key: string]: any }
+) {
+  return getProject(pid, oid).set({ ...template, owner: oid })
 }
 
 export function updateProject(
@@ -49,7 +62,7 @@ export async function createProject(
   templateId = "toggle"
 ) {
   const template = await db.collection("templates").doc(templateId).get()
-  await addProject(pid, uid, template.data().code)
+  await addProject(pid, uid, template.data())
 }
 
 export async function updateProjectJsx(
@@ -138,5 +151,19 @@ export async function getProjectInfo(pid: string, oid: string, uid: string) {
   return {
     isProject: project.exists,
     isOwner: oid === uid,
+  }
+}
+
+export async function getUserProjects(uid: string) {
+  const snapshot = await db
+    .collection("users")
+    .doc(uid)
+    .collection("projects")
+    .get()
+
+  const projects = snapshot.docs.map((doc) => doc.id)
+
+  return {
+    projects,
   }
 }
