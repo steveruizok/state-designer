@@ -1,5 +1,5 @@
 import * as React from "react"
-import Code from "./components/code"
+import CodeColumn from "./components/code-column"
 import Menu from "./components/menu"
 import Main from "./components/main"
 import Title from "./components/title"
@@ -8,9 +8,7 @@ import Save from "./components/save"
 import Content from "./components/content"
 import DetailRow from "./components/detail-row"
 import Controls from "./components/controls"
-import { editor } from "./states/editor"
-import { ui } from "./states/ui"
-import { useFirebaseCode } from "./hooks/useFirebaseCode"
+import Tabs from "./components/tabs"
 
 const Viewer: React.FC<{}> = () => {
   return (
@@ -20,9 +18,9 @@ const Viewer: React.FC<{}> = () => {
       <Controls />
       <Content />
       <Main />
-      <Code />
+      <Tabs />
+      <CodeColumn />
       <DetailRow />
-      <Save />
     </Layout>
   )
 }

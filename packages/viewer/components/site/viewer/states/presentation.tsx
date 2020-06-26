@@ -1,11 +1,13 @@
-import { createState } from "@state-designer/core"
-import { updateProjectCode } from "../../../../utils/firebase"
+import { jsx } from "theme-ui"
+import React, { Component } from "react"
+import { transform as _transform } from "buble"
+import assign from "lodash/assign"
+import * as ThemeUI from "theme-ui"
+import { createState, useStateDesigner } from "@state-designer/react"
+import { updateProjectJsx } from "../../../../utils/firebase"
+import { ui } from "./ui"
 
 type Data = {
-  highlight: {
-    state?: string
-    event?: string
-  }
   oid: string
   uid: string
   pid: string
@@ -13,13 +15,10 @@ type Data = {
   clean: string
   dirty: string
   error: string
+  element: any
 }
 
 const data: Data = {
-  highlight: {
-    state: undefined,
-    event: undefined,
-  },
   oid: "",
   uid: "",
   pid: "",
@@ -27,9 +26,10 @@ const data: Data = {
   clean: "",
   dirty: "",
   error: "",
+  element: undefined,
 }
 
-export const editor = createState({
+export const presentation = createState({
   data,
   initial: "guest",
   states: {
@@ -81,16 +81,8 @@ export const editor = createState({
     },
   },
   on: {
-    REFRESHED_CODE: "refreshCode",
+    REFRESHED_CODE: ["refreshCode"],
     LOADED_CODE: ["loadProject", { if: "isOwner", to: "owner" }],
-    CHANGED_CODE: ["setCode"],
-    HOVERED_EVENT: "setHighlightedEvent",
-    UNHOVERED_EVENT: "clearHighlightedEvent",
-    HOVERED_STATE: {
-      unless: "isAlreadyHighlighted",
-      do: "setHighlightedState",
-    },
-    UNHOVERED_STATE: "clearHighlightedState",
   },
   conditions: {
     codeMatchesClean(data) {
@@ -102,29 +94,15 @@ export const editor = createState({
     isOwner(data) {
       return data.isOwner
     },
-    isAlreadyHighlighted(data, { stateName }) {
-      return data.highlight.state === stateName
-    },
   },
   actions: {
     refreshCode(d, { source }) {
-      const code = JSON.parse(source.code)
+      const code = JSON.parse(source.jsx)
       d.clean = code
+      d.dirty = code
     },
-    setHighlightedEvent(data, { eventName }) {
-      data.highlight.event = eventName
-    },
-    clearHighlightedEvent(data) {
-      data.highlight.event = undefined
-    },
-    setHighlightedState(data, { stateName }) {
-      data.highlight.state = stateName
-    },
-    clearHighlightedState(data) {
-      data.highlight.state = undefined
-    },
-    loadProject(d, { source, data }) {
-      const code = JSON.parse(source.code)
+    loadProject(d, { data, source }) {
+      const code = JSON.parse(source.jsx)
 
       d.uid = data.uid
       d.oid = data.oid
@@ -148,20 +126,13 @@ export const editor = createState({
     clearError(data) {
       data.error = ""
     },
-    setError(d) {
-      let error: string = ""
-
-      try {
-        Function("fn", `fn(${d.dirty.slice(12, -2)})`)(createState)
-      } catch (e) {
-        error = e.message
-      }
-
-      d.error = error
+    setError(data) {
+      let err = ""
+      data.error = err
     },
     updateFirebase(data) {
       const { pid, oid, uid } = data
-      updateProjectCode(pid, oid, uid, data.clean)
+      updateProjectJsx(pid, oid, uid, data.clean)
     },
   },
 })

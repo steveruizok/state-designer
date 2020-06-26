@@ -40,7 +40,7 @@ export function updateProject(
   oid: string,
   changes: { [key: string]: any }
 ) {
-  return getProject(pid, oid).set(changes)
+  return getProject(pid, oid).update(changes)
 }
 
 export async function createProject(
@@ -52,14 +52,28 @@ export async function createProject(
   await addProject(pid, uid, template.data().code)
 }
 
+export async function updateProjectJsx(
+  pid: string,
+  oid: string,
+  uid: string,
+  code: string
+) {
+  // must be owner
+  if (uid === oid) {
+    return updateProject(pid, oid, {
+      jsx: JSON.stringify(code),
+    })
+  }
+}
+
 export async function updateProjectCode(
   pid: string,
   oid: string,
   uid: string,
   code: string
 ) {
+  // must be owner
   if (uid === oid) {
-    // must be owner
     return updateProject(pid, oid, {
       code: JSON.stringify(code),
     })

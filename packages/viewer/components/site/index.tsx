@@ -4,6 +4,7 @@ import LoadingScreen from "./loading-screen"
 import Viewer from "./viewer"
 import { ui } from "./viewer/states/ui"
 import { editor } from "./viewer/states/editor"
+import { presentation } from "./viewer/states/presentation"
 import { useStateDesigner, createState } from "@state-designer/react"
 import { ProjectResponse, subscribeToDocSnapshot } from "../../utils/firebase"
 
@@ -12,31 +13,37 @@ const main = createState({
   states: {
     loading: {
       on: {
-        REFRESHED_CODE: {
-          do: ["loadSourceCode", "loadEditorCode"],
+        REFRESHED: {
+          do: ["loadUI", "loadEditor", "loadPresentation"],
           to: "ready",
         },
       },
     },
     ready: {
       on: {
-        REFRESHED_CODE: { do: ["updateSourceCode", "updateEditorCode"] },
+        REFRESHED: { do: ["updateUI", "updateEditor", "updatePresentation"] },
       },
     },
   },
   on: {},
   actions: {
-    loadSourceCode(_, { code, data }) {
-      ui.send("LOADED_PROJECT", { code, data })
+    loadUI(_, { source, data }) {
+      ui.send("LOADED_PROJECT", { source, data })
     },
-    loadEditorCode(_, { code, data }) {
-      editor.send("LOADED_CODE", { code, data })
+    loadEditor(_, { source, data }) {
+      editor.send("LOADED_CODE", { source, data })
     },
-    updateSourceCode(_, { code }) {
-      ui.send("CHANGED_CODE", { code })
+    loadPresentation(_, { source, data }) {
+      presentation.send("LOADED_CODE", { source, data })
     },
-    updateEditorCode(_, { code }) {
-      editor.send("CHANGED_CODE", { code })
+    updateUI(_, { source, data }) {
+      ui.send("REFRESHED_CODE", { source, data })
+    },
+    updateEditor(_, { source, data }) {
+      editor.send("REFRESHED_CODE", { source, data })
+    },
+    updatePresentation(_, { source, data }) {
+      presentation.send("REFRESHED_CODE", { source, data })
     },
   },
 })
@@ -46,13 +53,12 @@ const App: React.FC<{ data: ProjectResponse }> = ({ data, children }) => {
   const state = useStateDesigner(main)
 
   React.useEffect(() => {
-    if (data?.pid === undefined) return
-
-    console.log(data)
+    if (data === undefined) return
 
     return subscribeToDocSnapshot(data.pid, data.oid, (doc) => {
-      const code = JSON.parse(doc.data().code)
-      state.send("REFRESHED_CODE", { code, data })
+      const source = doc.data()
+
+      state.send("REFRESHED", { source, data })
 
       if (isLoading) {
         setLoading(false)

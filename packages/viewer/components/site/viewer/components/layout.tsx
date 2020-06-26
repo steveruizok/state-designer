@@ -56,7 +56,7 @@ const Layout: React.FC = ({ children }) => {
         ],
         gridTemplateRows: [
           "40px min-content 1fr",
-          `40px 1fr calc(${
+          `40px 40px 1fr calc(${
             BASE_DETAIL_ROW_HEIGHT - BASE_SAVE_ROW_HEIGHT
           }px + var(--detail-row-offset)) ${BASE_SAVE_ROW_HEIGHT}px`,
         ],
@@ -73,9 +73,10 @@ const Layout: React.FC = ({ children }) => {
           `,
           `
           "menu    title   controls"
+          "content main    tabs"
           "content main    code"
           "content detail  code"
-          "content detail  save"
+          "content detail  code"
           `,
         ],
         top: 0,

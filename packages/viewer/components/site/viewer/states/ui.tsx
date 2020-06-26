@@ -34,43 +34,36 @@ export const ui = createState({
     loading: {
       on: {
         LOADED_PROJECT: {
-          to: "chart",
+          to: "state",
           do: "setCaptiveState",
         },
       },
     },
     ready: {
-      initial: "chart",
+      initial: "state",
       states: {
-        chart: {
+        presentation: {
           on: {
-            HOVERED_ON_NODE: {
-              do: ["clearHoveredNode", "setHoveredNode"],
+            TABBED_TO_STATE: {
+              to: "state",
             },
-            HOVERED_OFF_NODE: {
-              do: "clearHoveredNode",
+          },
+        },
+        state: {
+          on: {
+            TABBED_TO_PRESENTATION: {
+              to: "presentation",
             },
-            HOVERED_ON_EVENT: {
-              do: ["clearHintedNodes", "setHintedNodes"],
-            },
-            HOVERED_OFF_EVENT: {
-              do: "clearHintedNodes",
-            },
-            SELECTED_NODE: {
-              do: "setCurrentNode",
-            },
-            CHANGED_CODE: {
-              do: "setCaptiveState",
-            },
-            ZOOMED_ON_STATE: {
-              do: "setCurrentNode",
-            },
-            ZOOMED_OUT: {
-              do: "clearCurrentNode",
-            },
-            FORKED_PROJECT: {
-              do: "forkProject",
-            },
+            HOVERED_ON_NODE: ["clearHoveredNode", "setHoveredNode"],
+            HOVERED_OFF_NODE: "clearHoveredNode",
+            HOVERED_ON_EVENT: ["clearHintedNodes", "setHintedNodes"],
+            HOVERED_OFF_EVENT: "clearHintedNodes",
+            SELECTED_NODE: "setCurrentNode",
+            REFRESHED_CODE: "setCaptiveState",
+            CHANGED_CODE: "setCaptiveState",
+            ZOOMED_ON_STATE: "setCurrentNode",
+            ZOOMED_OUT: "clearCurrentNode",
+            FORKED_PROJECT: "forkProject",
           },
         },
         code: {},
@@ -96,19 +89,24 @@ export const ui = createState({
     setCurrentNode(data, { path }) {
       data.zoomed = path
     },
-    setCaptiveState(d, { code, data }) {
-      d.code = code.slice(12, -2) // trim createState call
+    setCaptiveState(d, { source, data }) {
+      console.log("Creating captive state")
+      const { code } = source
+      d.code = JSON.parse(code).slice(12, -2) // trim createState call
+
       try {
         const design = Function("return " + d.code)()
-        d.error = ""
         d.captive = createState(design)
-        d.zoomed = undefined
-        d.pid = data.pid
-        d.oid = data.oid
-        d.uid = data.uid
       } catch (e) {
+        console.log("Error building captive state", e)
         d.error = e.message
       }
+
+      d.error = ""
+      d.zoomed = undefined
+      d.pid = data.pid
+      d.oid = data.oid
+      d.uid = data.uid
     },
     async forkProject(data) {
       const { pid, oid, uid } = data

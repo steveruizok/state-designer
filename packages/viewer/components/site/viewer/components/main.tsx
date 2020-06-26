@@ -1,9 +1,10 @@
 // @jsx jsx
 import * as React from "react"
-import { jsx, Box, Flex, IconButton } from "theme-ui"
+import { jsx, Box, Flex, Grid, IconButton } from "theme-ui"
 import { getFlatStates } from "../utils"
 import { MoreHorizontal, Minimize } from "react-feather"
 import { ui } from "../states/ui"
+import { presentation } from "../states/presentation"
 import { useStateDesigner } from "@state-designer/react"
 import { useGesture } from "react-use-gesture"
 import {
@@ -14,8 +15,50 @@ import {
 } from "framer-motion"
 import IconSelect from "./icon-select"
 import StateNode from "./chart/state-node"
+import * as ThemeUI from "theme-ui"
+import {
+  withLive,
+  LiveProvider,
+  LiveEditor,
+  LiveError,
+  LivePreview,
+} from "react-live"
 
 const Main: React.FC = ({}) => {
+  const local = useStateDesigner(ui)
+  const pres = useStateDesigner(presentation)
+
+  return local.whenIn({
+    "ready.state": <ChartView />,
+    "ready.presentation": (
+      <LiveProvider
+        code={pres.data.dirty}
+        scope={{ ...ThemeUI, useStateDesigner, state: local.data.captive }}
+      >
+        <Grid
+          sx={{
+            p: 2,
+            gridArea: "main",
+            height: "100%",
+            width: "100%",
+            gridTemplateRows: "1fr min-content",
+            fontSize: 48,
+          }}
+        >
+          <Flex sx={{ alignItems: "center", justifyContent: "center" }}>
+            <LivePreview />
+          </Flex>
+          <LiveError sx={{ gridRow: "2", fontFamily: "monospace" }} />
+        </Grid>
+      </LiveProvider>
+    ),
+    default: <div>...</div>,
+  })
+}
+
+export default Main
+
+function ChartView() {
   const local = useStateDesigner(ui)
   const captive = useStateDesigner(local.data.captive, [local.data.captive])
 
@@ -103,5 +146,3 @@ const Main: React.FC = ({}) => {
     </motion.div>
   )
 }
-
-export default Main
