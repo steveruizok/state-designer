@@ -1,3 +1,4 @@
+// @refresh reset
 import * as React from "react"
 import { debounce } from "lodash"
 import { monaco } from "@monaco-editor/react"
@@ -47,6 +48,9 @@ const CodeEditor: React.FC<{
   React.useEffect(() => {
     const editor = rEditor.current
     if (editor) {
+      if (clean !== editor.getValue()) {
+        editor.setValue(clean)
+      }
       editor.getAction("editor.action.formatDocument").run()
     }
   }, [clean])

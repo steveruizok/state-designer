@@ -1,4 +1,42 @@
+import * as React from "react"
 import { monaco } from "@monaco-editor/react"
+import { S } from "@state-designer/core"
+import { Highlights } from "../../states/highlights"
+
+export function useHighlights(rEditor: any, code: string) {
+  const rPrevious = React.useRef<any[]>([])
+
+  const highlightRanges = React.useCallback(
+    async (code: string, search: string | undefined, scrollToLine = false) => {
+      const previous = rPrevious.current
+      const editor = rEditor.current
+      if (editor === null) return
+
+      if (search === null) {
+        rPrevious.current = editor.deltaDecorations(previous, [])
+      } else {
+        const ranges = await getHighlightRanges(code, search + ":")
+
+        if (scrollToLine && ranges.length > 0) {
+          editor.revealLineInCenter(ranges[0].range.startLineNumber - 1, 0)
+        }
+
+        rPrevious.current = editor.deltaDecorations(previous, ranges)
+      }
+    },
+    []
+  )
+
+  React.useEffect(() => {
+    return Highlights.onUpdate(
+      async ({ data: { state, event, scrollToLine } }) => {
+        highlightRanges(code, state || event, scrollToLine)
+      }
+    )
+  }, [code])
+}
+
+/* --------------- Monaco Rangefinding -------------- */
 
 let m: any
 
@@ -29,7 +67,7 @@ export async function getHighlightRanges(code: string, searchString: string) {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       if (state === "searchingForStart") {
-        if (line.includes(searchString)) {
+        if (line.includes(" " + searchString)) {
           startSpaces = line.search(/\S/)
           state = "searchingForEnd"
           ranges[rangeIndex] = [i + 1, 1]

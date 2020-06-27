@@ -7,7 +7,7 @@ import { editor } from "../states/editor"
 import { ui } from "../states/ui"
 
 const Save: React.FC = ({}) => {
-  const local = useStateDesigner(editor)
+  const local = useStateDesigner(ui)
 
   return (
     <Grid
@@ -23,8 +23,16 @@ const Save: React.FC = ({}) => {
         borderColor: "border",
       }}
     >
-      <Button onClick={() => ui.send("TABBED_TO_STATE")}>State</Button>
-      <Button onClick={() => ui.send("TABBED_TO_PRESENTATION")}>
+      <Button
+        data-issuppressed={!local.isIn("state")}
+        onClick={() => local.send("TABBED_TO_STATE")}
+      >
+        State
+      </Button>
+      <Button
+        data-issuppressed={!local.isIn("presentation")}
+        onClick={() => local.send("TABBED_TO_PRESENTATION")}
+      >
         Presentation
       </Button>
     </Grid>

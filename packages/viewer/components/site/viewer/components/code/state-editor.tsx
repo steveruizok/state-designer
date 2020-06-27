@@ -5,13 +5,14 @@ import { useStateDesigner } from "@state-designer/react"
 import { codeX } from "../layout"
 import { debounce } from "lodash"
 import CodeEditor from "./code-editor"
-import { getHighlightRanges } from "./utils"
+import { useHighlights } from "./monaco"
 
 const StateEditor: React.FC = (props) => {
   const local = useStateDesigner(editor)
   const rEditor = React.useRef<any>(null)
-  const rHighlights = React.useRef<any>([])
   const [colorMode] = useColorMode()
+
+  useHighlights(rEditor, local.data.dirty)
 
   // Update the code editor's layout
   function updateMonacoLayout() {
@@ -24,31 +25,6 @@ const StateEditor: React.FC = (props) => {
   React.useEffect(() => {
     return codeX.onChange(debounce(updateMonacoLayout, 60))
   }, [])
-
-  // Highlight ranges of code based on current highlight
-  async function highlightRanges() {
-    const editor = rEditor.current
-    if (editor === null) return
-
-    const { state, event } = local.data.highlight
-
-    let searchString = event || state
-
-    if (!searchString) {
-      rHighlights.current = editor.deltaDecorations(rHighlights.current, [])
-    } else {
-      const ranges = await getHighlightRanges(
-        local.data.dirty,
-        searchString + ":"
-      )
-
-      rHighlights.current = editor.deltaDecorations(rHighlights.current, ranges)
-    }
-  }
-
-  React.useEffect(() => {
-    highlightRanges()
-  }, [local.data.highlight])
 
   // Set up the monaco instance
   const setupMonaco = React.useCallback((_, editor) => {
@@ -90,7 +66,6 @@ const StateEditor: React.FC = (props) => {
       }}
       language="javascript"
       options={{
-        automaticLayout: true,
         lineNumbers: false,
         showUnused: false,
         suggest: false,
@@ -104,7 +79,10 @@ const StateEditor: React.FC = (props) => {
         minimap: {
           enabled: false,
         },
+        smoothScrolling: true,
         lineDecorationsWidth: 4,
+        fontLigatures: true,
+        cursorBlinking: "smooth",
       }}
       editorDidMount={setupMonaco}
     />

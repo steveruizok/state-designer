@@ -1,5 +1,5 @@
-import * as React from "react"
-import { Flex, Spinner, Box, BoxProps } from "theme-ui"
+// @jsx jsx
+import { jsx, Flex, Spinner, Box, BoxProps } from "theme-ui"
 
 const LoadingScreen: React.FC<BoxProps> = ({ children, ...props }) => {
   return (

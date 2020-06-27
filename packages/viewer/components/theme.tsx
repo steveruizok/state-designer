@@ -2,15 +2,16 @@ import { base } from "@theme-ui/presets"
 
 export default {
   ...base,
+  initialColorModeName: "dark",
   space: [0, 4, 8, 12, 16, 32, 64, 128, 256, 512],
   colors: {
     ...base.colors,
     text: "#000",
     muted: "#fafafa",
-    background: "#FFF",
+    background: "#ffffff",
     codeText: "#f8f8f2",
     codeBg: "#282a36",
-    codeHl: "#e8efe5",
+    codeHl: "#e5ebf1",
     accent: "#F00",
     canvas: "#efefef",
     border: "#000",
@@ -21,17 +22,18 @@ export default {
     scrim: "rgba(0,0,0,.05)",
     modes: {
       dark: {
-        text: "#FFF",
+        text: "#fcfcfa",
         muted: "#242529",
         background: "#202124",
         codeText: "#f8f8f2",
         codeBg: "#282a36",
-        codeHl: "#e8efe5",
+        codeHl: "#3b3d41",
         accent: "#F00",
-        canvas: "#313235",
-        border: "#555",
-        active: "#FFF",
-        inactive: "#888",
+        canvas: "#1b1c1e",
+        border: "#19181a",
+        active: "#fcfcfa",
+        inactive: "#8e8e8f",
+        grey: "#8f9aac",
         root: "rgba(245, 240, 255, .05)",
         node: "rgba(245, 240, 255, .01)",
         scrim: "rgba(255, 255, 255, .05)",
@@ -59,7 +61,7 @@ export default {
       textShadow: "outline",
       backgroundColor: "background",
       ".inlineCodeHighlight": {
-        padding: "1px 0",
+        padding: "2px 0",
         bg: "codeHl",
         fontWeight: "bold",
       },
@@ -126,6 +128,11 @@ export default {
     },
   },
   forms: {
+    checkbox: {
+      color: "text",
+      borderColor: "text",
+      outline: "none",
+    },
     input: {
       minWidth: 80,
       overflow: "hidden",
@@ -139,7 +146,7 @@ export default {
         color: "accent",
       },
       "&:disabled": {
-        color: "muted",
+        color: "inactive",
       },
       "&:focus": {
         color: "text",
@@ -159,7 +166,7 @@ export default {
         color: "accent",
       },
       "&:disabled": {
-        color: "muted",
+        color: "inactive",
       },
       "&:focus": {
         color: "text",
@@ -182,11 +189,14 @@ export default {
         color: "accent",
       },
       "&:disabled": {
-        opacity: 0.5,
+        color: "inactive",
       },
       "&:focus": {
         color: "text",
         outline: "none",
+      },
+      "&[data-issuppressed='true']": {
+        color: "grey",
       },
     },
     secondary: {
@@ -206,7 +216,7 @@ export default {
         color: "accent",
       },
       "&:disabled": {
-        color: "muted",
+        color: "inactive",
       },
       "&:focus": {
         color: "text",
@@ -218,7 +228,7 @@ export default {
       cursor: "pointer",
       padding: 2,
       "&:disabled": {
-        color: "grey",
+        color: "inactive",
       },
       "&:focus": {
         color: "text",
@@ -246,7 +256,7 @@ export default {
         outline: "none",
       },
       "&:disabled": {
-        opacity: 0.5,
+        color: "inactive",
       },
     },
     contentEvent: {
@@ -272,13 +282,34 @@ export default {
       },
       "&:disabled": {
         cursor: "not-allowed",
-        opacity: 0.5,
+        color: "inactive",
       },
       "& > *[data-hidey='true']": {
         visibility: "hidden",
       },
-      "&:hover > *[data-hidey='true']": {
-        visibility: "visible",
+    },
+  },
+  contentRowItem: {
+    bg: "background",
+    display: "flex",
+    alignItems: "center",
+    pr: 1,
+    "& button[data-hidey='true']": {
+      visibility: "hidden",
+    },
+    "&:hover": {
+      bg: "muted",
+    },
+    "&:focus": {
+      outline: "none",
+    },
+    "& > *[data-hidey='true']": {
+      visibility: "hidden",
+    },
+    "&:hover:not([disabled]) *[data-hidey='true']": {
+      visibility: "visible",
+      "&:hover": {
+        color: "accent",
       },
     },
   },
@@ -314,7 +345,7 @@ export default {
       color: "accent",
     },
     "&:disabled": {
-      color: "muted",
+      color: "inactive",
     },
     "&:focus": {
       color: "text",

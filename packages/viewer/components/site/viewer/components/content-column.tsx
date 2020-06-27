@@ -17,6 +17,7 @@ import {
 import { useStateDesigner } from "@state-designer/react"
 import { ui } from "../states/ui"
 import { editor } from "../states/editor"
+import { Highlights } from "../states/highlights"
 import Payload from "./content/payload"
 import ContentRowItem from "./content/content-row-item"
 import ContentSection from "./content/content-section"
@@ -74,10 +75,13 @@ const Content: React.FC = () => {
                   variant="contentRow"
                   title={`Zoom to ${node.name}`}
                   onClick={() => ui.send("SELECTED_NODE", { id: node.path })}
-                  onMouseEnter={() =>
-                    editor.send("HOVERED_STATE", { stateName: node.name })
+                  onMouseEnter={(e) =>
+                    Highlights.send("HIGHLIT_STATE", {
+                      stateName: node.name,
+                      shiftKey: e.shiftKey,
+                    })
                   }
-                  onMouseLeave={() => editor.send("UNHOVERED_STATE")}
+                  onMouseLeave={() => Highlights.send("CLEARED_HIGHLIGHT")}
                 >
                   {range(node.depth).map((i) => (
                     <Circle
@@ -153,7 +157,16 @@ const Content: React.FC = () => {
           {events.map(([eventName], i) => {
             const disabled = !captive.can(eventName)
             return (
-              <ContentRowItem key={i}>
+              <ContentRowItem
+                key={i}
+                onMouseOver={(e) =>
+                  Highlights.send("HIGHLIT_EVENT", {
+                    eventName,
+                    shiftKey: e.shiftKey,
+                  })
+                }
+                onMouseLeave={() => Highlights.send("CLEARED_HIGHLIGHT")}
+              >
                 <Button
                   variant="contentEvent"
                   onClick={() => {
@@ -164,10 +177,7 @@ const Content: React.FC = () => {
                       console.log("Error in event payload:", eventName)
                     }
                   }}
-                  onMouseEnter={() =>
-                    editor.send("HOVERED_EVENT", { eventName })
-                  }
-                  onMouseLeave={() => editor.send("UNHOVERED_EVENT")}
+                  disabled={disabled}
                 >
                   <Square
                     strokeWidth={3}
@@ -179,7 +189,6 @@ const Content: React.FC = () => {
                       flexGrow: 1,
                       textAlign: "left",
                       overflow: "hidden",
-                      opacity: disabled ? 0.5 : 1,
                     }}
                   >
                     {eventName}
@@ -188,7 +197,7 @@ const Content: React.FC = () => {
                     data-hidey="true"
                     size={12}
                     strokeWidth={2}
-                    sx={{ color: "accent" }}
+                    sx={{ color: disabled ? "inactive" : "accent" }}
                   />
                 </Button>
               </ContentRowItem>
@@ -196,14 +205,13 @@ const Content: React.FC = () => {
           })}
         </Styled.ul>
       </ContentSection>
-      <Box sx={{ borderBottom: "outline", borderColor: "border" }} />
+      <Box onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHT")} />
       <ContentSection isBottomUp={true} title="Event Payloads">
         <Grid
           sx={{
             gridTemplateColumns: "1fr",
             gridTemplateRows: "40px 1fr 40px",
             p: 2,
-            width: "100%",
           }}
         >
           <Select
@@ -227,6 +235,7 @@ const Content: React.FC = () => {
           ></Textarea>
           <Button
             variant="secondary"
+            disabled={!captive.can(selectedEvent, payloads[selectedEvent])}
             onClick={() => {
               try {
                 const value = Function(`return ${payloads[selectedEvent]}`)()

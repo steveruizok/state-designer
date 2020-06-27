@@ -2,7 +2,10 @@
 import * as React from "react"
 import { jsx, Box, Flex, Grid, IconButton } from "theme-ui"
 import { getFlatStates } from "../utils"
-import { MoreHorizontal, Minimize } from "react-feather"
+import * as Motion from "framer-motion"
+import * as Icons from "react-feather"
+import { MoreHorizontal, Minimize, Compass, RefreshCw } from "react-feather"
+import { Highlights } from "../states/highlights"
 import { ui } from "../states/ui"
 import { presentation } from "../states/presentation"
 import { useStateDesigner } from "@state-designer/react"
@@ -15,6 +18,7 @@ import {
 } from "framer-motion"
 import IconSelect from "./icon-select"
 import StateNode from "./chart/state-node"
+import * as _ from "lodash"
 import * as ThemeUI from "theme-ui"
 import {
   withLive,
@@ -33,7 +37,14 @@ const Main: React.FC = ({}) => {
     "ready.presentation": (
       <LiveProvider
         code={pres.data.dirty}
-        scope={{ ...ThemeUI, useStateDesigner, state: local.data.captive }}
+        scope={{
+          ...ThemeUI,
+          ...Motion,
+          _,
+          Icons,
+          useStateDesigner,
+          state: local.data.captive,
+        }}
       >
         <Flex
           sx={{
@@ -94,16 +105,18 @@ function ChartView() {
   })
 
   function resetScrollPosition() {
-    animation.start({ x: 0, y: 0 })
+    animation.start({ x: 0, y: 0, scale: 1 })
   }
 
   return (
     <motion.div
       {...bind}
+      onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHT")}
       sx={{
         gridArea: "main",
         overflow: "hidden",
         position: "relative",
+        cursor: "grab",
         bg: "canvas",
         "& > *[data-hidey='true']": {
           visibility: "hidden",
@@ -147,16 +160,22 @@ function ChartView() {
           <Minimize />
         </IconButton>
       )}
-      <IconSelect
+      <IconButton
         data-hidey="true"
-        icon={<MoreHorizontal />}
-        title="Canvas"
-        options={{
-          "Re-center": resetScrollPosition,
-          "Reset State": () => captive.reset(),
-        }}
         sx={{ position: "absolute", top: 0, right: 0 }}
-      />
+        title="Reset Canvas"
+        onClick={() => resetScrollPosition()}
+      >
+        <Compass />
+      </IconButton>
+      <IconButton
+        data-hidey="true"
+        sx={{ position: "absolute", bottom: 0, right: 0 }}
+        title="Reset State"
+        onClick={() => captive.reset()}
+      >
+        <RefreshCw />
+      </IconButton>
     </motion.div>
   )
 }

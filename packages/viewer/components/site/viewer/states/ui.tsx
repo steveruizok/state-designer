@@ -1,3 +1,4 @@
+// @refresh reset
 import { S, createState } from "@state-designer/core"
 import { forkProject } from "../../../../utils/firebase"
 

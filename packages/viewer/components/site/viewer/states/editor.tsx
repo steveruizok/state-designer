@@ -1,3 +1,4 @@
+// @refresh reset
 import { createState } from "@state-designer/core"
 import { updateProjectCode } from "../../../../utils/firebase"
 
@@ -84,12 +85,17 @@ export const editor = createState({
     REFRESHED_CODE: "refreshCode",
     LOADED_CODE: ["loadProject", { if: "isOwner", to: "owner" }],
     CHANGED_CODE: ["setCode"],
-    HOVERED_EVENT: "setHighlightedEvent",
-    UNHOVERED_EVENT: "clearHighlightedEvent",
-    HOVERED_STATE: {
-      unless: "isAlreadyHighlighted",
-      do: "setHighlightedState",
+    HOVERED_EVENT: {
+      unless: "eventIsAlreadyHighlighted",
+      do: "setHighlightedEvent",
     },
+    UNHOVERED_EVENT: "clearHighlightedEvent",
+    HOVERED_STATE: [
+      {
+        unless: "stateIsAlreadyHighlighted",
+        do: "setHighlightedState",
+      },
+    ],
     UNHOVERED_STATE: "clearHighlightedState",
   },
   conditions: {
@@ -102,8 +108,11 @@ export const editor = createState({
     isOwner(data) {
       return data.isOwner
     },
-    isAlreadyHighlighted(data, { stateName }) {
+    stateIsAlreadyHighlighted(data, { stateName }) {
       return data.highlight.state === stateName
+    },
+    eventIsAlreadyHighlighted(data, { eventName }) {
+      return data.highlight.event === eventName
     },
   },
   actions: {
@@ -112,12 +121,14 @@ export const editor = createState({
       d.clean = code
     },
     setHighlightedEvent(data, { eventName }) {
+      console.log("Setting highlighted event")
       data.highlight.event = eventName
     },
     clearHighlightedEvent(data) {
       data.highlight.event = undefined
     },
     setHighlightedState(data, { stateName }) {
+      console.log("Setting highlighted state")
       data.highlight.state = stateName
     },
     clearHighlightedState(data) {

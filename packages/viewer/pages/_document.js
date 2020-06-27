@@ -9,7 +9,7 @@ class CustomDocument extends Document {
 
   render() {
     return (
-      <Html userScalable="no">
+      <Html user-scalable="no">
         <meta name="viewport" content="width=device-width, user-scalable=no" />
         <Head />
         <body>

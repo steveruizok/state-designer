@@ -4,18 +4,21 @@ import { S } from "@state-designer/core"
 import ParallelNode from "./parallel-node"
 import BranchNode from "./branch-node"
 import LeafNode from "./leaf-node"
-import { editor } from "../../states/editor"
+import { Highlights } from "../../states/highlights"
 
 const StateNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
   return (
     <Flex
       onMouseOver={(e) => {
         e.stopPropagation()
-        editor.send("HOVERED_STATE", { stateName: node.name })
+        Highlights.send("HIGHLIT_STATE", {
+          stateName: node.name,
+          shiftKey: e.shiftKey,
+        })
       }}
       onMouseLeave={(e) => {
         e.stopPropagation()
-        editor.send("UNHOVERED_STATE")
+        Highlights.send("CLEARED_HIGHLIGHT")
       }}
     >
       {node.type === "parallel" ? (

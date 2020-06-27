@@ -1,11 +1,8 @@
+// @refresh reset
 import { jsx } from "theme-ui"
-import React, { Component } from "react"
 import { transform as _transform } from "buble"
-import assign from "lodash/assign"
-import * as ThemeUI from "theme-ui"
-import { createState, useStateDesigner } from "@state-designer/react"
+import { createState } from "@state-designer/react"
 import { updateProjectJsx } from "../../../../utils/firebase"
-import { ui } from "./ui"
 
 type Data = {
   oid: string

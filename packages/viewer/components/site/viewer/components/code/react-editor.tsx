@@ -6,7 +6,7 @@ import { codeX } from "../layout"
 import { debounce } from "lodash"
 import CodeEditor from "./code-editor"
 
-const StateEditor: React.FC = (props) => {
+const ReactEditor: React.FC = (props) => {
   const local = useStateDesigner(presentation)
   const rEditor = React.useRef<any>(null)
   const [colorMode] = useColorMode()
@@ -62,7 +62,6 @@ const StateEditor: React.FC = (props) => {
       }}
       language="javascript"
       options={{
-        automaticLayout: true,
         lineNumbers: false,
         showUnused: false,
         suggest: false,
@@ -76,11 +75,15 @@ const StateEditor: React.FC = (props) => {
         minimap: {
           enabled: false,
         },
+        jsx: "react",
+        smoothScrolling: true,
         lineDecorationsWidth: 4,
+        fontLigatures: true,
+        cursorBlinking: "smooth",
       }}
       editorDidMount={setupMonaco}
     />
   )
 }
 
-export default StateEditor
+export default ReactEditor

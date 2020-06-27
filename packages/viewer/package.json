@@ -49,6 +49,8 @@
     "rebass": "^4.0.7",
     "swr": "^0.2.3",
     "theme-ui": "^0.3.1",
-    "typescript": "^3.8.3"
-  }
+    "typescript": "^3.8.3",
+    "use-monaco": "^0.0.3-patch.4"
+  },
+  "devDependencies": {}
 }

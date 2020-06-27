@@ -3,6 +3,7 @@ import * as React from "react"
 import { Flex, jsx, Heading, IconButton } from "theme-ui"
 import { ChevronDown, ChevronUp } from "react-feather"
 import { motion } from "framer-motion"
+import { Highlights } from "../../states/highlights"
 
 const ContentSection: React.FC<{ title: string; isBottomUp?: boolean }> = ({
   title,
@@ -14,12 +15,12 @@ const ContentSection: React.FC<{ title: string; isBottomUp?: boolean }> = ({
   return (
     <motion.div
       sx={{
-        borderBottom: "none",
+        borderTop: "outline",
         borderColor: "border",
         overflow: "hidden",
         pb: 2,
         "&:nth-of-type(1)": {
-          borderBottom: "outline",
+          borderTop: "none",
         },
       }}
       variants={{ open: { height: "auto" }, collapsed: { height: 43 } }}
@@ -34,6 +35,7 @@ const ContentSection: React.FC<{ title: string; isBottomUp?: boolean }> = ({
       }}
     >
       <Flex
+        onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHT")}
         variant="contentHeading"
         data-iscollapsed={isCollapsed ? "true" : "false"}
       >
