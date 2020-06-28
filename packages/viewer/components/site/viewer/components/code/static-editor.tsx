@@ -103,7 +103,10 @@ createDesign({
 })
 
 const ReactEditor: React.FC = (props) => {
-  const local = useStateDesigner(presentation)
+  const local = useStateDesigner({
+    data: { dirty: "", clean: "" },
+  })
+
   const rEditor = React.useRef<any>(null)
   const [colorMode] = useColorMode()
 
