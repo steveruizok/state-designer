@@ -96,20 +96,20 @@ const Layout: React.FC = ({ children }) => {
       {children}
 
       <DragHandleHorizontal
-        align="right"
-        initial={BASE_CODE_COL_WIDTH}
-        min={80}
-        max={400}
-        gridArea="code"
-        motionValue={codeX}
-      />
-      <DragHandleHorizontal
         align="left"
         initial={BASE_CONTENT_COL_WIDTH}
         min={96}
         max={220}
         gridArea="content"
         motionValue={contentX}
+      />
+      <DragHandleHorizontal
+        align="right"
+        initial={BASE_CODE_COL_WIDTH}
+        min={80}
+        max={900}
+        gridArea="code"
+        motionValue={codeX}
       />
       <DragHandleVertical
         align="bottom"

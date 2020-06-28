@@ -2,6 +2,8 @@ import * as React from "react"
 import { monaco } from "@monaco-editor/react"
 import { S } from "@state-designer/core"
 import { Highlights } from "../../states/highlights"
+import prettier from "prettier/standalone"
+import parserTypeScript from "prettier/parser-typescript"
 
 export function useHighlights(rEditor: any, code: string) {
   const rPrevious = React.useRef<any[]>([])
@@ -43,6 +45,28 @@ let m: any
 export async function initMonaco() {
   if (m === undefined && typeof window !== "undefined") {
     m = await monaco.init()
+
+    const PrettierFormatter = {
+      provideDocumentFormattingEdits: function (document, options, token) {
+        const text = document.getValue()
+        const formatted = prettier.format(text, {
+          semi: false,
+          parser: "typescript",
+          plugins: [parserTypeScript],
+        })
+        return [
+          {
+            range: document.getFullModelRange(),
+            text: formatted,
+          },
+        ]
+      },
+    }
+
+    m.languages.registerDocumentFormattingEditProvider(
+      "typescript",
+      PrettierFormatter
+    )
   }
 }
 

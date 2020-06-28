@@ -7,7 +7,7 @@ const LeafNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
   return (
     <Card
       variant={node.parentType === "parallel" ? "parallelNode" : "node"}
-      data-isroot={node.parentType === null}
+      data-isroot={false}
       data-isactive={node.active}
     >
       <NodeHeading node={node} />

@@ -32,6 +32,7 @@ const Controls: React.FC = ({}) => {
     >
       {local.data.isOwner ? (
         <IconButton
+          title="Copy This Project"
           onClick={() => {
             const { pid, oid, uid } = local.data
             forkProject(pid, oid, uid, pid + "_copy")
@@ -41,6 +42,7 @@ const Controls: React.FC = ({}) => {
         </IconButton>
       ) : (
         <Button
+          title="Copy This Project"
           onClick={() => {
             const { pid, oid, uid } = local.data
             forkProject(pid, oid, uid)
@@ -56,9 +58,11 @@ const Controls: React.FC = ({}) => {
         </Button>
       )}
       <IconButton
+        title="Change Color Mode"
         onClick={() =>
           setColorMode(colorMode === "default" ? "dark" : "default")
         }
+        sx={{ ml: 2 }}
       >
         {colorMode === "dark" ? <Moon /> : <Sun />}
       </IconButton>

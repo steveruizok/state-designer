@@ -55,6 +55,17 @@ export default {
 
   styles: {
     ...base.styles,
+    a: {
+      cursor: "pointer",
+      color: "text",
+      textDecoration: "underline",
+      "&:visited": {
+        color: "text",
+      },
+      "&:hover": {
+        color: "accent",
+      },
+    },
     root: {
       fontSize: 2,
       fontWeight: 500,
@@ -111,6 +122,7 @@ export default {
         borderColor: "inactive",
       },
       "&[data-isroot='true']": {
+        minWidth: 400,
         bg: "root",
       },
     },
@@ -159,6 +171,7 @@ export default {
       overflow: "hidden",
       fontFamily: "body",
       fontSize: 2,
+      bg: "muted",
       fontWeight: 600,
       border: "none",
       outline: "none",
@@ -185,6 +198,9 @@ export default {
       minWidth: 80,
       overflow: "hidden",
       cursor: "pointer",
+      "&:active": {
+        color: "accent",
+      },
       "&:hover": {
         color: "accent",
       },
@@ -192,7 +208,6 @@ export default {
         color: "inactive",
       },
       "&:focus": {
-        color: "text",
         outline: "none",
       },
       "&[data-issuppressed='true']": {
@@ -227,6 +242,12 @@ export default {
       outline: "none",
       cursor: "pointer",
       padding: 2,
+      "&:active": {
+        color: "accent",
+      },
+      "&:hover": {
+        color: "accent",
+      },
       "&:disabled": {
         color: "inactive",
       },
@@ -286,6 +307,32 @@ export default {
       },
       "& > *[data-hidey='true']": {
         visibility: "hidden",
+      },
+    },
+    tab: {
+      bg: "transparent",
+      fontFamily: "body",
+      borderRadius: 0,
+      fontWeight: 600,
+      minWidth: 80,
+      overflow: "hidden",
+      cursor: "pointer",
+      color: "primary",
+      "&:active": {
+        color: "accent",
+      },
+      "&:hover": {
+        color: "accent",
+      },
+      "&:disabled": {
+        color: "inactive",
+      },
+      "&:focus": {
+        color: "primary",
+        outline: "none",
+      },
+      "&[data-issuppressed='true']": {
+        opacity: 0.5,
       },
     },
   },

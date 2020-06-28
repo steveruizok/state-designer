@@ -1,5 +1,9 @@
 {
   "rules": {
-    "no-unused-vars": false
+    "no-unused-vars": false,
+    "no-console": {
+      "severity": "warning",
+      "options": ["debug", "info", "log", "time", "timeEnd", "trace"]
+    }
   }
 }

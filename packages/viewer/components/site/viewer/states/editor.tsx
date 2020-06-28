@@ -64,11 +64,17 @@ export const editor = createState({
               on: {
                 CANCELLED: { do: "resetCode", to: "idle" },
                 QUICK_SAVED: [
+                  "formatCode",
                   "saveDirtyToClean",
                   "updateFirebase",
                   { to: "editing" },
                 ],
-                SAVED: ["saveDirtyToClean", "updateFirebase", { to: "idle" }],
+                SAVED: [
+                  "formatCode",
+                  "saveDirtyToClean",
+                  "updateFirebase",
+                  { to: "idle" },
+                ],
               },
             },
             invalid: {
@@ -85,18 +91,6 @@ export const editor = createState({
     REFRESHED_CODE: "refreshCode",
     LOADED_CODE: ["loadProject", { if: "isOwner", to: "owner" }],
     CHANGED_CODE: ["setCode"],
-    HOVERED_EVENT: {
-      unless: "eventIsAlreadyHighlighted",
-      do: "setHighlightedEvent",
-    },
-    UNHOVERED_EVENT: "clearHighlightedEvent",
-    HOVERED_STATE: [
-      {
-        unless: "stateIsAlreadyHighlighted",
-        do: "setHighlightedState",
-      },
-    ],
-    UNHOVERED_STATE: "clearHighlightedState",
   },
   conditions: {
     codeMatchesClean(data) {
@@ -108,31 +102,11 @@ export const editor = createState({
     isOwner(data) {
       return data.isOwner
     },
-    stateIsAlreadyHighlighted(data, { stateName }) {
-      return data.highlight.state === stateName
-    },
-    eventIsAlreadyHighlighted(data, { eventName }) {
-      return data.highlight.event === eventName
-    },
   },
   actions: {
     refreshCode(d, { source }) {
       const code = JSON.parse(source.code)
       d.clean = code
-    },
-    setHighlightedEvent(data, { eventName }) {
-      console.log("Setting highlighted event")
-      data.highlight.event = eventName
-    },
-    clearHighlightedEvent(data) {
-      data.highlight.event = undefined
-    },
-    setHighlightedState(data, { stateName }) {
-      console.log("Setting highlighted state")
-      data.highlight.state = stateName
-    },
-    clearHighlightedState(data) {
-      data.highlight.state = undefined
     },
     loadProject(d, { source, data }) {
       const code = JSON.parse(source.code)
@@ -153,6 +127,7 @@ export const editor = createState({
     resetCode(data) {
       data.dirty = data.clean
     },
+    formatCode(data) {},
     saveDirtyToClean(data) {
       data.clean = data.dirty
     },

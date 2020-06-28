@@ -35,15 +35,14 @@ const Index = () => {
 
   if (!data.isAuthenticated) {
     return (
-      <Flex variant="fullView">
+      <Flex variant="fullView" sx={{ fontSize: 16 }}>
         <Heading>State Designer</Heading>
-        <p>Hi there!</p>
-        <p>
-          You are not signed in.{" "}
+        <Text>Design Environment</Text>
+        <Button sx={{ m: 5, minWidth: 200 }}>
           <Link href={"/auth"}>
-            <a>Sign in</a>
+            <Styled.a>Sign in</Styled.a>
           </Link>
-        </p>
+        </Button>
       </Flex>
     )
   }
@@ -81,7 +80,7 @@ const Index = () => {
             {data.projects.map((pid, i) => (
               <li key={i}>
                 <Link href={`/${user.id}/${pid}`}>
-                  <a>{pid}</a>
+                  <Styled.a>{pid}</Styled.a>
                 </Link>
               </li>
             ))}

@@ -12,6 +12,7 @@ import {
   Box,
   IconButton,
   Styled,
+  Text,
   Button,
 } from "theme-ui"
 import { useStateDesigner } from "@state-designer/react"
@@ -28,6 +29,7 @@ import {
   Disc,
   Maximize,
   Crosshair,
+  AlertOctagon,
   MinusCircle,
 } from "react-feather"
 
@@ -43,6 +45,9 @@ const Content: React.FC = () => {
     events[0] ? events[0][0] : ""
   )
   const [payloads, setPayloads] = React.useState<Record<string, string>>({})
+
+  const [inputIsValid, setInputIsValid] = React.useState(true)
+  const [inputError, setInputError] = React.useState("")
 
   React.useEffect(() => {
     if (!events.find(([eventName]) => eventName === selectedEvent)) {
@@ -174,7 +179,7 @@ const Content: React.FC = () => {
                       const value = Function(`return ${payloads[eventName]}`)()
                       captive.send(eventName, value)
                     } catch (e) {
-                      console.log("Error in event payload:", eventName)
+                      console.warn("Error in event payload:", eventName)
                     }
                   }}
                   disabled={disabled}
@@ -210,8 +215,9 @@ const Content: React.FC = () => {
         <Grid
           sx={{
             gridTemplateColumns: "1fr",
-            gridTemplateRows: "40px 1fr 40px",
+            gridTemplateRows: "40px 80px 40px 16px",
             p: 2,
+            pb: 0,
           }}
         >
           <Select
@@ -223,6 +229,15 @@ const Content: React.FC = () => {
             ))}
           </Select>
           <Textarea
+            sx={{
+              height: "100%",
+              width: "100%",
+              fontFamily: "monospace",
+              bg: "none",
+            }}
+            style={{ margin: 0 }}
+            autoCapitalize="false"
+            autoComplete="false"
             placeholder="Payload"
             value={payloads[selectedEvent] || ""}
             onChange={(e) => {
@@ -230,19 +245,23 @@ const Content: React.FC = () => {
                 ...payloads,
                 [selectedEvent]: e.target.value,
               })
+
+              try {
+                const value = Function(`return ${e.target.value}`)()
+                setInputIsValid(captive.can(selectedEvent, value))
+                setInputError("")
+              } catch (e) {
+                setInputError(e.message)
+                setInputIsValid(false)
+              }
             }}
-            sx={{ height: "100%", fontFamily: "monospace" }}
           ></Textarea>
           <Button
             variant="secondary"
-            disabled={!captive.can(selectedEvent, payloads[selectedEvent])}
+            disabled={!inputIsValid}
             onClick={() => {
-              try {
-                const value = Function(`return ${payloads[selectedEvent]}`)()
-                captive.send(selectedEvent, value)
-              } catch (e) {
-                console.log("Error in event payload:", selectedEvent)
-              }
+              const value = Function(`return ${payloads[selectedEvent]}`)()
+              captive.send(selectedEvent, value)
             }}
           >
             Send Event
@@ -253,6 +272,26 @@ const Content: React.FC = () => {
               sx={{ ml: 2 }}
             />
           </Button>
+          <Flex
+            sx={{
+              alignItems: "center",
+              width: "100%",
+              fontSize: 1,
+              textAlign: "left",
+              zIndex: 1,
+            }}
+          >
+            {inputError && (
+              <AlertOctagon
+                size={14}
+                sx={{
+                  color: "accent",
+                  mr: 2,
+                }}
+              />
+            )}
+            {inputError || ""}
+          </Flex>
         </Grid>
       </ContentSection>
     </Grid>

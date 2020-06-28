@@ -1,3 +1,4 @@
+// @refresh reset
 import * as React from "react"
 import { useColorMode } from "theme-ui"
 import { presentation } from "../../states/presentation"
@@ -21,6 +22,14 @@ const ReactEditor: React.FC = (props) => {
 
   React.useEffect(() => {
     return codeX.onChange(debounce(updateMonacoLayout, 60))
+  }, [])
+
+  React.useEffect(() => {
+    function updateLayout() {
+      debounce(updateMonacoLayout, 60)
+    }
+    window.addEventListener("resize", updateLayout)
+    return () => window.removeEventListener("resize", updateLayout)
   }, [])
 
   // Set up the monaco instance
@@ -59,6 +68,8 @@ const ReactEditor: React.FC = (props) => {
         }
 
         local.send("CHANGED_CODE", { code })
+
+        return
       }}
       language="javascript"
       options={{

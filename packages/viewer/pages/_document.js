@@ -10,8 +10,8 @@ class CustomDocument extends Document {
   render() {
     return (
       <Html user-scalable="no">
-        <meta name="viewport" content="width=device-width, user-scalable=no" />
         <Head />
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
         <body>
           <Main />
           <NextScript />

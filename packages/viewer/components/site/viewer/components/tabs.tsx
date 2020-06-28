@@ -15,6 +15,7 @@ const Save: React.FC = ({}) => {
       sx={{
         position: "relative",
         gridArea: "tabs",
+        bg: "muted",
         p: 0,
         width: "100%",
         gridTemplateColumns: "1fr 1fr",
@@ -24,12 +25,14 @@ const Save: React.FC = ({}) => {
       }}
     >
       <Button
+        variant="tab"
         data-issuppressed={!local.isIn("state")}
         onClick={() => local.send("TABBED_TO_STATE")}
       >
         State
       </Button>
       <Button
+        variant="tab"
         data-issuppressed={!local.isIn("presentation")}
         onClick={() => local.send("TABBED_TO_PRESENTATION")}
       >
