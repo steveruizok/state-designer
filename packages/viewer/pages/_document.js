@@ -12,6 +12,7 @@ class CustomDocument extends Document {
       <Html user-scalable="no">
         <Head />
         <meta name="viewport" content="width=device-width, user-scalable=no" />
+
         <body>
           <Main />
           <NextScript />

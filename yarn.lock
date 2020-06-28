@@ -8819,7 +8819,7 @@ debug@3.1.0, debug@=3.1.0, debug@~3.1.0:
   dependencies:
     ms "2.0.0"
 
-debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@~4.1.0:
+debug@4, debug@^4.0.0, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@~4.1.0:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.1.1.tgz#3b72260255109c6b589cee050f1d516139664791"
   integrity sha512-pYAIzeRo8J6KPEaJ0VWOh5Pzkbw/RetuzehGM7QRRX5he4fPHx2rdKMB256ehJCkX+XRQm16eZLqLNS8RSZXZw==
@@ -16764,6 +16764,14 @@ next-cookies@^2.0.3:
   dependencies:
     universal-cookie "^4.0.2"
 
+next-ga@^2.3.4:
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/next-ga/-/next-ga-2.3.4.tgz#0bec23e7c2eea35485af0b342e7794bbbdb61d04"
+  integrity sha512-mIol83ehPCz9Z+QtK6ig1w9Db4ShoyhjS6NgDnTIVJuBQ1iobiZap2xXn6KtYWBc+AH5DdTCBtZRF8PP5yJAVA==
+  dependencies:
+    debug "^4.0.0"
+    react-ga "^2.5.3"
+
 next-tick@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.1.0.tgz#1836ee30ad56d67ef281b22bd199f709449b35eb"
@@ -19693,6 +19701,11 @@ react-focus-lock@^2.2.1, react-focus-lock@^2.3.1:
     react-clientside-effect "^1.2.2"
     use-callback-ref "^1.2.1"
     use-sidecar "^1.0.1"
+
+react-ga@^2.5.3:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/react-ga/-/react-ga-2.7.0.tgz#24328f157f31e8cffbf4de74a3396536679d8d7c"
+  integrity sha512-AjC7UOZMvygrWTc2hKxTDvlMXEtbmA0IgJjmkhgmQQ3RkXrWR11xEagLGFGaNyaPnmg24oaIiaNPnEoftUhfXA==
 
 react-helmet@^5.2.1:
   version "5.2.1"

@@ -36,6 +36,7 @@
     "js-cookie": "^2.2.1",
     "next": "^9.4.0",
     "next-cookies": "^2.0.3",
+    "next-ga": "^2.3.4",
     "prettier": "^2.0.5",
     "prismjs": "^1.20.0",
     "react": "16.13.1",

@@ -67,11 +67,17 @@ const Index = () => {
         </Styled.p>
         <Styled.p>
           Learn more at:{" "}
-          <a href="https://state-designer.com">state-designer.com</a>.
+          <Styled.a href="https://state-designer.com">
+            state-designer.com
+          </Styled.a>
+          .
         </Styled.p>
         <Styled.p>
           Follow me for updates:{" "}
-          <a href="https://twitter.com/steveruizok">@steveruizok</a>.
+          <Styled.a href="https://twitter.com/steveruizok">
+            @steveruizok
+          </Styled.a>
+          .
         </Styled.p>
         <Styled.hr />
         <Heading as="h3">Projects</Heading>

@@ -1,3 +1,5 @@
+import Router from "next/router"
+import withGA from "next-ga"
 import Prism from "prismjs"
 import { highlight, languages } from "prismjs/components/prism-core"
 import "prismjs/components/prism-clike"
@@ -36,4 +38,4 @@ function MyApp({ Component, pageProps }) {
   )
 }
 
-export default MyApp
+export default withGA("UA-159357149-1", Router)(MyApp)
