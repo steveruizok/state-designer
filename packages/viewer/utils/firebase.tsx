@@ -8,8 +8,8 @@ initFirebase()
 const db = firebase.firestore()
 
 export type UserProjectsResponse = {
-  oid: string
   uid: string
+  oid: string
   projects: string[]
   isOwner: boolean
   isAuthenticated: boolean
@@ -157,6 +157,7 @@ export async function forkProject(
     .doc(uid)
     .collection("projects")
     .doc(nextpid ? nextpid : pid)
+
   const initial = await doc.get()
 
   if (initial.exists) {
@@ -193,4 +194,15 @@ export async function getUserProjects(uid: string) {
   return {
     projects,
   }
+}
+
+export async function getUserProjectById(uid: string, pid: string) {
+  const project = await db
+    .collection("users")
+    .doc(uid)
+    .collection("projects")
+    .doc(pid)
+    .get()
+
+  return project
 }

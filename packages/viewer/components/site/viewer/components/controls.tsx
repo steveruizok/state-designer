@@ -16,7 +16,6 @@ import {
 } from "theme-ui"
 
 const Controls: React.FC = ({}) => {
-  const { user, logout } = useUser()
   const [colorMode, setColorMode] = useColorMode()
   const local = useStateDesigner(ui)
 
