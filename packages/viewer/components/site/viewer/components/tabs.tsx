@@ -5,8 +5,11 @@ import { Circle, Save as SaveIcon, RefreshCcw, FilePlus } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import { editor } from "../states/editor"
 import { ui } from "../states/ui"
+import { presentation } from "../states/presentation"
 
 const Save: React.FC = ({}) => {
+  const local_e = useStateDesigner(editor)
+  const local_p = useStateDesigner(presentation)
   const local = useStateDesigner(ui)
 
   return (
@@ -29,13 +32,14 @@ const Save: React.FC = ({}) => {
         data-issuppressed={!local.isIn("state")}
         onClick={() => local.send("TABBED_TO_STATE")}
       >
-        State
+        <Circle size={9} strokeWidth={local_e.isIn("same") ? 0 : 4} /> State
       </Button>
       <Button
         variant="tab"
         data-issuppressed={!local.isIn("presentation")}
         onClick={() => local.send("TABBED_TO_PRESENTATION")}
       >
+        <Circle size={9} strokeWidth={local_p.isIn("same") ? 0 : 4} />{" "}
         Presentation
       </Button>
     </Grid>

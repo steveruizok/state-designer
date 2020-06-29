@@ -19,7 +19,14 @@ import {
 import StateNode from "./chart/state-node"
 import _ from "lodash"
 import * as ThemeUI from "theme-ui"
+import * as Components from "@theme-ui/components"
 import { LiveProvider, LiveError, LivePreview } from "react-live"
+
+const WithMotionComponents = Object.fromEntries(
+  Object.entries(Components).map(([k, v]) => {
+    return [k, motion.custom(v as any)]
+  })
+)
 
 const Main: React.FC = ({}) => {
   const local = useStateDesigner(ui)
@@ -151,6 +158,7 @@ const PresentationView: React.FC<{ mvScale: MotionValue<number> }> = ({
       scope={{
         ...ThemeUI,
         ...Motion,
+        ...WithMotionComponents,
         _,
         Icons,
         useStateDesigner,

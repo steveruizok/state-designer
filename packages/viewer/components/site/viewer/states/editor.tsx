@@ -36,54 +36,36 @@ export const editor = createState({
   states: {
     guest: {},
     owner: {
-      initial: "idle",
+      initial: {
+        if: "codeMatchesClean",
+        to: "same",
+        else: {
+          if: "errorIsClear",
+          to: "valid",
+          else: { to: "invalid" },
+        },
+      },
       states: {
-        idle: {
-          on: { STARTED_EDITING: { to: "editing" } },
-        },
-        editing: {
+        same: {},
+        valid: {
           on: {
-            CHANGED_CODE: ["setCode", "setError", { to: "editing" }],
-          },
-          initial: {
-            if: "codeMatchesClean",
-            to: "same",
-            else: {
-              if: "errorIsClear",
-              to: "valid",
-              else: { to: "invalid" },
-            },
-          },
-          states: {
-            same: {
-              on: {
-                STOPPED_EDITING: { to: "idle" },
-              },
-            },
-            valid: {
-              on: {
-                CANCELLED: { do: "resetCode", to: "idle" },
-                QUICK_SAVED: [
-                  "formatCode",
-                  "saveDirtyToClean",
-                  "updateFirebase",
-                  { to: "editing" },
-                ],
-                SAVED: [
-                  "formatCode",
-                  "saveDirtyToClean",
-                  "updateFirebase",
-                  { to: "idle" },
-                ],
-              },
-            },
-            invalid: {
-              on: {
-                CANCELLED: { do: ["resetCode", "clearError"], to: "idle" },
-              },
-            },
+            CANCELLED: { do: "resetCode", to: "owner" },
+            QUICK_SAVED: [
+              "saveDirtyToClean",
+              "updateFirebase",
+              { to: "owner" },
+            ],
+            SAVED: ["saveDirtyToClean", "updateFirebase", { to: "owner" }],
           },
         },
+        invalid: {
+          on: {
+            CANCELLED: { do: ["resetCode", "clearError"], to: "owner" },
+          },
+        },
+      },
+      on: {
+        CHANGED_CODE: ["setCode", "setError", { to: "owner" }],
       },
     },
   },

@@ -12,6 +12,7 @@
     "@monaco-editor/react": "^3.3.2",
     "@state-designer/core": "1.2.20",
     "@state-designer/react": "1.2.20",
+    "@theme-ui/components": "^0.3.1",
     "@theme-ui/presets": "^0.3.0",
     "@theme-ui/prism": "^0.3.0",
     "@types/buble": "^0.19.2",
