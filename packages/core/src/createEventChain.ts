@@ -1,6 +1,6 @@
 import * as S from "./types"
 import { createDraft, finishDraft, Draft, current } from "immer"
-import { testEventHandlerConditions } from "./createState"
+import { testEventHandlerConditions } from "./testEventHandlerConditions"
 
 export function createEventChain<D>(options: S.EventChainOptions<D>) {
   let { state, onDelayedOutcome, getFreshDataAfterWait } = options

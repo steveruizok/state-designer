@@ -1,22 +1,102 @@
 // @jsx jsx
 import * as React from "react"
-import { Grid, Input, Textarea, Flex, jsx, Heading, IconButton } from "theme-ui"
-import { ChevronDown, ChevronUp } from "react-feather"
-import { motion } from "framer-motion"
+import { Grid, Button, Select, Textarea, Flex, jsx } from "theme-ui"
+import { PlayCircle, AlertOctagon } from "react-feather"
+import { ui } from "../../states/ui"
 
-const Payload: React.FC<{ title: string }> = ({ title, children }) => {
+const Payload: React.FC<{
+  can: typeof ui.can
+  eventNames: string[]
+  payloads: Record<string, string>
+  setPayloads: React.Dispatch<React.SetStateAction<Record<string, string>>>
+}> = ({ can, payloads, setPayloads, eventNames }) => {
+  const [selectedEvent, setSelectedEvent] = React.useState<string>(
+    eventNames[0] || ""
+  )
+  const [inputIsValid, setInputIsValid] = React.useState(true)
+  const [inputError, setInputError] = React.useState("")
+
   return (
     <Grid
       sx={{
         gridTemplateColumns: "1fr",
-        gridTemplateRows: "40px 1fr 40px",
-        alignSelf: "flex-end",
+        gridTemplateRows: "40px 80px 40px 16px",
+        p: 2,
+        pb: 0,
       }}
     >
-      <Flex variant="contentHeading">
-        <Heading variant="contentHeading">Payload</Heading>
+      <Select
+        value={selectedEvent}
+        onChange={(e) => setSelectedEvent(e.currentTarget.value)}
+      >
+        {eventNames.map((eventName, i) => (
+          <option key={i}>{eventName}</option>
+        ))}
+      </Select>
+      <Textarea
+        sx={{
+          height: "100%",
+          width: "100%",
+          fontFamily: "monospace",
+          bg: "none",
+        }}
+        style={{ margin: 0 }}
+        autoCapitalize="false"
+        autoComplete="false"
+        placeholder="Payload"
+        value={payloads[selectedEvent] || ""}
+        onChange={(e) => {
+          setPayloads({
+            ...payloads,
+            [selectedEvent]: e.target.value,
+          })
+
+          try {
+            const value = Function(`return ${e.target.value}`)()
+            setInputIsValid(can(selectedEvent, value))
+            setInputError("")
+          } catch (e) {
+            setInputError(e.message)
+            setInputIsValid(false)
+          }
+        }}
+      ></Textarea>
+      <Button
+        variant="secondary"
+        disabled={!inputIsValid}
+        onClick={() => {
+          const value = Function(`return ${payloads[selectedEvent]}`)()
+          ui.data.captive.send(selectedEvent, value)
+        }}
+      >
+        Send Event
+        <PlayCircle
+          data-hidey="true"
+          size={14}
+          strokeWidth={3}
+          sx={{ ml: 2 }}
+        />
+      </Button>
+      <Flex
+        sx={{
+          alignItems: "center",
+          width: "100%",
+          fontSize: 1,
+          textAlign: "left",
+          zIndex: 1,
+        }}
+      >
+        {inputError && (
+          <AlertOctagon
+            size={14}
+            sx={{
+              color: "accent",
+              mr: 2,
+            }}
+          />
+        )}
+        {inputError || ""}
       </Flex>
-      <Textarea></Textarea>
     </Grid>
   )
 }

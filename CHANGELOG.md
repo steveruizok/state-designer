@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.21
+
+- Adds `state.log`. This is a wee baby feature that will change soon to aid in debugging / visual tooling.
+
 ## 1.2.20
 
 - Adds `forceTransition`, a method to immediately transition the state to the desired path, exactly as if an event caused a transition to occur. Be careful with this one: it's not how State Designer is meant to be used, but it needs to be there for the visual tools. I may put it behind a warning in the future.

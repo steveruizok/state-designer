@@ -1,5 +1,5 @@
 import { forEach, isUndefined, last } from "lodash"
-import { testEventHandlerConditions } from "./createState"
+import { testEventHandlerConditions } from "./testEventHandlerConditions"
 import * as S from "./types"
 
 /**

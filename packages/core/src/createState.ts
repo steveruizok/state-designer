@@ -1,6 +1,7 @@
 import { last, castArray, isFunction, uniqueId, isUndefined } from "lodash"
 import { produce, enableAllPlugins, setAutoFreeze } from "immer"
 
+import { testEventHandlerConditions } from "./testEventHandlerConditions"
 import { createEventChain } from "./createEventChain"
 import * as S from "./types"
 import * as StateTree from "./stateTree"
@@ -82,6 +83,7 @@ export function createState<
    */
   function notifySubscribers() {
     setValues()
+    setLog()
     setActiveStates()
     subscribers.forEach((subscriber) => subscriber(snapshot))
   }
@@ -396,6 +398,10 @@ export function createState<
     } // End for newlyActivatedStates
   }
 
+  function setLog() {
+    snapshot.log = [..._log]
+  }
+
   function setValues() {
     snapshot.values = getValues(snapshot.data, design.values)
   }
@@ -446,6 +452,8 @@ export function createState<
         snapshot.stateTree,
         processingEvent
       )
+
+      _log.unshift(processingEvent.event)
 
       if (shouldNotify) processShouldNotify = true
 
@@ -608,6 +616,7 @@ export function createState<
   function getUpdate(callbackFn: S.SubscriberFn<Snapshot>) {
     setValues()
     setActiveStates()
+    setLog()
     callbackFn(snapshot)
   }
 
@@ -633,6 +642,8 @@ export function createState<
 
     return promise
   }
+
+  // Memoized calls to `send` when payloads aren't needed.
 
   const sendCache = new Map<
     string,
@@ -824,6 +835,7 @@ export function createState<
   const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
   const initialStateTree = getStateTreeFromDesign(design, id)
 
+  let _log: string[] = []
   let _activeStates = StateTree.getActiveStates(initialStateTree)
 
   const snapshot: Snapshot = {
@@ -831,6 +843,7 @@ export function createState<
     data: produce(design.data, (d) => d) as D,
     active: getPaths(_activeStates),
     stateTree: initialStateTree,
+    log: _log,
     send,
     thenSend,
     isIn,
@@ -850,6 +863,7 @@ export function createState<
   StateTree.deactivateState(snapshot.stateTree)
   runTransition("root", undefined, undefined) // Will onEnter events matter?
   setValues()
+  setLog()
   setActiveStates()
 
   return snapshot
@@ -865,26 +879,6 @@ export function createState<
  */
 function getPaths<D, V>(states: S.State<D, V>[]) {
   return states.map((state) => state.path)
-}
-
-/**
- * Test whether a handler object would pass its conditions, given the current data, payload, and result.
- * @param h Handler
- * @param d Data
- * @param p Payload
- * @param r Result
- */
-export function testEventHandlerConditions<D, P, R>(
-  h: S.EventHandlerObject<D> | S.InitialStateObject<D>,
-  d: D,
-  p: P,
-  r: R
-) {
-  if (h.if[0] && !h.if.every((c) => c(d, p, r))) return false
-  if (h.ifAny[0] && !h.ifAny.some((c) => c(d, p, r))) return false
-  if (h.unless[0] && !h.unless.every((c) => !c(d, p, r))) return false
-  if (h.unlessAny[0] && !h.unlessAny.some((c) => !c(d, p, r))) return false
-  return true
 }
 
 /**

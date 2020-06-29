@@ -350,6 +350,7 @@ export interface DesignedState<D, V> {
   values: V
   active: string[]
   stateTree: State<D, V>
+  log: string[]
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
   isInAny: (...paths: string[]) => boolean

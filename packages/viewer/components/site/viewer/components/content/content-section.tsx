@@ -1,15 +1,16 @@
 // @jsx jsx
 import * as React from "react"
 import { Flex, jsx, Heading, IconButton } from "theme-ui"
-import { ChevronDown, ChevronUp } from "react-feather"
+import { ChevronDown, ChevronUp, Zap, ZapOff } from "react-feather"
 import { motion } from "framer-motion"
 import { Highlights } from "../../states/highlights"
 
-const ContentSection: React.FC<{ title: string; isBottomUp?: boolean }> = ({
-  title,
-  isBottomUp = false,
-  children,
-}) => {
+const ContentSection: React.FC<{
+  title: string
+  zap: boolean | undefined
+  onZapChange?: (zap: boolean) => void
+  isBottomUp?: boolean
+}> = ({ title, isBottomUp = false, zap, onZapChange, children }) => {
   const [isCollapsed, setCollapsed] = React.useState(false)
 
   return (
@@ -39,7 +40,17 @@ const ContentSection: React.FC<{ title: string; isBottomUp?: boolean }> = ({
         variant="contentHeading"
         data-iscollapsed={isCollapsed ? "true" : "false"}
       >
-        <Heading variant="contentHeading">{title}</Heading>
+        <Heading variant="contentHeading" sx={{ flexGrow: 2 }}>
+          {title}
+        </Heading>
+        {zap === undefined || (
+          <IconButton
+            title={zap ? "Turn off Updates" : "Turn on Updates"}
+            onClick={() => onZapChange && onZapChange(!zap)}
+          >
+            {zap ? <Zap /> : <ZapOff />}
+          </IconButton>
+        )}
         <IconButton onClick={() => setCollapsed((isCollapsed) => !isCollapsed)}>
           {isBottomUp ? (
             isCollapsed ? (

@@ -162,11 +162,7 @@ const Sidebar: React.FC<{}> = ({}) => {
 }
 
 const Loading: React.FC<{}> = ({}) => {
-  return (
-    <Flex sx={{ alignItems: "center", justifyContent: "center" }}>
-      Loading...
-    </Flex>
-  )
+  return <Flex sx={{ bg: "muted", m: 2 }}></Flex>
 }
 
 const PageLayout: React.FC<{}> = ({ children }) => {

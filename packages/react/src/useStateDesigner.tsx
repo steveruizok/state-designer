@@ -74,7 +74,7 @@ export function useStateDesigner<
     function handleUpdate(update: S.DesignedState<D, J>) {
       setCurrent((current) => ({
         ...current,
-        ...pick(update, "data", "active", "stateTree", "values"),
+        ...pick(update, "data", "active", "stateTree", "values", "log"),
       }))
     }
 
