@@ -79,9 +79,14 @@ export const CodeEditor: React.FC<{
         },
         setError(d) {
           let error: string = ""
-
           try {
-            Function("data", "payload", "result", d.dirty)(global.values.data)
+            Function(
+              "data",
+              "payload",
+              "result",
+              "window",
+              d.dirty
+            )(global.values.data, null, null, {})
           } catch (e) {
             error = e.message
           }

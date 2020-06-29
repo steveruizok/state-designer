@@ -1,6 +1,6 @@
 // @jsx jsx
 import * as React from "react"
-import { jsx, Box, Flex, IconButton } from "theme-ui"
+import { jsx, Box, IconButton } from "theme-ui"
 import { getFlatStates } from "../utils"
 import * as Motion from "framer-motion"
 import * as Icons from "react-feather"
@@ -8,7 +8,7 @@ import { Minimize, Compass, RefreshCw } from "react-feather"
 import { ui } from "../states/ui"
 import { presentation } from "../states/presentation"
 import { useStateDesigner } from "@state-designer/react"
-import { usePinch, useGesture } from "react-use-gesture"
+import { useGesture } from "react-use-gesture"
 import {
   motion,
   useMotionValue,
@@ -163,6 +163,7 @@ const PresentationView: React.FC<{ mvScale: MotionValue<number> }> = ({
         Icons,
         useStateDesigner,
         state: local.data.captive,
+        window: {},
       }}
     >
       <motion.div
@@ -186,21 +187,21 @@ const PresentationView: React.FC<{ mvScale: MotionValue<number> }> = ({
           }}
         >
           <LivePreview />
-          <LiveError
-            sx={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              m: 0,
-              padding: 2,
-              width: "100%",
-              fontSize: 1,
-              height: "min-content",
-              fontFamily: "monospace",
-              bg: "scrim",
-            }}
-          />
         </motion.div>
+        <LiveError
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            m: 0,
+            padding: 2,
+            width: "100%",
+            fontSize: 1,
+            height: "min-content",
+            fontFamily: "monospace",
+            bg: "scrim",
+          }}
+        />
         <IconButton
           data-hidey="true"
           sx={{ position: "absolute", top: 0, right: 0 }}

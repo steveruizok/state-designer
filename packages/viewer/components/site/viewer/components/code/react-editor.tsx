@@ -44,10 +44,13 @@ const ReactEditor: React.FC = (props) => {
     editor.onKeyDown((e: KeyboardEvent) => {
       if (e.metaKey && e.code === "KeyS") {
         e.preventDefault()
+        isAutoFormatting.current = true
         local.send("QUICK_SAVED")
       }
     })
   }, [])
+
+  const isAutoFormatting = React.useRef(false)
 
   return (
     <CodeEditor
@@ -67,9 +70,11 @@ const ReactEditor: React.FC = (props) => {
           return
         }
 
-        local.send("CHANGED_CODE", { code })
-
-        return
+        if (isAutoFormatting.current) {
+          isAutoFormatting.current = false
+        } else {
+          local.send("CHANGED_CODE", { code })
+        }
       }}
       language="javascript"
       options={{

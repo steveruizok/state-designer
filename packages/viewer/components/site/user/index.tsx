@@ -127,6 +127,21 @@ const Sidebar: React.FC<{}> = ({}) => {
             <Styled.a>Editor</Styled.a>
           </Link>
         </li>
+        <li>
+          <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/accordion">
+            <Styled.a>Accordion</Styled.a>
+          </Link>
+        </li>
+        <li>
+          <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/timer">
+            <Styled.a>Timer</Styled.a>
+          </Link>
+        </li>
+        <li>
+          <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/calculator">
+            <Styled.a>Calculator</Styled.a>
+          </Link>
+        </li>
       </ul>
       <Styled.hr />
       <Button onClick={() => logout()} sx={{ width: "100%" }}>

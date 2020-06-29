@@ -32,14 +32,21 @@ const Save: React.FC = ({}) => {
         data-issuppressed={!local.isIn("state")}
         onClick={() => local.send("TABBED_TO_STATE")}
       >
-        <Circle size={9} strokeWidth={local_e.isIn("same") ? 0 : 4} /> State
+        <Circle
+          size={9}
+          strokeWidth={local_e.isInAny("idle", "same") ? 0 : 4}
+        />{" "}
+        State
       </Button>
       <Button
         variant="tab"
         data-issuppressed={!local.isIn("presentation")}
         onClick={() => local.send("TABBED_TO_PRESENTATION")}
       >
-        <Circle size={9} strokeWidth={local_p.isIn("same") ? 0 : 4} />{" "}
+        <Circle
+          size={9}
+          strokeWidth={local_p.isInAny("idle", "same") ? 0 : 4}
+        />{" "}
         Presentation
       </Button>
     </Grid>

@@ -36,36 +36,44 @@ export const editor = createState({
   states: {
     guest: {},
     owner: {
-      initial: {
-        if: "codeMatchesClean",
-        to: "same",
-        else: {
-          if: "errorIsClear",
-          to: "valid",
-          else: { to: "invalid" },
-        },
-      },
+      initial: "idle",
       states: {
-        same: {},
-        valid: {
+        idle: {
+          on: { CHANGED_CODE: { to: "editing" } },
+        },
+        editing: {
+          initial: {
+            if: "codeMatchesClean",
+            to: "same",
+            else: {
+              if: "errorIsClear",
+              to: "valid",
+              else: { to: "invalid" },
+            },
+          },
+          states: {
+            same: {},
+            valid: {
+              on: {
+                CANCELLED: { do: "resetCode", to: "owner" },
+                QUICK_SAVED: [
+                  "saveDirtyToClean",
+                  "updateFirebase",
+                  { to: "owner" },
+                ],
+                SAVED: ["saveDirtyToClean", "updateFirebase", { to: "idle" }],
+              },
+            },
+            invalid: {
+              on: {
+                CANCELLED: { do: ["resetCode", "clearError"], to: "owner" },
+              },
+            },
+          },
           on: {
-            CANCELLED: { do: "resetCode", to: "owner" },
-            QUICK_SAVED: [
-              "saveDirtyToClean",
-              "updateFirebase",
-              { to: "owner" },
-            ],
-            SAVED: ["saveDirtyToClean", "updateFirebase", { to: "owner" }],
+            CHANGED_CODE: ["setCode", "setError", { to: "owner" }],
           },
         },
-        invalid: {
-          on: {
-            CANCELLED: { do: ["resetCode", "clearError"], to: "owner" },
-          },
-        },
-      },
-      on: {
-        CHANGED_CODE: ["setCode", "setError", { to: "owner" }],
       },
     },
   },
