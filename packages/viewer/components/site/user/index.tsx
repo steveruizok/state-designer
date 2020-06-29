@@ -138,6 +138,11 @@ const Sidebar: React.FC<{}> = ({}) => {
           </Link>
         </li>
         <li>
+          <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/tiles">
+            <Styled.a>Tiles Game</Styled.a>
+          </Link>
+        </li>
+        <li>
           <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/calculator">
             <Styled.a>Calculator</Styled.a>
           </Link>

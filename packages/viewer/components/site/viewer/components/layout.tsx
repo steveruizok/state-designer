@@ -107,7 +107,7 @@ const Layout: React.FC = ({ children }) => {
         align="right"
         initial={BASE_CODE_COL_WIDTH}
         min={80}
-        max={900}
+        max={600}
         gridArea="code"
         motionValue={codeX}
       />

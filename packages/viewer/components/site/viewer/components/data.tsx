@@ -10,10 +10,14 @@ const Data: React.FC = (props) => {
   return (
     <Box
       sx={{
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "scroll",
       }}
     >
-      <Flex variant="contentHeading">
+      <Flex
+        variant="contentHeading"
+        sx={{ position: "sticky", top: 0, left: 0 }}
+      >
         <Heading variant="contentHeading">Data</Heading>
       </Flex>
       <Box sx={{ p: 2 }}>
