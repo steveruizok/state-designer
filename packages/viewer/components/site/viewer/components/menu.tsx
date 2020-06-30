@@ -2,11 +2,18 @@ import * as React from "react"
 import { useUser } from "../../../../auth/useUser"
 import { Flex, IconButton } from "theme-ui"
 import { Home } from "react-feather"
+import { useStateDesigner } from "@state-designer/react"
+import {
+  isProjectNameValid,
+  updateProjectName,
+} from "../../../../utils/firebase"
 import { useRouter } from "next/router"
+import { ui } from "../states/ui"
+import ValueInput from "./value-input"
 
 const Menu: React.FC = ({}) => {
-  const { user, logout } = useUser()
   const router = useRouter()
+  const local = useStateDesigner(ui)
 
   return (
     <Flex
@@ -21,6 +28,16 @@ const Menu: React.FC = ({}) => {
       <IconButton onClick={() => router.push("/user")}>
         <Home />
       </IconButton>
+      <ValueInput
+        value={local.data.pid}
+        transform={(v) => v}
+        validate={(value) =>
+          isProjectNameValid(local.data.pid, local.data.uid, value)
+        }
+        onChange={(value) =>
+          updateProjectName(local.data.pid, local.data.uid, value)
+        }
+      />
     </Flex>
   )
 }

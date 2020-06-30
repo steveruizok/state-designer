@@ -133,6 +133,11 @@ const Sidebar: React.FC<{}> = ({}) => {
           </Link>
         </li>
         <li>
+          <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/dogs">
+            <Styled.a>Dog Pics</Styled.a>
+          </Link>
+        </li>
+        <li>
           <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/timer">
             <Styled.a>Timer</Styled.a>
           </Link>

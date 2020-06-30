@@ -47,12 +47,18 @@ export async function addProject(
 ) {
   const project = getProject(pid, oid)
   const initial = await project.get()
+
   if (initial.exists) {
-    console.log("That project already exists")
+    console.log("That project already exists!")
     return project
   }
 
-  return project.set({ ...template, owner: oid })
+  // Overwrite the template's name and owner
+  return project.set({
+    ...template,
+    name: pid,
+    owner: oid,
+  })
 }
 
 export function updateProject(
@@ -205,4 +211,20 @@ export async function getUserProjectById(uid: string, pid: string) {
     .get()
 
   return project
+}
+
+export async function isProjectNameValid(
+  pid: string,
+  uid: string,
+  name: string
+) {
+  return true
+}
+
+export async function updateProjectName(
+  pid: string,
+  uid: string,
+  name: string
+) {
+  updateProject(pid, uid, { name })
 }

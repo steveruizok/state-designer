@@ -25,6 +25,8 @@ const Save: React.FC = ({}) => {
         borderLeft: "outline",
         borderBottom: "outline",
         borderColor: "border",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
       }}
     >
       <Button

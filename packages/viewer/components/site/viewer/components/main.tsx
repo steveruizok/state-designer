@@ -18,6 +18,7 @@ import {
 } from "framer-motion"
 import StateNode from "./chart/state-node"
 import _ from "lodash"
+import * as Utils from "./main/scope-utils"
 import * as ThemeUI from "theme-ui"
 import * as Components from "@theme-ui/components"
 import { LiveProvider, LiveError, LivePreview } from "react-live"
@@ -161,9 +162,9 @@ const PresentationView: React.FC<{ mvScale: MotionValue<number> }> = ({
         ...WithMotionComponents,
         _,
         Icons,
+        Utils,
         useStateDesigner,
         state: local.data.captive,
-        window: {},
       }}
     >
       <motion.div
