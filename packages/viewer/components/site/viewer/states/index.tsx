@@ -184,7 +184,11 @@ export const Project = createState({
     updateFromFirebase(data, { source }) {
       data.code.jsx = JSON.parse(source.jsx)
       data.code.state = JSON.parse(source.code)
-      data.code.statics = JSON.parse(source.statics || defaultStatics)
+      data.code.statics = JSON.parse(
+        source.statics?.startsWith('"function')
+          ? source.statics
+          : defaultStatics
+      )
       data.code.theme = JSON.parse(source.theme || defaultTheme)
       data.name = source.name
     },

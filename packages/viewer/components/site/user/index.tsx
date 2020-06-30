@@ -152,6 +152,11 @@ const Sidebar: React.FC<{}> = ({}) => {
             <Styled.a>Calculator</Styled.a>
           </Link>
         </li>
+        <li>
+          <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/tetris">
+            <Styled.a>Tetris</Styled.a>
+          </Link>
+        </li>
       </ul>
       <Styled.hr />
       <Button onClick={() => logout()} sx={{ width: "100%" }}>
