@@ -1,6 +1,6 @@
 {
   "name": "viewer",
-  "version": "1.2.21",
+  "version": "1.2.22",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,8 +10,8 @@
   "dependencies": {
     "@emotion/styled": "^10.0.27",
     "@monaco-editor/react": "^3.3.2",
-    "@state-designer/core": "1.2.21",
-    "@state-designer/react": "1.2.21",
+    "@state-designer/core": "1.2.22",
+    "@state-designer/react": "1.2.22",
     "@theme-ui/components": "^0.3.1",
     "@theme-ui/presets": "^0.3.0",
     "@theme-ui/prism": "^0.3.0",
