@@ -15,7 +15,7 @@ const Save: React.FC = ({}) => {
   const local = useStateDesigner(Project)
   const local_state = useStateDesigner(StateEditorState)
   const local_jsx = useStateDesigner(JsxEditorState)
-  const local_theme = useStateDesigner(ThemeEditorState)
+  // const local_theme = useStateDesigner(ThemeEditorState)
   const local_static = useStateDesigner(StaticsEditorState)
 
   return (
@@ -27,7 +27,8 @@ const Save: React.FC = ({}) => {
         bg: "muted",
         p: 0,
         width: "100%",
-        gridTemplateColumns: "1fr 1fr 1fr 1fr",
+        gridAutoFlow: "column",
+        gridAutoColumns: "1fr",
         borderLeft: "outline",
         borderBottom: "outline",
         borderColor: "border",
@@ -57,7 +58,7 @@ const Save: React.FC = ({}) => {
         />{" "}
         View
       </Button>
-      <Button
+      {/* <Button
         variant="tab"
         data-issuppressed={!local.isIn("tabs.theme")}
         onClick={() => local.send("TABBED_TO_THEME")}
@@ -67,7 +68,7 @@ const Save: React.FC = ({}) => {
           strokeWidth={local_theme.isInAny("idle", "pristine") ? 0 : 4}
         />{" "}
         Theme
-      </Button>
+      </Button> */}
       <Button
         variant="tab"
         data-issuppressed={!local.isIn("tabs.static")}

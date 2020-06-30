@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.22
+
+- Stops loops, timeouts and intervals when `reset`ting a state.
+
 ## 1.2.21
 
 - Adds `state.log`. This is a wee baby feature that will change soon to aid in debugging / visual tooling.

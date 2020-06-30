@@ -1,5 +1,6 @@
 // @jsx jsx
 import * as React from "react"
+import * as Utils from "../../static/scope-utils"
 import { jsx, Button, useThemeUI } from "theme-ui"
 import { motion, useAnimation } from "framer-motion"
 import { PlayCircle, Square } from "react-feather"
@@ -45,7 +46,11 @@ const EventItem: React.FC<{
         variant="contentEvent"
         onClick={() => {
           try {
-            const value = Function(`return ${payload}`)()
+            const value = Function(
+              "Utils",
+              "Static",
+              `return ${payload}`
+            )(Utils, Project.data.statics)
             Project.data.captive.send(eventName, value)
           } catch (e) {
             console.warn("Error in event payload:", eventName)

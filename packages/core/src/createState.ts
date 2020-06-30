@@ -816,6 +816,9 @@ export function createState<
    * Reset state based on original design.
    */
   function reset(): Snapshot {
+    stopLoop()
+    StateTree.recursivelyEndStateIntervals(snapshot.stateTree)
+
     Object.assign(snapshot, {
       data: produce(design.data, (d) => d) as D,
       stateTree: getStateTreeFromDesign(design, id),

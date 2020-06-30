@@ -52,7 +52,10 @@ const Payload: React.FC<{
           })
 
           try {
-            const value = Function(`return ${e.target.value}`)()
+            const value = Function(
+              "Static",
+              `return ${e.target.value}`
+            )(Project.data.statics)
             setInputIsValid(can(selectedEvent, value))
             setInputError("")
           } catch (e) {
@@ -65,7 +68,10 @@ const Payload: React.FC<{
         variant="secondary"
         disabled={!inputIsValid}
         onClick={() => {
-          const value = Function(`return ${payloads[selectedEvent]}`)()
+          const value = Function(
+            "Static",
+            `return ${payloads[selectedEvent]}`
+          )(Project.data.statics)
           Project.data.captive.send(selectedEvent, value)
         }}
       >

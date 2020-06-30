@@ -8,6 +8,7 @@ import {
   subscribeToDocSnapshot,
   ProjectResponse,
 } from "../../../../utils/firebase"
+import * as Utils from "../static/scope-utils"
 
 /* -------------------------------------------------- */
 /*                    Main Project                    */
@@ -57,7 +58,12 @@ export const Project = createState({
           },
           "updateStates",
         ],
-        CHANGED_CODE: ["setCode", "updateStates", "updateFirebase"],
+        CHANGED_CODE: [
+          "setCode",
+          "setStaticValues",
+          "updateStates",
+          "updateFirebase",
+        ],
         CHANGED_NAME: "setName",
       },
       states: {
@@ -71,7 +77,7 @@ export const Project = createState({
           },
           states: {
             state: {
-              on: { CHANGED_CODE: "setCaptiveState" },
+              on: { CHANGED_CODE: ["setStaticValues", "setCaptiveState"] },
             },
             jsx: {},
             static: {
@@ -139,7 +145,7 @@ export const Project = createState({
 
       try {
         const code = theme.slice(14)
-        data.theme = Function("statics", `return ${code}`)(data.statics)
+        data.theme = Function("Static", `return ${code}`)(data.statics)
         data.error = ""
       } catch (err) {
         console.warn("Error building theme", err)
@@ -150,7 +156,7 @@ export const Project = createState({
       const { statics } = data.code
 
       try {
-        data.statics = Function("window", `return ${statics}()`)(window)
+        data.statics = Function("Utils", `return ${statics}()`)(Utils)
         data.error = ""
       } catch (err) {
         console.warn("Error building statics", err)
@@ -165,9 +171,10 @@ export const Project = createState({
       try {
         data.captive = Function(
           "fn",
-          "static",
+          "Static",
+          "Utils",
           `return fn(${code})`
-        )(createState, data.statics)
+        )(createState, data.statics, Utils)
         data.error = ""
       } catch (err) {
         console.warn("Error building captive state", err)
@@ -233,10 +240,11 @@ export const StateEditorState = createCodeEditorState({
   validate: (code) => {
     try {
       Function(
-        "statics",
-        "fn",
-        `fn(${code.slice(12, -2)})`
-      )(createState, Project.data.statics)
+        "createState",
+        "Static",
+        "Utils",
+        code
+      )(createState, Project.data.statics, Utils)
     } catch (e) {
       throw e
     }
@@ -254,7 +262,7 @@ export const ThemeEditorState = createCodeEditorState({
   onSave: (code) => Project.send("CHANGED_CODE", { globalId: "theme", code }),
   validate: (code) => {
     try {
-      Function(code)
+      Function("Utils", "Static", code)(Utils, Project.data.statics)
     } catch (e) {
       throw e
     }
@@ -266,7 +274,7 @@ export const StaticsEditorState = createCodeEditorState({
   onSave: (code) => Project.send("CHANGED_CODE", { globalId: "statics", code }),
   validate: (code) => {
     try {
-      Function(code)()
+      Function("Utils", code)(Utils)
     } catch (e) {
       throw e
     }

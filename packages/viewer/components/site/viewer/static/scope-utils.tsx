@@ -1,4 +1,5 @@
 import * as React from "react"
+import { cloneDeep, sample } from "lodash"
 
 // Shared helper functions for tutorials.
 
@@ -86,9 +87,12 @@ type KeyboardEventHandlers = Record<string, KeyHandlers>
 export function useKeyboardInputs(
   handlers: KeyboardEventHandlers = { onKeyDown: {}, onKeyUp: {} }
 ) {
-  const { onKeyDown, onKeyUp } = handlers
+  const ref = React.useRef<HTMLElement>()
+  const element = ref.current
 
   React.useEffect(() => {
+    if (!element) return
+    const { onKeyDown, onKeyUp } = handlers
     function handleKeydown(event: KeyboardEvent) {
       if (onKeyDown?.[event.key] !== undefined) {
         event.preventDefault()
@@ -103,23 +107,29 @@ export function useKeyboardInputs(
       }
     }
 
-    document.body.addEventListener("keydown", handleKeydown)
-    document.body.addEventListener("keyup", handleKeyup)
+    element.addEventListener("keydown", handleKeydown)
+    element.addEventListener("keyup", handleKeyup)
 
     return () => {
-      document.body.removeEventListener("keydown", handleKeydown)
-      document.body.removeEventListener("keyup", handleKeyup)
+      element.removeEventListener("keydown", handleKeydown)
+      element.removeEventListener("keyup", handleKeyup)
     }
-  }, [])
+  }, [element])
+
+  return ref
 }
 
 type MouseEventHandler = (event: MouseEvent) => void
 type MouseEventHandlers = Record<string, MouseEventHandler>
 
 export function useMouseInput(handlers: MouseEventHandlers) {
+  const ref = React.useRef<HTMLElement>()
   const { onMouseUp, onMouseDown, onMouseMove } = handlers
+  const element = ref.current
 
   React.useEffect(() => {
+    if (!element) return
+
     function handleMouseUp(event) {
       onMouseUp && onMouseUp(event)
     }
@@ -132,16 +142,18 @@ export function useMouseInput(handlers: MouseEventHandlers) {
       onMouseMove && onMouseMove(event)
     }
 
-    document.body.addEventListener("mousedown", handleMouseDown)
-    document.body.addEventListener("mouseup", handleMouseUp)
-    document.body.addEventListener("mousemove", handleMouseMove)
+    element.addEventListener("mousedown", handleMouseDown)
+    element.addEventListener("mouseup", handleMouseUp)
+    element.addEventListener("mousemove", handleMouseMove)
 
     return () => {
-      document.body.removeEventListener("mousedown", handleMouseDown)
-      document.body.removeEventListener("mouseup", handleMouseUp)
-      document.body.removeEventListener("mousemove", handleMouseMove)
+      element.removeEventListener("mousedown", handleMouseDown)
+      element.removeEventListener("mouseup", handleMouseUp)
+      element.removeEventListener("mousemove", handleMouseMove)
     }
-  }, [])
+  }, [element])
+
+  return ref
 }
 
 /**
@@ -153,3 +165,5 @@ export function useMouseInput(handlers: MouseEventHandlers) {
 export function lerp(a: number, b: number, t: number) {
   return a * (1 - t) + b * t
 }
+
+export { cloneDeep, sample }

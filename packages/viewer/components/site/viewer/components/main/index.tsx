@@ -1,6 +1,6 @@
 // @jsx jsx
 import * as React from "react"
-import { jsx, Box, IconButton, ThemeProvider, useColorMode } from "theme-ui"
+import { jsx, Box, IconButton } from "theme-ui"
 import { getFlatStates } from "../../utils"
 import { useGesture } from "react-use-gesture"
 import * as Motion from "framer-motion"
@@ -14,12 +14,10 @@ import {
   MotionValue,
 } from "framer-motion"
 import StateNode from "../chart/state-node"
-import _ from "lodash"
+import * as Utils from "../../static/scope-utils"
 import * as Icons from "react-feather"
-import * as Utils from "./scope-utils"
 import * as ThemeUI from "theme-ui"
 import * as Components from "@theme-ui/components"
-import { base } from "@theme-ui/presets"
 import { LiveProvider, LiveError, LivePreview } from "react-live"
 import { Project, UI, JsxEditorState } from "../../states"
 
@@ -151,7 +149,7 @@ const ChartView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
 }
 
 const JsxView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
-  const [colorMode] = useColorMode()
+  // const [colorMode] = useColorMode()
   const project = useStateDesigner(Project)
   const jsxEditor = useStateDesigner(JsxEditorState)
 
@@ -159,15 +157,15 @@ const JsxView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
   // const rContainer = usePreventZooming()
   // const [bind, scale] = useScaleZooming(false, true, 0.25, 3, mvScale)
 
-  const theme = React.useMemo(() => {
-    const { theme } = project.data
+  // const theme = React.useMemo(() => {
+  //   const { theme } = project.data
 
-    if (theme.initialColorMode === undefined) {
-      theme.initialColorMode = colorMode
-    }
+  //   if (theme.initialColorMode === undefined) {
+  //     theme.initialColorMode = colorMode
+  //   }
 
-    return { ...base, ...theme }
-  }, [project.data.theme, project.data.statics, colorMode])
+  //   return { ...base, ...theme }
+  // }, [project.data.theme, project.data.statics, colorMode])
 
   return (
     <LiveProvider
@@ -176,11 +174,10 @@ const JsxView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
         ...ThemeUI,
         ...Motion,
         ...WithMotionComponents,
-        _,
         Icons,
         Utils,
         useStateDesigner,
-        statics: project.data.statics,
+        Static: project.data.statics,
         state: project.data.captive,
       }}
     >
@@ -212,9 +209,9 @@ const JsxView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
             justifyContent: "center",
           }}
         >
-          <ThemeProvider theme={theme}>
-            <LivePreview />
-          </ThemeProvider>
+          {/* <ThemeProvider theme={theme}> */}
+          <LivePreview />
+          {/* </ThemeProvider> */}
         </motion.div>
         <LiveError
           sx={{
