@@ -4,7 +4,7 @@ import { jsx, Button, useThemeUI } from "theme-ui"
 import { motion, useAnimation } from "framer-motion"
 import { PlayCircle, Square } from "react-feather"
 import ContentRowItem from "./content-row-item"
-import { ui } from "../../states/ui"
+import { Project } from "../../states"
 import { Highlights } from "../../states/highlights"
 
 const EventItem: React.FC<{
@@ -46,7 +46,7 @@ const EventItem: React.FC<{
         onClick={() => {
           try {
             const value = Function(`return ${payload}`)()
-            ui.data.captive.send(eventName, value)
+            Project.data.captive.send(eventName, value)
           } catch (e) {
             console.warn("Error in event payload:", eventName)
           }

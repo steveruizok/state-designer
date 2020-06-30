@@ -6,12 +6,12 @@ import StateItem from "./state-item"
 import Payload from "./payload"
 import { jsx, Grid, Box, Styled } from "theme-ui"
 import { useStateDesigner } from "@state-designer/react"
-import { ui } from "../../states/ui"
+import { Project } from "../../states"
 import { Highlights } from "../../states/highlights"
 import ContentSection from "./content-section"
 
 const Content: React.FC = () => {
-  const local = useStateDesigner(ui)
+  const local = useStateDesigner(Project)
   const captive = useStateDesigner(local.data.captive, [local.data.captive])
 
   const allEvents = getAllEvents(captive.stateTree)

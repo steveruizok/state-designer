@@ -4,7 +4,7 @@ import { Box, Text, IconButton, Grid, Button, jsx } from "theme-ui"
 import { Circle, Save as SaveIcon, RefreshCcw, FilePlus } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import { editor } from "../states/editor"
-import { ui } from "../states/ui"
+import { Project } from "../states"
 
 const Save: React.FC = ({}) => {
   const local = useStateDesigner(editor)
@@ -24,7 +24,7 @@ const Save: React.FC = ({}) => {
     >
       {local.isIn("guest") ? (
         <Button
-          onClick={() => ui.send("FORKED_PROJECT")}
+          onClick={() => local.send("FORKED_PROJECT")}
           sx={{
             gridColumn: "1 / span 4",
           }}

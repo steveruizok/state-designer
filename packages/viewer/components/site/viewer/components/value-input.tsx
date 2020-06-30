@@ -3,7 +3,7 @@ import { Flex, Label, Input, Spinner } from "theme-ui"
 import { Home } from "react-feather"
 import { createState, useStateDesigner } from "@state-designer/react"
 import { useRouter } from "next/router"
-import { nameEditor } from "../states"
+import { NameEditor } from "../states"
 
 const ValueInput: React.FC<{
   value: string
@@ -11,7 +11,7 @@ const ValueInput: React.FC<{
   transform: (value: string) => string
   onChange: (value: string) => void
 }> = ({ value, transform, validate, onChange }) => {
-  const { send, isIn, values } = useStateDesigner(nameEditor)
+  const { send, isIn, values } = useStateDesigner(NameEditor)
 
   const rInput = React.useRef<HTMLInputElement>()
 

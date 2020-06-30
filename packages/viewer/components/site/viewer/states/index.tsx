@@ -2,16 +2,18 @@
 import { createState } from "@state-designer/core"
 import { createSimpleEditorState } from "./createSimpleEditorState"
 import { createCodeEditorState } from "./createCodeEditorState"
+import { defaultTheme, defaultStatics } from "../static/defaults"
 import {
   updateProject,
   subscribeToDocSnapshot,
+  ProjectResponse,
 } from "../../../../utils/firebase"
 
 /* -------------------------------------------------- */
 /*                    Main Project                    */
 /* -------------------------------------------------- */
 
-export const project = createState({
+export const Project = createState({
   data: {
     name: "",
     oid: "",
@@ -19,31 +21,73 @@ export const project = createState({
     pid: "",
     error: "",
     isOwner: false,
+    theme: {} as { [key: string]: any },
     captive: createState({}),
+    statics: {},
     code: {
       state: "",
       jsx: "",
-      theme: "",
+      theme: defaultTheme,
       statics: "",
     },
   },
   initial: "loading",
   states: {
-    idle: {},
     loading: {
       on: {
-        SNAPSHOT_UPDATED: { do: "updateStates", to: "ready" },
+        SNAPSHOT_UPDATED: {
+          do: [
+            "updateFromFirebase",
+            "setStaticValues",
+            "setCaptiveState",
+            "setCaptiveTheme",
+            "updateStates",
+          ],
+          to: "ready",
+        },
       },
     },
     ready: {
-      onEvent: "updateStates",
       on: {
-        SNAPSHOT_UPDATED: {},
-        CHANGED_NAME: "setName",
-        CHANGED_CODE: [
-          { if: "changeUpdatesState", do: "setCaptiveState" },
-          "setCode",
+        SNAPSHOT_UPDATED: [
+          "updateFromFirebase",
+          {
+            if: "changeUpdatesCaptiveState",
+            do: ["setStaticValues", "setCaptiveState", "setCaptiveTheme"],
+          },
+          "updateStates",
         ],
+        CHANGED_CODE: ["setCode", "updateStates", "updateFirebase"],
+        CHANGED_NAME: "setName",
+      },
+      states: {
+        tabs: {
+          initial: "state",
+          on: {
+            TABBED_TO_STATE: { to: "state" },
+            TABBED_TO_JSX: { to: "jsx" },
+            TABBED_TO_STATIC: { to: "static" },
+            TABBED_TO_THEME: { to: "theme" },
+          },
+          states: {
+            state: {
+              on: { CHANGED_CODE: "setCaptiveState" },
+            },
+            jsx: {},
+            static: {
+              on: {
+                CHANGED_CODE: [
+                  "setStaticValues",
+                  "setCaptiveTheme",
+                  "setCaptiveState",
+                ],
+              },
+            },
+            theme: {
+              on: { CHANGED_CODE: ["setCaptiveTheme"] },
+            },
+          },
+        },
       },
     },
   },
@@ -54,12 +98,12 @@ export const project = createState({
     },
   },
   conditions: {
-    changeUpdatesState(data, { globalId }) {
-      return globalId === "state"
+    changeUpdatesCaptiveState(data, { source }) {
+      return false // maybe this will happen when editor state changes
     },
   },
   actions: {
-    setupProject(d, { data }) {
+    setupProject(d, { data }: { data: ProjectResponse }) {
       d.error = ""
       d.pid = data.pid
       d.oid = data.oid
@@ -71,40 +115,108 @@ export const project = createState({
 
       subscribeToDocSnapshot(pid, oid, (doc) => {
         const source = doc.data()
-        project.send("SNAPSHOT_UPDATED", { source })
+        Project.send("SNAPSHOT_UPDATED", { source })
       })
     },
     setCode(data, { globalId, code }) {
-      data[globalId] = code
+      data.code[globalId] = code
     },
     setName(data, { name }) {
       data.name = name
     },
     updateFirebase(data) {
       const { pid, oid, code } = data
-      updateProject(pid, oid, code)
+
+      updateProject(pid, oid, {
+        jsx: JSON.stringify(code.jsx),
+        statics: JSON.stringify(code.statics),
+        theme: JSON.stringify(code.theme),
+        code: JSON.stringify(code.state),
+      })
+    },
+    setCaptiveTheme(data) {
+      const { theme } = data.code
+
+      try {
+        const code = theme.slice(14)
+        data.theme = Function("statics", `return ${code}`)(data.statics)
+        data.error = ""
+      } catch (err) {
+        console.warn("Error building theme", err)
+        data.error = err.message
+      }
+    },
+    setStaticValues(data) {
+      const { statics } = data.code
+
+      try {
+        data.statics = Function("window", `return ${statics}()`)(window)
+        data.error = ""
+      } catch (err) {
+        console.warn("Error building statics", err)
+        data.error = err.message
+      }
     },
     setCaptiveState(data) {
       const { state } = data.code
 
-      let code = JSON.parse(state).slice(12, -2) // trim createState call
+      let code = state.slice(12, -2) // trim createState call
 
       try {
-        const design = Function("return " + code)()
-        data.captive = createState(design)
+        data.captive = Function(
+          "fn",
+          "static",
+          `return fn(${code})`
+        )(createState, data.statics)
         data.error = ""
       } catch (err) {
         console.warn("Error building captive state", err)
         data.error = err.message
       }
     },
+    updateFromFirebase(data, { source }) {
+      data.code.jsx = JSON.parse(source.jsx)
+      data.code.state = JSON.parse(source.code)
+      data.code.statics = JSON.parse(source.statics || defaultStatics)
+      data.code.theme = JSON.parse(source.theme || defaultTheme)
+      data.name = source.name
+    },
     updateStates(data) {
       const { jsx, state, theme, statics } = data.code
-      jsxEditor.send("REFRESHED", { code: jsx })
-      stateEditor.send("REFRESHED", { code: state })
-      themeEditor.send("REFRESHED", { code: theme })
-      staticsEditor.send("REFRESHED", { code: statics })
-      nameEditor.send("REFRESHED", { value: data.name })
+      JsxEditorState.send("REFRESHED", { code: jsx })
+      StateEditorState.send("REFRESHED", { code: state })
+      ThemeEditorState.send("REFRESHED", { code: theme })
+      StaticsEditorState.send("REFRESHED", { code: statics })
+      NameEditor.send("REFRESHED", { value: data.name })
+    },
+  },
+})
+
+/* -------------------------------------------------- */
+/*                         UI                         */
+/* -------------------------------------------------- */
+
+export const UI = createState({
+  data: {
+    zoomedPath: "",
+  },
+  on: {
+    ZOOMED_TO_NODE: "setZoomedPath",
+  },
+  states: {
+    zoomedOut: {
+      on: { ZOOMED_TO_NODE: { to: "zoomedIn" } },
+    },
+    zoomedIn: {
+      on: { ZOOMED_OUT: { do: "clearZoomedPath", to: "zoomedOut" } },
+    },
+  },
+  actions: {
+    setZoomedPath(data, { path }) {
+      data.zoomedPath = path
+    },
+    clearZoomedPath(data) {
+      data.zoomedPath = ""
     },
   },
 })
@@ -113,63 +225,57 @@ export const project = createState({
 /*                       Editors                      */
 /* -------------------------------------------------- */
 
-export const stateEditor = createCodeEditorState({
+export const StateEditorState = createCodeEditorState({
   defaultValue: "",
-  onSave: (code) => project.send("CHANGED_CODE", { globalId: "state", code }),
+  onSave: (code) => {
+    Project.send("CHANGED_CODE", { globalId: "state", code })
+  },
   validate: (code) => {
-    let err = ""
-
     try {
-      Function("fn", `fn(${code.slice(12, -2)})`)(createState)
+      Function(
+        "statics",
+        "fn",
+        `fn(${code.slice(12, -2)})`
+      )(createState, Project.data.statics)
     } catch (e) {
-      err = e.message
+      throw e
     }
-
-    return err
   },
 })
 
-export const jsxEditor = createCodeEditorState({
+export const JsxEditorState = createCodeEditorState({
   defaultValue: "",
-  onSave: (code) => project.send("CHANGED_CODE", { globalId: "jsx", code }),
+  onSave: (code) => Project.send("CHANGED_CODE", { globalId: "jsx", code }),
   validate: () => "",
 })
 
-export const themeEditor = createCodeEditorState({
+export const ThemeEditorState = createCodeEditorState({
   defaultValue: "",
-  onSave: (code) => project.send("CHANGED_CODE", { globalId: "theme", code }),
+  onSave: (code) => Project.send("CHANGED_CODE", { globalId: "theme", code }),
   validate: (code) => {
-    let err = ""
-
     try {
       Function(code)
     } catch (e) {
-      err = e.message
+      throw e
     }
-
-    return err
   },
 })
 
-export const staticsEditor = createCodeEditorState({
+export const StaticsEditorState = createCodeEditorState({
   defaultValue: "",
-  onSave: (code) => project.send("CHANGED_CODE", { globalId: "statics", code }),
+  onSave: (code) => Project.send("CHANGED_CODE", { globalId: "statics", code }),
   validate: (code) => {
-    let err = ""
-
     try {
-      Function(code)
+      Function(code)()
     } catch (e) {
-      err = e.message
+      throw e
     }
-
-    return err
   },
 })
 
-export const nameEditor = createSimpleEditorState({
+export const NameEditor = createSimpleEditorState({
   defaultValue: "",
-  onSave: (name) => project.send("CHANGED_NAME", { name }),
+  onSave: (name) => Project.send("CHANGED_NAME", { name }),
 })
 
 /* -------------------------------------------------- */

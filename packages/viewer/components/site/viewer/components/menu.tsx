@@ -8,12 +8,12 @@ import {
   updateProjectName,
 } from "../../../../utils/firebase"
 import { useRouter } from "next/router"
-import { ui } from "../states/ui"
+import { Project } from "../states"
 import ValueInput from "./value-input"
 
 const Menu: React.FC = ({}) => {
   const router = useRouter()
-  const local = useStateDesigner(ui)
+  const local = useStateDesigner(Project)
 
   return (
     <Flex

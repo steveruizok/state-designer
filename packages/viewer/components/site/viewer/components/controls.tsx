@@ -1,14 +1,14 @@
 // @jsx jsx
 import * as React from "react"
 import { forkProject } from "../../../../utils/firebase"
-import { ui } from "../states/ui"
+import { Project } from "../states"
 import { Sun, Moon, Copy } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import { jsx, Flex, IconButton, Button, useColorMode } from "theme-ui"
 
 const Controls: React.FC = ({}) => {
   const [colorMode, setColorMode] = useColorMode()
-  const local = useStateDesigner(ui)
+  const local = useStateDesigner(Project)
 
   return (
     <Flex

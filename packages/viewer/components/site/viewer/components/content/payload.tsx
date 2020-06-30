@@ -2,10 +2,10 @@
 import * as React from "react"
 import { Grid, Button, Select, Textarea, Flex, jsx } from "theme-ui"
 import { PlayCircle, AlertOctagon } from "react-feather"
-import { ui } from "../../states/ui"
+import { Project } from "../../states"
 
 const Payload: React.FC<{
-  can: typeof ui.can
+  can: typeof Project.can
   eventNames: string[]
   payloads: Record<string, string>
   setPayloads: React.Dispatch<React.SetStateAction<Record<string, string>>>
@@ -66,7 +66,7 @@ const Payload: React.FC<{
         disabled={!inputIsValid}
         onClick={() => {
           const value = Function(`return ${payloads[selectedEvent]}`)()
-          ui.data.captive.send(selectedEvent, value)
+          Project.data.captive.send(selectedEvent, value)
         }}
       >
         Send Event

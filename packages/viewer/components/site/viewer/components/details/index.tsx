@@ -2,12 +2,11 @@ import * as React from "react"
 import { Grid } from "theme-ui"
 import Data from "./data"
 import Values from "./values"
-import Log from "./log"
-import { ui } from "../../states/ui"
+import { Project } from "../../states"
 import { useStateDesigner } from "@state-designer/react"
 
 const Details: React.FC = (props) => {
-  const local = useStateDesigner(ui)
+  const local = useStateDesigner(Project)
   const captive = useStateDesigner(local.data.captive, [local.data.captive])
 
   return (
@@ -17,7 +16,7 @@ const Details: React.FC = (props) => {
         position: "relative",
         gridArea: "detail",
         gridAutoFlow: "column",
-        gridAutoColumns: "1fr 1fr",
+        gridAutoColumns: "1fr",
         borderTop: "outline",
         borderColor: "border",
         gap: 0,

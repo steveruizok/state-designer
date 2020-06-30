@@ -1,14 +1,11 @@
 // @jsx jsx
 import * as React from "react"
-import { jsx, Box, IconButton } from "theme-ui"
-import { getFlatStates } from "../utils"
-import * as Motion from "framer-motion"
-import * as Icons from "react-feather"
-import { Minimize, Compass, RefreshCw } from "react-feather"
-import { ui } from "../states/ui"
-import { presentation } from "../states/presentation"
-import { useStateDesigner } from "@state-designer/react"
+import { jsx, Box, IconButton, ThemeProvider, useColorMode } from "theme-ui"
+import { getFlatStates } from "../../utils"
 import { useGesture } from "react-use-gesture"
+import * as Motion from "framer-motion"
+import { Minimize, Compass, RefreshCw } from "react-feather"
+import { useStateDesigner } from "@state-designer/react"
 import {
   motion,
   useMotionValue,
@@ -16,13 +13,17 @@ import {
   MotionProps,
   MotionValue,
 } from "framer-motion"
-import StateNode from "./chart/state-node"
+import StateNode from "../chart/state-node"
 import _ from "lodash"
-import * as Utils from "./main/scope-utils"
+import * as Icons from "react-feather"
+import * as Utils from "./scope-utils"
 import * as ThemeUI from "theme-ui"
 import * as Components from "@theme-ui/components"
+import { base } from "@theme-ui/presets"
 import { LiveProvider, LiveError, LivePreview } from "react-live"
+import { Project, UI, JsxEditorState } from "../../states"
 
+// Wrap Theme-UI components in Framer Motion
 const WithMotionComponents = Object.fromEntries(
   Object.entries(Components).map(([k, v]) => {
     return [k, motion.custom(v as any)]
@@ -30,7 +31,7 @@ const WithMotionComponents = Object.fromEntries(
 )
 
 const Main: React.FC = ({}) => {
-  const local = useStateDesigner(ui)
+  const local = useStateDesigner(Project)
   const stateScale = useMotionValue(1)
   const presScale = useMotionValue(1)
 
@@ -49,15 +50,15 @@ const Main: React.FC = ({}) => {
       }}
     >
       {local.whenIn({
-        "ready.state": <ChartView mvScale={stateScale} />,
-        "ready.presentation": <PresentationView mvScale={presScale} />,
+        "tabs.state": <ChartView mvScale={stateScale} />,
+        default: <JsxView mvScale={presScale} />,
       })}
 
       <IconButton
         data-hidey="true"
         sx={{ position: "absolute", bottom: 0, right: 0 }}
         title="Reset State"
-        onClick={() => ui.data.captive?.reset()}
+        onClick={() => Project.data.captive?.reset()}
       >
         <RefreshCw />
       </IconButton>
@@ -95,6 +96,8 @@ function usePreventZooming() {
 }
 
 function useScaleZooming(
+  wheel: boolean = true,
+  pinch: boolean = true,
   minZoom: number = 0.25,
   maxZoom: number = 2.5,
   mvScale?: MotionValue<number>
@@ -104,13 +107,14 @@ function useScaleZooming(
   const bind = useGesture({
     onPinch: ({ delta }) => {
       const mv = mvScale || localMvScale
-      const scale = mvScale.get()
-      mvScale.set(Math.max(minZoom, Math.min(maxZoom, scale - delta[1] / 60)))
+      const scale = mv.get()
+      pinch &&
+        mv.set(Math.max(minZoom, Math.min(maxZoom, scale - delta[1] / 60)))
     },
     onWheel: ({ vxvy: [, vy] }) => {
       const mv = mvScale || localMvScale
-      const scale = mvScale.get()
-      mvScale.set(Math.max(minZoom, Math.min(maxZoom, scale + vy / 30)))
+      const scale = mv.get()
+      wheel && mv.set(Math.max(minZoom, Math.min(maxZoom, scale + vy / 30)))
     },
   })
 
@@ -118,10 +122,13 @@ function useScaleZooming(
 }
 
 const ChartView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
-  const local = useStateDesigner(ui)
-  const captive = useStateDesigner(local.data.captive, [local.data.captive])
+  const { data } = useStateDesigner(Project)
+  const ui = useStateDesigner(UI)
+
+  const captive = useStateDesigner(data.captive, [data.captive])
+
   const states = getFlatStates(captive.stateTree)
-  const zoomed = states.find((node) => node.path === local.data.zoomed)
+  const zoomed = states.find((node) => node.path === ui.data.zoomedPath)
 
   return (
     <CanvasContainer
@@ -143,19 +150,28 @@ const ChartView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
   )
 }
 
-const PresentationView: React.FC<{ mvScale: MotionValue<number> }> = ({
-  mvScale,
-}) => {
-  const local = useStateDesigner(ui)
-  const pres = useStateDesigner(presentation)
-  const animation = useAnimation()
+const JsxView: React.FC<{ mvScale: MotionValue<number> }> = ({ mvScale }) => {
+  const [colorMode] = useColorMode()
+  const project = useStateDesigner(Project)
+  const jsxEditor = useStateDesigner(JsxEditorState)
 
-  const rContainer = usePreventZooming()
-  const [bind, scale] = useScaleZooming(0.25, 3, mvScale)
+  // const animation = useAnimation()
+  // const rContainer = usePreventZooming()
+  // const [bind, scale] = useScaleZooming(false, true, 0.25, 3, mvScale)
+
+  const theme = React.useMemo(() => {
+    const { theme } = project.data
+
+    if (theme.initialColorMode === undefined) {
+      theme.initialColorMode = colorMode
+    }
+
+    return { ...base, ...theme }
+  }, [project.data.theme, project.data.statics, colorMode])
 
   return (
     <LiveProvider
-      code={pres.data.dirty}
+      code={jsxEditor.data.dirty}
       scope={{
         ...ThemeUI,
         ...Motion,
@@ -164,30 +180,41 @@ const PresentationView: React.FC<{ mvScale: MotionValue<number> }> = ({
         Icons,
         Utils,
         useStateDesigner,
-        state: local.data.captive,
+        statics: project.data.statics,
+        state: project.data.captive,
       }}
     >
       <motion.div
-        ref={rContainer}
-        style={{ width: "100%", height: "100%" }}
-        {...bind()}
+        // ref={rContainer}
+        style={{
+          width: "100%",
+          height: "100%",
+          overflow: "scroll",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        // {...bind()}
       >
         <motion.div
-          style={{ scale }}
-          animate={animation}
+          // style={{ scale }}
+          // animate={animation}
           sx={{
             p: 2,
-            display: "flex",
-            height: "100%",
-            width: "100%",
-            gridTemplateRows: "1fr",
             fontSize: 16,
             position: "relative",
-            alignItems: "center",
+            maxHeight: "100%",
+            width: "100%",
+            maxWidth: "100%",
+            overflow: "scroll",
+            display: "flex",
+            alignItems: "flex-start",
             justifyContent: "center",
           }}
         >
-          <LivePreview />
+          <ThemeProvider theme={theme}>
+            <LivePreview />
+          </ThemeProvider>
         </motion.div>
         <LiveError
           sx={{
@@ -203,14 +230,14 @@ const PresentationView: React.FC<{ mvScale: MotionValue<number> }> = ({
             bg: "scrim",
           }}
         />
-        <IconButton
+        {/* <IconButton
           data-hidey="true"
           sx={{ position: "absolute", top: 0, right: 0 }}
           title="Reset Canvas"
           onClick={() => animation.start({ scale: 1 })}
         >
           <Compass />
-        </IconButton>
+        </IconButton> */}
       </motion.div>
     </LiveProvider>
   )
@@ -239,7 +266,7 @@ const CanvasContainer: React.FC<
   const animation = useAnimation()
 
   const rContainer = usePreventZooming()
-  const [bind, scale] = useScaleZooming(0.25, 3, mvScale)
+  const [bind, scale] = useScaleZooming(true, true, 0.25, 3, mvScale)
 
   function resetScrollPosition() {
     animation.start({ x: 0, y: 0, scale: 1 })

@@ -3,14 +3,20 @@ import * as React from "react"
 import { Box, Text, IconButton, Grid, Button, jsx } from "theme-ui"
 import { Circle, Save as SaveIcon, RefreshCcw, FilePlus } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import { editor } from "../states/editor"
-import { ui } from "../states/ui"
-import { presentation } from "../states/presentation"
+import {
+  Project,
+  StateEditorState,
+  JsxEditorState,
+  ThemeEditorState,
+  StaticsEditorState,
+} from "../states"
 
 const Save: React.FC = ({}) => {
-  const local_e = useStateDesigner(editor)
-  const local_p = useStateDesigner(presentation)
-  const local = useStateDesigner(ui)
+  const local = useStateDesigner(Project)
+  const local_state = useStateDesigner(StateEditorState)
+  const local_jsx = useStateDesigner(JsxEditorState)
+  const local_theme = useStateDesigner(ThemeEditorState)
+  const local_static = useStateDesigner(StaticsEditorState)
 
   return (
     <Grid
@@ -21,7 +27,7 @@ const Save: React.FC = ({}) => {
         bg: "muted",
         p: 0,
         width: "100%",
-        gridTemplateColumns: "1fr 1fr",
+        gridTemplateColumns: "1fr 1fr 1fr 1fr",
         borderLeft: "outline",
         borderBottom: "outline",
         borderColor: "border",
@@ -31,25 +37,47 @@ const Save: React.FC = ({}) => {
     >
       <Button
         variant="tab"
-        data-issuppressed={!local.isIn("state")}
+        data-issuppressed={!local.isIn("tabs.state")}
         onClick={() => local.send("TABBED_TO_STATE")}
       >
         <Circle
           size={9}
-          strokeWidth={local_e.isInAny("idle", "same") ? 0 : 4}
+          strokeWidth={local_state.isInAny("idle", "pristine") ? 0 : 4}
         />{" "}
         State
       </Button>
       <Button
         variant="tab"
-        data-issuppressed={!local.isIn("presentation")}
-        onClick={() => local.send("TABBED_TO_PRESENTATION")}
+        data-issuppressed={!local.isIn("tabs.jsx")}
+        onClick={() => local.send("TABBED_TO_JSX")}
       >
         <Circle
           size={9}
-          strokeWidth={local_p.isInAny("idle", "same") ? 0 : 4}
+          strokeWidth={local_jsx.isInAny("idle", "pristine") ? 0 : 4}
         />{" "}
-        Presentation
+        View
+      </Button>
+      <Button
+        variant="tab"
+        data-issuppressed={!local.isIn("tabs.theme")}
+        onClick={() => local.send("TABBED_TO_THEME")}
+      >
+        <Circle
+          size={9}
+          strokeWidth={local_theme.isInAny("idle", "pristine") ? 0 : 4}
+        />{" "}
+        Theme
+      </Button>
+      <Button
+        variant="tab"
+        data-issuppressed={!local.isIn("tabs.static")}
+        onClick={() => local.send("TABBED_TO_STATIC")}
+      >
+        <Circle
+          size={9}
+          strokeWidth={local_static.isInAny("idle", "pristine") ? 0 : 4}
+        />{" "}
+        Static
       </Button>
     </Grid>
   )

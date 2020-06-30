@@ -1,16 +1,19 @@
 // @refresh reset
 import * as React from "react"
 import { useColorMode } from "theme-ui"
-import { presentation } from "../../states/presentation"
 import { useStateDesigner } from "@state-designer/react"
 import { codeX } from "../layout"
 import { debounce } from "lodash"
 import CodeEditor from "./code-editor"
+import { useHighlights } from "./monaco"
+import { Project, ThemeEditorState } from "../../states"
 
-const ReactEditor: React.FC = (props) => {
-  const local = useStateDesigner(presentation)
+const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
+  const local = useStateDesigner(ThemeEditorState)
   const rEditor = React.useRef<any>(null)
   const [colorMode] = useColorMode()
+
+  useHighlights(rEditor, local.data.dirty)
 
   // Update the code editor's layout
   function updateMonacoLayout() {
@@ -24,21 +27,13 @@ const ReactEditor: React.FC = (props) => {
     return codeX.onChange(debounce(updateMonacoLayout, 60))
   }, [])
 
-  React.useEffect(() => {
-    function updateLayout() {
-      debounce(updateMonacoLayout, 60)
-    }
-    window.addEventListener("resize", updateLayout)
-    return () => window.removeEventListener("resize", updateLayout)
-  }, [])
-
   // Set up the monaco instance
   const setupMonaco = React.useCallback((_, editor) => {
     rEditor.current = editor
 
     // Focus / Blur events
-    editor.onDidFocusEditorText(() => local.send("STARTED_EDITING"))
-    editor.onDidBlurEditorText(() => local.send("STOPPED_EDITING"))
+    editor.onDidFocusEditorText(() => local.send("FOCUSED"))
+    editor.onDidBlurEditorText(() => local.send("BLURRED"))
 
     // Save event
     editor.onKeyDown((e: KeyboardEvent) => {
@@ -55,12 +50,12 @@ const ReactEditor: React.FC = (props) => {
   return (
     <CodeEditor
       theme={colorMode === "dark" ? "dark" : "light"}
-      value={local.data.dirty}
       height="100%"
       width="100%"
+      value={local.data.dirty}
       clean={local.data.clean}
       onChange={(_, code, editor) => {
-        if (!code.startsWith(`function Component() {\n`)) {
+        if (!code.startsWith(`const theme = {\n`)) {
           editor.trigger(code, "undo")
           return
         }
@@ -87,11 +82,8 @@ const ReactEditor: React.FC = (props) => {
         fontFamily: "Fira Code",
         fontSize: 13,
         fontWeight: 400,
-        readOnly: local.isIn("guest"),
-        minimap: {
-          enabled: false,
-        },
-        jsx: "react",
+        readOnly,
+        minimap: { enabled: false },
         smoothScrolling: true,
         lineDecorationsWidth: 4,
         fontLigatures: true,
@@ -102,4 +94,4 @@ const ReactEditor: React.FC = (props) => {
   )
 }
 
-export default ReactEditor
+export default React.memo(StaticEditor)

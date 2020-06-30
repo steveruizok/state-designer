@@ -1,5 +1,5 @@
 import * as React from "react"
-import CodeColumn from "./components/code-column"
+import CodeColumn from "./components/code"
 import Menu from "./components/menu"
 import Main from "./components/main"
 import Title from "./components/title"

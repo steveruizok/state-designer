@@ -5,16 +5,12 @@ import { useStateDesigner } from "@state-designer/react"
 import { codeX } from "../layout"
 import { debounce } from "lodash"
 import CodeEditor from "./code-editor"
-import { useHighlights } from "./monaco"
-import { Project, StateEditorState } from "../../states"
+import { JsxEditorState } from "../../states"
 
-const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
-  const project = useStateDesigner(Project)
-  const local = useStateDesigner(StateEditorState)
+const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
+  const local = useStateDesigner(JsxEditorState)
   const rEditor = React.useRef<any>(null)
   const [colorMode] = useColorMode()
-
-  useHighlights(rEditor, local.data.dirty)
 
   // Update the code editor's layout
   function updateMonacoLayout() {
@@ -28,13 +24,21 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
     return codeX.onChange(debounce(updateMonacoLayout, 60))
   }, [])
 
+  React.useEffect(() => {
+    function updateLayout() {
+      debounce(updateMonacoLayout, 60)
+    }
+    window.addEventListener("resize", updateLayout)
+    return () => window.removeEventListener("resize", updateLayout)
+  }, [])
+
   // Set up the monaco instance
   const setupMonaco = React.useCallback((_, editor) => {
     rEditor.current = editor
 
     // Focus / Blur events
-    editor.onDidFocusEditorText(() => local.send("FOCUSED"))
-    editor.onDidBlurEditorText(() => local.send("BLURRED"))
+    editor.onDidFocusEditorText(() => local.send("STARTED_EDITING"))
+    editor.onDidBlurEditorText(() => local.send("STOPPED_EDITING"))
 
     // Save event
     editor.onKeyDown((e: KeyboardEvent) => {
@@ -51,17 +55,17 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
   return (
     <CodeEditor
       theme={colorMode === "dark" ? "dark" : "light"}
+      value={local.data.dirty}
       height="100%"
       width="100%"
-      value={local.data.dirty}
       clean={local.data.clean}
       onChange={(_, code, editor) => {
-        if (!code.startsWith(`createState({\n`)) {
+        if (!code.startsWith(`function Component() {\n`)) {
           editor.trigger(code, "undo")
           return
         }
 
-        if (!code.endsWith(`\n})\n`)) {
+        if (!code.endsWith(`\n}`)) {
           editor.trigger(code, "undo")
           return
         }
@@ -84,7 +88,10 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         fontSize: 13,
         fontWeight: 400,
         readOnly,
-        minimap: { enabled: false },
+        minimap: {
+          enabled: false,
+        },
+        jsx: "react",
         smoothScrolling: true,
         lineDecorationsWidth: 4,
         fontLigatures: true,
@@ -95,4 +102,4 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
   )
 }
 
-export default React.memo(StateEditor)
+export default React.memo(JsxEditor)

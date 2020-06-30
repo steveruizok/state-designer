@@ -5,7 +5,7 @@ import { jsx, Button, useThemeUI, IconButton, Box } from "theme-ui"
 import { motion, useAnimation } from "framer-motion"
 import { MinusCircle, Crosshair, Maximize, Circle, Disc } from "react-feather"
 import ContentRowItem from "./content-row-item"
-import { ui } from "../../states/ui"
+import { Project } from "../../states"
 import { Highlights } from "../../states/highlights"
 import { S } from "@state-designer/react"
 
@@ -35,7 +35,7 @@ const EventItem: React.FC<{
       <Button
         variant="contentRow"
         title={`Zoom to ${node.name}`}
-        onClick={() => ui.send("SELECTED_NODE", { id: node.path })}
+        onClick={() => Project.send("SELECTED_NODE", { id: node.path })}
         onMouseEnter={(e) =>
           Highlights.send("HIGHLIT_STATE", {
             stateName: node.name,
@@ -86,7 +86,7 @@ const EventItem: React.FC<{
       <IconButton
         data-hidey="true"
         title={`Zoom to State`}
-        onClick={() => ui.send("ZOOMED_ON_STATE", { path: node.path })}
+        onClick={() => Project.send("ZOOMED_ON_STATE", { path: node.path })}
       >
         <Maximize />
       </IconButton>
@@ -102,7 +102,7 @@ const EventItem: React.FC<{
             target += ".restore"
           }
 
-          ui.data.captive.forceTransition(target)
+          Project.data.captive.forceTransition(target)
         }}
       >
         <Crosshair size={12} />

@@ -4,7 +4,7 @@ import { createState } from "@state-designer/react"
 export type CodeEditorOptions = {
   defaultValue: string
   onSave: (value: string) => void
-  validate?: (value: string) => string
+  validate?: (value: string) => any
 }
 
 export function createCodeEditorState(
@@ -17,9 +17,7 @@ export function createCodeEditorState(
       dirty: "",
       error: "",
     },
-    on: {
-      CHANGED_CODE: { do: ["setDirty", "setError"], to: "editing" },
-    },
+    on: {},
     initial: "loading",
     states: {
       loading: {
@@ -32,6 +30,7 @@ export function createCodeEditorState(
       },
       idle: {
         on: {
+          CHANGED_CODE: { do: ["setDirty", "setError"], to: "editing" },
           REFRESHED: {
             unless: "incomingCodeMatchesClean",
             do: ["setClean", "setDirty"],
@@ -40,6 +39,8 @@ export function createCodeEditorState(
       },
       editing: {
         on: {
+          CANCELLED: { do: "resetDirtyToClean", to: "pristine" },
+          CHANGED_CODE: { do: ["setDirty", "setError"], to: "editing" },
           REFRESHED: {
             unless: "incomingCodeMatchesClean",
             do: ["setClean"],
@@ -50,33 +51,25 @@ export function createCodeEditorState(
           to: "pristine",
           else: {
             if: "errorIsClear",
-            to: "dirtied.valid",
-            else: { to: "dirtied.invalid" },
+            to: "valid",
+            else: { to: "invalid" },
           },
         },
         states: {
           pristine: {},
-          dirtied: {
+          invalid: {},
+          valid: {
             on: {
-              CANCELLED: { do: "resetDirtyToClean", to: "pristine" },
-            },
-            states: {
-              valid: {
-                on: {
-                  QUICK_SAVED: {
-                    do: ["saveDirtyToClean", "saveCode"],
-                    to: "pristine",
-                  },
-                  SAVED: {
-                    do: ["saveDirtyToClean", "saveCode"],
-                    to: ["pristine", "idle"],
-                  },
-                },
+              QUICK_SAVED: {
+                do: ["saveDirtyToClean", "saveCode"],
+                to: "pristine",
               },
-              invalid: {},
+              SAVED: {
+                do: ["saveDirtyToClean", "saveCode"],
+                to: ["pristine", "idle"],
+              },
             },
           },
-          same: {},
         },
       },
     },
@@ -103,7 +96,15 @@ export function createCodeEditorState(
         data.dirty = code
       },
       setError(data) {
-        data.error = options.validate(data.dirty)
+        let err = ""
+
+        try {
+          options.validate(data.dirty)
+        } catch (e) {
+          err = e.message
+        }
+
+        data.error = err
       },
       saveDirtyToClean(data) {
         data.clean = data.dirty

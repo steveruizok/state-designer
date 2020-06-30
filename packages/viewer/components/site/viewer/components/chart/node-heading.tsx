@@ -1,9 +1,9 @@
 // @jsx jsx
-import { jsx, Heading, Flex, IconButton } from "theme-ui"
+import { jsx, Heading, Flex } from "theme-ui"
 import { S } from "@state-designer/react"
 import IconSelect from "../icon-select"
-import { Disc, MoreVertical, Maximize, Crosshair } from "react-feather"
-import { ui } from "../../states/ui"
+import { Disc, MoreVertical } from "react-feather"
+import { Project } from "../../states"
 
 const NodeHeading: React.FC<{
   node: S.State<any, any>
@@ -27,12 +27,13 @@ const NodeHeading: React.FC<{
         title="State"
         options={{
           "Zoom to State": () =>
-            ui.send("ZOOMED_ON_STATE", { path: node.path }),
-          "Force Transition": () => ui.data.captive.forceTransition(node.name),
+            Project.send("ZOOMED_ON_STATE", { path: node.path }),
+          "Force Transition": () =>
+            Project.data.captive.forceTransition(node.name),
           "Force Previous Transition": () =>
-            ui.data.captive.forceTransition(node.name + ".previous"),
+            Project.data.captive.forceTransition(node.name + ".previous"),
           "Force Restore Transition": () =>
-            ui.data.captive.forceTransition(node.name + ".restore"),
+            Project.data.captive.forceTransition(node.name + ".restore"),
         }}
       />
     </Flex>
