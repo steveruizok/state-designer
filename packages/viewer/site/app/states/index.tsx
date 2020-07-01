@@ -289,6 +289,8 @@ export const Project = createState({
   },
 })
 
+// Project.onUpdate((state) => console.log(state.active))
+
 /* -------------------------------------------------- */
 /*                         UI                         */
 /* -------------------------------------------------- */

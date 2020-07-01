@@ -3,6 +3,7 @@ import * as React from "react"
 import { Sun, Moon } from "react-feather"
 import Layout from "./layout"
 import Link from "next/link"
+import { useRouter } from "next/router"
 import exampleLinks from "../static/example-links"
 import { useUser } from "../../auth/useUser"
 import { UserProjectsResponse, createNewProject } from "../../utils/firebase"
@@ -23,9 +24,16 @@ import {
 } from "theme-ui"
 
 const User: React.FC<{ data: UserProjectsResponse }> = ({ data }) => {
+  const router = useRouter()
   React.useEffect(() => {
     Project.send("CLOSED_PROJECT")
   }, [])
+
+  React.useEffect(() => {
+    if (data && !data.isAuthenticated) {
+      router.push("/auth")
+    }
+  }, [data])
 
   return (
     <Layout>
