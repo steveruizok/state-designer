@@ -14,7 +14,7 @@ import {
   MotionValue,
 } from "framer-motion"
 import StateNode from "../chart/state-node"
-import * as Utils from "../../static/scope-utils"
+import * as Utils from "../../../static/scope-utils"
 import * as Icons from "react-feather"
 import * as ThemeUI from "theme-ui"
 import * as Components from "@theme-ui/components"

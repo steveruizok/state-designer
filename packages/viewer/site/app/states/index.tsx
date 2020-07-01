@@ -2,7 +2,7 @@
 import { createState } from "@state-designer/react"
 import { createSimpleEditorState } from "./createSimpleEditorState"
 import { createCodeEditorState } from "./createCodeEditorState"
-import { defaultTheme, defaultStatics } from "../static/defaults"
+import { defaultTheme, defaultStatics } from "../../static/defaults"
 import {
   updateProject,
   subscribeToDocSnapshot,
@@ -10,7 +10,7 @@ import {
   forkProject,
 } from "../../../utils/firebase"
 import router from "next/router"
-import * as Utils from "../static/scope-utils"
+import * as Utils from "../../static/scope-utils"
 
 /* -------------------------------------------------- */
 /*                    Main Project                    */

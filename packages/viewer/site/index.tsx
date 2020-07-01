@@ -2,6 +2,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useUser } from "../auth/useUser"
+import exampleLinks from "./static/example-links"
 import {
   useColorMode,
   Image,
@@ -48,56 +49,13 @@ const App: React.FC<{}> = () => {
       <Heading sx={{ mb: 5 }}>Examples</Heading>
       <Box variant="cardList">
         <ul>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/toggle">
-              <Styled.a>Toggle</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/counter">
-              <Styled.a>Counter</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/input">
-              <Styled.a>Todo</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/editor">
-              <Styled.a>Editor</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/accordion">
-              <Styled.a>Accordion</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/dogs">
-              <Styled.a>Dog Pics</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/timer">
-              <Styled.a>Timer</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/tiles">
-              <Styled.a>Tiles Game</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/calculator">
-              <Styled.a>Calculator</Styled.a>
-            </Link>
-          </li>
-          <li>
-            <Link href="/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/tetris">
-              <Styled.a>Tetris</Styled.a>
-            </Link>
-          </li>
+          {exampleLinks.map(({ name, id }, i) => (
+            <li key={i}>
+              <Link href={`/6MPC5DDZS7fRjHRQuJRMRukYLbQ2/${id}`}>
+                <Styled.a>{name}</Styled.a>
+              </Link>
+            </li>
+          ))}
         </ul>
       </Box>
       <Styled.p style={{ textAlign: "center" }}>

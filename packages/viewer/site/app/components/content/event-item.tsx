@@ -1,6 +1,6 @@
 // @jsx jsx
 import * as React from "react"
-import * as Utils from "../../static/scope-utils"
+import * as Utils from "../../../static/scope-utils"
 import { jsx, Button, useThemeUI } from "theme-ui"
 import { motion, useAnimation } from "framer-motion"
 import { PlayCircle, Square } from "react-feather"
