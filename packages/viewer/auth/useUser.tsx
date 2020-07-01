@@ -33,7 +33,7 @@ const useUser = () => {
       .then(() => {
         // Sign-out successful.
         cookies.remove("auth")
-        router.push("/auth")
+        router.push("/")
       })
       .catch((e) => {
         console.error(e)

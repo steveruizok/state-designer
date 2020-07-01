@@ -2,7 +2,7 @@ import { useRouter } from "next/router"
 import useSWR from "swr"
 import { useUser } from "../../../auth/useUser"
 import dynamic from "next/dynamic"
-import Site from "../../../components"
+import Site from "../../../site/viewer"
 
 // const DynamicSiteNoSSR = dynamic(() => , {
 //   ssr: false,

@@ -3,7 +3,7 @@ import withGA from "next-ga"
 import "./styles.css"
 import { ThemeProvider } from "theme-ui"
 import { Global } from "@emotion/core"
-import theme from "../components/theme"
+import theme from "../theme"
 
 function MyApp({ Component, pageProps }) {
   return (

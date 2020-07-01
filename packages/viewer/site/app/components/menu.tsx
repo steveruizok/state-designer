@@ -39,7 +39,7 @@ const Menu: React.FC = ({}) => {
             }}
             onClick={() => router.push("/auth")}
           >
-            <User sx={{ mr: 2 }} /> Sign In
+            <User sx={{ mr: 2, size: 16 }} strokeWidth={3} /> Sign In
           </Button>
         ),
       })}

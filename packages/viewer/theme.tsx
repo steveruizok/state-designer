@@ -1,5 +1,31 @@
 import { base } from "@theme-ui/presets"
 
+const button = {
+  bg: "muted",
+  color: "text",
+  fontFamily: "body",
+  borderRadius: 0,
+  fontWeight: 600,
+  minWidth: 80,
+  overflow: "hidden",
+  cursor: "pointer",
+  "&:active": {
+    color: "accent",
+  },
+  "&:hover": {
+    color: "accent",
+  },
+  "&:disabled": {
+    color: "inactive",
+  },
+  "&:focus": {
+    outline: "none",
+  },
+  "&[data-issuppressed='true']": {
+    color: "grey",
+  },
+}
+
 export default {
   ...base,
   initialColorModeName: "dark",
@@ -44,7 +70,7 @@ export default {
     outline: "2px solid",
     dashed: "2px dashed",
   },
-  fontSizes: [10, 12, 14, 16],
+  fontSizes: [10, 12, 14, 16, 20, 24, 32, 40, 48, 64],
   fonts: {
     heading: "inherit",
     body: '"Fira Sans", sans-serif',
@@ -190,28 +216,19 @@ export default {
   },
   buttons: {
     primary: {
-      bg: "muted",
-      color: "text",
-      fontFamily: "body",
-      borderRadius: 0,
-      fontWeight: 600,
-      minWidth: 80,
-      overflow: "hidden",
-      cursor: "pointer",
+      ...button,
+    },
+    bright: {
+      ...button,
+      border: "outline",
+      borderColor: "accent",
+      color: "accent",
+      fontSize: 3,
       "&:active": {
-        color: "accent",
+        color: "text",
       },
       "&:hover": {
-        color: "accent",
-      },
-      "&:disabled": {
-        color: "inactive",
-      },
-      "&:focus": {
-        outline: "none",
-      },
-      "&[data-issuppressed='true']": {
-        color: "grey",
+        color: "text",
       },
     },
     secondary: {
@@ -426,5 +443,29 @@ export default {
     textAlign: "center",
     margin: 0,
     flexDirection: "column",
+  },
+  cardList: {
+    minWidth: 240,
+    "& ul": {
+      listStyleType: "none",
+      p: 0,
+      mx: 0,
+      mt: 0,
+      mb: 4,
+    },
+    "& li": {
+      width: "100%",
+      fontSize: 3,
+      "& a": {
+        textDecoration: "none",
+        py: 2,
+        display: "block",
+        width: "100%",
+        textAlign: "center",
+      },
+      "&:hover": {
+        bg: "muted",
+      },
+    },
   },
 }

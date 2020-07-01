@@ -1,13 +1,12 @@
 // @jsx jsx
 import * as React from "react"
-import { forkProject } from "../../../utils/firebase"
 import { Project } from "../states"
-import { Sun, Moon, Copy } from "react-feather"
+import { Copy } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import { jsx, Flex, IconButton, Button, useColorMode } from "theme-ui"
+import ColorModeToggle from "./color-mode-toggle"
+import { jsx, Flex, IconButton, Button } from "theme-ui"
 
 const Controls: React.FC = ({}) => {
-  const [colorMode, setColorMode] = useColorMode()
   const local = useStateDesigner(Project)
 
   return (
@@ -41,15 +40,7 @@ const Controls: React.FC = ({}) => {
           Copy this Project <Copy size={14} strokeWidth={3} sx={{ ml: 2 }} />
         </Button>
       )}
-      <IconButton
-        title="Change Color Mode"
-        onClick={() =>
-          setColorMode(colorMode === "default" ? "dark" : "default")
-        }
-        sx={{ ml: 2 }}
-      >
-        {colorMode === "dark" ? <Moon /> : <Sun />}
-      </IconButton>
+      <ColorModeToggle />
     </Flex>
   )
 }
