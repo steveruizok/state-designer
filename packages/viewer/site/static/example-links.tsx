@@ -8,5 +8,6 @@ export default [
   { name: "Tile Puzzle", id: "tiles" },
   { name: "Calculator", id: "calculator" },
   { name: "Snake", id: "snake" },
+  { name: "Drawing", id: "drawing" },
   { name: "Tetris", id: "tetris" },
 ]
