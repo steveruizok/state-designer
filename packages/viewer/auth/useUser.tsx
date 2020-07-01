@@ -9,7 +9,11 @@ import initFirebase from "../auth/initFirebase"
 initFirebase()
 
 const useUser = () => {
-  const [user, setUser] = useState<any>()
+  const [user, setUser] = useState<{
+    id: string
+    email: string
+    token: string
+  }>()
   const router = useRouter()
 
   useEffect(() => {

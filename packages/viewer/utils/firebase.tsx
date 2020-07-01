@@ -6,6 +6,15 @@ import Router from "next/router"
 initFirebase()
 
 const db = firebase.firestore()
+const auth = firebase.auth()
+
+type ProjectInfo = {
+  pid: string
+  name: string
+  owner: string
+  code: string
+  jsx: string
+}
 
 export type UserProjectsResponse = {
   uid: string
@@ -26,6 +35,12 @@ export type ProjectResponse = {
   error?: Error
 }
 
+export type AdminResponse = {
+  projects: ProjectInfo[]
+  isAuthenticated: boolean
+  error?: Error
+}
+
 export async function getTemplate(pid: string) {
   const doc = await db.collection("templates").doc(pid).get()
 
@@ -38,6 +53,21 @@ export async function getTemplate(pid: string) {
 
 export function getProject(pid: string, oid: string) {
   return db.collection("users").doc(oid).collection("projects").doc(pid)
+}
+
+export async function addUser(uid: string) {
+  const user = db.collection("users").doc(uid)
+  const initial = await user.get()
+
+  if (initial.exists) {
+    user.update({ exists: true }).catch((e) => {
+      console.log("Error setting user", uid, e.message)
+    })
+  } else {
+    user.set({ exists: true }).catch((e) => {
+      console.log("Error setting user", uid, e.message)
+    })
+  }
 }
 
 export async function addProject(
@@ -66,7 +96,10 @@ export function updateProject(
   oid: string,
   changes: { [key: string]: any }
 ) {
-  return getProject(pid, oid).update(changes)
+  return getProject(pid, oid).update({
+    ...changes,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+  })
 }
 
 export async function createProject(
@@ -75,7 +108,7 @@ export async function createProject(
   templateId = "toggle"
 ) {
   const template = await db.collection("templates").doc(templateId).get()
-  await addProject(pid, uid, template.data())
+  return await addProject(pid, uid, template.data())
 }
 
 export async function updateProjectJsx(
@@ -227,4 +260,16 @@ export async function updateProjectName(
   name: string
 ) {
   updateProject(pid, uid, { name })
+}
+
+// Admin
+
+export async function getAdminData() {
+  const projects = db.collectionGroup("projects")
+  const ip = await projects.get()
+  const idsp = ip.docs.map((doc) => {
+    return { pid: doc.id, ...doc.data() } as ProjectInfo
+  })
+
+  return idsp
 }

@@ -8,6 +8,7 @@ import cookie from "js-cookie"
 import { Project } from "./app/states/index"
 import { Flex } from "theme-ui"
 import initFirebase from "../auth/initFirebase"
+import { addUser } from "../utils/firebase"
 
 // Init the Firebase app.
 initFirebase()
@@ -49,6 +50,10 @@ const firebaseAuthConfig = {
       cookie.set("auth", userData, {
         expires: 60 * 60 * 24 * 5 * 1000,
       })
+
+      if (uid) {
+        addUser(uid)
+      }
     },
   },
 }

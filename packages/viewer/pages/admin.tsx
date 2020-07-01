@@ -1,8 +1,8 @@
 import useSWR from "swr"
 import * as React from "react"
 import { useUser } from "../auth/useUser"
-import User from "../site/user"
-import { UserProjectsResponse } from "../utils/firebase"
+import Admin from "../site/admin"
+import { AdminResponse } from "../utils/firebase"
 
 const fetcher = (url: string, token: string) =>
   fetch(url, {
@@ -14,12 +14,12 @@ const fetcher = (url: string, token: string) =>
 const Index = () => {
   const { user } = useUser()
 
-  const { data } = useSWR<UserProjectsResponse>(
-    [`/api/${user?.id}?uid=${user?.id}`, user?.token],
+  const { data } = useSWR<AdminResponse>(
+    [`/api/admin?uid=${user?.id}`, user?.token],
     fetcher
   )
 
-  return <User data={data} />
+  return <Admin data={data} />
 }
 
 export default Index

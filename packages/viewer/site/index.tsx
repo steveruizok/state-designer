@@ -34,17 +34,13 @@ const App: React.FC<{}> = () => {
           src={colorMode === "dark" ? "/splash_dark.png" : "/splash_light.png"}
         />
       </Link>
-      {user ? (
-        <Text>Logging In...</Text>
-      ) : (
-        <Link href={"/auth"}>
-          <Styled.a>
-            <Button variant="bright" sx={{ minWidth: 200 }}>
-              Get Started
-            </Button>
-          </Styled.a>
-        </Link>
-      )}
+      <Link href={"/user"}>
+        <Styled.a>
+          <Button variant="bright" sx={{ minWidth: 200 }}>
+            Get Started
+          </Button>
+        </Styled.a>
+      </Link>
       <Divider />
       <Heading sx={{ mb: 5 }}>Examples</Heading>
       <Box variant="cardList">
