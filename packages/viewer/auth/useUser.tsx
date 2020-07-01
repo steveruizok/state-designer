@@ -14,11 +14,15 @@ const useUser = () => {
 
   useEffect(() => {
     const cookie = cookies.get("auth")
-    if (!cookie) {
-      router.push("/")
-      return
+    if (cookie) {
+      setUser(JSON.parse(cookie))
     }
-    setUser(JSON.parse(cookie))
+
+    // if (!cookie) {
+    //   router.push("/")
+    //   return
+    // }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

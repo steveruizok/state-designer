@@ -1,6 +1,6 @@
 import * as React from "react"
 import { monaco } from "@monaco-editor/react"
-import { S } from "@state-designer/core"
+import { S } from "@state-designer/react"
 import { Highlights } from "../../states/highlights"
 import prettier from "prettier/standalone"
 import parserTypeScript from "prettier/parser-typescript"

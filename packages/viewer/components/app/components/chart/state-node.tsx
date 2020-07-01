@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Flex } from "theme-ui"
-import { S } from "@state-designer/core"
+import { S } from "@state-designer/react"
 import ParallelNode from "./parallel-node"
 import BranchNode from "./branch-node"
 import LeafNode from "./leaf-node"

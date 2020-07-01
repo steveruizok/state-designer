@@ -1,11 +1,7 @@
 import Router from "next/router"
 import withGA from "next-ga"
-import Prism from "prismjs"
-import { highlight, languages } from "prismjs/components/prism-core"
-import "prismjs/components/prism-clike"
-import "prismjs/components/prism-javascript"
 import "./styles.css"
-import { Flex, ThemeProvider } from "theme-ui"
+import { ThemeProvider } from "theme-ui"
 import { Global } from "@emotion/core"
 import theme from "../components/theme"
 

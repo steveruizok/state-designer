@@ -1,6 +1,6 @@
 // @refresh reset
 import * as React from "react"
-import { useColorMode } from "theme-ui"
+import { Box, useColorMode } from "theme-ui"
 import { useStateDesigner } from "@state-designer/react"
 import { codeX } from "../layout"
 import { debounce } from "lodash"
@@ -9,7 +9,6 @@ import { useHighlights } from "./monaco"
 import { Project, StateEditorState } from "../../states"
 
 const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
-  const project = useStateDesigner(Project)
   const local = useStateDesigner(StateEditorState)
   const rEditor = React.useRef<any>(null)
   const [colorMode] = useColorMode()
@@ -49,49 +48,51 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
   const isAutoFormatting = React.useRef(false)
 
   return (
-    <CodeEditor
-      theme={colorMode === "dark" ? "dark" : "light"}
-      height="100%"
-      width="100%"
-      value={local.data.dirty}
-      clean={local.data.clean}
-      onChange={(_, code, editor) => {
-        if (!code.startsWith(`createState({\n`)) {
-          editor.trigger(code, "undo")
-          return
-        }
+    <Box sx={{ overflow: "hidden", height: "100%", width: "100%" }}>
+      <CodeEditor
+        theme={colorMode === "dark" ? "dark" : "light"}
+        height="100%"
+        width="100%"
+        value={local.data.dirty}
+        clean={local.data.clean}
+        onChange={(_, code, editor) => {
+          if (!code.startsWith(`createState({\n`)) {
+            editor.trigger(code, "undo")
+            return
+          }
 
-        if (!code.endsWith(`\n})\n`)) {
-          editor.trigger(code, "undo")
-          return
-        }
+          if (!code.endsWith(`\n})\n`)) {
+            editor.trigger(code, "undo")
+            return
+          }
 
-        if (isAutoFormatting.current) {
-          isAutoFormatting.current = false
-        } else {
-          local.send("CHANGED_CODE", { code })
-        }
-      }}
-      language="javascript"
-      options={{
-        lineNumbers: false,
-        showUnused: false,
-        suggest: false,
-        rulers: false,
-        quickSuggestions: false,
-        scrollBeyondLastLine: false,
-        fontFamily: "Fira Code",
-        fontSize: 13,
-        fontWeight: 400,
-        readOnly,
-        minimap: { enabled: false },
-        smoothScrolling: true,
-        lineDecorationsWidth: 4,
-        fontLigatures: true,
-        cursorBlinking: "smooth",
-      }}
-      editorDidMount={setupMonaco}
-    />
+          if (isAutoFormatting.current) {
+            isAutoFormatting.current = false
+          } else {
+            local.send("CHANGED_CODE", { code })
+          }
+        }}
+        language="javascript"
+        options={{
+          lineNumbers: false,
+          showUnused: false,
+          suggest: false,
+          rulers: false,
+          quickSuggestions: false,
+          scrollBeyondLastLine: false,
+          fontFamily: "Fira Code",
+          fontSize: 13,
+          fontWeight: 400,
+          readOnly,
+          minimap: { enabled: false },
+          smoothScrolling: true,
+          lineDecorationsWidth: 4,
+          fontLigatures: true,
+          cursorBlinking: "smooth",
+        }}
+        editorDidMount={setupMonaco}
+      />
+    </Box>
   )
 }
 

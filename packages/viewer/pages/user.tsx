@@ -2,7 +2,7 @@ import useSWR from "swr"
 import * as React from "react"
 import Link from "next/link"
 import { useUser } from "../auth/useUser"
-import User from "../components/site/user"
+import User from "../components/user"
 import { UserProjectsResponse } from "../utils/firebase"
 import { Styled, Text, Grid, Input, Heading, Flex, Button, Box } from "theme-ui"
 

@@ -1,9 +1,11 @@
 /* globals window */
+import { useStateDesigner } from "@state-designer/react"
 import { useEffect, useState } from "react"
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth"
 import firebase from "firebase/app"
 import "firebase/auth"
 import cookie from "js-cookie"
+import { Project } from "./app/states/index"
 import { Flex } from "theme-ui"
 import initFirebase from "../auth/initFirebase"
 
@@ -23,10 +25,19 @@ const firebaseAuthConfig = {
   signInSuccessUrl: `/user`,
   credentialHelper: "none",
   callbacks: {
+    uiShown: () => {
+      Project.send("STARTED_AUTHENTICATING")
+    },
+    signInFailure: async (error) => {
+      Project.send("AUTH_FAILED", { error })
+    },
     signInSuccessWithAuthResult: async ({ user }, redirectUrl) => {
+      Project.send("SIGNED_IN", { user, redirectUrl })
+
       // xa is the access token, which can be retrieved through
       // firebase.auth().currentUser.getIdToken()
       const { uid, email, xa } = user
+
       const userData = {
         id: uid,
         email,
@@ -42,9 +53,10 @@ const firebaseAuthConfig = {
   },
 }
 
-const FirebaseAuth = () => {
-  // Do not SSR FirebaseUI, because it is not supported.
-  // https://github.com/firebase/firebaseui-web/issues/213
+const FirebaseAuth: React.FC<{ redirect?: string }> = ({
+  redirect = "/user",
+}) => {
+  const local = useStateDesigner(Project)
   const [renderAuth, setRenderAuth] = useState(false)
 
   useEffect(() => {
@@ -57,7 +69,15 @@ const FirebaseAuth = () => {
     <Flex variant="fullView">
       {renderAuth ? (
         <StyledFirebaseAuth
-          uiConfig={firebaseAuthConfig as any} // TODO: What type is correct here?
+          uiConfig={
+            {
+              ...firebaseAuthConfig,
+              signInSuccessUrl: local.whenIn({
+                noProject: "/user",
+                default: `/${local.data.oid}/${local.data.pid}`,
+              }),
+            } as any
+          }
           firebaseAuth={firebase.auth()}
         />
       ) : null}

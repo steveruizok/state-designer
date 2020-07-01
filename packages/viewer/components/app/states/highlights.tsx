@@ -1,5 +1,5 @@
 // @refresh reset
-import { createState } from "@state-designer/core"
+import { createState } from "@state-designer/react"
 
 type HighlightData = {
   event: string | null

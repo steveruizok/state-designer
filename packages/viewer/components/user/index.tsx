@@ -3,9 +3,10 @@ import * as React from "react"
 import { Sun, Moon } from "react-feather"
 import Layout from "./layout"
 import Link from "next/link"
-import { useUser } from "../../../auth/useUser"
-import { UserProjectsResponse, createNewProject } from "../../../utils/firebase"
+import { useUser } from "../../auth/useUser"
+import { UserProjectsResponse, createNewProject } from "../../utils/firebase"
 import { useStateDesigner } from "@state-designer/react"
+import { Project } from "../app/states/index"
 import {
   jsx,
   Styled,
@@ -21,6 +22,10 @@ import {
 } from "theme-ui"
 
 const User: React.FC<{ data: UserProjectsResponse }> = ({ data }) => {
+  React.useEffect(() => {
+    Project.send("CLOSED_PROJECT")
+  }, [])
+
   return (
     <Layout>
       <Title />

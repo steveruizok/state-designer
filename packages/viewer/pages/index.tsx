@@ -4,7 +4,7 @@ import { useUser } from "../auth/useUser"
 import { Flex, Button, Styled, Text, Heading } from "theme-ui"
 
 const Index = () => {
-  const { user, logout } = useUser()
+  const { user } = useUser()
   const router = useRouter()
 
   if (user) {

@@ -1,5 +1,5 @@
 // @refresh reset
-import { createState } from "@state-designer/core"
+import { createState } from "@state-designer/react"
 import { createSimpleEditorState } from "./createSimpleEditorState"
 import { createCodeEditorState } from "./createCodeEditorState"
 import { defaultTheme, defaultStatics } from "../static/defaults"
@@ -7,7 +7,9 @@ import {
   updateProject,
   subscribeToDocSnapshot,
   ProjectResponse,
-} from "../../../../utils/firebase"
+  forkProject,
+} from "../../../utils/firebase"
+import router from "next/router"
 import * as Utils from "../static/scope-utils"
 
 /* -------------------------------------------------- */
@@ -21,6 +23,8 @@ export const Project = createState({
     uid: "",
     pid: "",
     error: "",
+    isProject: false,
+    isAuthenticated: false,
     isOwner: false,
     theme: {} as { [key: string]: any },
     captive: createState({}),
@@ -32,88 +36,158 @@ export const Project = createState({
       statics: "",
     },
   },
-  initial: "loading",
   states: {
-    loading: {
-      on: {
-        SNAPSHOT_UPDATED: {
-          do: [
-            "updateFromFirebase",
-            "setStaticValues",
-            "setCaptiveState",
-            "setCaptiveTheme",
-            "updateStates",
-          ],
-          to: "ready",
+    auth: {
+      initial: "loading",
+      states: {
+        loading: {},
+        authenticated: {
+          on: {
+            SIGNED_OUT: { to: "notAuthenticated" },
+          },
+        },
+        notAuthenticated: {
+          on: {
+            STARTED_AUTHENTICATING: { to: "authenticating" },
+          },
+        },
+        authenticating: {
+          on: {
+            SIGNED_IN: { to: "authenticated" },
+            AUTH_FAILED: { to: "notAuthenticated" },
+          },
         },
       },
     },
-    ready: {
-      on: {
-        SNAPSHOT_UPDATED: [
-          "updateFromFirebase",
-          {
-            if: "changeUpdatesCaptiveState",
-            do: ["setStaticValues", "setCaptiveState", "setCaptiveTheme"],
-          },
-          "updateStates",
-        ],
-        CHANGED_CODE: [
-          "setCode",
-          "setStaticValues",
-          "updateStates",
-          "updateFirebase",
-        ],
-        CHANGED_NAME: "setName",
-      },
+    app: {
+      initial: "noProject",
       states: {
-        tabs: {
-          initial: "state",
+        noProject: {},
+        notFound: {},
+        loading: {
           on: {
-            TABBED_TO_STATE: { to: "state" },
-            TABBED_TO_JSX: { to: "jsx" },
-            TABBED_TO_STATIC: { to: "static" },
-            TABBED_TO_THEME: { to: "theme" },
+            SNAPSHOT_UPDATED: [
+              "updateFromFirebase",
+              "setStaticValues",
+              "setCaptiveState",
+              "setCaptiveTheme",
+              "updateStates",
+              { to: "ready" },
+            ],
+          },
+        },
+        ready: {
+          on: {
+            FORKED_PROJECT: [
+              {
+                if: "isAuthenticated",
+                then: {
+                  if: "isOwner",
+                  do: "copyProject",
+                  else: { do: "forkProject" },
+                },
+                else: "authenticate",
+              },
+            ],
+            SNAPSHOT_UPDATED: [
+              "updateFromFirebase",
+              {
+                if: "changeUpdatesCaptiveState",
+                do: ["setStaticValues", "setCaptiveState", "setCaptiveTheme"],
+              },
+              "updateStates",
+            ],
+            CHANGED_CODE: [
+              "setCode",
+              "setStaticValues",
+              "updateStates",
+              "updateFirebase",
+            ],
+            CHANGED_NAME: "setName",
           },
           states: {
-            state: {
-              on: { CHANGED_CODE: ["setStaticValues", "setCaptiveState"] },
-            },
-            jsx: {},
-            static: {
+            tabs: {
+              initial: "state",
               on: {
-                CHANGED_CODE: [
-                  "setStaticValues",
-                  "setCaptiveTheme",
-                  "setCaptiveState",
-                ],
+                TABBED_TO_STATE: { to: "state" },
+                TABBED_TO_JSX: { to: "jsx" },
+                TABBED_TO_STATIC: { to: "static" },
+                TABBED_TO_THEME: { to: "theme" },
               },
-            },
-            theme: {
-              on: { CHANGED_CODE: ["setCaptiveTheme"] },
+              states: {
+                state: {
+                  on: { CHANGED_CODE: ["setStaticValues", "setCaptiveState"] },
+                },
+                jsx: {},
+                static: {
+                  on: {
+                    CHANGED_CODE: [
+                      "setStaticValues",
+                      "setCaptiveTheme",
+                      "setCaptiveState",
+                    ],
+                  },
+                },
+                theme: {
+                  on: { CHANGED_CODE: ["setCaptiveTheme"] },
+                },
+              },
             },
           },
         },
+      },
+      on: {
+        CLOSED_PROJECT: { do: "clearProject", to: "noProject" },
       },
     },
   },
   on: {
-    OPENED_PROJECT: {
-      do: ["setupProject", "subscribeToProjectChanges"],
-      to: "loading",
-    },
+    OPENED_PROJECT: [
+      {
+        do: ["setupProject", "subscribeToProjectChanges"],
+      },
+      {
+        if: "isProject",
+        then: {
+          if: "isAuthenticated",
+          to: ["loading", "authenticated"],
+          else: { to: ["loading", "notAuthenticated"] },
+        },
+        else: {
+          if: "isAuthenticated",
+          to: ["notFound", "authenticated"],
+          else: { to: ["notFound", "notAuthenticated"] },
+        },
+      },
+    ],
   },
   conditions: {
+    isAuthenticated(data) {
+      return data.isAuthenticated
+    },
+    isProject(data) {
+      return data.isProject
+    },
+    isOwner(data) {
+      return data.isOwner
+    },
     changeUpdatesCaptiveState(data, { source }) {
       return false // maybe this will happen when editor state changes
     },
   },
   actions: {
+    clearProject(data) {
+      data.error = ""
+      data.pid = ""
+      data.isOwner = false
+    },
     setupProject(d, { data }: { data: ProjectResponse }) {
       d.error = ""
       d.pid = data.pid
       d.oid = data.oid
       d.uid = data.uid
+      d.isProject = data.isProject
+      d.isAuthenticated = data.isAuthenticated
       d.isOwner = data.uid === data.oid
     },
     subscribeToProjectChanges(data) {
@@ -124,11 +198,23 @@ export const Project = createState({
         Project.send("SNAPSHOT_UPDATED", { source })
       })
     },
+    copyProject(data) {
+      const { pid, oid, uid } = data
+      const newPid = pid + "_copy"
+      forkProject(pid, oid, uid, newPid)
+    },
+    forkProject(data) {
+      const { pid, oid, uid } = data
+      forkProject(pid, oid, uid, pid)
+    },
     setCode(data, { globalId, code }) {
       data.code[globalId] = code
     },
     setName(data, { name }) {
       data.name = name
+    },
+    authenticate() {
+      router.push("/auth")
     },
     updateFirebase(data) {
       const { pid, oid, code } = data

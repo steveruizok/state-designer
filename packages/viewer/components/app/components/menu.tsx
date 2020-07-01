@@ -1,12 +1,10 @@
+// @jsx jsx
 import * as React from "react"
-import { useUser } from "../../../../auth/useUser"
-import { Flex, IconButton } from "theme-ui"
-import { Home } from "react-feather"
+import { useUser } from "../../../auth/useUser"
+import { jsx, Button, Flex, IconButton } from "theme-ui"
+import { Home, User } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import {
-  isProjectNameValid,
-  updateProjectName,
-} from "../../../../utils/firebase"
+import { isProjectNameValid, updateProjectName } from "../../../utils/firebase"
 import { useRouter } from "next/router"
 import { Project } from "../states"
 import ValueInput from "./value-input"
@@ -25,9 +23,26 @@ const Menu: React.FC = ({}) => {
         borderColor: "border",
       }}
     >
-      <IconButton onClick={() => router.push("/user")}>
-        <Home />
-      </IconButton>
+      {local.whenIn({
+        authenticated: (
+          <IconButton onClick={() => router.push("/user")}>
+            <Home />
+          </IconButton>
+        ),
+        default: (
+          <Button
+            sx={{
+              color: "accent",
+              display: "flex",
+              alignItems: "center",
+              width: 128,
+            }}
+            onClick={() => router.push("/auth")}
+          >
+            <User sx={{ mr: 2 }} /> Sign In
+          </Button>
+        ),
+      })}
       <ValueInput
         value={local.data.pid}
         transform={(v) => v}

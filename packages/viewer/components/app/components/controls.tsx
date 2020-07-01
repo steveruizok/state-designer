@@ -1,6 +1,6 @@
 // @jsx jsx
 import * as React from "react"
-import { forkProject } from "../../../../utils/firebase"
+import { forkProject } from "../../../utils/firebase"
 import { Project } from "../states"
 import { Sun, Moon, Copy } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
@@ -23,20 +23,14 @@ const Controls: React.FC = ({}) => {
       {local.data.isOwner ? (
         <IconButton
           title="Copy This Project"
-          onClick={() => {
-            const { pid, oid, uid } = local.data
-            forkProject(pid, oid, uid, pid + "_copy")
-          }}
+          onClick={() => local.send("FORKED_PROJECT")}
         >
           <Copy />
         </IconButton>
       ) : (
         <Button
           title="Copy This Project"
-          onClick={() => {
-            const { pid, oid, uid } = local.data
-            forkProject(pid, oid, uid)
-          }}
+          onClick={() => local.send("FORKED_PROJECT")}
           sx={{
             height: "100%",
             display: "flex",

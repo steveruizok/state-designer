@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Flex, Button, Box, BoxProps } from "theme-ui"
-import { createProject } from "../../utils/firebase"
+import { createProject } from "../utils/firebase"
 import { useStateDesigner } from "@state-designer/react"
 import LoadingScreen from "./loading-screen"
 import { useRouter } from "next/router"

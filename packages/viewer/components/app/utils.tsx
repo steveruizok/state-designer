@@ -1,4 +1,4 @@
-import { S } from "@state-designer/core"
+import { S } from "@state-designer/react"
 
 export function getFlatStates(state: S.State<any, any>): S.State<any, any>[] {
   return [state].concat(...Object.values(state.states).map(getFlatStates))

@@ -1,8 +1,8 @@
 import { useRouter } from "next/router"
 import useSWR from "swr"
-import { useUser } from "../../auth/useUser"
+import { useUser } from "../../../auth/useUser"
 import dynamic from "next/dynamic"
-import Site from "../../components/site"
+import Site from "../../../components"
 
 // const DynamicSiteNoSSR = dynamic(() => , {
 //   ssr: false,
@@ -28,7 +28,7 @@ const Index = () => {
 
   const { data } = useSWR(
     [`/api/${oid}/${pid}?uid=${user?.id}`, user?.token],
-    pid && user ? fetcher : deadFetcher
+    pid ? fetcher : deadFetcher
   )
 
   return <Site data={data} />
