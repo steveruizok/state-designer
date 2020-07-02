@@ -23,7 +23,7 @@ const StaticPreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
         jsx: JSON.parse(data.jsx),
         theme: JSON.parse(data.theme || defaultTheme),
         statics: JSON.parse(
-          data.static?.startsWith('"function') ? data.static : defaultStatics
+          data.statics?.startsWith('"function') ? data.statics : defaultStatics
         ),
       },
     },

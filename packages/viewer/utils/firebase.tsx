@@ -14,7 +14,7 @@ export type ProjectInfo = {
   code: string
   jsx: string
   theme: string
-  static: string
+  statics: string
 }
 
 export type UserProjectsResponse = {

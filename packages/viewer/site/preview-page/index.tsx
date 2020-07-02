@@ -16,14 +16,14 @@ const PreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
       oid: data.oid,
       pid: data.pid,
       theme: {} as { [key: string]: any },
-      captive: createState({}),
+      captive: undefined,
       statics: {},
       error: "",
       code: {
         jsx: JSON.parse(data.jsx),
         state: JSON.parse(data.code),
         statics: JSON.parse(
-          data.static.startsWith('"function') ? data.static : defaultStatics
+          data.statics.startsWith('"function') ? data.statics : defaultStatics
         ),
         theme: JSON.parse(data.theme || defaultTheme),
       },
@@ -124,12 +124,14 @@ const PreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
-      <Preview
-        code={local.data.code.jsx}
-        statics={local.data.statics}
-        state={local.data.captive}
-        theme={local.data.theme}
-      />
+      {local.data.captive && (
+        <Preview
+          code={local.data.code.jsx}
+          statics={local.data.statics}
+          state={local.data.captive}
+          theme={local.data.theme}
+        />
+      )}
       <Flex
         sx={{
           position: "absolute",

@@ -26,7 +26,7 @@ const ChartPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
         jsx: JSON.parse(data.jsx),
         state: JSON.parse(data.code),
         statics: JSON.parse(
-          data.static.startsWith('"function') ? data.static : defaultStatics
+          data.statics.startsWith('"function') ? data.statics : defaultStatics
         ),
         theme: JSON.parse(data.theme || defaultTheme),
       },
