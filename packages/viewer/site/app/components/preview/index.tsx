@@ -9,7 +9,7 @@ import * as Icons from "react-feather"
 import * as ThemeUI from "theme-ui"
 import * as Components from "@theme-ui/components"
 import { LiveProvider, LiveError, LivePreview } from "react-live"
-import { Spinner } from "theme-ui"
+import { Spinner, useColorMode } from "theme-ui"
 
 // Wrap Theme-UI components in Framer Motion
 const WithMotionComponents = Object.fromEntries(
@@ -24,6 +24,8 @@ const Preview: React.FC<{
   state: S.DesignedState<any, any>
   theme: { [key: string]: any }
 }> = ({ code, state, statics, theme }) => {
+  const [colorMode] = useColorMode()
+
   return (
     <LiveProvider
       code={code}
@@ -33,6 +35,7 @@ const Preview: React.FC<{
         ...WithMotionComponents,
         Icons,
         Utils,
+        ColorMode: colorMode,
         useStateDesigner,
         Static: statics,
         state,
@@ -84,4 +87,4 @@ const Preview: React.FC<{
   )
 }
 
-export default Preview
+export default React.memo(Preview)

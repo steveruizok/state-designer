@@ -4,6 +4,7 @@
   --content-column-offset: 0px;
   --code-column-offset: 0px;
   --detail-row-offset: 0px;
+  --view-column-offset: 10px;
 }
 
 html,

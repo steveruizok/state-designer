@@ -24,10 +24,10 @@ const Chart: React.FC<{
   }, [zoomedPath])
 
   return (
-    <Canvas visible={true} mvScale={mvScale}>
+    <Canvas mvScale={mvScale}>
       <StateNode node={zoomed || captive.stateTree} />
     </Canvas>
   )
 }
 
-export default Chart
+export default React.memo(Chart)

@@ -303,11 +303,31 @@ export const UI = createState({
     ZOOMED_TO_NODE: "setZoomedPath",
   },
   states: {
-    zoomedOut: {
-      on: { ZOOMED_TO_NODE: { to: "zoomedIn" } },
+    view: {
+      initial: "split",
+      states: {
+        split: {},
+        state: {},
+        view: {},
+        auto: {},
+      },
+      on: {
+        SELECTED_SPLIT: { to: "split" },
+        SELECTED_STATE: { to: "state" },
+        SELECTED_VIEW: { to: "view" },
+        SELECTED_AUTO: { to: "auto" },
+      },
     },
-    zoomedIn: {
-      on: { ZOOMED_OUT: { do: "clearZoomedPath", to: "zoomedOut" } },
+    canvas: {
+      initial: "zoomedOut",
+      states: {
+        zoomedOut: {
+          on: { ZOOMED_TO_NODE: { to: "zoomedIn" } },
+        },
+        zoomedIn: {
+          on: { ZOOMED_OUT: { do: "clearZoomedPath", to: "zoomedOut" } },
+        },
+      },
     },
   },
   actions: {
@@ -334,9 +354,10 @@ export const StateEditorState = createCodeEditorState({
       Function(
         "createState",
         "Static",
+        "ColorMode",
         "Utils",
         code
-      )(createState, Project.data.statics, Utils)
+      )(createState, Project.data.statics, "dark", Utils)
     } catch (e) {
       throw e
     }

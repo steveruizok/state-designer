@@ -20,7 +20,6 @@ const Canvas: React.FC<
       showResetView?: boolean
       maxZoom?: number
       fixed?: React.ReactNode
-      visible: boolean
     }
 > = ({
   children,
@@ -29,7 +28,6 @@ const Canvas: React.FC<
   showResetView = true,
   minZoom = 0.25,
   maxZoom = 2.5,
-  visible,
   ...rest
 }) => {
   const mvX = useMotionValue(0)
@@ -53,7 +51,6 @@ const Canvas: React.FC<
         width: "100%",
         cursor: "grab",
         userSelect: "none",
-        visibility: visible ? "visible" : "hidden",
       }}
       whileTap={{
         userSelect: "none",
@@ -85,7 +82,7 @@ const Canvas: React.FC<
       {fixed}
       <IconButton
         data-hidey="true"
-        sx={{ position: "absolute", bottom: 0, left: 0 }}
+        sx={{ position: "absolute", bottom: 0, right: 0 }}
         title="Reset Canvas"
         onClick={() => resetScrollPosition()}
       >
