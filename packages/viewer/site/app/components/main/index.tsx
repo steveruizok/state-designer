@@ -66,14 +66,16 @@ const Main: React.FC = () => {
         }}
         data-hidey-draggy="true"
       />
-      <IconButton
-        data-hidey="true"
-        sx={{ position: "absolute", bottom: 0, right: 0 }}
-        title="Reset State"
-        onClick={() => Project.data.captive?.reset()}
-      >
-        <RefreshCw />
-      </IconButton>
+      {local.log.length > 0 && (
+        <IconButton
+          data-hidey="true"
+          sx={{ position: "absolute", bottom: 0, right: 0 }}
+          title="Reset State"
+          onClick={() => local.data.captive?.reset()}
+        >
+          <RefreshCw />
+        </IconButton>
+      )}
       {ui.data.zoomedPath &&
         ui.data.zoomedPath !== local.data.captive.stateTree.path && (
           <IconButton
