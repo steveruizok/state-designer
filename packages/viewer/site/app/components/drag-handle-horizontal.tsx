@@ -8,6 +8,8 @@ const DragHandleHorizontal: React.FC<{
   min?: number
   align?: "right" | "left"
   gridArea?: string
+  onDragStart?: () => void
+  onDragEnd?: () => void
 }> = ({
   initial,
   min = 0,
@@ -16,6 +18,8 @@ const DragHandleHorizontal: React.FC<{
   gridArea,
   children,
   motionValue,
+  onDragStart,
+  onDragEnd,
 }) => {
   const animation = useAnimation()
   const rState = React.useRef<"max" | "moved" | "initial">("initial")
@@ -74,6 +78,8 @@ const DragHandleHorizontal: React.FC<{
         right: align === "left" ? max : initial - min,
       }}
       onDoubleClick={resetPosition}
+      onTapStart={() => onDragStart && onDragStart()}
+      onTap={() => onDragEnd && onDragEnd()}
     >
       {children}
     </motion.div>

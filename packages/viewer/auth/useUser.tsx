@@ -14,6 +14,7 @@ const useUser = () => {
     email: string
     token: string
   }>()
+
   const router = useRouter()
 
   useEffect(() => {

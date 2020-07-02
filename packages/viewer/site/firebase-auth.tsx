@@ -33,8 +33,6 @@ const firebaseAuthConfig = {
       Project.send("AUTH_FAILED", { error })
     },
     signInSuccessWithAuthResult: async ({ user }, redirectUrl) => {
-      Project.send("SIGNED_IN", { user, redirectUrl })
-
       // xa is the access token, which can be retrieved through
       // firebase.auth().currentUser.getIdToken()
       const { uid, email, xa } = user
@@ -54,6 +52,8 @@ const firebaseAuthConfig = {
       if (uid) {
         addUser(uid)
       }
+
+      Project.send("SIGNED_IN", { user, redirectUrl })
     },
   },
 }

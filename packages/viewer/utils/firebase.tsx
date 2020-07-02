@@ -6,14 +6,15 @@ import Router from "next/router"
 initFirebase()
 
 const db = firebase.firestore()
-const auth = firebase.auth()
 
-type ProjectInfo = {
+export type ProjectInfo = {
   pid: string
+  oid: string
   name: string
-  owner: string
   code: string
   jsx: string
+  theme: string
+  static: string
 }
 
 export type UserProjectsResponse = {
@@ -48,6 +49,25 @@ export async function getTemplate(pid: string) {
     return doc.data()
   } else {
     throw Error("Missing template! ID:" + pid)
+  }
+}
+
+export async function getProjectData(
+  pid: string,
+  oid: string
+): Promise<ProjectInfo> {
+  const initial = await db
+    .collection("users")
+    .doc(oid)
+    .collection("projects")
+    .doc(pid)
+    .get()
+
+  if (initial.exists) {
+    const data = initial.data()
+    return { ...data, pid, oid: data.owner } as ProjectInfo
+  } else {
+    return undefined
   }
 }
 
@@ -268,7 +288,8 @@ export async function getAdminData() {
   const projects = db.collectionGroup("projects")
   const ip = await projects.get()
   const idsp = ip.docs.map((doc) => {
-    return { pid: doc.id, ...doc.data() } as ProjectInfo
+    const data = doc.data()
+    return { oid: data.owner, pid: doc.id, ...doc.data() } as ProjectInfo
   })
 
   return idsp

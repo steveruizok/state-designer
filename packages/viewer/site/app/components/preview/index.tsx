@@ -1,15 +1,15 @@
 // @jsx jsx
+import { jsx } from "theme-ui"
 import * as React from "react"
 import * as Motion from "framer-motion"
-import { useStateDesigner } from "@state-designer/react"
-import { motion, MotionValue } from "framer-motion"
+import { S, useStateDesigner } from "@state-designer/react"
+import { motion } from "framer-motion"
 import * as Utils from "../../../static/scope-utils"
-import { jsx } from "theme-ui"
 import * as Icons from "react-feather"
 import * as ThemeUI from "theme-ui"
 import * as Components from "@theme-ui/components"
 import { LiveProvider, LiveError, LivePreview } from "react-live"
-import { Project, JsxEditorState } from "../../states"
+import { Spinner } from "theme-ui"
 
 // Wrap Theme-UI components in Framer Motion
 const WithMotionComponents = Object.fromEntries(
@@ -18,13 +18,15 @@ const WithMotionComponents = Object.fromEntries(
   })
 )
 
-const Preview: React.FC<{}> = ({}) => {
-  const project = useStateDesigner(Project)
-  const jsxEditor = useStateDesigner(JsxEditorState)
-
+const Preview: React.FC<{
+  code: string
+  statics: { [key: string]: any }
+  state: S.DesignedState<any, any>
+  theme: { [key: string]: any }
+}> = ({ code, state, statics, theme }) => {
   return (
     <LiveProvider
-      code={jsxEditor.data.dirty}
+      code={code}
       scope={{
         ...ThemeUI,
         ...Motion,
@@ -32,8 +34,8 @@ const Preview: React.FC<{}> = ({}) => {
         Icons,
         Utils,
         useStateDesigner,
-        Static: project.data.statics,
-        state: project.data.captive,
+        Static: statics,
+        state,
       }}
     >
       <motion.div
@@ -60,7 +62,7 @@ const Preview: React.FC<{}> = ({}) => {
             justifyContent: "center",
           }}
         >
-          <LivePreview />
+          {!code ? <Spinner /> : <LivePreview />}
         </motion.div>
         <LiveError
           sx={{
@@ -74,6 +76,7 @@ const Preview: React.FC<{}> = ({}) => {
             height: "min-content",
             fontFamily: "monospace",
             bg: "scrim",
+            visibility: code ? "visible" : "hidden",
           }}
         />
       </motion.div>

@@ -3,7 +3,7 @@ import { jsx, Heading, Flex } from "theme-ui"
 import { S } from "@state-designer/react"
 import IconSelect from "../icon-select"
 import { Disc, MoreVertical } from "react-feather"
-import { Project } from "../../states"
+import { Project, UI } from "../../states"
 
 const NodeHeading: React.FC<{
   node: S.State<any, any>
@@ -26,8 +26,7 @@ const NodeHeading: React.FC<{
         icon={<MoreVertical />}
         title="State"
         options={{
-          "Zoom to State": () =>
-            Project.send("ZOOMED_ON_STATE", { path: node.path }),
+          "Zoom to State": () => UI.send("ZOOMED_TO_NODE", { path: node.path }),
           "Force Transition": () =>
             Project.data.captive.forceTransition(node.name),
           "Force Previous Transition": () =>

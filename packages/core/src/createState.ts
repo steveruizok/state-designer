@@ -818,10 +818,12 @@ export function createState<
   function reset(): Snapshot {
     stopLoop()
     StateTree.recursivelyEndStateIntervals(snapshot.stateTree)
+    _log = []
 
     Object.assign(snapshot, {
       data: produce(design.data, (d) => d) as D,
       stateTree: getStateTreeFromDesign(design, id),
+      log: [],
     })
 
     StateTree.deactivateState(snapshot.stateTree)

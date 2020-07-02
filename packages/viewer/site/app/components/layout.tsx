@@ -42,6 +42,8 @@ detailY.onChange((offset: number) => {
 })
 
 const Layout: React.FC = ({ children }) => {
+  const [isDragging, setIsDragging] = React.useState(false)
+
   return (
     <Grid
       sx={{
@@ -91,10 +93,12 @@ const Layout: React.FC = ({ children }) => {
         bg: "background",
         margin: [0, 0, "0 auto"],
         overscrollBehavior: "none",
+        "& *[data-hidey-draggy]": {
+          visibility: isDragging ? "visible" : "hidden",
+        },
       }}
     >
       {children}
-
       <DragHandleHorizontal
         align="left"
         initial={BASE_CONTENT_COL_WIDTH}
@@ -102,6 +106,8 @@ const Layout: React.FC = ({ children }) => {
         max={220}
         gridArea="content"
         motionValue={contentX}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={() => setIsDragging(false)}
       />
       <DragHandleHorizontal
         align="right"
@@ -110,6 +116,8 @@ const Layout: React.FC = ({ children }) => {
         max={600}
         gridArea="code"
         motionValue={codeX}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={() => setIsDragging(false)}
       />
       <DragHandleVertical
         align="bottom"

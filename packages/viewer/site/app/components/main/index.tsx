@@ -1,36 +1,71 @@
 // @jsx jsx
 import * as React from "react"
 import { jsx, Box, IconButton } from "theme-ui"
-import { RefreshCw } from "react-feather"
+import { RefreshCw, Minimize } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import { useMotionValue } from "framer-motion"
-import { Project } from "../../states"
-import Preview from "./preview"
-import Chart from "./chart"
+import { Project, JsxEditorState, UI } from "../../states"
+import Preview from "../preview"
+import Chart from "../chart"
 
 const Main: React.FC = () => {
   const local = useStateDesigner(Project)
-  const stateScale = useMotionValue(1)
+  const ui = useStateDesigner(UI)
+  const jsxEditor = useStateDesigner(JsxEditorState)
 
   return (
     <Box
       sx={{
         gridArea: "main",
         position: "relative",
+        zIndex: 1,
         overflow: "hidden",
-        "& *[data-hidey='true']": {
-          visibility: "hidden",
-        },
-        "&:hover:not([disabled]) *[data-hidey='true']": {
-          visibility: "visible",
-        },
       }}
     >
-      {local.whenIn({
-        "tabs.state": <Chart mvScale={stateScale} />,
-        default: <Preview />,
-      })}
-
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          "& *[data-hidey='true']": {
+            visibility: "hidden",
+          },
+          "&:hover:not([disabled]) *[data-hidey='true']": {
+            visibility: "visible",
+          },
+        }}
+      >
+        <Chart state={local.data.captive} zoomedPath={ui.data.zoomedPath} />
+      </Box>
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          "& *[data-hidey='true']": {
+            visibility: "hidden",
+          },
+          "&:hover:not([disabled]) *[data-hidey='true']": {
+            visibility: "visible",
+          },
+        }}
+      >
+        <Preview
+          code={jsxEditor.data.dirty}
+          statics={local.data.statics}
+          state={local.data.captive}
+          theme={local.data.theme}
+        />
+      </Box>
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          zIndex: 2,
+          width: "100%",
+          height: "100%",
+        }}
+        data-hidey-draggy="true"
+      />
       <IconButton
         data-hidey="true"
         sx={{ position: "absolute", bottom: 0, right: 0 }}
@@ -39,6 +74,15 @@ const Main: React.FC = () => {
       >
         <RefreshCw />
       </IconButton>
+      {ui.data.zoomedPath &&
+        ui.data.zoomedPath !== local.data.captive.stateTree.path && (
+          <IconButton
+            onClick={() => ui.send("ZOOMED_OUT")}
+            sx={{ position: "absolute", top: 0, left: 0 }}
+          >
+            <Minimize />
+          </IconButton>
+        )}
     </Box>
   )
 }

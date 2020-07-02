@@ -5,7 +5,7 @@ import { jsx, Button, useThemeUI, IconButton, Box } from "theme-ui"
 import { motion, useAnimation } from "framer-motion"
 import { MinusCircle, Crosshair, Maximize, Circle, Disc } from "react-feather"
 import ContentRowItem from "./content-row-item"
-import { Project } from "../../states"
+import { Project, UI } from "../../states"
 import { Highlights } from "../../states/highlights"
 import { S } from "@state-designer/react"
 
@@ -86,7 +86,7 @@ const EventItem: React.FC<{
       <IconButton
         data-hidey="true"
         title={`Zoom to State`}
-        onClick={() => Project.send("ZOOMED_ON_STATE", { path: node.path })}
+        onClick={() => UI.send("ZOOMED_TO_NODE", { path: node.path })}
       >
         <Maximize />
       </IconButton>

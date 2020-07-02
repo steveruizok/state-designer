@@ -91,10 +91,10 @@ export const Project = createState({
             ],
             SNAPSHOT_UPDATED: [
               "updateFromFirebase",
-              {
-                if: "changeUpdatesCaptiveState",
-                do: ["setStaticValues", "setCaptiveState", "setCaptiveTheme"],
-              },
+              // {
+              //   if: "changeUpdatesCaptiveState",
+              //   do: ["setStaticValues", "setCaptiveState", "setCaptiveTheme"],
+              // },
               "updateStates",
             ],
             CHANGED_CODE: [
@@ -171,9 +171,9 @@ export const Project = createState({
     isOwner(data) {
       return data.isOwner
     },
-    changeUpdatesCaptiveState(data, { source }) {
-      return false // maybe this will happen when editor state changes
-    },
+    // changeUpdatesCaptiveState(data, { source }) {
+    //   return false // maybe this will happen when editor state changes
+    // },
   },
   actions: {
     clearProject(data) {
