@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Flex, Heading, Styled, Box } from "theme-ui"
 
-const Values: React.FC<{ values: any }> = ({ values }) => {
+const Values: React.FC<{ values: any }> = ({ values, children }) => {
   return (
     <Box
       sx={{
@@ -23,6 +23,7 @@ const Values: React.FC<{ values: any }> = ({ values }) => {
           <Styled.code>{JSON.stringify(values, null, 2)}</Styled.code>
         </Styled.pre>
       </Box>
+      {children}
     </Box>
   )
 }
