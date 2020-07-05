@@ -28,7 +28,8 @@ const Preview: React.FC<{
 
   return (
     <LiveProvider
-      code={code}
+      code={code + "\n\nrender(<Component/>)"}
+      noInline={true}
       scope={{
         ...ThemeUI,
         ...Motion,

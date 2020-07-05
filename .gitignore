@@ -30,3 +30,5 @@ lerna-debug.log
 
 docs/.docz
 *.lock
+yarn.lock
+yarn.lock

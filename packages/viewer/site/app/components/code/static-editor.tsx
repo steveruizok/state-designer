@@ -55,17 +55,10 @@ const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         width="100%"
         value={local.data.dirty}
         clean={local.data.clean}
+        validate={(code) =>
+          !!code.match(/function getStatic\(\) \{\n.*?\n\}$/gs)
+        }
         onChange={(_, code, editor) => {
-          if (!code.startsWith(`function getStatic() {\n`)) {
-            editor.trigger(code, "undo")
-            return
-          }
-
-          if (!code.endsWith(`\n}`)) {
-            editor.trigger(code, "undo")
-            return
-          }
-
           if (isAutoFormatting.current) {
             isAutoFormatting.current = false
           } else {

@@ -26,7 +26,9 @@ const ChartPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
         jsx: JSON.parse(data.jsx),
         state: JSON.parse(data.code),
         statics: JSON.parse(
-          data.statics.startsWith('"function') ? data.statics : defaultStatics
+          data.statics?.match(/function getStatic\(\) \{\\n.*?\}"$/gs)
+            ? data.statics
+            : defaultStatics
         ),
         theme: JSON.parse(data.theme || defaultTheme),
       },
@@ -57,7 +59,7 @@ const ChartPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
         data.code.jsx = JSON.parse(source.jsx)
         data.code.state = JSON.parse(source.code)
         data.code.statics = JSON.parse(
-          source.statics?.startsWith('"function')
+          source.statics?.match(/function getStatic\(\) \{\\n.*?\}"$/gs)
             ? source.statics
             : defaultStatics
         )

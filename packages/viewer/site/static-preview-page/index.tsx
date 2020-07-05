@@ -1,13 +1,10 @@
 // @refresh reset
 import * as React from "react"
-import { useEffect } from "react"
 import * as Utils from "../app/utils"
 import { createState, useStateDesigner } from "@state-designer/react"
 import { defaultStatics, defaultTheme } from "../static/defaults"
 import { ProjectInfo } from "../../utils/firebase"
 import Preview from "../app/components/preview"
-import { Box } from "theme-ui"
-import NotFound404 from "../404"
 
 const StaticPreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
   const local = useStateDesigner({
@@ -23,7 +20,9 @@ const StaticPreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
         jsx: JSON.parse(data.jsx),
         theme: JSON.parse(data.theme || defaultTheme),
         statics: JSON.parse(
-          data.statics?.startsWith('"function') ? data.statics : defaultStatics
+          data.statics?.match(/function getStatic\(\) \{\\n.*?\}"$/gs)
+            ? data.statics
+            : defaultStatics
         ),
       },
     },

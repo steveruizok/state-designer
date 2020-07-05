@@ -4978,13 +4978,6 @@
   resolved "https://registry.yarnpkg.com/@types/unist/-/unist-2.0.3.tgz#9c088679876f374eb5983f150d4787aa6fb32d7e"
   integrity sha512-FvUupuM3rlRsRtCN+fDudtmytGO6iHJuuRKS1Ss0pG5z8oX0diNEw94UEL7hgDbpN94rgaK5R7sWm6RrSkZuAQ==
 
-"@types/use-deep-compare-effect@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@types/use-deep-compare-effect/-/use-deep-compare-effect-1.2.0.tgz#d55d9bda6fea5ff7c93038c53052db1b3145f5d9"
-  integrity sha512-2uNqaSobMvUTGR7G72tUHDX+Kx341q25OuM0m2B6VID7eljIvYuDaFTKfmDnbvej67yEhCc35zA6dmIYriwOXA==
-  dependencies:
-    "@types/react" "*"
-
 "@types/vfile-message@*":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/vfile-message/-/vfile-message-2.0.0.tgz#690e46af0fdfc1f9faae00cd049cc888957927d5"
@@ -9102,11 +9095,6 @@ deprecation@^2.0.0, deprecation@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/deprecation/-/deprecation-2.3.1.tgz#6368cbdb40abf3373b525ac87e4a260c3a700919"
   integrity sha512-xmHIy4F3scKVwMsQ4WnVaS8bHOx0DmVwRywosKhaILI0ywMDWPtBSku2HNxRvF7jtwDRsoEwYQSfbxj8b7RlJQ==
-
-dequal@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/dequal/-/dequal-1.0.0.tgz#41c6065e70de738541c82cdbedea5292277a017e"
-  integrity sha512-/Nd1EQbQbI9UbSHrMiKZjFLrXSnU328iQdZKPQf78XQI6C+gutkFUeoHpG5J08Ioa6HeRbRNFpSIclh1xyG0mw==
 
 des.js@^1.0.0:
   version "1.0.1"
@@ -16595,11 +16583,6 @@ moment@^2.26.0:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.26.0.tgz#5e1f82c6bafca6e83e808b30c8705eed0dcbd39a"
   integrity sha512-oIixUO+OamkUkwjhAVE18rAMfRJNsNe/Stid/gwHSOfHrOtw9EhAY2AHvdKZ/k/MggcYELFCJz/Sn2pL8b8JMw==
 
-monaco-editor@^0.20.0:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.20.0.tgz#5d5009343a550124426cb4d965a4d27a348b4dea"
-  integrity sha512-hkvf4EtPJRMQlPC3UbMoRs0vTAFAYdzFQ+gpMb8A+9znae1c43q8Mab9iVsgTcg/4PNiLGGn3SlDIa8uvK1FIQ==
-
 move-concurrently@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/move-concurrently/-/move-concurrently-1.0.1.tgz#be2c005fda32e0b29af1f05d7c4b33214c701f92"
@@ -23870,33 +23853,10 @@ use-dark-mode@2.3.1:
     "@use-it/event-listener" "^0.1.2"
     use-persisted-state "^0.3.0"
 
-use-debounce@^3.4.2:
-  version "3.4.2"
-  resolved "https://registry.yarnpkg.com/use-debounce/-/use-debounce-3.4.2.tgz#f4333cca59504244b916159600427bf977ec4c46"
-  integrity sha512-rW44wZaFPh3XiwUzGBA0JRuklpbfKO/szU/5CYD2Q/erLmCem63lJ650p3a+NJE6S+g0rulKtBOfa/3rw/GN+Q==
-
-use-deep-compare-effect@^1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/use-deep-compare-effect/-/use-deep-compare-effect-1.3.1.tgz#90bdbed97e1acb8423f7bb0bf24de58590d021af"
-  integrity sha512-ejL+Al+aeDyC9Sywx56ti4PtSwkf6BH27tEptMWF2cfO41/auG0nRRsArh6Vv5bUyBe3z7IyxmgQCK5nas70hg==
-  dependencies:
-    "@babel/runtime" "^7.7.2"
-    "@types/use-deep-compare-effect" "^1.2.0"
-    dequal "^1.0.0"
-
 use-memo-one@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/use-memo-one/-/use-memo-one-1.1.1.tgz#39e6f08fe27e422a7d7b234b5f9056af313bd22c"
   integrity sha512-oFfsyun+bP7RX8X2AskHNTxu+R3QdE/RC5IefMbqptmACAA/gfol1KDD5KRzPsGMa62sWxGZw+Ui43u6x4ddoQ==
-
-use-monaco@^0.0.3-patch.4:
-  version "0.0.3-patch.4"
-  resolved "https://registry.yarnpkg.com/use-monaco/-/use-monaco-0.0.3-patch.4.tgz#19e71a7726f9d1e2f3fa2b7ee80da2cb5ae90618"
-  integrity sha512-EBS70/I6eAYkqlPu0sZ806HKwVPr6+qdessM2g3MUpU8VqHYIgtGKfwcvuxwy0iTlpXse7URnLNdr7ezLdvzHg==
-  dependencies:
-    monaco-editor "^0.20.0"
-    use-debounce "^3.4.2"
-    use-deep-compare-effect "^1.3.1"
 
 use-persisted-state@^0.3.0:
   version "0.3.0"

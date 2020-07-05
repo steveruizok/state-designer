@@ -11,6 +11,7 @@ import JsxEditor from "./jsx-editor"
 import StateEditor from "./state-editor"
 // import ThemeEditor from "./theme-editor"
 import StaticEditor from "./static-editor"
+import TabbedEditor from "./tabbed-editor"
 import SaveRow from "./save-row"
 import { motion } from "framer-motion"
 
@@ -60,10 +61,11 @@ const CodeColumn: React.FC = (props) => {
           theme: "theme",
         })}
       >
-        <StateEditor key={"state"} readOnly={!local.data.isOwner} />
-        <JsxEditor key={"react"} readOnly={!local.data.isOwner} />
+        <StateEditor readOnly={!local.data.isOwner} />
+        {/* <TabbedEditor readOnly={!local.data.isOwner} /> */}
+        <JsxEditor readOnly={!local.data.isOwner} />
         {/* <ThemeEditor key={"theme"} readOnly={!local.data.isOwner} /> */}
-        <StaticEditor key={"static"} readOnly={!local.data.isOwner} />
+        <StaticEditor readOnly={!local.data.isOwner} />
         {local.data.isOwner && <SaveRow state={StateEditorState} />}
         {local.data.isOwner && <SaveRow state={JsxEditorState} />}
         {/* {local.data.isOwner && <SaveRow state={ThemeEditorState} />} */}

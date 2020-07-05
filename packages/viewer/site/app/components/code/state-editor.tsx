@@ -55,17 +55,8 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         width="100%"
         value={local.data.dirty}
         clean={local.data.clean}
-        onChange={(_, code, editor) => {
-          if (!code.startsWith(`createState({\n`)) {
-            editor.trigger(code, "undo")
-            return
-          }
-
-          if (!code.endsWith(`\n})\n`)) {
-            editor.trigger(code, "undo")
-            return
-          }
-
+        validate={(code) => !!code.match(/^createState\(\{\n.*?\n\}\)\n$/gs)}
+        onChange={(_, code) => {
           if (isAutoFormatting.current) {
             isAutoFormatting.current = false
           } else {

@@ -23,7 +23,9 @@ const PreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
         jsx: JSON.parse(data.jsx),
         state: JSON.parse(data.code),
         statics: JSON.parse(
-          data.statics.startsWith('"function') ? data.statics : defaultStatics
+          data.statics?.match(/function getStatic\(\) \{\\n.*?\}"$/gs)
+            ? data.statics
+            : defaultStatics
         ),
         theme: JSON.parse(data.theme || defaultTheme),
       },

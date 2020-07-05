@@ -242,7 +242,10 @@ export const Project = createState({
       const { statics } = data.code
 
       try {
-        data.statics = Function("Utils", `return ${statics}()`)(Utils)
+        data.statics = Function(
+          "Utils",
+          `${statics}\n\nreturn getStatic()`
+        )(Utils)
         data.error = ""
       } catch (err) {
         console.warn("Error building statics", err)
@@ -271,7 +274,7 @@ export const Project = createState({
       data.code.jsx = JSON.parse(source.jsx)
       data.code.state = JSON.parse(source.code)
       data.code.statics = JSON.parse(
-        source.statics?.startsWith('"function')
+        source.statics?.match(/function getStatic\(\) \{\\n.*?\}"$/gs)
           ? source.statics
           : defaultStatics
       )
