@@ -1,6 +1,6 @@
 // @jsx jsx
 import * as React from "react"
-import { Sun, Moon } from "react-feather"
+import { Sun, Moon, Twitter } from "react-feather"
 import Layout from "./layout"
 import Link from "next/link"
 import { useRouter } from "next/router"
@@ -116,6 +116,30 @@ const Sidebar: React.FC<{}> = ({}) => {
         Follow me for updates:{" "}
         <Styled.a href="https://twitter.com/steveruizok">@steveruizok</Styled.a>
       </Styled.p>
+      <Styled.p>
+        Join the <Styled.a href="https://discord.gg/HYw5zJ">Discord</Styled.a>
+      </Styled.p>
+      <Grid sx={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+        <a href="https://state-designer.com" target="_blank" rel="noopener">
+          <Button>
+            <img src="/sd-icon.svg" height={24} />
+          </Button>
+        </a>
+        <a
+          href="https://twitter.com/steveruizok"
+          target="_blank"
+          rel="noopener"
+        >
+          <Button>
+            <Twitter />
+          </Button>
+        </a>
+        <a href="https://discord.gg/HYw5zJ" target="_blank" rel="noopener">
+          <Button>
+            <img src="/discord.svg" height={24} />
+          </Button>
+        </a>
+      </Grid>
       <Styled.hr />
       <Heading as="h2" sx={{ mb: 4 }}>
         Examples

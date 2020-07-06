@@ -43,7 +43,13 @@ const Menu: React.FC = ({}) => {
           </Button>
         ),
       })}
-      <ValueInput
+      |
+      <a href="https://discord.gg/HYw5zJ" target="_blank" rel="noopener">
+        <IconButton>
+          <img src="/discord.svg" height={20} width="auto" />
+        </IconButton>
+      </a>
+      {/* <ValueInput
         value={local.data.pid}
         transform={(v) => v}
         validate={(value) =>
@@ -52,7 +58,7 @@ const Menu: React.FC = ({}) => {
         onChange={(value) =>
           updateProjectName(local.data.pid, local.data.uid, value)
         }
-      />
+      /> */}
     </Flex>
   )
 }
