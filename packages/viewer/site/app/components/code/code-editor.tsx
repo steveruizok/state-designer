@@ -36,7 +36,7 @@ const CodeEditor: React.FC<{
     }
   }, [])
 
-  const previousValue = React.useRef(value)
+  const rPreviousValue = React.useRef(value)
   const rEditor = React.useRef<any>()
 
   // Update from clean changes
@@ -56,6 +56,7 @@ const CodeEditor: React.FC<{
     // Update current value when the model changes
     editor.onDidChangeModelContent(() => {
       const currentValue = editor.getValue()
+      rPreviousValue.current = currentValue
       onChange(currentValue)
     })
 
@@ -73,17 +74,17 @@ const CodeEditor: React.FC<{
     editor.onKeyDown(async (e: KeyboardEvent) => {
       if (e.metaKey && e.code === "KeyS") {
         e.preventDefault()
-        let value = editor.getValue()
+        let currentValue = editor.getValue()
 
-        const isValid = validate ? validate(value) : true
+        const isValid = validate ? validate(currentValue) : true
 
         if (isValid && canSave()) {
           await editor.getAction("editor.action.formatDocument").run()
 
-          value = editor.getValue()
-          previousValue.current = value
+          currentValue = editor.getValue()
+          rPreviousValue.current = currentValue
 
-          onSave(value)
+          onSave(currentValue)
         }
       }
     })
@@ -96,13 +97,11 @@ const CodeEditor: React.FC<{
       value={value}
       editorDidMount={handleEditorDidMount}
       {...props}
-      onChange={(_, value) => {
-        const isValid = validate ? validate(value) : true
-        if (isValid) {
-          return value
-        } else {
-          return previousValue.current
-        }
+      onChange={(_, currentValue) => {
+        const previousValue = rPreviousValue.current
+        const isValid = validate ? validate(currentValue) : true
+
+        return isValid ? currentValue : previousValue
       }}
     />
   )
