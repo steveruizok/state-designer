@@ -43,9 +43,9 @@ const CodeEditor: React.FC<{
   React.useEffect(() => {
     const editor = rEditor.current
     if (!editor) return
-    const value = editor.getValue()
+    const currentValue = editor.getValue()
 
-    if (clean !== value) {
+    if (clean !== currentValue) {
       editor.setValue(clean)
     }
   }, [clean])
