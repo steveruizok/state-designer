@@ -71,13 +71,24 @@ const Content: React.FC = () => {
       >
         <Styled.ul>
           {events.map(([eventName], i) => {
+            let isDisabled = false
+
+            try {
+              isDisabled = !captive.can(eventName)
+            } catch (e) {
+              // Chances are the event needs a payload.
+              // At the moment, there's no way to tell whether
+              // an event needs a payload or not, so we'll suppress
+              // any error here.
+            }
+
             return (
               <EventItem
                 key={i}
                 highlightCount={captive.log.length}
                 highlight={zapEvents && eventName === captive.log[0]}
                 eventName={eventName}
-                disabled={!captive.can(eventName)}
+                disabled={isDisabled}
                 payload={payloads[eventName]}
               />
             )

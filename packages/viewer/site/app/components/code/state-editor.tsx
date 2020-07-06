@@ -30,19 +30,6 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
   // Set up the monaco instance
   const setupMonaco = React.useCallback((_, editor) => {
     rEditor.current = editor
-
-    // Focus / Blur events
-    editor.onDidFocusEditorText(() => local.send("FOCUSED"))
-    editor.onDidBlurEditorText(() => local.send("BLURRED"))
-
-    // Save event
-    editor.onKeyDown((e: KeyboardEvent) => {
-      if (e.metaKey && e.code === "KeyS") {
-        e.preventDefault()
-        isAutoFormatting.current = true
-        local.send("QUICK_SAVED")
-      }
-    })
   }, [])
 
   const isAutoFormatting = React.useRef(false)
@@ -56,13 +43,9 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         value={local.data.dirty}
         clean={local.data.clean}
         validate={(code) => !!code.match(/^createState\(\{\n.*?\n\}\)\n$/gs)}
-        onChange={(_, code) => {
-          if (isAutoFormatting.current) {
-            isAutoFormatting.current = false
-          } else {
-            local.send("CHANGED_CODE", { code })
-          }
-        }}
+        canSave={() => local.isIn("valid")}
+        onSave={(code) => local.send("QUICK_SAVED", { code })}
+        onChange={(code) => local.send("CHANGED_CODE", { code })}
         language="javascript"
         options={{
           lineNumbers: false,

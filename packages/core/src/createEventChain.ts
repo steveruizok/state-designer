@@ -113,8 +113,12 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
   ): { shouldBreak: boolean } {
     // Compute a result using original data and draft result
     if (handler.get.length > 0) {
-      for (let resu of handler.get) {
-        tResult = resu(draft.data as D, payload, tResult)
+      try {
+        for (let resu of handler.get) {
+          tResult = resu(draft.data as D, payload, tResult)
+        }
+      } catch (e) {
+        console.error("Error in event handler object's results! ", e.message)
       }
 
       // Save result to draft
@@ -137,15 +141,23 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
       if (handler.do.length > 0) {
         finalOutcome.shouldNotify = true
 
-        for (let action of handler.do) {
-          action(draft.data as D, curr.payload, curr.result)
+        try {
+          for (let action of handler.do) {
+            action(draft.data as D, curr.payload, curr.result)
+          }
+        } catch (e) {
+          console.error("Error in event handler's actions! ", e.message)
         }
       }
 
       // Secret actions
       if (handler.secretlyDo.length > 0) {
-        for (let action of handler.secretlyDo) {
-          action(draft.data as D, curr.payload, curr.result)
+        try {
+          for (let action of handler.secretlyDo) {
+            action(draft.data as D, curr.payload, curr.result)
+          }
+        } catch (e) {
+          console.error("Error in event handler's secret actions! ", e.message)
         }
       }
 
@@ -153,31 +165,50 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
       // Sends
       if (handler.send !== undefined) {
-        const event = handler.send(curr.data as D, curr.payload, curr.result)
-        finalOutcome.pendingSend = event
+        try {
+          const event = handler.send(curr.data as D, curr.payload, curr.result)
+          finalOutcome.pendingSend = event
+        } catch (e) {
+          console.error("Error computing event handler's send! ", e.message)
+        }
       }
 
       // Transitions
       if (handler.to.length > 0) {
-        finalOutcome.pendingTransition.push(
-          ...handler.to.map((t) => t(curr.data as D, curr.payload, curr.result))
-        )
-        finalOutcome.shouldBreak = true
-        finalOutcome.shouldNotify = true
-
-        return { shouldBreak: true }
+        try {
+          finalOutcome.pendingTransition.push(
+            ...handler.to.map((t) =>
+              t(curr.data as D, curr.payload, curr.result)
+            )
+          )
+          finalOutcome.shouldBreak = true
+          finalOutcome.shouldNotify = true
+          return { shouldBreak: true }
+        } catch (e) {
+          console.error(
+            "Error computing event handler's transition! ",
+            e.message
+          )
+        }
       }
 
       // Secret Transitions (no notify)
       if (handler.secretlyTo.length > 0) {
-        finalOutcome.pendingTransition.push(
-          ...handler.secretlyTo.map((t) =>
-            t(curr.data as D, curr.payload, curr.result)
+        try {
+          finalOutcome.pendingTransition.push(
+            ...handler.secretlyTo.map((t) =>
+              t(curr.data as D, curr.payload, curr.result)
+            )
           )
-        )
 
-        finalOutcome.shouldBreak = true
-        return { shouldBreak: true }
+          finalOutcome.shouldBreak = true
+          return { shouldBreak: true }
+        } catch (e) {
+          console.error(
+            "Error computing event handler's secret transitions! ",
+            e.message
+          )
+        }
       }
 
       // Then
@@ -189,8 +220,12 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
       // Break
       if (handler.break !== undefined) {
-        if (handler.break(curr.data as D, curr.payload, curr.result)) {
-          return { shouldBreak: true }
+        try {
+          if (handler.break(curr.data as D, curr.payload, curr.result)) {
+            return { shouldBreak: true }
+          }
+        } catch (e) {
+          console.error("Error computing event handler's break! ", e.message)
         }
       }
     } else {

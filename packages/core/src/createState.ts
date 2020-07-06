@@ -715,20 +715,25 @@ export function createState<
         const eventHandler = state.on[eventName]
         if (isUndefined(eventHandler)) return
 
-        return eventHandler.some((handler) => {
-          result = undefined
+        try {
+          return eventHandler.some((handler) => {
+            result = undefined
 
-          for (let resu of handler.get) {
-            result = resu(snapshot.data as D, payload, result)
-          }
+            for (let resu of handler.get) {
+              result = resu(snapshot.data as D, payload, result)
+            }
 
-          return testEventHandlerConditions(
-            handler,
-            snapshot.data,
-            payload,
-            result
-          )
-        })
+            return testEventHandlerConditions(
+              handler,
+              snapshot.data,
+              payload,
+              result
+            )
+          })
+        } catch (e) {
+          console.error(`Error in state.can(${eventName}): ${e.message}.`)
+          return false
+        }
       })
     )
   }

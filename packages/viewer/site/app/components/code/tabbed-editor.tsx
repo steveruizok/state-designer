@@ -24,7 +24,7 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
       loading: {
         async: {
           await: async () => await monaco.init(),
-          onReject: () => console.log("oops"),
+          onReject: () => console.log("Monaco failed to initialize."),
           onResolve: {
             do: "createModels",
             to: "loaded",
@@ -32,7 +32,7 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         },
       },
       loaded: {
-        onEnter: () => console.log("loaded"),
+        onEnter: () => console.log("Initialized Monaco."),
       },
     },
     on: {
@@ -120,19 +120,6 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
   // Set up the monaco instance
   const setupMonaco = React.useCallback((_, editor) => {
     rEditor.current = editor
-
-    // Focus / Blur events
-    editor.onDidFocusEditorText(() => local.send("STARTED_EDITING"))
-    editor.onDidBlurEditorText(() => local.send("STOPPED_EDITING"))
-
-    // Save event
-    editor.onKeyDown((e: KeyboardEvent) => {
-      if (e.metaKey && e.code === "KeyS") {
-        e.preventDefault()
-        isAutoFormatting.current = true
-        local.send("QUICK_SAVED")
-      }
-    })
   }, [])
 
   const isAutoFormatting = React.useRef(false)
@@ -166,15 +153,9 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         validate={(code) =>
           !!code.match(/function Component\(\) \{\n.*?\n\}$/gs)
         }
-        onChange={(_, code) => {
-          if (isAutoFormatting.current) {
-            isAutoFormatting.current = false
-          } else {
-            local.send("CHANGED_CODE", { code })
-          }
-
-          return code
-        }}
+        canSave={() => local.isIn("valid")}
+        onSave={(code) => local.send("QUICK_SAVED", { code })}
+        onChange={(code) => local.send("CHANGED_CODE", { code })}
         language="javascript"
         options={{
           lineNumbers: false,

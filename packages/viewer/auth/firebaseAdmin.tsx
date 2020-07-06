@@ -38,5 +38,5 @@ export const revokeIdToken = async (uids: string | string[]) => {
   await admin.auth().revokeRefreshTokens(uid)
   const userRecord = await admin.auth().getUser(uid)
   const timestamp = new Date(userRecord.tokensValidAfterTime).getTime() / 1000
-  console.log("Tokens revoked at: ", timestamp)
+  // console.log("Tokens revoked at: ", timestamp)
 }

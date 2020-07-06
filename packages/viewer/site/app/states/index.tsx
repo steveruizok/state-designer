@@ -367,6 +367,8 @@ export const StateEditorState = createCodeEditorState({
   },
 })
 
+// StateEditorState.onUpdate((state) => console.log(state.active))
+
 export const JsxEditorState = createCodeEditorState({
   defaultValue: "",
   onSave: (code) => Project.send("CHANGED_CODE", { globalId: "jsx", code }),

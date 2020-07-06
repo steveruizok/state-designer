@@ -172,7 +172,7 @@ export function subscribeToDocSnapshot(
     .get()
     .then((doc) => {
       if (!doc.exists) {
-        console.log("no project!")
+        console.log("No project with that owner / id!")
       }
 
       unsub = db

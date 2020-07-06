@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.23
+
+- Improves error messages, prevents fatal errors while processing events / conditions.
+
 ## 1.2.22
 
 - Stops loops, timeouts and intervals when `reset`ting a state.

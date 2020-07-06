@@ -88,4 +88,42 @@ const Preview: React.FC<{
   )
 }
 
-export default React.memo(Preview)
+class ErrorBoundary extends React.Component {
+  state = {
+    hasError: false,
+    errorMessage: "",
+  }
+
+  constructor(props) {
+    super(props)
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true, errorMessage: error.message }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // You can also log the error to an error reporting service
+    console.log("Error in Preview:", error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return <h1>Something went wrong.</h1>
+    }
+
+    return this.props.children
+  }
+}
+
+const MemoizedPreview = React.memo(Preview)
+
+const SafePreview = (props) => (
+  <ErrorBoundary>
+    <MemoizedPreview {...props} />
+  </ErrorBoundary>
+)
+
+export default SafePreview

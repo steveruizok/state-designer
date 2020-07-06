@@ -24,16 +24,7 @@ export function createCodeEditorState(
         on: {
           REFRESHED: {
             do: ["setClean", "setDirty"],
-            to: "idle",
-          },
-        },
-      },
-      idle: {
-        on: {
-          CHANGED_CODE: { do: ["setDirty", "setError"], to: "editing" },
-          REFRESHED: {
-            unless: "incomingCodeMatchesClean",
-            do: ["setClean", "setDirty"],
+            to: "editing",
           },
         },
       },
@@ -43,7 +34,8 @@ export function createCodeEditorState(
           CHANGED_CODE: { do: ["setDirty", "setError"], to: "editing" },
           REFRESHED: {
             unless: "incomingCodeMatchesClean",
-            do: ["setClean"],
+            do: "setClean",
+            to: "editing",
           },
         },
         initial: {
@@ -61,12 +53,12 @@ export function createCodeEditorState(
           valid: {
             on: {
               QUICK_SAVED: {
-                do: ["saveDirtyToClean", "saveCode"],
+                do: ["setDirty", "saveDirtyToClean", "saveCode"],
                 to: "pristine",
               },
               SAVED: {
                 do: ["saveDirtyToClean", "saveCode"],
-                to: ["pristine", "idle"],
+                to: ["pristine", "editing"],
               },
             },
           },
@@ -85,10 +77,6 @@ export function createCodeEditorState(
       },
     },
     actions: {
-      loadProject(d, { code }) {
-        d.clean = code
-        d.dirty = code
-      },
       setClean(data, { code }) {
         data.clean = code
       },
