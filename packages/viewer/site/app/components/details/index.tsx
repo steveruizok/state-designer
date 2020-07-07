@@ -1,7 +1,8 @@
 import * as React from "react"
-import { Box, Grid } from "theme-ui"
+import { Grid } from "theme-ui"
 import Data from "./data"
 import Values from "./values"
+import Tests from "./tests"
 import { Project } from "../../states"
 import { useStateDesigner } from "@state-designer/react"
 import { useMotionValue, PanInfo } from "framer-motion"
@@ -11,22 +12,43 @@ const Details: React.FC = (props) => {
   const local = useStateDesigner(Project)
   const captive = useStateDesigner(local.data.captive, [local.data.captive])
 
-  const mvColumWidth = useMotionValue(0)
-  const rOffset = React.useRef(0)
+  const mvColum1Width = useMotionValue(0)
+  const mvColum2Width = useMotionValue(0)
+
+  const rOffset1 = React.useRef(0)
+  const rOffset2 = React.useRef(0)
 
   const resetColumns = React.useCallback(() => {
-    rOffset.current = 0
-
-    document.documentElement.style.setProperty("--details-column-offset", "0px")
+    rOffset1.current = 0
+    rOffset2.current = 0
+    document.documentElement.style.setProperty(
+      "--details-column1-offset",
+      "0px"
+    )
+    document.documentElement.style.setProperty(
+      "--details-column2-offset",
+      "0px"
+    )
   }, [])
 
-  const handleDragHandleChange = React.useCallback((e: any, info: PanInfo) => {
-    const offset = rOffset.current
+  const handleDragHandle1Change = React.useCallback((e: any, info: PanInfo) => {
+    const offset = rOffset1.current
     const next = info.delta.x + offset
-    rOffset.current = next
+    rOffset1.current = next
 
     document.documentElement.style.setProperty(
-      "--details-column-offset",
+      "--details-column1-offset",
+      -next + "px"
+    )
+  }, [])
+
+  const handleDragHandle2Change = React.useCallback((e: any, info: PanInfo) => {
+    const offset = rOffset2.current
+    const next = info.delta.x + offset
+    rOffset2.current = next
+
+    document.documentElement.style.setProperty(
+      "--details-column2-offset",
       -next + "px"
     )
   }, [])
@@ -39,7 +61,7 @@ const Details: React.FC = (props) => {
         gridArea: "detail",
         gridAutoFlow: "column",
         gridTemplateColumns:
-          "auto clamp(10%, 90%, calc(50% + var(--details-column-offset)))",
+          "auto clamp(5%, 85%, calc(33% + var(--details-column1-offset))) clamp(5%, 85%, calc(33% + var(--details-column2-offset)))",
         borderTop: "outline",
         borderColor: "border",
         gap: 0,
@@ -52,11 +74,22 @@ const Details: React.FC = (props) => {
           min={0}
           max={0}
           align={"left"}
-          motionValue={mvColumWidth}
-          onPan={handleDragHandleChange}
+          motionValue={mvColum1Width}
+          onPan={handleDragHandle1Change}
           onDoubleClick={resetColumns}
         ></DragHandle>
       </Values>
+      <Tests tests={local.data.tests}>
+        <DragHandle
+          initial={0}
+          min={0}
+          max={0}
+          align={"left"}
+          motionValue={mvColum2Width}
+          onPan={handleDragHandle2Change}
+          onDoubleClick={resetColumns}
+        ></DragHandle>
+      </Tests>
     </Grid>
   )
 }

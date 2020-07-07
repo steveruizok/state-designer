@@ -1,4 +1,8 @@
-import FirebaseAuth from "../site/firebase-auth"
+import dynamic from "next/dynamic"
+
+const FirebaseAuth = dynamic(() => import("../site/firebase-auth"), {
+  ssr: false,
+})
 
 const Auth = () => {
   return <FirebaseAuth />

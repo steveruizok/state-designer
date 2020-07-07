@@ -2,7 +2,11 @@
 import { createState } from "@state-designer/react"
 import { createSimpleEditorState } from "./createSimpleEditorState"
 import { createCodeEditorState } from "./createCodeEditorState"
-import { defaultTheme, defaultStatics } from "../../static/defaults"
+import {
+  defaultTheme,
+  defaultTests,
+  defaultStatics,
+} from "../../static/defaults"
 import {
   updateProject,
   subscribeToDocSnapshot,
@@ -11,6 +15,8 @@ import {
 } from "../../../utils/firebase"
 import router from "next/router"
 import * as Utils from "../../static/scope-utils"
+import Colors from "../../static/colors"
+import { expect } from "jest-lite"
 
 /* -------------------------------------------------- */
 /*                    Main Project                    */
@@ -29,11 +35,13 @@ export const Project = createState({
     theme: {} as { [key: string]: any },
     captive: createState({}),
     statics: {},
+    tests: [] as Test[],
     code: {
       state: "",
       jsx: "",
-      theme: defaultTheme,
+      theme: "",
       statics: "",
+      tests: "",
     },
   },
   states: {
@@ -71,6 +79,7 @@ export const Project = createState({
               "setStaticValues",
               "setCaptiveState",
               "setCaptiveTheme",
+              "setTests",
               "updateStates",
               { to: "ready" },
             ],
@@ -89,17 +98,11 @@ export const Project = createState({
                 else: "authenticate",
               },
             ],
-            SNAPSHOT_UPDATED: [
-              "updateFromFirebase",
-              // {
-              //   if: "changeUpdatesCaptiveState",
-              //   do: ["setStaticValues", "setCaptiveState", "setCaptiveTheme"],
-              // },
-              "updateStates",
-            ],
+            SNAPSHOT_UPDATED: ["updateFromFirebase", "updateStates"],
             CHANGED_CODE: [
               "setCode",
               "setStaticValues",
+              "setTests",
               "updateStates",
               "updateFirebase",
             ],
@@ -113,18 +116,31 @@ export const Project = createState({
                 TABBED_TO_JSX: { to: "jsx" },
                 TABBED_TO_STATIC: { to: "static" },
                 TABBED_TO_THEME: { to: "theme" },
+                TABBED_TO_TESTS: { to: "tests" },
               },
               states: {
                 state: {
-                  on: { CHANGED_CODE: ["setStaticValues", "setCaptiveState"] },
+                  on: {
+                    CHANGED_CODE: [
+                      "setStaticValues",
+                      "setCaptiveState",
+                      "setTests",
+                    ],
+                  },
                 },
                 jsx: {},
+                tests: {
+                  on: {
+                    CHANGED_CODE: ["setTests"],
+                  },
+                },
                 static: {
                   on: {
                     CHANGED_CODE: [
                       "setStaticValues",
                       "setCaptiveTheme",
                       "setCaptiveState",
+                      "setTests",
                     ],
                   },
                 },
@@ -171,9 +187,6 @@ export const Project = createState({
     isOwner(data) {
       return data.isOwner
     },
-    // changeUpdatesCaptiveState(data, { source }) {
-    //   return false // maybe this will happen when editor state changes
-    // },
   },
   actions: {
     clearProject(data) {
@@ -216,16 +229,6 @@ export const Project = createState({
     authenticate() {
       router.push("/auth")
     },
-    updateFirebase(data) {
-      const { pid, oid, code } = data
-
-      updateProject(pid, oid, {
-        jsx: JSON.stringify(code.jsx),
-        statics: JSON.stringify(code.statics),
-        theme: JSON.stringify(code.theme),
-        code: JSON.stringify(code.state),
-      })
-    },
     setCaptiveTheme(data) {
       const { theme } = data.code
 
@@ -234,7 +237,7 @@ export const Project = createState({
         data.theme = Function("Static", `return ${code}`)(data.statics)
         data.error = ""
       } catch (err) {
-        console.warn("Error building theme", err)
+        console.error("Error building theme!", err.message)
         data.error = err.message
       }
     },
@@ -243,12 +246,13 @@ export const Project = createState({
 
       try {
         data.statics = Function(
+          "Colors",
           "Utils",
           `${statics}\n\nreturn getStatic()`
-        )(Utils)
+        )(Colors, Utils)
         data.error = ""
       } catch (err) {
-        console.warn("Error building statics", err)
+        console.error("Error building statics!", err.message)
         data.error = err.message
       }
     },
@@ -261,14 +265,62 @@ export const Project = createState({
         data.captive = Function(
           "fn",
           "Static",
+          "Colors",
           "Utils",
           `return fn(${code})`
-        )(createState, data.statics, Utils)
+        )(createState, data.statics, Colors, Utils)
         data.error = ""
       } catch (err) {
-        console.warn("Error building captive state", err)
+        console.error("Error building captive state!", err.message)
         data.error = err.message
       }
+    },
+    setTests(data) {
+      const { tests } = data.code
+      const clone = data.captive.clone()
+
+      let descriptions: Test[] = []
+
+      function describe(name: Test["name"], test: Test["test"]) {
+        const runTest = async () => {
+          await test()
+        }
+        descriptions.push({
+          name,
+          test: runTest,
+          state: "running",
+          message: "",
+        })
+      }
+
+      try {
+        Function(
+          "describe",
+          "expect",
+          "Static",
+          "Colors",
+          "Utils",
+          "state",
+          tests
+        )(describe, expect, data.statics, Colors, Utils, clone)
+
+        data.tests = descriptions
+        data.error = ""
+      } catch (err) {
+        console.error("Error building tests!", err.message)
+        data.error = err.message
+      }
+    },
+    updateFirebase(data) {
+      const { pid, oid, code } = data
+
+      updateProject(pid, oid, {
+        jsx: JSON.stringify(code.jsx),
+        statics: JSON.stringify(code.statics),
+        theme: JSON.stringify(code.theme),
+        code: JSON.stringify(code.state),
+        tests: JSON.stringify(code.tests),
+      })
     },
     updateFromFirebase(data, { source }) {
       data.code.jsx = JSON.parse(source.jsx)
@@ -279,14 +331,16 @@ export const Project = createState({
           : defaultStatics
       )
       data.code.theme = JSON.parse(source.theme || defaultTheme)
+      data.code.tests = JSON.parse(source.tests || defaultTests)
       data.name = source.name
     },
     updateStates(data) {
-      const { jsx, state, theme, statics } = data.code
+      const { jsx, state, theme, statics, tests } = data.code
       JsxEditorState.send("REFRESHED", { code: jsx })
       StateEditorState.send("REFRESHED", { code: state })
       ThemeEditorState.send("REFRESHED", { code: theme })
       StaticsEditorState.send("REFRESHED", { code: statics })
+      TestsEditorState.send("REFRESHED", { code: tests })
       NameEditor.send("REFRESHED", { value: data.name })
     },
   },
@@ -358,9 +412,10 @@ export const StateEditorState = createCodeEditorState({
         "createState",
         "Static",
         "ColorMode",
+        "Colors",
         "Utils",
         code
-      )(createState, Project.data.statics, "dark", Utils)
+      )(createState, Project.data.statics, "dark", Colors, Utils)
     } catch (e) {
       throw e
     }
@@ -380,7 +435,12 @@ export const ThemeEditorState = createCodeEditorState({
   onSave: (code) => Project.send("CHANGED_CODE", { globalId: "theme", code }),
   validate: (code) => {
     try {
-      Function("Utils", "Static", code)(Utils, Project.data.statics)
+      Function(
+        "Colors",
+        "Utils",
+        "Static",
+        code
+      )(Colors, Utils, Project.data.statics)
     } catch (e) {
       throw e
     }
@@ -392,7 +452,41 @@ export const StaticsEditorState = createCodeEditorState({
   onSave: (code) => Project.send("CHANGED_CODE", { globalId: "statics", code }),
   validate: (code) => {
     try {
-      Function("Utils", code)(Utils)
+      Function("Colors", "Utils", code)(Colors, Utils)
+    } catch (e) {
+      throw e
+    }
+  },
+})
+
+export const TestsEditorState = createCodeEditorState({
+  defaultValue: "",
+  onSave: (code) => Project.send("CHANGED_CODE", { globalId: "tests", code }),
+  validate: (code) => {
+    const clone = Project.data.captive.clone()
+
+    let descriptions: Test[] = []
+
+    function describe(name: Test["name"], test: Test["test"]) {
+      descriptions.push({
+        name,
+        test: async () => await test(),
+        state: "running",
+        message: "",
+      })
+    }
+
+    try {
+      Function(
+        "describe",
+        "expect",
+        "toBe",
+        "Static",
+        "Colors",
+        "Utils",
+        "state",
+        code
+      )(describe, expect, Project.data.statics, Colors, Utils, clone)
     } catch (e) {
       throw e
     }
@@ -454,3 +548,10 @@ export const Highlights = createState({
     },
   },
 })
+
+type Test = {
+  name: string
+  test: (() => void) | (() => Promise<void>)
+  state: "running" | "pass" | "fail"
+  message: ""
+}

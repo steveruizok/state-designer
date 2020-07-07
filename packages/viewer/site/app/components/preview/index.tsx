@@ -4,6 +4,7 @@ import * as React from "react"
 import * as Motion from "framer-motion"
 import { S, useStateDesigner } from "@state-designer/react"
 import { motion } from "framer-motion"
+import Colors from "../../../static/colors"
 import * as Utils from "../../../static/scope-utils"
 import * as Icons from "react-feather"
 import * as ThemeUI from "theme-ui"
@@ -36,6 +37,7 @@ const Preview: React.FC<{
         ...WithMotionComponents,
         Icons,
         Utils,
+        Colors,
         ColorMode: colorMode,
         useStateDesigner,
         Static: statics,

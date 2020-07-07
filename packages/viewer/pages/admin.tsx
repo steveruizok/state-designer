@@ -1,8 +1,12 @@
 import useSWR from "swr"
 import * as React from "react"
 import { useUser } from "../auth/useUser"
-import Admin from "../site/admin"
 import { AdminResponse } from "../utils/firebase"
+import dynamic from "next/dynamic"
+
+const Admin = dynamic(() => import("../site/admin"), {
+  ssr: false,
+})
 
 const fetcher = (url: string, token: string) =>
   fetch(url, {

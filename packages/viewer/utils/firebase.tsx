@@ -15,6 +15,7 @@ export type ProjectInfo = {
   jsx: string
   theme: string
   statics: string
+  tests: string
 }
 
 export type UserProjectsResponse = {

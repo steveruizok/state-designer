@@ -41,3 +41,5 @@ export const defaultStatics = JSON.stringify(
     }
 }`
 )
+
+export const defaultTests = `"describe(\"Always fail!\", async () => {\n    expect(2).toBe(1)\n  })"`

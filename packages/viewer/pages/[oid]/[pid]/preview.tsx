@@ -1,8 +1,12 @@
 import { getProjectData } from "../../../utils/firebase"
-import PreviewPage from "../../../site/preview-page"
 import NotFound404 from "../../../site/404"
 import { ProjectInfo } from "../../../utils/firebase"
 import { NextPage } from "next"
+import dynamic from "next/dynamic"
+
+const PreviewPage = dynamic(() => import("../../../site/preview-page"), {
+  ssr: false,
+})
 
 /**
  * A preview page that WILL subscribe to changes to the project document.

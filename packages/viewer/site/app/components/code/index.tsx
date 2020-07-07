@@ -4,6 +4,7 @@ import {
   Project,
   StateEditorState,
   JsxEditorState,
+  TestsEditorState,
   StaticsEditorState,
 } from "../../states"
 import { useStateDesigner } from "@state-designer/react"
@@ -12,6 +13,7 @@ import StateEditor from "./state-editor"
 // import ThemeEditor from "./theme-editor"
 import StaticEditor from "./static-editor"
 import TabbedEditor from "./tabbed-editor"
+import TestsEditor from "./tests-editor"
 import SaveRow from "./save-row"
 import { motion } from "framer-motion"
 
@@ -37,7 +39,7 @@ const CodeColumn: React.FC = (props) => {
           width: "100%",
           height: "100%",
           display: "grid",
-          gridTemplateColumns: "100% 100% 100%",
+          gridTemplateColumns: "100% 100% 100% 100%",
           gridTemplateRows: "1fr 40px",
         }}
         transition={{
@@ -51,14 +53,14 @@ const CodeColumn: React.FC = (props) => {
         variants={{
           state: { x: 0 },
           jsx: { x: "-100%" },
-          // theme: { x: "-200%" },
           static: { x: "-200%" },
+          tests: { x: "-300%" },
         }}
         animate={local.whenIn({
           state: "state",
           jsx: "jsx",
           static: "static",
-          theme: "theme",
+          tests: "tests",
         })}
       >
         <StateEditor readOnly={!local.data.isOwner} />
@@ -66,10 +68,12 @@ const CodeColumn: React.FC = (props) => {
         <JsxEditor readOnly={!local.data.isOwner} />
         {/* <ThemeEditor key={"theme"} readOnly={!local.data.isOwner} /> */}
         <StaticEditor readOnly={!local.data.isOwner} />
+        <TestsEditor readOnly={!local.data.isOwner} />
         {local.data.isOwner && <SaveRow state={StateEditorState} />}
         {local.data.isOwner && <SaveRow state={JsxEditorState} />}
         {/* {local.data.isOwner && <SaveRow state={ThemeEditorState} />} */}
         {local.data.isOwner && <SaveRow state={StaticsEditorState} />}
+        {local.data.isOwner && <SaveRow state={TestsEditorState} />}
       </motion.div>
     </Column>
   )

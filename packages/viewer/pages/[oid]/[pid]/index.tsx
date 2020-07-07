@@ -1,11 +1,11 @@
 import { useRouter } from "next/router"
 import useSWR from "swr"
 import { useUser } from "../../../auth/useUser"
-import Site from "../../../site/viewer"
+import dynamic from "next/dynamic"
 
-// const DynamicSiteNoSSR = dynamic(() => , {
-//   ssr: false,
-// })
+const Site = dynamic(() => import("../../../site/viewer"), {
+  ssr: false,
+})
 
 const deadFetcher = () => {
   return undefined

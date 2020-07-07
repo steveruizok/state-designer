@@ -1,8 +1,12 @@
 import useSWR from "swr"
 import * as React from "react"
 import { useUser } from "../auth/useUser"
-import User from "../site/user"
 import { UserProjectsResponse } from "../utils/firebase"
+import dynamic from "next/dynamic"
+
+const User = dynamic(() => import("../site/user"), {
+  ssr: false,
+})
 
 const fetcher = (url: string, token: string) =>
   fetch(url, {
