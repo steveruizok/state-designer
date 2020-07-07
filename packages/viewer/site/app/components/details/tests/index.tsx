@@ -91,7 +91,7 @@ const Tests: React.FC<{
   }, [tests])
 
   const { passes, fails } = local.values.results
-  const max = local.data.tests.length
+  const total = local.data.tests.length
 
   return (
     <Box
@@ -136,32 +136,34 @@ const Tests: React.FC<{
           },
         }}
       >
-        <Box
-          sx={{
-            px: 2,
-            pt: 1,
-            pb: 3,
-            mb: 1,
-            position: "relative",
-            width: "100%",
-          }}
-        >
-          PASS: {passes} FAIL: {fails} TOTAL: {local.data.tests.length}
-          <Progress
-            max={1}
-            value={passes / max || 0}
+        {total > 0 && (
+          <Box
             sx={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              borderRadius: 0,
-              height: 2,
-              color: "Green",
-              bg: "accent",
+              px: 2,
+              pt: 1,
+              pb: 3,
+              mb: 1,
+              position: "relative",
+              width: "100%",
             }}
-          />
-        </Box>
+          >
+            PASS: {passes} FAIL: {fails} TOTAL: {total}
+            <Progress
+              max={1}
+              value={passes / total || 0}
+              sx={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: 0,
+                height: 2,
+                color: "Green",
+                bg: "accent",
+              }}
+            />
+          </Box>
+        )}
         <Styled.ul>
           {local.data.tests.map((test, index) => (
             <Test

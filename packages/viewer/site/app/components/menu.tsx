@@ -43,12 +43,6 @@ const Menu: React.FC = ({}) => {
           </Button>
         ),
       })}
-      |
-      <a href="https://discord.gg/HYw5zJ" target="_blank" rel="noopener">
-        <IconButton>
-          <img src="/discord.svg" height={20} width="auto" />
-        </IconButton>
-      </a>
       {/* <ValueInput
         value={local.data.pid}
         transform={(v) => v}

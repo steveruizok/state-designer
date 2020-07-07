@@ -42,6 +42,7 @@
     "next": "^9.4.0",
     "next-cookies": "^2.0.3",
     "next-ga": "^2.3.4",
+    "prettier": "^2.0.5",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-feather": "^2.0.8",

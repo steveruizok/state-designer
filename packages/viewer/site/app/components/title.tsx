@@ -18,7 +18,7 @@ const Title: React.FC = ({}) => {
         borderColor: "border",
       }}
     >
-      {captive.id}
+      {captive.id.slice(1)}
     </Flex>
   )
 }
