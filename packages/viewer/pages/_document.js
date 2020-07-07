@@ -1,4 +1,3 @@
-import { resetServerContext } from "react-beautiful-dnd"
 import Document, { Html, Head, Main, NextScript } from "next/document"
 
 class CustomDocument extends Document {
@@ -22,7 +21,6 @@ class CustomDocument extends Document {
 }
 
 CustomDocument.getInitialProps = async (ctx) => {
-  resetServerContext()
   return Document.getInitialProps(ctx)
 }
 
