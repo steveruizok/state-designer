@@ -93,17 +93,16 @@ const Main: React.FC = () => {
             href={`/${local.data.oid}/${local.data.pid}/preview`}
             target="_blank"
             rel="noopener noreferrer"
+            style={{ position: "absolute", top: 0, right: 0 }}
           >
             <IconButton
               data-hidey="true"
-              sx={{ position: "absolute", top: 0, right: 0 }}
               title="Reset State"
               onClick={() => local.data.captive?.reset()}
             >
               <ExternalLink />
             </IconButton>
           </Styled.a>
-          <ResetButton state={local.data.captive} />
         </ViewWrapper>
       </Grid>
       {ui.data.zoomedPath &&
@@ -115,6 +114,7 @@ const Main: React.FC = () => {
             <Minimize />
           </IconButton>
         )}
+      <ResetButton state={local.data.captive} />
     </Box>
   )
 }
@@ -126,7 +126,7 @@ const ViewWrapper: React.FC<{ visible: boolean }> = ({ visible, ...rest }) => {
     <Box
       sx={{
         m: 0,
-        p: 2,
+        minHeight: 0,
         height: "100%",
         position: "relative",
         visibility: visible ? "visible" : "hidden",

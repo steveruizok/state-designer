@@ -51,6 +51,7 @@
     "react-use-gesture": "^7.0.15",
     "swr": "^0.2.3",
     "theme-ui": "^0.3.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "use-motion-resize-observer": "^1.0.2"
   }
 }

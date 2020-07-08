@@ -22,7 +22,8 @@ const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       <NodeHeading node={node} isParallel={true} />
       <Grid
         sx={{
-          gridTemplateColumns: `repeat(${childNodes.length}, auto min-content)`,
+          minWidth: "fit-content",
+          gridTemplateColumns: `repeat(${childNodes.length}, min-content)`,
           gridAutoRows: "100%",
           gap: 0,
           gridAutoFlow: "column",

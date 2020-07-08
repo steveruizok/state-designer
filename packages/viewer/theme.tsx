@@ -164,7 +164,6 @@ export default {
         borderColor: "inactive",
       },
       "&[data-isroot='true']": {
-        minWidth: 400,
         bg: "root",
       },
     },
@@ -172,6 +171,7 @@ export default {
       color: "text",
       p: 0,
       fontSize: 1,
+      width: "fit-content",
       fontFamily: "monospace",
       "&[data-isactive='false']": {
         borderColor: "inactive",

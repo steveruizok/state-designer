@@ -3,9 +3,9 @@ import * as React from "react"
 import { useGesture } from "react-use-gesture"
 import { useMotionValue, MotionValue } from "framer-motion"
 
-export function usePreventZooming() {
-  const rContainer = React.useRef<HTMLDivElement>()
-
+export function usePreventZooming(
+  rContainer: React.MutableRefObject<HTMLDivElement>
+) {
   // Disable pinch-to-zoom on an element.
   React.useEffect(() => {
     const container = rContainer.current

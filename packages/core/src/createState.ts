@@ -812,6 +812,7 @@ export function createState<
   }
 
   function forceTransition(target: string, payload?: string) {
+    _log.unshift(`Forced transition to: ${target}`)
     runTransition(target, payload, undefined)
     notifySubscribers()
     return snapshot
