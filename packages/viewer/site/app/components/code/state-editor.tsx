@@ -57,11 +57,17 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
           fontSize: 13,
           fontWeight: 400,
           readOnly,
+          tabSize: 2,
           minimap: { enabled: false },
           smoothScrolling: true,
           lineDecorationsWidth: 4,
           fontLigatures: true,
           cursorBlinking: "smooth",
+          allowJs: true,
+          allowSyntheticDefaultImports: true,
+          alwaysStrict: true,
+          jsx: "React",
+          jsxFactory: "React.createElement",
         }}
         editorDidMount={setupMonaco}
       />

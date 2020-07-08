@@ -57,7 +57,6 @@ const Chart: React.FC<{
 
   const resize = React.useCallback(
     throttle(() => {
-      console.log("resizing")
       const nodeWidth = mvStateNodeWidth.get()
       const canvasWidth = mvCanvasWidth.get()
 

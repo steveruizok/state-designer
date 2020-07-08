@@ -37,8 +37,6 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
     rEditor.current = editor
   }, [])
 
-  const isAutoFormatting = React.useRef(false)
-
   return (
     <Box sx={{ overflow: "hidden", height: "100%", width: "100%" }}>
       <CodeEditor
@@ -64,10 +62,8 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
           fontSize: 13,
           fontWeight: 400,
           readOnly,
-          minimap: {
-            enabled: false,
-          },
-          jsx: "react",
+          minimap: { enabled: false },
+          jsx: "React",
           smoothScrolling: true,
           lineDecorationsWidth: 4,
           fontLigatures: true,

@@ -32,8 +32,6 @@ const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
     rEditor.current = editor
   }, [])
 
-  const isAutoFormatting = React.useRef(false)
-
   return (
     <Box sx={{ overflow: "hidden", height: "100%", width: "100%" }}>
       <CodeEditor

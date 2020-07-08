@@ -52,6 +52,7 @@ const CodeEditor: React.FC<{
 
   const handleEditorDidMount = (getValue, editor) => {
     rEditor.current = editor
+    editor.getModel().updateOptions({ tabSize: 2 })
 
     // Update current value when the model changes
     editor.onDidChangeModelContent(() => {
@@ -96,13 +97,13 @@ const CodeEditor: React.FC<{
     <ControlledEditor
       value={value}
       editorDidMount={handleEditorDidMount}
-      {...props}
       onChange={(_, currentValue) => {
         const previousValue = rPreviousValue.current
         const isValid = validate ? validate(currentValue) : true
 
         return isValid ? currentValue : previousValue
       }}
+      {...props}
     />
   )
 }

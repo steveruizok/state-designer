@@ -7,6 +7,7 @@ import {
   TestsEditorState,
   StaticsEditorState,
 } from "../../states"
+import { initMonaco } from "./monaco"
 import { useStateDesigner } from "@state-designer/react"
 import JsxEditor from "./jsx-editor"
 import StateEditor from "./state-editor"
@@ -19,6 +20,10 @@ import { motion } from "framer-motion"
 
 const CodeColumn: React.FC = (props) => {
   const local = useStateDesigner(Project)
+
+  React.useEffect(() => {
+    initMonaco()
+  }, [])
 
   return (
     <Column

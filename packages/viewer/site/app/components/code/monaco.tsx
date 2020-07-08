@@ -1,9 +1,9 @@
 import * as React from "react"
-import { monaco } from "@monaco-editor/react"
 import { S } from "@state-designer/react"
 import { Highlights } from "../../states/highlights"
+import { monaco } from "@monaco-editor/react"
 import prettier from "prettier/standalone"
-import parserTypeScript from "prettier/parser-typescript"
+import parser from "prettier/parser-typescript"
 
 export function useHighlights(rEditor: any, code: string) {
   const rPrevious = React.useRef<any[]>([])
@@ -46,27 +46,22 @@ export async function initMonaco() {
   if (m === undefined && typeof window !== "undefined") {
     m = await monaco.init()
 
-    const PrettierFormatter = {
-      provideDocumentFormattingEdits: function (document, options, token) {
-        const text = document.getValue()
-        const formatted = prettier.format(text, {
-          semi: false,
-          parser: "typescript",
-          plugins: [parserTypeScript],
-        })
-        return [
-          {
-            range: document.getFullModelRange(),
-            text: formatted,
-          },
-        ]
-      },
-    }
+    //   m.languages.registerDocumentFormattingEditProvider("javascript", {
+    //     provideDocumentFormattingEdits(model, options, token) {
+    //       const text = prettier.format(model.getValue(), {
+    //         parser: "typescript",
+    //         plugins: [parser],
+    //         semi: false,
+    //       })
 
-    m.languages.registerDocumentFormattingEditProvider(
-      "typescript",
-      PrettierFormatter
-    )
+    //       return [
+    //         {
+    //           range: model.getFullModelRange(),
+    //           text: model.getValue(),
+    //         },
+    //       ]
+    //     },
+    //   })
   }
 }
 
@@ -110,8 +105,6 @@ export async function getHighlightRanges(code: string, searchString: string) {
       }
     }
   }
-
-  if (m === undefined) await initMonaco()
 
   return ranges.map((range) => ({
     range: new m.Range(...range),
