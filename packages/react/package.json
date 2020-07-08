@@ -7,6 +7,7 @@
   "private": false,
   "license": "MIT",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "umd:main": "dist/react.umd.production.js",
   "module": "dist/react.esm.js",
