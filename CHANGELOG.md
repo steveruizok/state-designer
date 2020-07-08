@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.24
+
+- ForceTransition now adds to the log.
+
 ## 1.2.23
 
 - Improves error messages, prevents fatal errors while processing events / conditions.
