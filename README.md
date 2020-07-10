@@ -14,8 +14,8 @@ Learn more at [state-designer.com](https://state-designer.com).
 
 ## Packages
 
-- [`@state-designer/core`](https://github.com/@state-designer/core) - Core library.
-- [`@state-designer/react`](https://github.com/@state-designer/react) - React hook.
+- [`@state-designer/core`](https://github.com/steveruizok/state-designer/tree/master/packages/core) - Core library.
+- [`@state-designer/react`](https://github.com/steveruizok/state-designer/tree/master/packages/react) - React hook.
 
 ## Starters
 
