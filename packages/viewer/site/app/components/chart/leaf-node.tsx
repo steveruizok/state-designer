@@ -2,6 +2,7 @@ import * as React from "react"
 import { Card } from "theme-ui"
 import { S } from "@state-designer/react"
 import NodeHeading from "./node-heading"
+import NodeEvents from "./node-events"
 
 const LeafNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
   return (
@@ -11,6 +12,7 @@ const LeafNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       data-isactive={node.active}
     >
       <NodeHeading node={node} />
+      <NodeEvents node={node} />
     </Card>
   )
 }

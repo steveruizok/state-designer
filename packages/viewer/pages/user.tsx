@@ -23,7 +23,7 @@ const Index = () => {
     fetcher
   )
 
-  return <User data={data} />
+  return <User user={user} data={data} />
 }
 
 export default Index

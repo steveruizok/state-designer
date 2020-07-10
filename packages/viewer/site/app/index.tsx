@@ -9,7 +9,7 @@ import DetailRow from "./components/details"
 import Controls from "./components/controls"
 import Tabs from "./components/tabs"
 
-const Viewer: React.FC<{}> = () => {
+const Viewer: React.FC<{ authenticated: boolean }> = ({ authenticated }) => {
   return (
     <Layout>
       <Menu />
@@ -18,7 +18,7 @@ const Viewer: React.FC<{}> = () => {
       <Content />
       <Main />
       <Tabs />
-      <CodeColumn />
+      <CodeColumn authenticated={authenticated} />
       <DetailRow />
     </Layout>
   )

@@ -40,9 +40,10 @@ const EventItem: React.FC<{
           Highlights.send("HIGHLIT_STATE", {
             stateName: node.name,
             shiftKey: e.shiftKey,
+            path: node.path,
           })
         }
-        onMouseLeave={() => Highlights.send("CLEARED_HIGHLIGHT")}
+        onMouseLeave={() => Highlights.send("CLEARED_STATE_HIGHLIGHT")}
       >
         {range(node.depth).map((i) => (
           <Circle

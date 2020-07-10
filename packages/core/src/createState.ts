@@ -874,8 +874,8 @@ export function createState<
   StateTree.deactivateState(snapshot.stateTree)
   runTransition("root", undefined, undefined) // Will onEnter events matter?
   setValues()
-  setLog()
   setActiveStates()
+  setLog()
 
   return snapshot
 }

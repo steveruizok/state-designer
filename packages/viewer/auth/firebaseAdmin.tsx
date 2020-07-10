@@ -1,3 +1,4 @@
+import firebase from "firebase"
 import * as admin from "firebase-admin"
 
 export const initializeAdmin = () => {
@@ -20,6 +21,8 @@ export const initializeAdmin = () => {
 
 export const verifyIdToken = (token: string | string[]) => {
   const singleToken = Array.isArray(token) ? token[0] : token
+
+  if (singleToken === "undefined") throw new Error("No token.")
 
   initializeAdmin()
 

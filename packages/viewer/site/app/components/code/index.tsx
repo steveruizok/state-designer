@@ -18,7 +18,9 @@ import TestsEditor from "./tests-editor"
 import SaveRow from "./save-row"
 import { motion } from "framer-motion"
 
-const CodeColumn: React.FC = (props) => {
+const CodeColumn: React.FC<{ authenticated: boolean }> = ({
+  authenticated,
+}) => {
   const local = useStateDesigner(Project)
 
   React.useEffect(() => {
@@ -68,17 +70,17 @@ const CodeColumn: React.FC = (props) => {
           tests: "tests",
         })}
       >
-        <StateEditor readOnly={!local.data.isOwner} />
+        <StateEditor readOnly={!authenticated} />
         {/* <TabbedEditor readOnly={!local.data.isOwner} /> */}
-        <JsxEditor readOnly={!local.data.isOwner} />
+        <JsxEditor readOnly={!authenticated} />
         {/* <ThemeEditor key={"theme"} readOnly={!local.data.isOwner} /> */}
-        <StaticEditor readOnly={!local.data.isOwner} />
-        <TestsEditor readOnly={!local.data.isOwner} />
-        {local.data.isOwner && <SaveRow state={StateEditorState} />}
-        {local.data.isOwner && <SaveRow state={JsxEditorState} />}
+        <StaticEditor readOnly={!authenticated} />
+        <TestsEditor readOnly={!authenticated} />
+        {authenticated && <SaveRow state={StateEditorState} />}
+        {authenticated && <SaveRow state={JsxEditorState} />}
         {/* {local.data.isOwner && <SaveRow state={ThemeEditorState} />} */}
-        {local.data.isOwner && <SaveRow state={StaticsEditorState} />}
-        {local.data.isOwner && <SaveRow state={TestsEditorState} />}
+        {authenticated && <SaveRow state={StaticsEditorState} />}
+        {authenticated && <SaveRow state={TestsEditorState} />}
       </motion.div>
     </Column>
   )

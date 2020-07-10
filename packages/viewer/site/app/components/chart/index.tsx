@@ -5,13 +5,9 @@ import { getFlatStates } from "../../utils"
 import { throttle } from "lodash"
 import { Compass } from "react-feather"
 import { S, useStateDesigner } from "@state-designer/react"
-import {
-  motion,
-  MotionValue,
-  useAnimation,
-  useMotionValue,
-} from "framer-motion"
+import { motion, useAnimation, useMotionValue } from "framer-motion"
 import StateNode from "./state-node"
+import CanvasOverlay from "./canvas-overlay"
 import useMotionResizeObserver from "use-motion-resize-observer"
 import { usePreventZooming, useScaleZooming } from "../../hooks/gestures"
 
@@ -22,7 +18,11 @@ const Chart: React.FC<{
   const captive = useStateDesigner(state, [state])
 
   const { ref: rCanvas, width: mvCanvasWidth } = useMotionResizeObserver()
-  const { ref: rStateNode, width: mvStateNodeWidth } = useMotionResizeObserver()
+  const {
+    ref: rStateNode,
+    width: mvStateNodeWidth,
+    height: mvStateNodeHeight,
+  } = useMotionResizeObserver()
 
   const rAutoScale = React.useRef(1)
 
@@ -140,7 +140,19 @@ const Chart: React.FC<{
         animate={animation}
         onDoubleClick={(e) => e.stopPropagation()}
       >
-        <StateNode ref={rStateNode as any} node={zoomed || captive.stateTree} />
+        <div
+          ref={rStateNode as any}
+          style={{ width: "fit-content", position: "relative" }}
+        >
+          <StateNode node={zoomed || captive.stateTree} />
+          {/* <CanvasOverlay
+            scale={mvScale}
+            offsetX={mvX}
+            offsetY={mvY}
+            width={mvStateNodeWidth}
+            height={mvStateNodeHeight}
+          /> */}
+        </div>
       </motion.div>
       <IconButton
         data-hidey="true"

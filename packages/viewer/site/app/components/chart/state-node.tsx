@@ -8,20 +8,28 @@ import { Highlights } from "../../states/highlights"
 
 const StateNode = React.forwardRef<HTMLDivElement, { node: S.State<any, any> }>(
   ({ node }, ref) => {
+    const rContainer = React.useRef<HTMLDivElement>(null)
+
+    React.useEffect(() => {
+      Highlights.send("MOUNTED_NODE", { path: node.path, ref: rContainer })
+    }, [node])
+
     return (
       <Flex
-        ref={ref}
+        data-type="node-container"
+        ref={rContainer}
         sx={{ minWidth: "fit-content" }}
         onMouseOver={(e) => {
           e.stopPropagation()
           Highlights.send("HIGHLIT_STATE", {
             stateName: node.name,
             shiftKey: e.shiftKey,
+            path: node.path,
           })
         }}
         onMouseLeave={(e) => {
           e.stopPropagation()
-          Highlights.send("CLEARED_HIGHLIGHT")
+          Highlights.send("CLEARED_STATE_HIGHLIGHT")
         }}
       >
         {node.type === "parallel" ? (

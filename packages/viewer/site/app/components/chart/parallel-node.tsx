@@ -5,6 +5,7 @@ import { S, useStateDesigner } from "@state-designer/react"
 import NodeHeading from "./node-heading"
 import StateNode from "./state-node"
 import ParallelDivider from "./parallel-divider"
+import NodeEvents from "./node-events"
 
 const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
   const childNodes = Object.values(node.states)
@@ -20,16 +21,15 @@ const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       data-isactive={node.active}
     >
       <NodeHeading node={node} isParallel={true} />
+      <NodeEvents node={node} />
       <Grid
         sx={{
           minWidth: "fit-content",
           gridTemplateColumns: `repeat(${childNodes.length}, min-content)`,
-          gridAutoRows: "100%",
           gap: 0,
           gridAutoFlow: "column",
           overflow: "hidden",
           position: "relative",
-          height: "100%",
         }}
       >
         {getSortedParallelChildNodes(childNodes).map((child, i) => {

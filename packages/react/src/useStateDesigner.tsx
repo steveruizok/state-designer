@@ -13,26 +13,7 @@ const emptyArray: unknown[] = []
  * @param design A designuration object for a new state — or a state returned from createState.
  * @param dependencies (optional) An array of dependencies that, when changed, will rebuild a new state from the provided design.
  */
-// export function useStateDesigner<D, V>(
-//   design: S.DesignedState<D, V>
-// ): S.DesignedState<D, V>
-// export function useStateDesigner<
-//   D,
-//   R extends Record<string, S.Result<D>>,
-//   C extends Record<string, S.Condition<D>>,
-//   A extends Record<string, S.Action<D>>,
-//   Y extends Record<string, S.Async<D>>,
-//   T extends Record<string, S.Time<D>>,
-//   V extends Record<string, S.Value<D>>
-// >(
-//   design: S.Design<D, R, C, A, Y, T, V>,
-//   dependencies: any[]
-// ): S.DesignedState<
-//   D,
-//   {
-//     [key in keyof V]: ReturnType<V[key]>
-//   }
-// >
+
 export function useStateDesigner<
   D,
   R extends Record<string, S.Result<D>>,

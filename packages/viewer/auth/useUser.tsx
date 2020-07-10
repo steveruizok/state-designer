@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import cookies from "js-cookie"
 import firebase from "firebase/app"
-import "firebase/auth"
 import "firebase/firestore"
 import initFirebase from "../auth/initFirebase"
 
@@ -18,17 +17,22 @@ const useUser = () => {
   const router = useRouter()
 
   useEffect(() => {
+    // Get user info from cookie
     const cookie = cookies.get("auth")
+
     if (cookie) {
       setUser(JSON.parse(cookie))
     }
 
-    // if (!cookie) {
-    //   router.push("/")
-    //   return
-    // }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Refresh ID token on each page load, if user is logged in
+  useEffect(() => {
+    const user = firebase.auth().currentUser
+    if (user) {
+      firebase.auth().currentUser.getIdToken(true)
+    }
   }, [])
 
   const logout = async () => {

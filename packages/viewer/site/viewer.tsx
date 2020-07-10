@@ -7,6 +7,8 @@ import Viewer from "./app"
 import { Project } from "./app/states"
 import { useStateDesigner } from "@state-designer/react"
 import { ProjectResponse } from "../utils/firebase"
+import router from "next/router"
+import { useUser } from "../auth/useUser"
 
 const App: React.FC<{ data: ProjectResponse }> = ({ data, children }) => {
   const project = useStateDesigner(Project)
@@ -21,11 +23,11 @@ const App: React.FC<{ data: ProjectResponse }> = ({ data, children }) => {
     return <LoadingScreen key="loading"></LoadingScreen>
   }
 
-  const { oid, pid, uid } = data
+  const { oid, pid, uid, isAuthenticated } = data
 
   return project.whenIn({
     loading: <LoadingScreen key="loading"></LoadingScreen>,
-    ready: <Viewer />,
+    ready: <Viewer authenticated={isAuthenticated} />,
     notFound: <NotFound uid={uid} pid={pid} />,
     authenticating: <FirebaseAuth redirect={`/${oid}/${pid}`} />,
     default: <div>hmm, there seems to be a problem</div>,

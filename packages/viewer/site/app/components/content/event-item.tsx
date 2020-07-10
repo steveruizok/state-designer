@@ -40,7 +40,7 @@ const EventItem: React.FC<{
           shiftKey: e.shiftKey,
         })
       }
-      onMouseLeave={() => Highlights.send("CLEARED_HIGHLIGHT")}
+      onMouseLeave={() => Highlights.send("CLEARED_EVENT_HIGHLIGHT")}
     >
       <Button
         variant="contentEvent"

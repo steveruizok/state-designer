@@ -3400,10 +3400,10 @@
   resolved "https://registry.yarnpkg.com/@mikaelkristiansson/domready/-/domready-1.0.10.tgz#f6d69866c0857664e70690d7a0bfedb72143adb5"
   integrity sha512-6cDuZeKSCSJ1KvfEQ25Y8OXUjqDJZ+HgUs6dhASWbAX8fxVraTfPsSeRe2bN+4QJDsgUaXaMWBYfRomCr04GGg==
 
-"@monaco-editor/react@^3.3.2":
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/@monaco-editor/react/-/react-3.3.2.tgz#8bf8330a8b2643b757900901627a0bb04910380d"
-  integrity sha512-CeqsEBNwYoNmyWyOwJBQB/vArqOJ2L0hg5rpb7TUOwJHNPeccwT8UGc8m8pqyKqyETCv736iIT2jhFJt6BPjvg==
+"@monaco-editor/react@^3.4.1":
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/@monaco-editor/react/-/react-3.4.1.tgz#2a37dc29340657569048762ae6b7ebf82b46a152"
+  integrity sha512-72W+Lv2UVgv8oNTyJKurSSCYf9WIw0Kg9/ZZ4b7E8HPNMge7Fj0SLiCtaEbyaCq2zfy/sWzA5JWkDq5jIOJtsQ==
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -6629,6 +6629,11 @@ bignumber.js@^9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.0.tgz#805880f84a329b5eac6e7cb6f8274b6d82bdf075"
   integrity sha512-t/OYhhJ2SD+YGBQcjY8GzzDHEk9f3nerxjtfa6tlMXfe7frs/WozhvCNoGvpM0P3bNf3Gq5ZRMlGr5f3r4/N8A==
+
+biltong@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/biltong/-/biltong-0.4.0.tgz#71ea1828568b50c0cea954204f9dcfe8500cc392"
+  integrity sha1-ceoYKFaLUMDOqVQgT53P6FAMw5I=
 
 bin-build@^3.0.0:
   version "3.0.0"

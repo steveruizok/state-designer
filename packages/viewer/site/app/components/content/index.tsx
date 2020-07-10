@@ -20,7 +20,7 @@ const Content: React.FC = () => {
 
   const [zapStates, setZapStates] = React.useState(false)
   const [zapEvents, setZapEvents] = React.useState(false)
-  const [payloads, setPayloads] = React.useState<Record<string, string>>({})
+
   const [selectedEvent, setSelectedEvent] = React.useState<string>(
     events[0] ? events[0][0] : ""
   )
@@ -89,17 +89,19 @@ const Content: React.FC = () => {
                 highlight={zapEvents && eventName === captive.log[0]}
                 eventName={eventName}
                 disabled={isDisabled}
-                payload={payloads[eventName]}
+                payload={local.data.code.payloads[eventName]}
               />
             )
           })}
         </Styled.ul>
       </ContentSection>
-      <Box onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHT")} />
+      <Box onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHTS")} />
       <ContentSection isBottomUp={true} zap={undefined} title="Event Payloads">
         <Payload
-          payloads={payloads}
-          setPayloads={setPayloads}
+          payloads={local.data.code.payloads}
+          setPayloads={(payloads) =>
+            local.send("CHANGED_PAYLOADS", { payloads })
+          }
           can={captive.can}
           eventNames={events.map((e) => e[0])}
         />

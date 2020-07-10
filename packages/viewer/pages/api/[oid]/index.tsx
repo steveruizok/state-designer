@@ -37,6 +37,7 @@ export default async (
       error: undefined,
     })
   } catch (error) {
+    console.log("Could not verify token:", error.message)
     return res.status(400).json({
       oid,
       uid,

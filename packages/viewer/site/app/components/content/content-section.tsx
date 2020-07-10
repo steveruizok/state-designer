@@ -36,7 +36,7 @@ const ContentSection: React.FC<{
       }}
     >
       <Flex
-        onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHT")}
+        onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHTS")}
         variant="contentHeading"
         data-iscollapsed={isCollapsed ? "true" : "false"}
       >

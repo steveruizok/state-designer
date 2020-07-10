@@ -4,6 +4,7 @@ import { Flex, Card } from "theme-ui"
 import { S } from "@state-designer/react"
 import NodeHeading from "./node-heading"
 import StateNode from "./state-node"
+import NodeEvents from "./node-events"
 
 const BranchNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
   const childNodes = Object.values(node.states)
@@ -22,6 +23,7 @@ const BranchNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       data-isactive={node.active}
     >
       <NodeHeading node={node} />
+      <NodeEvents node={node} />
       <Flex sx={{ flexWrap: "wrap" }}>
         {getSortedBranchChildNodes(childNodes).map((child, i) => (
           <StateNode key={i} node={child} />

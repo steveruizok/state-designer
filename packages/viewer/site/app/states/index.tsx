@@ -42,6 +42,7 @@ export const Project = createState({
       theme: "",
       statics: "",
       tests: "",
+      payloads: {} as Record<string, string>,
     },
   },
   states: {
@@ -99,7 +100,12 @@ export const Project = createState({
               },
             ],
             SNAPSHOT_UPDATED: ["updateFromFirebase", "updateStates"],
+            CHANGED_PAYLOADS: [
+              { unless: "isAuthenticated", break: true },
+              "updatePayloads",
+            ],
             CHANGED_CODE: [
+              { unless: "isAuthenticated", break: true },
               "setCode",
               "setStaticValues",
               "setTests",
@@ -122,6 +128,7 @@ export const Project = createState({
                 state: {
                   on: {
                     CHANGED_CODE: [
+                      { unless: "isAuthenticated", break: true },
                       "setStaticValues",
                       "setCaptiveState",
                       "setTests",
@@ -131,12 +138,16 @@ export const Project = createState({
                 jsx: {},
                 tests: {
                   on: {
-                    CHANGED_CODE: ["setTests"],
+                    CHANGED_CODE: [
+                      { unless: "isAuthenticated", break: true },
+                      "setTests",
+                    ],
                   },
                 },
                 static: {
                   on: {
                     CHANGED_CODE: [
+                      { unless: "isAuthenticated", break: true },
                       "setStaticValues",
                       "setCaptiveTheme",
                       "setCaptiveState",
@@ -145,7 +156,12 @@ export const Project = createState({
                   },
                 },
                 theme: {
-                  on: { CHANGED_CODE: ["setCaptiveTheme"] },
+                  on: {
+                    CHANGED_CODE: [
+                      { unless: "isAuthenticated", break: true },
+                      "setCaptiveTheme",
+                    ],
+                  },
                 },
               },
             },
@@ -185,7 +201,7 @@ export const Project = createState({
       return data.isProject
     },
     isOwner(data) {
-      return data.isOwner
+      return data.isOwner && data.isAuthenticated
     },
   },
   actions: {
@@ -259,15 +275,13 @@ export const Project = createState({
     setCaptiveState(data) {
       const { state } = data.code
 
-      let code = state.slice(12, -2) // trim createState call
-
       try {
         data.captive = Function(
-          "fn",
+          "createState",
           "Static",
           "Colors",
           "Utils",
-          `return fn(${code})`
+          `return ${state}`
         )(createState, data.statics, Colors, Utils)
         data.error = ""
       } catch (err) {
@@ -312,7 +326,10 @@ export const Project = createState({
       }
     },
     updateFirebase(data) {
-      const { pid, oid, code } = data
+      const { pid, oid, code, isAuthenticated } = data
+
+      // Extra guard here...
+      if (!isAuthenticated) return
 
       updateProject(pid, oid, {
         jsx: JSON.stringify(code.jsx),
@@ -342,6 +359,9 @@ export const Project = createState({
       StaticsEditorState.send("REFRESHED", { code: statics })
       TestsEditorState.send("REFRESHED", { code: tests })
       NameEditor.send("REFRESHED", { value: data.name })
+    },
+    updatePayloads(data, { payloads }) {
+      data.code.payloads = payloads
     },
   },
 })
@@ -496,57 +516,6 @@ export const TestsEditorState = createCodeEditorState({
 export const NameEditor = createSimpleEditorState({
   defaultValue: "",
   onSave: (name) => Project.send("CHANGED_NAME", { name }),
-})
-
-/* -------------------------------------------------- */
-/*                     Highlights                     */
-/* -------------------------------------------------- */
-
-type HighlightData = {
-  event: string | null
-  state: string | null
-  scrollToLine: boolean
-}
-
-const initialData: HighlightData = {
-  event: null,
-  state: null,
-  scrollToLine: false,
-}
-
-export const Highlights = createState({
-  data: initialData,
-  initial: "highlit",
-  states: {
-    idle: {
-      on: {
-        HIGHLIT_EVENT: { do: "setEventHighlight", to: "highlit" },
-        HIGHLIT_STATE: { do: "setStateHighlight", to: "highlit" },
-      },
-    },
-    highlit: {
-      on: {
-        CLEARED_HIGHLIGHT: { do: "clearHighlights", to: "idle" },
-        HIGHLIT_EVENT: { do: ["clearHighlights", "setEventHighlight"] },
-        HIGHLIT_STATE: { do: ["clearHighlights", "setStateHighlight"] },
-      },
-    },
-  },
-  actions: {
-    setEventHighlight(data, { eventName, shiftKey }) {
-      data.event = eventName
-      data.scrollToLine = shiftKey
-    },
-    setStateHighlight(data, { stateName, shiftKey }) {
-      data.state = stateName
-      data.scrollToLine = shiftKey
-    },
-    clearHighlights(data) {
-      data.state = null
-      data.event = null
-      data.scrollToLine = false
-    },
-  },
 })
 
 type Test = {

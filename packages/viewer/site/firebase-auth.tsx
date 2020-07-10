@@ -53,14 +53,14 @@ const firebaseAuthConfig = {
         addUser(uid)
       }
 
+      console.log("Signing in...")
+
       Project.send("SIGNED_IN", { user, redirectUrl })
     },
   },
 }
 
-const FirebaseAuth: React.FC<{ redirect?: string }> = ({
-  redirect = "/user",
-}) => {
+const FirebaseAuth: React.FC<{ redirect?: string }> = ({}) => {
   const local = useStateDesigner(Project)
   const [renderAuth, setRenderAuth] = useState(false)
 

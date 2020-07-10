@@ -6,7 +6,11 @@ import Link from "next/link"
 import { useRouter } from "next/router"
 import exampleLinks from "../static/example-links"
 import { useUser } from "../../auth/useUser"
-import { UserProjectsResponse, createNewProject } from "../../utils/firebase"
+import {
+  UserProjectsResponse,
+  createNewProject,
+  logout,
+} from "../../utils/firebase"
 import { useStateDesigner } from "@state-designer/react"
 import { Project } from "../app/states/index"
 import {
@@ -23,14 +27,19 @@ import {
   useColorMode,
 } from "theme-ui"
 
-const User: React.FC<{ data: UserProjectsResponse }> = ({ data }) => {
+const User: React.FC<{ user: any; data: UserProjectsResponse }> = ({
+  user,
+  data,
+}) => {
   const router = useRouter()
+
   React.useEffect(() => {
     Project.send("CLOSED_PROJECT")
   }, [])
 
   React.useEffect(() => {
     if (data && !data.isAuthenticated) {
+      console.log("Not authenticated, but maybe still a user?", user)
       router.push("/auth")
     }
   }, [data])
@@ -39,7 +48,7 @@ const User: React.FC<{ data: UserProjectsResponse }> = ({ data }) => {
     <Layout>
       <Title />
       <PageLayout>
-        <Sidebar />
+        <Sidebar user={user} />
         <Content data={data} />
       </PageLayout>
     </Layout>
@@ -63,9 +72,7 @@ const Title: React.FC = () => {
   )
 }
 
-const Sidebar: React.FC<{}> = ({}) => {
-  const { user, logout } = useUser()
-
+const Sidebar: React.FC<{ user: any }> = ({ user }) => {
   if (!user) {
     return <Loading />
   }
@@ -117,29 +124,8 @@ const Sidebar: React.FC<{}> = ({}) => {
         <Styled.a href="https://twitter.com/steveruizok">@steveruizok</Styled.a>
       </Styled.p>
       <Styled.p>
-        Join the <Styled.a href="https://discord.gg/HYw5zJ">Discord</Styled.a>
+        Join the <Styled.a href="https://discord.gg/ndmUtRW">Discord</Styled.a>
       </Styled.p>
-      <Grid sx={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-        <a href="https://state-designer.com" target="_blank" rel="noopener">
-          <Button>
-            <img src="/sd-icon.svg" height={24} />
-          </Button>
-        </a>
-        <a
-          href="https://twitter.com/steveruizok"
-          target="_blank"
-          rel="noopener"
-        >
-          <Button>
-            <Twitter />
-          </Button>
-        </a>
-        <a href="https://discord.gg/HYw5zJ" target="_blank" rel="noopener">
-          <Button>
-            <img src="/discord.svg" height={24} />
-          </Button>
-        </a>
-      </Grid>
       <Styled.hr />
       <Heading as="h2" sx={{ mb: 4 }}>
         Examples

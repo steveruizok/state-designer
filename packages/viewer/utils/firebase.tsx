@@ -1,7 +1,8 @@
 import firebase from "firebase/app"
 import "firebase/firestore"
 import initFirebase from "../auth/initFirebase"
-import Router from "next/router"
+import router from "next/router"
+import cookies from "js-cookie"
 
 initFirebase()
 
@@ -76,14 +77,21 @@ export function getProject(pid: string, oid: string) {
   return db.collection("users").doc(oid).collection("projects").doc(pid)
 }
 
+// This is mostly a stupid fix to prevent "ghost entries" for
+// users. We need to define some property on the user doc in order
+// to fetch a list of existing users in admin. So if the user
+// is new, create an entry with `exists: true`, otherwise add
+// that entry (if missing) to the user's doc.
 export async function addUser(uid: string) {
   const user = db.collection("users").doc(uid)
   const initial = await user.get()
 
   if (initial.exists) {
-    user.update({ exists: true }).catch((e) => {
-      console.log("Error setting user", uid, e.message)
-    })
+    if (!initial.data().exists) {
+      user.update({ exists: true }).catch((e) => {
+        console.log("Error setting user", uid, e.message)
+      })
+    }
   } else {
     user.set({ exists: true }).catch((e) => {
       console.log("Error setting user", uid, e.message)
@@ -194,7 +202,7 @@ export function subscribeToDocSnapshot(
 
 export async function createNewProject(pid: string, oid: string, uid: string) {
   await createProject(pid, uid, "toggle")
-  Router.push(`/${uid}/${pid}`)
+  router.push(`/${uid}/${pid}`)
 }
 
 export async function forkProject(
@@ -230,7 +238,7 @@ export async function forkProject(
     })
   }
 
-  Router.push(`/${uid}/${nextpid ? nextpid : pid}`)
+  router.push(`/${uid}/${nextpid ? nextpid : pid}`)
 }
 
 export async function getProjectInfo(pid: string, oid: string, uid: string) {
@@ -294,4 +302,18 @@ export async function getAdminData() {
   })
 
   return idsp
+}
+
+export async function logout() {
+  return firebase
+    .auth()
+    .signOut()
+    .then(() => {
+      // Sign-out successful.
+      cookies.remove("auth")
+      router.push("/")
+    })
+    .catch((e) => {
+      console.error(e)
+    })
 }

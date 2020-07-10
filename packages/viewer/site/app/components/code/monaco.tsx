@@ -10,9 +10,10 @@ export function useHighlights(rEditor: any, code: string) {
 
   const highlightRanges = React.useCallback(
     async (code: string, search: string | undefined, scrollToLine = false) => {
-      const previous = rPrevious.current
       const editor = rEditor.current
       if (editor === null) return
+
+      const previous = rPrevious.current
 
       if (search === null) {
         rPrevious.current = editor.deltaDecorations(previous, [])
