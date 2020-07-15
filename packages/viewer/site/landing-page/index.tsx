@@ -38,6 +38,7 @@ const Landing: React.FC<{}> = () => {
           </Button>
         </Styled.a>
       </Link>
+      <Heading sx={{ mb: 5 }}>(Chrome browser required)</Heading>
       <Divider />
       <Heading sx={{ mb: 5 }}>Examples</Heading>
       <Box variant="cardList">
