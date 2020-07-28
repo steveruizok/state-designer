@@ -44,25 +44,63 @@ export function useHighlights(rEditor: any, code: string) {
 let m: any
 
 export async function initMonaco() {
+  // This could be worse! (But it could be better)
   if (m === undefined && typeof window !== "undefined") {
     m = await monaco.init()
 
-    //   m.languages.registerDocumentFormattingEditProvider("javascript", {
-    //     provideDocumentFormattingEdits(model, options, token) {
-    //       const text = prettier.format(model.getValue(), {
-    //         parser: "typescript",
-    //         plugins: [parser],
-    //         semi: false,
-    //       })
+    const typescript = m.languages.typescript
+    const compilerOptions = {
+      noEmit: true,
+      target: typescript.ScriptTarget.ES2018,
+      allowJs: true,
+      allowNonTsExtensions: true,
+      allowSyntheticDefaultImports: true,
+      alwaysStrict: true,
+      jsx: "React",
+      moduleResolution: typescript.ModuleResolutionKind.NodeJs,
+      module: typescript.ModuleKind.CommonJS,
+      resolveJsonModule: true,
+      typeRoots: ["node_modules/@types"],
+    }
+    typescript.typescriptDefaults.setCompilerOptions(compilerOptions)
+    typescript.javascriptDefaults.setCompilerOptions(compilerOptions)
+    typescript.typescriptDefaults.setEagerModelSync(true)
+    typescript.javascriptDefaults.setEagerModelSync(true)
 
-    //       return [
-    //         {
-    //           range: model.getFullModelRange(),
-    //           text: model.getValue(),
-    //         },
-    //       ]
-    //     },
-    //   })
+    // setup prettier formatter
+    const prettierFormatter = {
+      provideDocumentFormattingEdits(model) {
+        try {
+          const text = prettier.format(model.getValue(), {
+            parser: "typescript",
+            plugins: [parser],
+            semi: false,
+            trailingComma: "es5",
+            tabWidth: 2,
+          })
+
+          const range = model.getFullModelRange()
+
+          return [
+            {
+              range,
+              text,
+            },
+          ]
+        } catch (e) {
+          // Suppress error
+          return []
+        }
+      },
+    }
+    m.languages.registerDocumentFormattingEditProvider(
+      "javascript",
+      prettierFormatter
+    )
+    m.languages.registerDocumentFormattingEditProvider(
+      "typescript",
+      prettierFormatter
+    )
   }
 }
 
