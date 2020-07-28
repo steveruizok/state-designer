@@ -5,15 +5,12 @@ import { useStateDesigner } from "@state-designer/react"
 import { codeX } from "../layout"
 import { debounce } from "lodash"
 import CodeEditor from "./code-editor"
-import { useHighlights } from "./monaco"
 import { StaticsEditorState } from "../../states"
 
 const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
   const local = useStateDesigner(StaticsEditorState)
   const rEditor = React.useRef<any>(null)
   const [colorMode] = useColorMode()
-
-  useHighlights(rEditor, local.data.dirty)
 
   // Update the code editor's layout
   function updateMonacoLayout() {
@@ -25,6 +22,14 @@ const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
 
   React.useEffect(() => {
     return codeX.onChange(debounce(updateMonacoLayout, 60))
+  }, [])
+
+  React.useEffect(() => {
+    function updateLayout() {
+      debounce(updateMonacoLayout, 60)
+    }
+    window.addEventListener("resize", updateLayout)
+    return () => window.removeEventListener("resize", updateLayout)
   }, [])
 
   // Set up the monaco instance
@@ -40,9 +45,9 @@ const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         width="100%"
         value={local.data.dirty}
         clean={local.data.clean}
-        validate={(code) =>
-          !!code.match(/function getStatic\(\) \{\n.*?\n\}$/gs)
-        }
+        validate={(code) => {
+          return !!code.match(/function getStatic\(\) \{\n.*?\}(\n?)$/gs)
+        }}
         canSave={() => local.isIn("valid")}
         onSave={(code) => local.send("QUICK_SAVED", { code })}
         onChange={(code) => local.send("CHANGED_CODE", { code })}
@@ -53,16 +58,21 @@ const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
           suggest: false,
           rulers: false,
           quickSuggestions: false,
-          scrollBeyondLastLine: false,
           fontFamily: "Fira Code",
           fontSize: 13,
           fontWeight: 400,
           readOnly,
+          tabSize: 2,
           minimap: { enabled: false },
           smoothScrolling: true,
           lineDecorationsWidth: 4,
           fontLigatures: true,
           cursorBlinking: "smooth",
+          allowJs: true,
+          allowSyntheticDefaultImports: true,
+          alwaysStrict: true,
+          jsx: "React",
+          jsxFactory: "React.createElement",
         }}
         editorDidMount={setupMonaco}
       />

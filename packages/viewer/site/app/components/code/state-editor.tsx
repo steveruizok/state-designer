@@ -27,12 +27,18 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
     return codeX.onChange(debounce(updateMonacoLayout, 60))
   }, [])
 
+  React.useEffect(() => {
+    function updateLayout() {
+      debounce(updateMonacoLayout, 60)
+    }
+    window.addEventListener("resize", updateLayout)
+    return () => window.removeEventListener("resize", updateLayout)
+  }, [])
+
   // Set up the monaco instance
   const setupMonaco = React.useCallback((_, editor) => {
     rEditor.current = editor
   }, [])
-
-  const isAutoFormatting = React.useRef(false)
 
   return (
     <Box sx={{ overflow: "hidden", height: "100%", width: "100%" }}>
@@ -42,7 +48,7 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         width="100%"
         value={local.data.dirty}
         clean={local.data.clean}
-        validate={(code) => !!code.match(/^createState\(\{\n.*?\n\}\)\n$/gs)}
+        validate={(code) => !!code.match(/^createState\(\{\n.*?\n\}\)\n?$/gs)}
         canSave={() => local.isIn("valid")}
         onSave={(code) => local.send("QUICK_SAVED", { code })}
         onChange={(code) => local.send("CHANGED_CODE", { code })}

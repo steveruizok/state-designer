@@ -40,7 +40,7 @@ const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
         width="100%"
         value={local.data.dirty}
         clean={local.data.clean}
-        validate={(code) => !!code.match(/^const theme = \{\n.*?\n\}$/gs)}
+        validate={(code) => !!code.match(/^const theme = \{\n.*?\n\}\n?$/gs)}
         canSave={() => local.isIn("valid")}
         onSave={(code) => local.send("QUICK_SAVED", { code })}
         onChange={(code) => local.send("CHANGED_CODE", { code })}

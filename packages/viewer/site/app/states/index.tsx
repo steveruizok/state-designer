@@ -326,7 +326,7 @@ export const Project = createState({
       data.code.jsx = JSON.parse(source.jsx)
       data.code.state = JSON.parse(source.code)
       data.code.statics = JSON.parse(
-        source.statics?.match(/function getStatic\(\) \{\\n.*?\}"$/gs)
+        source.statics?.match(/function getStatic\(\)/gs)
           ? source.statics
           : defaultStatics
       )

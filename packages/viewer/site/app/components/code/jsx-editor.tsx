@@ -41,13 +41,13 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
     <Box sx={{ overflow: "hidden", height: "100%", width: "100%" }}>
       <CodeEditor
         theme={colorMode === "dark" ? "dark" : "light"}
-        value={local.data.dirty}
         height="100%"
         width="100%"
+        value={local.data.dirty}
         clean={local.data.clean}
-        validate={(code) =>
-          !!code.match(/function Component\(\) \{\n.*?\n\}$/gs)
-        }
+        validate={(code) => {
+          return !!code.match(/(\n|^)function Component\(\) \{\n.*?\n\}\n?$/gs)
+        }}
         canSave={() => local.isIn("valid")}
         onSave={(code) => local.send("QUICK_SAVED", { code })}
         onChange={(code) => local.send("CHANGED_CODE", { code })}
@@ -62,12 +62,17 @@ const JsxEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
           fontSize: 13,
           fontWeight: 400,
           readOnly,
+          tabSize: 2,
           minimap: { enabled: false },
-          jsx: "React",
           smoothScrolling: true,
           lineDecorationsWidth: 4,
           fontLigatures: true,
           cursorBlinking: "smooth",
+          allowJs: true,
+          allowSyntheticDefaultImports: true,
+          alwaysStrict: true,
+          jsx: "React",
+          jsxFactory: "React.createElement",
         }}
         editorDidMount={setupMonaco}
       />
