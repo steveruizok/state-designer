@@ -72,6 +72,9 @@ const FirebaseAuth: React.FC<{ redirect?: string }> = ({}) => {
 
   return (
     <Flex variant="fullView">
+      You can use this form to sign up, too!
+      <br />
+      <br />
       {renderAuth ? (
         <StyledFirebaseAuth
           uiConfig={
