@@ -11,7 +11,8 @@ const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
   const childNodes = Object.values(node.states)
 
   function getSortedParallelChildNodes(nodes: S.State<any, any>[]) {
-    return sortBy(nodes, (n) => Object.entries(n.states).length)
+    return nodes
+    //return sortBy(nodes, (n) => Object.entries(n.states).length)
   }
 
   return (

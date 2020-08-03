@@ -11,7 +11,8 @@ const BranchNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
 
   function getSortedBranchChildNodes(nodes: S.State<any, any>[]) {
     return sortBy(
-      sortBy(nodes, (n) => Object.values(n.states).length).reverse(),
+      // sortBy(nodes, (n) => Object.values(n.states).length).reverse(),
+      nodes,
       (n) => !n.isInitial
     )
   }

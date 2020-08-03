@@ -43,7 +43,11 @@ const EventItem: React.FC<{
             path: node.path,
           })
         }
-        onMouseLeave={() => Highlights.send("CLEARED_STATE_HIGHLIGHT")}
+        onMouseLeave={(e) => {
+          Highlights.send("CLEARED_STATE_HIGHLIGHT", {
+            stateName: node.name,
+          })
+        }}
       >
         {range(node.depth).map((i) => (
           <Circle

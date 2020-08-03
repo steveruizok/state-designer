@@ -70,7 +70,7 @@ const Content: React.FC = () => {
         onZapChange={(zap) => setZapEvents(zap)}
       >
         <Styled.ul>
-          {events.map(([eventName], i) => {
+          {events.map(([eventName, statesWithEvent], i) => {
             let isDisabled = false
 
             try {

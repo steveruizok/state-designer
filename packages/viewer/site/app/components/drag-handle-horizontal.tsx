@@ -78,7 +78,7 @@ const DragHandleHorizontal: React.FC<{
         right: align === "left" ? max : initial - min,
       }}
       onDoubleClick={resetPosition}
-      onTapStart={() => onDragStart && onDragStart()}
+      onMouseDown={() => onDragStart && onDragStart()}
       onTap={() => onDragEnd && onDragEnd()}
     >
       {children}

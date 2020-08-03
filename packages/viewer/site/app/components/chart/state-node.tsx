@@ -18,7 +18,10 @@ const StateNode = React.forwardRef<HTMLDivElement, { node: S.State<any, any> }>(
       <Flex
         data-type="node-container"
         ref={rContainer}
-        sx={{ minWidth: "fit-content" }}
+        sx={{
+          minWidth: "fit-content",
+          // borderColor: isHighlit ? "highlight" : undefined,
+        }}
         onMouseOver={(e) => {
           e.stopPropagation()
           Highlights.send("HIGHLIT_STATE", {
@@ -29,7 +32,7 @@ const StateNode = React.forwardRef<HTMLDivElement, { node: S.State<any, any> }>(
         }}
         onMouseLeave={(e) => {
           e.stopPropagation()
-          Highlights.send("CLEARED_STATE_HIGHLIGHT")
+          Highlights.send("CLEARED_STATE_HIGHLIGHT", { stateName: node.name })
         }}
       >
         {node.type === "parallel" ? (

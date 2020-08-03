@@ -35,24 +35,50 @@ export const Highlights = createState({
     },
     highlit: {
       on: {
-        CLEARED_HIGHLIGHTS: {
-          do: [
-            () => console.log("clearing"),
-            "clearEventHighlight",
-            "clearStateHighlight",
-          ],
+        CHANGED_ACTIVE_STATES: {
+          unless: "highlitStateIsActive",
+          do: ["clearEventHighlight", "clearStateHighlight"],
           to: "idle",
         },
-        CLEARED_EVENT_HIGHLIGHT: { do: "clearEventHighlight", to: "idle" },
-        CLEARED_STATE_HIGHLIGHT: { do: "clearStateHighlight", to: "idle" },
-        HIGHLIT_EVENT: { do: ["clearEventHighlight", "setEventHighlight"] },
-        HIGHLIT_STATE: { do: ["clearStateHighlight", "setStateHighlight"] },
+        CLEARED_HIGHLIGHTS: {
+          do: ["clearEventHighlight", "clearStateHighlight"],
+          to: "idle",
+        },
+        CLEARED_EVENT_HIGHLIGHT: {
+          if: "eventIsAlreadyHighlit",
+          do: "clearEventHighlight",
+          to: "idle",
+        },
+        CLEARED_STATE_HIGHLIGHT: {
+          if: "stateIsAlreadyHighlit",
+          do: "clearStateHighlight",
+          to: "idle",
+        },
+        HIGHLIT_EVENT: {
+          unless: "eventIsAlreadyHighlit",
+          do: ["clearEventHighlight", "setEventHighlight"],
+        },
+        HIGHLIT_STATE: {
+          unless: "stateIsAlreadyHighlit",
+          do: ["clearStateHighlight", "setStateHighlight"],
+        },
       },
     },
   },
   on: {
     MOUNTED_NODE: "updateNodeRefs",
     MOUNTED_EVENT_BUTTON: "updateEventButtonRefs",
+  },
+  conditions: {
+    highlitStateIsActive(data, { active }) {
+      return active.includes(data.state)
+    },
+    eventIsAlreadyHighlit(data, { eventName }) {
+      return data.event === eventName
+    },
+    stateIsAlreadyHighlit(data, { stateName }) {
+      return data.state === stateName
+    },
   },
   actions: {
     setEventHighlight(data, { eventName, shiftKey, targets }) {
@@ -61,9 +87,8 @@ export const Highlights = createState({
       data.targets = targets || []
       data.scrollToLine = shiftKey
     },
-    setStateHighlight(data, { path, stateName, shiftKey }) {
+    setStateHighlight(data, { path, stateName, shiftKey, targets }) {
       data.state = stateName
-      data.event = null
       data.path = path
       data.scrollToLine = shiftKey
     },
@@ -127,6 +152,14 @@ export function findTransitionTargets<D = any>(
   const acc: S.State<D, unknown>[] = []
 
   let safePath = path.startsWith(".") ? path : "." + path
+
+  if (path.endsWith(".previous")) {
+    safePath = path.split(".previous")[0]
+  }
+
+  if (path.endsWith(".restore")) {
+    safePath = path.split(".restore")[0]
+  }
 
   if (state.path.endsWith(safePath)) {
     acc.push(state)

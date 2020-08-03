@@ -3,8 +3,10 @@ import * as React from "react"
 import { jsx, Box } from "theme-ui"
 import { MotionValue, motion } from "framer-motion"
 import { S, useStateDesigner } from "@state-designer/react"
+import { Project } from "../../states"
 import { Highlights } from "../../states/highlights"
 import { quadrant, theta, normal, gradient } from "./helpers"
+import { getBoxToBoxArrow } from "perfect-arrows"
 
 const CanvasOverlay: React.FC<{
   scale: MotionValue<number>
@@ -13,6 +15,7 @@ const CanvasOverlay: React.FC<{
   width: MotionValue<number>
   height: MotionValue<number>
 }> = ({ scale, offsetX, offsetY, width, height }) => {
+  const captive = useStateDesigner(Project.data.captive, [Project.data.captive])
   const local = useStateDesigner(Highlights)
 
   const rCanvas = React.useRef<HTMLCanvasElement>()
@@ -55,10 +58,6 @@ const CanvasOverlay: React.FC<{
 
       const hFrame = getFrame(hl, sc, cFrame.x, cFrame.y)
 
-      ctx.fillStyle = "rgba(255, 0, 0, .15)"
-
-      fillRectWithScale(ctx, hFrame, sc)
-
       if (local.data.event) {
         const eventButtons = local.data.eventButtonRefs
         if (!eventButtons) {
@@ -79,7 +78,7 @@ const CanvasOverlay: React.FC<{
 
         const bFrame = getFrame(button, sc, cFrame.x, cFrame.y)
 
-        fillRectWithScale(ctx, bFrame, sc)
+        // fillRectWithScale(ctx, bFrame, sc)
 
         if (targets) {
           for (let target of targets) {
@@ -90,7 +89,7 @@ const CanvasOverlay: React.FC<{
 
             drawLineFromEventButtonToStateNode(ctx, bFrame, tFrame)
 
-            fillRectWithScale(ctx, tFrame, sc)
+            // fillRectWithScale(ctx, tFrame, sc)
           }
         }
       }
@@ -179,7 +178,10 @@ function fillRectWithScale(
   frame: Frame,
   scale: number
 ) {
+  ctx.save()
+  ctx.fillStyle = "rgba(255, 0, 0, .15)"
   ctx.fillRect(frame.x, frame.y, frame.width, frame.height)
+  ctx.restore()
 }
 
 function drawLineFromEventButtonToStateNode(
@@ -187,102 +189,83 @@ function drawLineFromEventButtonToStateNode(
   a: Frame,
   b: Frame
 ) {
-  const n = normal(a.center, b.center)
-  const g = gradient(a.center, b.center)
-  const q = quadrant(a.center, b.center)
-  const t = theta(a.center, b.center)
-  const d = Math.floor((t * (180 / Math.PI)) / 45)
-  let start: Point, end: Point, mid: Point
-  console.log(q, g, n, t, d)
+  const arrow = getBoxToBoxArrow(
+    a.x,
+    a.y,
+    a.width,
+    a.height,
+    b.x,
+    b.y,
+    b.width,
+    b.height,
+    {
+      padStart: 0,
+      padEnd: -20,
+      bow: 0.12,
+      stretch: 0,
+      stretchMin: 128,
+      stretchMax: 500,
+    }
+  )
 
-  //  4 | 1
-  // -------
-  // 3 | 2
+  const [sx, sy, cx, cy, ex, ey, ae] = arrow
 
   ctx.save()
   ctx.beginPath()
 
-  switch (q) {
-    case 1: {
-      if (a.maxY <= b.maxY) {
-        start = { x: a.midX, y: a.y } // top
-        end = { x: b.x, y: b.midY } // left
-        mid = {
-          x: end.x + (start.x - end.x) / 2,
-          y: end.y + (start.y - end.y) / 2,
-        }
-        ctx.moveTo(start.x, start.y)
-        ctx.quadraticCurveTo(start.x, mid.y, mid.x, mid.y)
-        ctx.quadraticCurveTo(end.x, mid.y, end.x, end.y)
-      } else {
-        start = { x: a.midX, y: a.y } // top
-        end = { x: b.midX, y: b.maxY } // bottom
-        mid = {
-          x: end.x + (start.x - end.x) / 2,
-          y: end.y + (start.y - end.y) / 2,
-        }
-        ctx.moveTo(start.x, start.y)
-        ctx.quadraticCurveTo(start.x, mid.y * 1.05, mid.x, mid.y)
-        ctx.quadraticCurveTo(end.x, mid.y * 0.95, end.x, end.y)
-      }
-      break
-    }
-    case 2: {
-      start = { x: a.midX, y: a.maxY } // bottom
-      end = { x: b.midX, y: b.y } // top
-      mid = {
-        x: end.x + (start.x - end.x) / 2,
-        y: end.y + (start.y - end.y) / 2,
-      }
-      ctx.moveTo(start.x, start.y)
-      ctx.quadraticCurveTo(start.x, mid.y * 0.95, mid.x, mid.y)
-      ctx.quadraticCurveTo(end.x, mid.y * 1.05, end.x, end.y)
-      break
-    }
-    case 3: {
-      start = { x: a.midX, y: a.maxY } // bottom
-      end = { x: b.midX, y: b.y } // top
-      mid = {
-        x: end.x + (start.x - end.x) / 2,
-        y: end.y + (start.y - end.y) / 2,
-      }
-      ctx.moveTo(start.x, start.y)
-      ctx.quadraticCurveTo(start.x, mid.y * 0.95, mid.x, mid.y)
-      ctx.quadraticCurveTo(end.x, mid.y * 1.05, end.x, end.y)
-      break
-    }
-    case 4: {
-      if (a.maxY <= b.maxY) {
-        start = { x: a.midX, y: a.y } // top
-        end = { x: b.maxX, y: b.midY } // left
-        mid = {
-          x: end.x + (start.x - end.x) / 2,
-          y: end.y + (start.y - end.y) / 2,
-        }
-        ctx.moveTo(start.x, start.y)
-        ctx.quadraticCurveTo(start.x, mid.y, mid.x, mid.y)
-        ctx.quadraticCurveTo(end.x, mid.y, end.x, end.y)
-      } else {
-        start = { x: a.midX, y: a.y } // top
-        end = { x: b.midX, y: b.maxY } // bottom
-        mid = {
-          x: end.x + (start.x - end.x) / 2,
-          y: end.y + (start.y - end.y) / 2,
-        }
-        ctx.moveTo(start.x, start.y)
-        ctx.quadraticCurveTo(start.x, mid.y * 1.05, mid.x, mid.y)
-        ctx.quadraticCurveTo(end.x, mid.y * 0.95, end.x, end.y)
-      }
+  ctx.moveTo(sx, sy)
+  ctx.quadraticCurveTo(cx, cy, ex, ey)
 
-      break
-    }
-    default: {
-      throw Error("Something's wrong")
-    }
-  }
+  ctx.strokeStyle = "rgba(0,0,0,.5)"
+  ctx.lineWidth = 6
+  ctx.stroke()
+
+  ctx.beginPath()
+  drawDot(ctx, sx, sy)
+  drawArrowhead(ctx, ex, ey, ae)
+
+  ctx.strokeStyle = "rgba(0,0,0,.5)"
+  ctx.lineWidth = 4
+  ctx.stroke()
+
+  ctx.fillStyle = "red"
+  ctx.fill()
+
+  ctx.beginPath()
+  ctx.moveTo(sx, sy)
+  ctx.quadraticCurveTo(cx, cy, ex, ey)
 
   ctx.strokeStyle = "red"
   ctx.lineWidth = 2
   ctx.stroke()
+
   ctx.restore()
+}
+
+function drawArrowhead(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  angle: number,
+  color = "#000"
+) {
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.moveTo(0, 0)
+  ctx.lineTo(0, 0 + 6)
+  ctx.lineTo(0 + 12, 0)
+  ctx.lineTo(0, 0 - 6)
+  ctx.lineTo(0, 0)
+  ctx.resetTransform()
+}
+
+function drawDot(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r = 4,
+  color = "#000"
+) {
+  ctx.moveTo(x + r, y)
+  ctx.ellipse(x, y, r, r, 0, 0, Math.PI * 2)
 }

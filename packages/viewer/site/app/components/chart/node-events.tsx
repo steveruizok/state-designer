@@ -101,7 +101,25 @@ const EventButton: React.FC<{
         variant={"nodeEvent"}
         sx={{ fontSize: 1 }}
         disabled={isDisabled}
-        onClick={() => Project.data.captive.send(name)}
+        onClick={() => {
+          Project.data.captive.send(name)
+          Project.data.captive.getUpdate(({ active }) => {
+            Highlights.send("CHANGED_ACTIVE_STATES", { active })
+          })
+        }}
+        onMouseEnter={(e) => {
+          e.stopPropagation()
+          Highlights.send("HIGHLIT_EVENT", {
+            eventName: name,
+            shiftKey: e.shiftKey,
+            targets,
+          })
+        }}
+        onMouseLeave={() =>
+          Highlights.send("CLEARED_EVENT_HIGHLIGHT", {
+            eventName: name,
+          })
+        }
       >
         {name}
       </Button>

@@ -145,13 +145,13 @@ const Chart: React.FC<{
           style={{ width: "fit-content", position: "relative" }}
         >
           <StateNode node={zoomed || captive.stateTree} />
-          {/* <CanvasOverlay
+          <CanvasOverlay
             scale={mvScale}
             offsetX={mvX}
             offsetY={mvY}
             width={mvStateNodeWidth}
             height={mvStateNodeHeight}
-          /> */}
+          />
         </div>
       </motion.div>
       <IconButton
