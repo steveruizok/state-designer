@@ -65,7 +65,7 @@ const CanvasOverlay: React.FC<{
         }
         const pathEvents = eventButtons.get(local.data.path)
         if (!pathEvents) {
-          console.log("No events found for that state", local.data.path)
+          // console.log("No events found for that state", local.data.path)
           return
         }
         const buttonRef = pathEvents.get(local.data.event)
