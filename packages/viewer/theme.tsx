@@ -161,7 +161,6 @@ export default {
       height: "fit-content",
       minHeight: [null, 64, 64, 96],
       minWidth: 96,
-      width: "fit-content",
       "&[data-isactive='false']": {
         borderColor: "inactive",
       },

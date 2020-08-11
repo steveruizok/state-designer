@@ -25,8 +25,8 @@ const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       <NodeEvents node={node} />
       <Grid
         sx={{
-          minWidth: "fit-content",
-          gridTemplateColumns: `repeat(${childNodes.length}, fit-content)`,
+          width: "fit-content",
+          gridAutoColumns: "fit-content",
           gap: 0,
           gridAutoFlow: "column",
           overflow: "hidden",

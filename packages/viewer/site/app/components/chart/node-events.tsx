@@ -14,10 +14,10 @@ const NodeEvents: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       sx={{
         py: 0,
         px: 1,
-        minWidth: "fit-content",
         display: "flex",
         flexDirection: "row",
         flexWrap: "wrap",
+        maxWidth: 400,
         gap: 1,
       }}
     >
