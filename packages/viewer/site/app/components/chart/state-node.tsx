@@ -20,7 +20,6 @@ const StateNode = React.forwardRef<HTMLDivElement, { node: S.State<any, any> }>(
         ref={rContainer}
         sx={{
           minWidth: "fit-content",
-          // borderColor: isHighlit ? "highlight" : undefined,
         }}
         onMouseOver={(e) => {
           e.stopPropagation()

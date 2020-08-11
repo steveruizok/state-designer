@@ -14,56 +14,53 @@ const NodeEvents: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       sx={{
         py: 0,
         px: 1,
-        "& ul": {
-          display: "flex",
-        },
-        "& > ul > li": {
-          mr: 1,
-        },
+        minWidth: "fit-content",
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 1,
       }}
     >
-      <Styled.ul>
-        {events.map(([name, handlers], i) => {
-          const payloadStringValue = local.data.code.payloads[name]
+      {events.map(([name, handlers], i) => {
+        const payloadStringValue = local.data.code.payloads[name]
 
-          let payload: any
+        let payload: any
 
-          if (!!payloadStringValue) {
-            try {
-              const fn = Function("Static", `return ${payloadStringValue}`)
-              payload = fn(local.data.statics)
-            } catch (e) {
-              // suppress
+        if (!!payloadStringValue) {
+          try {
+            const fn = Function("Static", `return ${payloadStringValue}`)
+            payload = fn(local.data.statics)
+          } catch (e) {
+            // suppress
+          }
+        }
+
+        const isActive = node.active
+        const canHandleEvent = local.data.captive.can(name, payload)
+        const isDisabled = !isActive || !canHandleEvent
+
+        let targets: string[] = []
+
+        for (let handler of handlers) {
+          if (handler.to.length > 0) {
+            for (let transition of handler.to) {
+              targets.push(transition(captiveData, payload, undefined))
             }
           }
+        }
 
-          const isActive = node.active
-          const canHandleEvent = local.data.captive.can(name, payload)
-          const isDisabled = !isActive || !canHandleEvent
-
-          let targets: string[] = []
-
-          for (let handler of handlers) {
-            if (handler.to.length > 0) {
-              for (let transition of handler.to) {
-                targets.push(transition(captiveData, payload, undefined))
-              }
-            }
-          }
-
-          return (
-            <EventButton
-              key={i}
-              name={name}
-              node={node}
-              payload={payload}
-              targets={targets}
-              isDisabled={isDisabled}
-              isActive={isActive}
-            />
-          )
-        })}
-      </Styled.ul>
+        return (
+          <EventButton
+            key={i}
+            name={name}
+            node={node}
+            payload={payload}
+            targets={targets}
+            isDisabled={isDisabled}
+            isActive={isActive}
+          />
+        )
+      })}
     </Box>
   )
 }
@@ -88,41 +85,39 @@ const EventButton: React.FC<{
   })
 
   return (
-    <Styled.li>
-      <Button
-        ref={rButton}
-        title={
-          !isDisabled
-            ? `Send ${name} event`
-            : !isActive
-            ? "Cannot send events when state is inactive."
-            : "The state cannot handle this event due to its current payload."
-        }
-        variant={"nodeEvent"}
-        sx={{ fontSize: 1 }}
-        disabled={isDisabled}
-        onClick={() => {
-          Project.data.captive.send(name)
-          Project.data.captive.getUpdate(({ active }) => {
-            Highlights.send("CHANGED_ACTIVE_STATES", { active })
-          })
-        }}
-        onMouseEnter={(e) => {
-          e.stopPropagation()
-          Highlights.send("HIGHLIT_EVENT", {
-            eventName: name,
-            shiftKey: e.shiftKey,
-            targets,
-          })
-        }}
-        onMouseLeave={() =>
-          Highlights.send("CLEARED_EVENT_HIGHLIGHT", {
-            eventName: name,
-          })
-        }
-      >
-        {name}
-      </Button>
-    </Styled.li>
+    <Button
+      ref={rButton}
+      title={
+        !isDisabled
+          ? `Send ${name} event`
+          : !isActive
+          ? "Cannot send events when state is inactive."
+          : "The state cannot handle this event due to its current payload."
+      }
+      variant={"nodeEvent"}
+      sx={{ fontSize: 1 }}
+      disabled={isDisabled}
+      onClick={() => {
+        Project.data.captive.send(name)
+        Project.data.captive.getUpdate(({ active }) => {
+          Highlights.send("CHANGED_ACTIVE_STATES", { active })
+        })
+      }}
+      onMouseEnter={(e) => {
+        e.stopPropagation()
+        Highlights.send("HIGHLIT_EVENT", {
+          eventName: name,
+          shiftKey: e.shiftKey,
+          targets,
+        })
+      }}
+      onMouseLeave={() =>
+        Highlights.send("CLEARED_EVENT_HIGHLIGHT", {
+          eventName: name,
+        })
+      }
+    >
+      {name}
+    </Button>
   )
 }

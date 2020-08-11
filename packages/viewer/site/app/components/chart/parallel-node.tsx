@@ -12,7 +12,7 @@ const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
 
   function getSortedParallelChildNodes(nodes: S.State<any, any>[]) {
     return nodes
-    //return sortBy(nodes, (n) => Object.entries(n.states).length)
+    // return sortBy(nodes, (n) => Object.entries(n.states).length)
   }
 
   return (
@@ -26,7 +26,7 @@ const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
       <Grid
         sx={{
           minWidth: "fit-content",
-          gridTemplateColumns: `repeat(${childNodes.length}, min-content)`,
+          gridTemplateColumns: `repeat(${childNodes.length}, fit-content)`,
           gap: 0,
           gridAutoFlow: "column",
           overflow: "hidden",
