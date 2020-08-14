@@ -53,8 +53,6 @@ const firebaseAuthConfig = {
         addUser(uid)
       }
 
-      console.log("Signing in...")
-
       Project.send("SIGNED_IN", { user, redirectUrl })
     },
   },
