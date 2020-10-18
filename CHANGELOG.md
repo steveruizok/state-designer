@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.2.27
+
+- Adds `enableLog()` to restore the `log` property.
+- Adds `index` to track how many times the state has changed. Previously, I was referring to `log.length` but it's not great to have an array with a potentially infinite number of items in it.
+
 ## 1.2.24
 
 - ForceTransition now adds to the log.
