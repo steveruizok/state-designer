@@ -84,7 +84,6 @@ export function createState<
    * Call each subscriber callback with the current state.
    */
   function notifySubscribers() {
-    _index++
     setValues()
     setLog()
     setActiveStates()
@@ -414,6 +413,7 @@ export function createState<
   }
 
   function setLog() {
+    snapshot.index++
     snapshot.log = [..._log]
   }
 
@@ -861,7 +861,6 @@ export function createState<
   const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
   const initialStateTree = getStateTreeFromDesign(design, id)
 
-  let _index = 0
   let _log: string[] = []
   let _activeStates = StateTree.getActiveStates(initialStateTree)
 
@@ -871,7 +870,7 @@ export function createState<
     active: getPaths(_activeStates),
     stateTree: initialStateTree,
     log: _log,
-    index: _index,
+    index: 0,
     send,
     thenSend,
     isIn,

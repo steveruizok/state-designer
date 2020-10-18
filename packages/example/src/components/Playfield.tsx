@@ -8,7 +8,7 @@ import GhostPiece from "./Matrix/GhostPiece"
 import Cell from "./Matrix/Cell"
 
 const Playfield: React.FC<{}> = () => {
-  const { data, log } = useStateDesigner(game)
+  const { data } = useStateDesigner(game)
   const { matrix, falling, ghost } = data
 
   return (
