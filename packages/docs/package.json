@@ -1,6 +1,6 @@
 {
   "name": "state-designer-docs",
-  "version": "1.2.26",
+  "version": "1.2.27",
   "private": true,
   "main": "index.js",
   "author": "Steve Ruiz <steveruizok@gmail.com>",
