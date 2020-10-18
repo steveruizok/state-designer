@@ -4071,6 +4071,25 @@
     escape-string-regexp "^2.0.0"
     lodash.deburr "^4.1.0"
 
+"@state-designer/core@1.2.26":
+  version "1.2.26"
+  resolved "https://registry.yarnpkg.com/@state-designer/core/-/core-1.2.26.tgz#dd288d797422bfa4e7e7b2d5f2c9a323943ac41c"
+  integrity sha512-7dkxW7y0KJrnwwZGEU4rQ5P1lfP2sx6SyR23tTlObJ+kYxL6Vruk4Q6rrCkgARNexzSr1JH9V1uS/6lThKjnFg==
+  dependencies:
+    immer "^7.0.0"
+    lodash "^4.17.15"
+    lodash-es "^4.17.15"
+    object.entries "^1.1.1"
+    object.fromentries "^2.0.2"
+
+"@state-designer/react@1.2.26":
+  version "1.2.26"
+  resolved "https://registry.yarnpkg.com/@state-designer/react/-/react-1.2.26.tgz#8269429f4b2bb1ba6f4bf51e86ca49c20794e7f0"
+  integrity sha512-e9wRAWXPmU6I7HIDMDm02Ae2+Cxe+PwYbGH6qhMtETkic2a/UNBihBC7c6JRK4PJYt30PHCYtUjZDRYZMgXA+w==
+  dependencies:
+    "@state-designer/core" "1.2.26"
+    lodash-es "^4.17.15"
+
 "@styled-system/background@^5.1.2":
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/@styled-system/background/-/background-5.1.2.tgz#75c63d06b497ab372b70186c0bf608d62847a2ba"
@@ -5028,7 +5047,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^16.8.10", "@types/react@^16.8.23", "@types/react@^16.9.0", "@types/react@^16.9.34", "@types/react@^16.9.35":
+"@types/react@*", "@types/react@^16.8.10", "@types/react@^16.8.23", "@types/react@^16.9.0", "@types/react@^16.9.35", "@types/react@^16.9.53":
   version "16.9.53"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.9.53.tgz#40cd4f8b8d6b9528aedd1fff8fcffe7a112a3d23"
   integrity sha512-4nW60Sd4L7+WMXH1D6jCdVftuW7j4Za6zdp6tJ33Rqv0nk1ZAmQKML9ZLD4H0dehA3FZxXR/GM8gXplf82oNGw==
@@ -17636,7 +17655,7 @@ next-tick@~1.0.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
   integrity sha1-yobR/ogoFpsBICCOPchCS524NCw=
 
-next@^9.5.2:
+next@^9.5.5:
   version "9.5.5"
   resolved "https://registry.yarnpkg.com/next/-/next-9.5.5.tgz#37a37095e7c877ed6c94ba82e34ab9ed02b4eb33"
   integrity sha512-KF4MIdTYeI6YIGODNw27w9HGzCll4CXbUpkP6MNvyoHlpsunx8ybkQHm/hYa7lWMozmsn58LwaXJOhe4bSrI0g==
