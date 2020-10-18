@@ -85,7 +85,7 @@ const Content: React.FC = () => {
             return (
               <EventItem
                 key={i}
-                highlightCount={captive.log.length}
+                highlightCount={captive.index}
                 highlight={zapEvents && eventName === captive.log[0]}
                 eventName={eventName}
                 disabled={isDisabled}
