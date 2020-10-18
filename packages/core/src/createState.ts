@@ -414,6 +414,7 @@ export function createState<
   }
 
   function setLog() {
+    console.log("setting log")
     snapshot.log = [..._log]
   }
 

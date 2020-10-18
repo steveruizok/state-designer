@@ -43,7 +43,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@state-designer/core": "1.2.26",
+    "@state-designer/core": "^1.2.27",
     "lodash-es": "^4.17.15"
   },
   "husky": {

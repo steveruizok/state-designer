@@ -3,8 +3,8 @@
   "version": "1.2.26",
   "private": true,
   "dependencies": {
-    "@state-designer/core": "1.2.26",
-    "@state-designer/react": "1.2.26",
+    "@state-designer/core": "^1.2.27",
+    "@state-designer/react": "^1.2.27",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
