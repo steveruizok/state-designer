@@ -346,6 +346,7 @@ export type SubscriberFn<T> = (update: T) => void
 
 export interface DesignedState<D, V> {
   id: string
+  index: number
   data: D
   values: V
   active: string[]
