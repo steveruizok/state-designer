@@ -39,6 +39,9 @@ export function createState<
     [key in keyof V]: ReturnType<V[key]>
   }
 > {
+  const { options = {} as S.DesignOptions } = design
+  const logEnabled = options.log
+
   /* ------------------ Subscriptions ----------------- 
   
   A state can have one or more subscribers. A state's subscribers
@@ -398,6 +401,14 @@ export function createState<
     } // End for newlyActivatedStates
   }
 
+  function logEvent(event: string) {
+    if (logEnabled) {
+      _log.unshift(event)
+    } else {
+      _log = [event]
+    }
+  }
+
   function setLog() {
     snapshot.log = [..._log]
   }
@@ -453,7 +464,7 @@ export function createState<
         processingEvent
       )
 
-      _log.unshift(processingEvent.event)
+      logEvent(processingEvent.event)
 
       if (shouldNotify) processShouldNotify = true
 
@@ -812,7 +823,7 @@ export function createState<
   }
 
   function forceTransition(target: string, payload?: string) {
-    _log.unshift(`Forced transition to: ${target}`)
+    logEvent(`Forced transition to: ${target}`)
     runTransition(target, payload, undefined)
     notifySubscribers()
     return snapshot
