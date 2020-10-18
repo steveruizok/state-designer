@@ -286,10 +286,6 @@ export interface StateDesign<D, R, C, A, Y, T, V> {
 
 // Design
 
-export type DesignOptions = {
-  log: boolean
-}
-
 export interface Design<
   D,
   R extends Record<string, Result<D>> = any,
@@ -307,7 +303,6 @@ export interface Design<
   asyncs?: Y
   times?: T
   values?: V
-  options?: DesignOptions
 }
 
 export interface DesignWithHelpers<
@@ -374,6 +369,7 @@ export interface DesignedState<D, V> {
   forceTransition: (target: string, payload?: any) => DesignedState<D, V>
   clone: () => DesignedState<D, V>
   reset: () => DesignedState<D, V>
+  enableLog: (enabled: boolean) => void
 }
 
 // State with Design

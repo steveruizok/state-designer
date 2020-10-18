@@ -39,8 +39,7 @@ export function createState<
     [key in keyof V]: ReturnType<V[key]>
   }
 > {
-  const { options = {} as S.DesignOptions } = design
-  const logEnabled = options.log
+  let logEnabled = false
 
   /* ------------------ Subscriptions ----------------- 
   
@@ -399,6 +398,10 @@ export function createState<
         )
       } // End async handling
     } // End for newlyActivatedStates
+  }
+
+  function enableLog(enabled: boolean) {
+    logEnabled = enabled
   }
 
   function logEvent(event: string) {
@@ -878,6 +881,7 @@ export function createState<
     clone,
     reset,
     forceTransition,
+    enableLog,
     values: getValues(design.data as D, design.values),
   }
 
