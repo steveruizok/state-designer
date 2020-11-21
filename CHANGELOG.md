@@ -1,6 +1,6 @@
 # Changelog
 
-# 1.2.28
+# 1.2.32
 
 - Adds `useLocalState` and `useGlobalState`, more explicit and cleaner versions of the `useStateDesigner` hook. The `useStateDesigner` hook still works, though the logic is handled by one of the two other hooks.
 - Fixes types in `DesignedState`. This also fixes the types returned by the `useStateDesigner` and `useGlobalState` hooks.
