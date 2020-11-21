@@ -5,6 +5,8 @@ import {
   createDesign,
   createState,
   useStateDesigner,
+  useLocalState,
+  useGlobalState,
   useUpdateEffect,
 } from "../"
 
@@ -28,6 +30,39 @@ describe("createDesign", () => {
 describe("createState", () => {
   it("Should create a state.", () => {
     expect(state).toBeTruthy()
+  })
+})
+
+describe("useLocalState", () => {
+  it("Should have working types", () => {
+    const Example = () => {
+      const local = useGlobalState(state)
+      return <div>{local.values.double}</div>
+    }
+
+    const div = document.createElement("div")
+    ReactDOM.render(<Example />, div)
+    ReactDOM.unmountComponentAtNode(div)
+  })
+})
+
+describe("useGlobalState", () => {
+  it("Should have working types", () => {
+    const Example = () => {
+      const local = useLocalState({
+        data: { count: 0 },
+        values: {
+          double(data) {
+            return data.count * 2
+          },
+        },
+      })
+      return <div>{local.values.double}</div>
+    }
+
+    const div = document.createElement("div")
+    ReactDOM.render(<Example />, div)
+    ReactDOM.unmountComponentAtNode(div)
   })
 })
 

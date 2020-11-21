@@ -1,6 +1,6 @@
-import { isUndefined, pick } from "lodash"
-import * as React from "react"
-import { createState, S } from "@state-designer/core"
+import { S } from "@state-designer/core"
+import useGlobalState from "./useGlobalState"
+import useLocalState from "./useLocalState"
 
 const emptyArray: unknown[] = []
 
@@ -14,6 +14,10 @@ const emptyArray: unknown[] = []
  * @param dependencies (optional) An array of dependencies that, when changed, will rebuild a new state from the provided design.
  */
 
+export function useStateDesigner<D, V extends Record<string, S.Value<D>>>(
+  design: S.DesignedState<D, V>
+): ReturnType<typeof useGlobalState>
+
 export function useStateDesigner<
   D,
   R extends Record<string, S.Result<D>>,
@@ -21,58 +25,24 @@ export function useStateDesigner<
   A extends Record<string, S.Action<D>>,
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>,
-  V extends Record<string, S.Value<D>>,
-  P,
-  J extends unknown extends P
-    ? {
-        [key in keyof V]: ReturnType<V[key]>
-      }
-    : P
+  V extends Record<string, S.Value<D>>
+>(design: S.Design<D, R, C, A, Y, T, V>): ReturnType<typeof useLocalState>
+
+export default function useStateDesigner<
+  D,
+  R extends Record<string, S.Result<D>>,
+  C extends Record<string, S.Condition<D>>,
+  A extends Record<string, S.Action<D>>,
+  Y extends Record<string, S.Async<D>>,
+  T extends Record<string, S.Time<D>>,
+  V extends Record<string, S.Value<D>>
 >(
-  design: S.Design<D, R, C, A, Y, T, V> | S.DesignedState<D, P>,
+  design: S.Design<D, R, C, A, Y, T, V> | S.DesignedState<D, V>,
   dependencies: any[] = emptyArray
-): S.DesignedState<D, J> {
-  const designAsDesignedState = design as S.DesignedState<D, J>
-  const designAsDesign = design as S.Design<D, R, C, A, Y, T, V>
-
-  // Store a state — either as provided or new from design,
-  // and, if given a design, re-create the state when dependencies change
-  // @ts-ignore -- This sucks!
-  const state: S.DesignedState<D, J> = React.useMemo(() => {
-    return isUndefined(designAsDesignedState.send)
-      ? createState(designAsDesign)
-      : designAsDesignedState
-  }, [...dependencies])
-
-  // Keep subscription updates in state
-  const [current, setCurrent] = React.useState(state)
-
-  // Subscribe to changes — and resubscribe when dependencies change.
-  // Note that the effect returns the cancel function returned by onChange.
-  React.useEffect(() => {
-    setCurrent(state)
-
-    function handleUpdate(update: S.DesignedState<D, J>) {
-      setCurrent((current) => ({
-        ...current,
-        ...pick(
-          update,
-          "index",
-          "data",
-          "active",
-          "stateTree",
-          "values",
-          "log"
-        ),
-      }))
-    }
-
-    // Set state now...
-    // state.getUpdate(handleUpdate)
-
-    // And subsribe to updates (will return function that unsubscribes)
-    return state.onUpdate(handleUpdate)
-  }, [state, setCurrent])
-
-  return current
+) {
+  if ((design as S.DesignedState<D, V>).active !== undefined) {
+    return useGlobalState(design as S.DesignedState<D, V>)
+  } else {
+    return useLocalState(design as S.Design<D, R, C, A, Y, T, V>, dependencies)
+  }
 }

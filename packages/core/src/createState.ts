@@ -905,7 +905,9 @@ export function createState<
  * Get paths from an array of states.
  * @param states A set of states
  */
-function getPaths<D, V>(states: S.State<D, V>[]) {
+function getPaths<D, V extends Record<string, S.Value<D>> | never>(
+  states: S.State<D, V>[]
+) {
   return states.map((state) => state.path)
 }
 

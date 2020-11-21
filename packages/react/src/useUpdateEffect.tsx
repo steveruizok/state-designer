@@ -1,7 +1,10 @@
 import * as React from "react"
 import { S } from "@state-designer/core"
 
-export function useUpdateEffect<D extends unknown, V extends unknown>(
+export default function useUpdateEffect<
+  D,
+  V extends Record<string, S.Value<D>>
+>(
   state: S.DesignedState<D, V>,
   callback: S.SubscriberFn<S.DesignedState<D, V>>,
   dependencies?: unknown[]

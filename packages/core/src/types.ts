@@ -246,7 +246,7 @@ export enum VerboseType {
 
 // State
 
-export interface State<D, V> {
+export interface State<D, V extends Record<string, Value<D>> | never = any> {
   name: string
   isInitial: boolean
   parentType: "branch" | "leaf" | "parallel" | null
@@ -344,11 +344,11 @@ export type SubscriberFn<T> = (update: T) => void
 
 // State Design
 
-export interface DesignedState<D, V> {
+export interface DesignedState<D, V extends Record<string, Value<D>> | never> {
   id: string
   index: number
   data: D
-  values: V
+  values: Values<D, V>
   active: string[]
   stateTree: State<D, V>
   log: string[]
@@ -374,14 +374,10 @@ export interface DesignedState<D, V> {
 }
 
 // State with Design
+
 export type StateWithDesign<
   State extends Design<unknown, any, any, any, any, any, any>
-> = DesignedState<
-  State["data"],
-  {
-    [key in keyof State["values"]]: ReturnType<State["values"][key]>
-  }
->
+> = DesignedState<State["data"], Values<State["data"], State["values"]>>
 
 // Event Handler Chains
 
