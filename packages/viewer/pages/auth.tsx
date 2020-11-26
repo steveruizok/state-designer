@@ -4,7 +4,8 @@ const FirebaseAuth = dynamic(() => import("../site/firebase-auth"), {
   ssr: false,
 })
 
-const Auth = () => {
+const Auth = ({ user }: { user: any }) => {
+  console.log(user)
   return <FirebaseAuth />
 }
 

@@ -8,6 +8,9 @@ import cookie from "js-cookie"
 import { Project } from "./app/states/index"
 import { Flex } from "theme-ui"
 import initFirebase from "../auth/initFirebase"
+import { setUserCookie } from "../auth/userCookies"
+import { mapUserData } from "../auth/mapUserData"
+
 import { addUser } from "../utils/firebase"
 
 // Init the Firebase app.
@@ -33,21 +36,10 @@ const firebaseAuthConfig = {
       Project.send("AUTH_FAILED", { error })
     },
     signInSuccessWithAuthResult: async ({ user }, redirectUrl) => {
-      // xa is the access token, which can be retrieved through
-      // firebase.auth().currentUser.getIdToken()
-      const { uid, email, xa } = user
+      const { uid } = user
 
-      const userData = {
-        id: uid,
-        email,
-        token: xa,
-      }
-
-      firebase.auth().currentUser.getIdToken(true)
-
-      cookie.set("auth", userData, {
-        expires: 60 * 60 * 24 * 5 * 1000,
-      })
+      const userData = await mapUserData(user)
+      setUserCookie(userData)
 
       if (uid) {
         addUser(uid)

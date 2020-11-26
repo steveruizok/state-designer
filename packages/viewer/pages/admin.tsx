@@ -15,9 +15,7 @@ const fetcher = (url: string, token: string) =>
     credentials: "same-origin",
   }).then((res) => res.json())
 
-const Index = () => {
-  const { user } = useUser()
-
+const Index = ({ user }: { user: any }) => {
   const { data } = useSWR<AdminResponse>(
     [`/api/admin?uid=${user?.id}`, user?.token],
     fetcher

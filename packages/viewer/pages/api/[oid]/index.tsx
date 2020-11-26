@@ -27,7 +27,7 @@ export default async (
   await addUser(uid)
 
   try {
-    await verifyIdToken(token)
+    await verifyIdToken(first(token))
     return res.status(200).json({
       oid,
       uid,
@@ -47,4 +47,8 @@ export default async (
       error,
     })
   }
+}
+
+function first<T>(a: T | T[]) {
+  return Array.isArray(a) ? a[0] : a
 }

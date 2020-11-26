@@ -18,12 +18,13 @@ const fetcher = (url: string, token: string) =>
     credentials: "same-origin",
   }).then((res) => res.json())
 
-const Index = () => {
+const Index = ({ user }: { user: any }) => {
   const router = useRouter()
 
-  const { oid, pid } = router.query
+  const oid = first(router.query.oid)
+  const pid = first(router.query.pid)
 
-  const { user } = useUser()
+  // const { user } = useUser()
 
   const { data } = useSWR(
     [`/api/${oid}/${pid}?uid=${user?.id}`, user?.token],
@@ -34,3 +35,7 @@ const Index = () => {
 }
 
 export default Index
+
+function first<T>(a: T | T[]) {
+  return Array.isArray(a) ? a[0] : a
+}

@@ -22,7 +22,7 @@ export default async (
   const { isProject, isOwner } = await getProjectInfo(pid, oid, uid)
 
   try {
-    await verifyIdToken(token)
+    await verifyIdToken(first(token))
     return res.status(200).json({
       oid,
       pid,
@@ -43,4 +43,8 @@ export default async (
       error,
     })
   }
+}
+
+function first<T>(a: T | T[]) {
+  return Array.isArray(a) ? a[0] : a
 }

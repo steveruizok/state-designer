@@ -146,10 +146,10 @@ export const Highlights = createState({
 // Helper (copied from @state-designer/core)
 
 export function findTransitionTargets<D = any>(
-  state: S.State<D, unknown>,
+  state: S.State<D, any>,
   path: string
-): S.State<D, unknown>[] {
-  const acc: S.State<D, unknown>[] = []
+): S.State<D, any>[] {
+  const acc: S.State<D, any>[] = []
 
   let safePath = path.startsWith(".") ? path : "." + path
 

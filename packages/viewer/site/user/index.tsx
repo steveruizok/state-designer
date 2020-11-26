@@ -5,7 +5,6 @@ import Layout from "./layout"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import exampleLinks from "../static/example-links"
-import { useUser } from "../../auth/useUser"
 import {
   UserProjectsResponse,
   createNewProject,
@@ -44,12 +43,16 @@ const User: React.FC<{ user: any; data: UserProjectsResponse }> = ({
     }
   }, [data])
 
+  if (!data || !user) {
+    return <Loading />
+  }
+
   return (
     <Layout>
       <Title />
       <PageLayout>
         <Sidebar user={user} />
-        <Content data={data} />
+        <Content user={user} data={data} />
       </PageLayout>
     </Layout>
   )
@@ -173,9 +176,10 @@ const PageLayout: React.FC<{}> = ({ children }) => {
   )
 }
 
-const Content: React.FC<{ data: UserProjectsResponse }> = ({ data }) => {
-  const { user } = useUser()
-
+const Content: React.FC<{ user: any; data: UserProjectsResponse }> = ({
+  user,
+  data,
+}) => {
   if (!(user && data)) {
     return <Loading />
   }

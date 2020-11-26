@@ -4,8 +4,11 @@ import "./styles.css"
 import { ThemeProvider } from "theme-ui"
 import { Global } from "@emotion/core"
 import theme from "../theme"
+import { useUser } from "../auth/useUser"
 
 function MyApp({ Component, pageProps }) {
+  const { user, logout } = useUser()
+  console.log(user)
   return (
     <ThemeProvider theme={theme}>
       <Global
@@ -28,7 +31,7 @@ function MyApp({ Component, pageProps }) {
         })}
       />
       <main>
-        <Component {...pageProps} />
+        <Component {...pageProps} user={user} logout={logout} />
       </main>
     </ThemeProvider>
   )

@@ -1,7 +1,6 @@
-import firebase from "firebase"
 import * as admin from "firebase-admin"
 
-export const initializeAdmin = () => {
+export const verifyIdToken = (token: string) => {
   const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY
 
   if (!admin.apps.length) {
@@ -17,29 +16,9 @@ export const initializeAdmin = () => {
   }
 
   return admin
-}
-
-export const verifyIdToken = (token: string | string[]) => {
-  const singleToken = Array.isArray(token) ? token[0] : token
-
-  if (singleToken === "undefined") throw new Error("No token.")
-
-  initializeAdmin()
-
-  return admin
     .auth()
-    .verifyIdToken(singleToken)
+    .verifyIdToken(token)
     .catch((error) => {
       throw error
     })
-}
-
-export const revokeIdToken = async (uids: string | string[]) => {
-  const uid = Array.isArray(uids) ? uids[0] : uids
-  initializeAdmin()
-
-  await admin.auth().revokeRefreshTokens(uid)
-  const userRecord = await admin.auth().getUser(uid)
-  const timestamp = new Date(userRecord.tokensValidAfterTime).getTime() / 1000
-  // console.log("Tokens revoked at: ", timestamp)
 }

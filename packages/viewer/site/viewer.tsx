@@ -7,8 +7,6 @@ import Viewer from "./app"
 import { Project } from "./app/states"
 import { useStateDesigner } from "@state-designer/react"
 import { ProjectResponse } from "../utils/firebase"
-import router from "next/router"
-import { useUser } from "../auth/useUser"
 
 const App: React.FC<{ data: ProjectResponse }> = ({ data, children }) => {
   const project = useStateDesigner(Project)
@@ -30,7 +28,7 @@ const App: React.FC<{ data: ProjectResponse }> = ({ data, children }) => {
     ready: <Viewer authenticated={isAuthenticated} />,
     notFound: <NotFound uid={uid} pid={pid} />,
     authenticating: <FirebaseAuth redirect={`/${oid}/${pid}`} />,
-    default: <div>hmm, there seems to be a problem</div>,
+    default: <LoadingScreen key="loading"></LoadingScreen>,
   })
 }
 
