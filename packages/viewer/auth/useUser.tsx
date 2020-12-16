@@ -30,8 +30,20 @@ const useUser = () => {
   // Refresh ID token on each page load, if user is logged in
   useEffect(() => {
     const user = firebase.auth().currentUser
+    let cancel: any
     if (user) {
-      firebase.auth().currentUser.getIdToken(true)
+      user.getIdToken()
+      cancel = setTimeout(() => {
+        user.getIdToken()
+      }, 10 * 60 * 1000)
+    } else {
+      console.log("Error: no user.")
+    }
+
+    return () => {
+      if (cancel !== undefined) {
+        clearTimeout(cancel)
+      }
     }
   }, [])
 
@@ -45,7 +57,7 @@ const useUser = () => {
         router.push("/")
       })
       .catch((e) => {
-        console.error(e)
+        console.error("Logout error:", e)
       })
   }
 

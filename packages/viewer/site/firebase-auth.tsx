@@ -35,18 +35,17 @@ const firebaseAuthConfig = {
     signInSuccessWithAuthResult: async ({ user }, redirectUrl) => {
       // xa is the access token, which can be retrieved through
       // firebase.auth().currentUser.getIdToken()
-      const { uid, email, xa } = user
+      const { uid, email } = user
+      const token = await user.getIdToken()
 
       const userData = {
         id: uid,
         email,
-        token: xa,
+        token,
       }
 
-      firebase.auth().currentUser.getIdToken(true)
-
       cookie.set("auth", userData, {
-        expires: 60 * 60 * 24 * 5 * 1000,
+        expires: 1 / 24,
       })
 
       if (uid) {

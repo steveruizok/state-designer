@@ -8,7 +8,9 @@ import * as S from "./types"
  *
  * @param state
  */
-export function deactivateState<D = any>(state: S.State<D, unknown>) {
+export function deactivateState<D = any>(
+  state: S.State<D, Record<string, S.Value<D>>>
+) {
   state.active = false
   for (let childState of Object.values(state.states)) {
     deactivateState(childState)
@@ -21,8 +23,10 @@ export function deactivateState<D = any>(state: S.State<D, unknown>) {
  *
  * @param state The current state to examine.
  */
-export function getActiveStates<D = any>(state: S.State<D, unknown>) {
-  const acc: S.State<D, unknown>[] = []
+export function getActiveStates<D = any>(
+  state: S.State<D, Record<string, S.Value<D>>>
+) {
+  const acc: S.State<D, Record<string, S.Value<D>>>[] = []
 
   if (state.active) {
     acc.push(state)
@@ -45,7 +49,7 @@ export function getActiveStates<D = any>(state: S.State<D, unknown>) {
  * @param prev Whether we should try to restore this state.
  * @param deep Whether we should also try to restore descendant states.
  */
-export function activateState<D, V>(
+export function activateState<D, V extends Record<string, S.Value<D>>>(
   state: S.State<D, V>,
   path: string[],
   before: S.State<D, V>[],
@@ -93,11 +97,11 @@ export function activateState<D, V>(
  * @param state
  * @param path
  */
-export function findTransitionTargets<D = any>(
-  state: S.State<D, unknown>,
-  path: string
-): S.State<D, unknown>[] {
-  const acc: S.State<D, unknown>[] = []
+export function findTransitionTargets<
+  D extends any,
+  V extends Record<string, S.Value<D>>
+>(state: S.State<D, V>, path: string): S.State<D, V>[] {
+  const acc: S.State<D, V>[] = []
 
   let safePath = path.startsWith(".") ? path : "." + path
 
@@ -154,8 +158,8 @@ export function getInitialState<D>(
  * @param payload
  * @param data
  */
-export function setIntitialStates<D>(
-  state: S.State<D, unknown>,
+export function setIntitialStates<D, V extends Record<string, S.Value<D>>>(
+  state: S.State<D, V>,
   payload: any,
   data: D
 ) {
@@ -171,7 +175,9 @@ export function setIntitialStates<D>(
   }
 }
 
-export function endStateIntervals<D, V>(state: S.State<D, V>) {
+export function endStateIntervals<D, V extends Record<string, S.Value<D>>>(
+  state: S.State<D, V>
+) {
   const { cancelAsync, timeouts, interval, animationFrame } = state.times
 
   // If state is waiting on an asynchronous event, cancel it
@@ -200,7 +206,10 @@ export function endStateIntervals<D, V>(state: S.State<D, V>) {
   }
 }
 
-export function recursivelyEndStateIntervals<D, V>(state: S.State<D, V>) {
+export function recursivelyEndStateIntervals<
+  D,
+  V extends Record<string, S.Value<D>>
+>(state: S.State<D, V>) {
   endStateIntervals(state)
   for (let child of Object.values(state.states)) {
     recursivelyEndStateIntervals(child)
