@@ -45,6 +45,7 @@ const Preview: React.FC<{
       }}
     >
       <motion.div
+        id="preview"
         style={{
           width: "100%",
           height: "100%",

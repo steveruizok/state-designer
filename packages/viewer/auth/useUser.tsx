@@ -29,20 +29,34 @@ const useUser = () => {
 
   // Refresh ID token on each page load, if user is logged in
   useEffect(() => {
-    const user = firebase.auth().currentUser
+    const currentUser = firebase.auth().currentUser
     let cancel: any
-    if (user) {
-      user.getIdToken()
-      cancel = setTimeout(() => {
-        user.getIdToken()
-      }, 10 * 60 * 1000)
+    if (currentUser) {
+      // Every 59 minutes, refresh the user's token.
+      cancel = setInterval(() => {
+        currentUser.getIdToken(true).then((token) => {
+          const userData = JSON.parse(cookies.get("auth"))
+
+          userData.token = token
+
+          cookies.set("auth", userData, { expires: 1 / 24 })
+
+          console.log("Refreshed user token.")
+
+          setUser(userData)
+        })
+      }, 59 * 60 * 1000)
+
+      // Eventually, replace the above with purely server-side
+      // authentication. (See your own gist where you've done
+      // this already.)
     } else {
       console.log("Error: no user.")
     }
 
     return () => {
       if (cancel !== undefined) {
-        clearTimeout(cancel)
+        clearInterval(cancel)
       }
     }
   }, [])
