@@ -8,7 +8,7 @@
       "@state-designer/react": ["packages/react/src"],
       "state-designer": ["packages/state-designer/src"],
       "example": ["packages/example/src"],
-      "docs": ["packages/docs/src"]
+      "docs": ["packages/docs/src"],
     }
   }
 }

@@ -4,6 +4,8 @@ import { getProjectData, getProjectInfo } from "lib/database"
 import * as Types from "types"
 import { single } from "utils"
 
+import ProjectView from "components/project"
+
 import dynamic from "next/dynamic"
 
 interface ProjectPageProps {
@@ -19,7 +21,7 @@ export default function ProjectPage({
   authState,
   projectResponse,
 }: ProjectPageProps) {
-  return <Site user={authState.user} response={projectResponse} />
+  return <ProjectView />
 }
 
 export async function getServerSideProps(
@@ -28,6 +30,12 @@ export async function getServerSideProps(
   const { oid, pid } = context.query
 
   const authState = await getCurrentUser(context)
+    .then((d) => d)
+    .catch((e) => {
+      throw Error("Oh no " + e.message)
+    })
+
+  console.log(authState)
 
   const uid = authState.authenticated ? authState.user.uid : null
   const projectResponse = await getProjectInfo(single(pid), single(oid), uid)

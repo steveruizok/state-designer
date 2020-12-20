@@ -22,7 +22,8 @@
 			"types": ["types.ts"],
 			"lib/*": ["lib/*"],
 			"site/*": ["site/*"],
-			"utils/*": ["utils/*"]
+			"utils/*": ["utils/*"],
+			"components/*": ["components/*"],
 		}
   },
   "exclude": [

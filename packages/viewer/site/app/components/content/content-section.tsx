@@ -38,7 +38,7 @@ const ContentSection: React.FC<{
       transition={{
         type: "spring",
         stiffness: 800,
-        damping: 800,
+        damping: 100,
         restDelta: 1,
         restSpeed: 1,
       }}

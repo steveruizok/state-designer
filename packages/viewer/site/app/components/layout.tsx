@@ -63,12 +63,9 @@ const Layout: React.FC = ({ children }) => {
         border: "outline",
         borderColor: "border",
         background: "background",
-        gridTemplateColumns: [
-          "1fr 1fr 1fr",
-          `calc(${BASE_CONTENT_COL_WIDTH}px + var(--content-column-offset)) 
+        gridTemplateColumns: `calc(${BASE_CONTENT_COL_WIDTH}px + var(--content-column-offset)) 
            1fr
            calc(${BASE_CODE_COL_WIDTH}px + var(--code-column-offset))`,
-        ],
         gridTemplateRows: ["40px min-content 1fr", `40px 40px 1fr 44px`],
         gridAutoColumns: "auto",
         gridTemplateAreas: [

@@ -1,3 +1,9 @@
+// App
+
+export type LayoutOffset = "content" | "main" | "code" | "detail" | "console"
+
+// Data
+
 export interface User {
   name: string
   uid: string
