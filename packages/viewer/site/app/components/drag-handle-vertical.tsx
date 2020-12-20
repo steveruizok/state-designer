@@ -1,8 +1,11 @@
 import * as React from "react"
 import { motion, useAnimation, useMotionValue } from "framer-motion"
 
+// This component is bad. Replace all of these with some other author's pane component.
+
 const DragHandleVertical: React.FC<{
   initial: number
+  initialOffset?: number
   onChange: (offset: number) => void
   max?: number
   min?: number
@@ -10,6 +13,7 @@ const DragHandleVertical: React.FC<{
   gridArea?: string
 }> = ({
   initial,
+  initialOffset = 0,
   min = 0,
   max = 0,
   align = "top",
@@ -17,7 +21,7 @@ const DragHandleVertical: React.FC<{
   onChange,
   children,
 }) => {
-  const y = useMotionValue(0)
+  const y = useMotionValue(initialOffset)
   const animation = useAnimation()
   const rState = React.useRef<"max" | "moved" | "initial">("initial")
 

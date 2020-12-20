@@ -4,40 +4,52 @@ import DragHandleVertical from "./drag-handle-vertical"
 import DragHandleHorizontal from "./drag-handle-horizontal"
 import { motionValue } from "framer-motion"
 
-const BASE_CONTENT_COL_WIDTH = 260
-const BASE_CODE_COL_WIDTH = 420
-const BASE_DETAIL_ROW_HEIGHT = 200
-const BASE_SAVE_ROW_HEIGHT = 44
+let BASE_CODE_COL_WIDTH = 420
+let BASE_CONTENT_COL_WIDTH = 260
+let codeOffset = 0
+let contentOffset = 0
 
-export const contentX = motionValue(0)
-export const codeX = motionValue(0)
-export const detailY = motionValue(0)
+if (window.localStorage !== undefined) {
+  const baseCodeColWidth = window.localStorage.getItem(`sd_code_offset`)
+  if (baseCodeColWidth !== null) codeOffset = parseFloat(baseCodeColWidth)
 
-function setDetailRowCSS(offset: number) {
-  document.documentElement.style.setProperty(
-    "--detail-row-offset",
-    -offset + "px"
-  )
+  const baseContentColWidth = window.localStorage.getItem(`sd_content_offset`)
+  if (baseContentColWidth !== null)
+    contentOffset = parseFloat(baseContentColWidth)
 }
 
-contentX.onChange((offset: number) => {
-  document.documentElement.style.setProperty(
-    "--content-column-offset",
-    offset + "px"
-  )
-})
+export const contentX = motionValue(contentOffset)
+export const codeX = motionValue(codeOffset)
+
+document.documentElement.style.setProperty(
+  "--code-column-offset",
+  -codeOffset + "px"
+)
+
+document.documentElement.style.setProperty(
+  "--content-column-offset",
+  contentOffset + "px"
+)
 
 codeX.onChange((offset: number) => {
+  if (window.localStorage !== undefined) {
+    window.localStorage.setItem(`sd_code_offset`, offset.toString())
+  }
+
   document.documentElement.style.setProperty(
     "--code-column-offset",
     -offset + "px"
   )
 })
 
-detailY.onChange((offset: number) => {
+contentX.onChange((offset: number) => {
+  if (window.localStorage !== undefined) {
+    window.localStorage.setItem(`sd_content_offset`, offset.toString())
+  }
+
   document.documentElement.style.setProperty(
-    "--detail-row-offset",
-    -offset + "px"
+    "--content-column-offset",
+    offset + "px"
   )
 })
 
@@ -57,29 +69,15 @@ const Layout: React.FC = ({ children }) => {
            1fr
            calc(${BASE_CODE_COL_WIDTH}px + var(--code-column-offset))`,
         ],
-        gridTemplateRows: [
-          "40px min-content 1fr",
-          `40px 40px 1fr calc(${
-            BASE_DETAIL_ROW_HEIGHT - BASE_SAVE_ROW_HEIGHT
-          }px + var(--detail-row-offset)) ${BASE_SAVE_ROW_HEIGHT}px`,
-        ],
+        gridTemplateRows: ["40px min-content 1fr", `40px 40px 1fr 44px`],
         gridAutoColumns: "auto",
         gridTemplateAreas: [
-          `
-          "menu head controls"
-          "title title title"
-          "main main main"
-          "data values send"
-          "code code code"
-          "save save save"
-          "content content content"
-          `,
           `
           "menu    title   controls"
           "content main    tabs"
           "content main    code"
-          "content detail  code"
-          "content detail  code"
+					"content main  		code"
+					"content main  		code"
           `,
         ],
         top: 0,
@@ -113,19 +111,11 @@ const Layout: React.FC = ({ children }) => {
         align="right"
         initial={BASE_CODE_COL_WIDTH}
         min={80}
-        max={600}
+        max={900}
         gridArea="code"
         motionValue={codeX}
         onDragStart={() => setIsDragging(true)}
         onDragEnd={() => setIsDragging(false)}
-      />
-      <DragHandleVertical
-        align="bottom"
-        initial={BASE_DETAIL_ROW_HEIGHT}
-        min={BASE_SAVE_ROW_HEIGHT}
-        max={320}
-        gridArea="detail"
-        onChange={setDetailRowCSS}
       />
     </Grid>
   )

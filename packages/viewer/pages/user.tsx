@@ -1,29 +1,33 @@
-import useSWR from "swr"
-import * as React from "react"
-import { useUser } from "../auth/useUser"
-import { UserProjectsResponse } from "../utils/firebase"
+import { GetServerSidePropsContext, GetServerSidePropsResult } from "next"
+import { getCurrentUser, redirectToAuthPage } from "lib/auth-server"
+import { getUserProjects } from "lib/database"
+import * as Types from "types"
 import dynamic from "next/dynamic"
+const User = dynamic(() => import("site/user"), { ssr: false })
 
-const User = dynamic(() => import("../site/user"), {
-  ssr: false,
-})
-
-const fetcher = (url: string, token: string) =>
-  fetch(url, {
-    method: "GET",
-    headers: new Headers({ "Content-Type": "application/json", token }),
-    credentials: "same-origin",
-  }).then((res) => res.json())
-
-const Index = () => {
-  const { user } = useUser()
-
-  const { data } = useSWR<UserProjectsResponse>(
-    [`/api/${user?.id}?uid=${user?.id}`, user?.token],
-    fetcher
-  )
-
-  return <User user={user} data={data} />
+interface UserPageProps {
+  authState: Types.AuthState
+  data: Types.UserProjectsResponse
 }
 
-export default Index
+export default function UserPage({ authState, data }: UserPageProps) {
+  return <User user={authState.user} data={data} />
+}
+
+export async function getServerSideProps(
+  context: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult<UserPageProps>> {
+  const authState = await getCurrentUser(context)
+
+  if (!authState.authenticated) {
+    redirectToAuthPage(context)
+    return
+  }
+
+  const { uid } = authState.user
+  const data = await getUserProjects(uid, uid)
+
+  return {
+    props: { authState, data },
+  }
+}

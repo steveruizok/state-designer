@@ -1,10 +1,10 @@
 // @jsx jsx
 import * as React from "react"
 import { Project } from "../states"
-import { Copy } from "react-feather"
+import { Plus, Minus, Copy } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
 import ColorModeToggle from "./color-mode-toggle"
-import { jsx, Flex, IconButton, Button } from "theme-ui"
+import { jsx, Box, Flex, IconButton, Button } from "theme-ui"
 
 const Controls: React.FC = ({}) => {
   const local = useStateDesigner(Project)
@@ -19,6 +19,19 @@ const Controls: React.FC = ({}) => {
         borderColor: "border",
       }}
     >
+      <IconButton
+        title="Decrease Code Size"
+        onClick={() => local.send("DECREASED_CODE_SIZE")}
+      >
+        <Minus />
+      </IconButton>
+      <IconButton
+        title="Increase Code Size"
+        onClick={() => local.send("INCREASED_CODE_SIZE")}
+      >
+        <Plus />
+      </IconButton>
+      <Box sx={{ height: "100%", width: "1px", mx: 2, bg: "muted" }} />
       {local.data.isOwner ? (
         <IconButton
           title="Copy This Project"

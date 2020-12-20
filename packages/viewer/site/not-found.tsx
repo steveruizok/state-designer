@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Flex, Button, Box, BoxProps } from "theme-ui"
-import { createProject } from "../utils/firebase"
+import { createProject } from "lib/database"
 import { useStateDesigner } from "@state-designer/react"
 import LoadingScreen from "./loading-screen"
 import { useRouter } from "next/router"
@@ -8,8 +8,6 @@ import { useRouter } from "next/router"
 const NotFound: React.FC<{ uid: string; pid: string } & BoxProps> = ({
   uid,
   pid,
-  children,
-  ...props
 }) => {
   const state = useStateDesigner({
     initial: "idle",

@@ -6,13 +6,14 @@ import * as Utils from "../app/utils"
 import { createState, useStateDesigner } from "@state-designer/react"
 import { defaultStatics, defaultTheme } from "../static/defaults"
 import { UI } from "../app/states"
-import { ProjectInfo, subscribeToDocSnapshot } from "../../utils/firebase"
+import { subscribeToDocSnapshot } from "lib/database"
+import { ProjectData } from "types"
 import Chart from "../app/components/chart"
 import { Flex, IconButton } from "theme-ui"
 import { Minimize, ArrowLeft } from "react-feather"
 import NotFound404 from "../404"
 
-const ChartPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
+const ChartPage: React.FC<{ data: ProjectData }> = ({ data }) => {
   const ui = useStateDesigner(UI)
   const local = useStateDesigner({
     data: {

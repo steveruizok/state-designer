@@ -5,10 +5,33 @@ import { ExternalLink, RefreshCw, Minimize } from "react-feather"
 import { S, useStateDesigner } from "@state-designer/react"
 import { Project, JsxEditorState, UI } from "../../states"
 import DragHandle from "../drag-handle"
+import DragHandleVertical from "../drag-handle-vertical"
 import Preview from "../preview"
 import Chart from "../chart"
 import ResetButton from "./reset-button"
 import { useMotionValue, PanInfo } from "framer-motion"
+import DetailRow from "../details"
+
+const BASE_DETAIL_ROW_HEIGHT = 320
+let detailOffset = 0
+let viewOffset = 0
+
+if (window.localStorage !== undefined) {
+  const localDetailOffset = window.localStorage.getItem(`sd_detail_offset`)
+  if (localDetailOffset !== null) detailOffset = parseFloat(localDetailOffset)
+  const localViewOffset = window.localStorage.getItem(`sd_view_offset`)
+  if (localViewOffset !== null) viewOffset = parseFloat(localViewOffset)
+}
+
+document.documentElement.style.setProperty(
+  "--chart-row-offset",
+  detailOffset + "px"
+)
+
+document.documentElement.style.setProperty(
+  "--view-column-offset",
+  -viewOffset + "px"
+)
 
 const Main: React.FC = () => {
   const local = useStateDesigner(Project)
@@ -16,12 +39,21 @@ const Main: React.FC = () => {
   const jsxEditor = useStateDesigner(JsxEditorState)
 
   const mvColumWidth = useMotionValue(0)
+  const mvRowHeight = useMotionValue(0)
   const rOffset = React.useRef(0)
+  const rOffset2 = React.useRef(0)
 
   const resetColumns = React.useCallback(() => {
     rOffset.current = 0
+    rOffset2.current = 0
+
+    if (window.localStorage !== undefined) {
+      window.localStorage.setItem("sd_view_offset", "0")
+      window.localStorage.setItem("sd_detail_offset", "0")
+    }
 
     document.documentElement.style.setProperty("--view-column-offset", "0px")
+    document.documentElement.style.setProperty("--chart-row-offset", "0px")
   }, [])
 
   const handleDragHandleChange = React.useCallback((e: any, info: PanInfo) => {
@@ -29,9 +61,30 @@ const Main: React.FC = () => {
     const next = info.delta.x + offset
     rOffset.current = next
 
+    if (window.localStorage !== undefined) {
+      window.localStorage.setItem(
+        "sd_view_offset",
+        Math.floor(offset).toString()
+      )
+    }
+
     document.documentElement.style.setProperty(
       "--view-column-offset",
       -next + "px"
+    )
+  }, [])
+
+  const handleDragHandle2Change = React.useCallback((offset: number) => {
+    if (window.localStorage !== undefined) {
+      window.localStorage.setItem(
+        "sd_detail_offset",
+        Math.floor(offset).toString()
+      )
+    }
+
+    document.documentElement.style.setProperty(
+      "--chart-row-offset",
+      offset + "px"
     )
   }, [])
 
@@ -55,21 +108,49 @@ const Main: React.FC = () => {
         }}
       >
         <ViewWrapper visible={true}>
-          <Chart state={local.data.captive} zoomedPath={ui.data.zoomedPath} />
-          <Styled.a
-            href={`/${local.data.oid}/${local.data.pid}/chart`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Grid
+            sx={{
+              height: "100%",
+              gap: 0,
+              gridTemplateRows: `1fr calc(${BASE_DETAIL_ROW_HEIGHT}px - var(--chart-row-offset))`,
+            }}
           >
-            <IconButton
-              data-hidey="true"
-              sx={{ position: "absolute", top: 0, right: 0 }}
-              title="Reset State"
-              onClick={() => local.data.captive?.reset()}
-            >
-              <ExternalLink />
-            </IconButton>
-          </Styled.a>
+            <Chart state={local.data.captive} zoomedPath={ui.data.zoomedPath}>
+              <Styled.a
+                href={`/${local.data.oid}/${local.data.pid}/chart`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 32,
+                  height: 32,
+                }}
+              >
+                <IconButton
+                  data-hidey="true"
+                  sx={{ position: "absolute", top: 0, right: 0 }}
+                  title="Reset State"
+                  onClick={() => local.data.captive?.reset()}
+                >
+                  <ExternalLink />
+                </IconButton>
+              </Styled.a>
+              <ResetButton state={local.data.captive} />
+            </Chart>
+            <DetailRow />
+          </Grid>
+          <DragHandleVertical
+            initial={BASE_DETAIL_ROW_HEIGHT}
+            initialOffset={detailOffset}
+            min={44}
+            max={400}
+            align={"bottom"}
+            onChange={handleDragHandle2Change}
+          >
+            <Box sx={{ height: "100%", width: 2, bg: "red" }} />
+          </DragHandleVertical>
         </ViewWrapper>
         <ViewWrapper visible={true}>
           <DragHandle
@@ -114,7 +195,6 @@ const Main: React.FC = () => {
             <Minimize />
           </IconButton>
         )}
-      <ResetButton state={local.data.captive} />
     </Box>
   )
 }

@@ -3,10 +3,10 @@ import * as React from "react"
 import * as Utils from "../app/utils"
 import { createState, useStateDesigner } from "@state-designer/react"
 import { defaultStatics, defaultTheme } from "../static/defaults"
-import { ProjectInfo } from "../../utils/firebase"
+import { ProjectData } from "types"
 import Preview from "../app/components/preview"
 
-const StaticPreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
+const StaticPreviewPage: React.FC<{ data: ProjectData }> = ({ data }) => {
   const local = useStateDesigner({
     data: {
       oid: data.oid,

@@ -1,63 +1,32 @@
-import firebase from "firebase/app"
-import "firebase/firestore"
-import initFirebase from "../auth/initFirebase"
+import db from "./firestore"
+import firebase from "./firebase"
 import router from "next/router"
-import cookies from "js-cookie"
+import * as Types from "types"
 
-initFirebase()
+export async function getProjectInfo(
+  pid: string,
+  oid: string,
+  uid?: string
+): Promise<Types.ProjectResponse> {
+  const project = await db
+    .collection("users")
+    .doc(oid)
+    .collection("projects")
+    .doc(pid)
+    .get()
 
-const db = firebase.firestore()
-
-export type ProjectInfo = {
-  pid: string
-  oid: string
-  name: string
-  code: string
-  jsx: string
-  theme: string
-  statics: string
-  tests: string
-}
-
-export type UserProjectsResponse = {
-  uid: string
-  oid: string
-  projects: string[]
-  isOwner: boolean
-  isAuthenticated: boolean
-  error?: Error
-}
-
-export type ProjectResponse = {
-  uid: string
-  oid: string
-  pid: string
-  isAuthenticated: boolean
-  isProject: boolean
-  isOwner: boolean
-  error?: Error
-}
-
-export type AdminResponse = {
-  projects: ProjectInfo[]
-  isAuthenticated: boolean
-  error?: Error
-}
-
-export async function getTemplate(pid: string) {
-  const doc = await db.collection("templates").doc(pid).get()
-
-  if (doc.exists) {
-    return doc.data()
-  } else {
-    throw Error("Missing template! ID:" + pid)
+  return {
+    oid,
+    pid,
+    isProject: project.exists,
+    isOwner: oid === uid,
   }
 }
 
 export async function getProjectData(
   pid: string,
   oid: string
-): Promise<ProjectInfo> {
+): Promise<Types.ProjectData> {
   const initial = await db
     .collection("users")
     .doc(oid)
@@ -67,9 +36,19 @@ export async function getProjectData(
 
   if (initial.exists) {
     const data = initial.data()
-    return { ...data, pid, oid: data.owner } as ProjectInfo
+    return { ...data, pid, oid: data.owner } as Types.ProjectData
   } else {
     return undefined
+  }
+}
+
+export async function getTemplate(pid: string) {
+  const doc = await db.collection("templates").doc(pid).get()
+
+  if (doc.exists) {
+    return doc.data()
+  } else {
+    throw Error("Missing template! ID:" + pid)
   }
 }
 
@@ -127,7 +106,6 @@ export function updateProject(
 ) {
   return getProject(pid, oid).update({
     ...changes,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
   })
 }
 
@@ -241,16 +219,7 @@ export async function forkProject(
   router.push(`/${uid}/${nextpid ? nextpid : pid}`)
 }
 
-export async function getProjectInfo(pid: string, oid: string, uid: string) {
-  const project = await getProject(pid, oid).get()
-
-  return {
-    isProject: project.exists,
-    isOwner: oid === uid,
-  }
-}
-
-export async function getUserProjects(uid: string) {
+export async function getUserProjects(uid: string, oid: string) {
   const snapshot = await db
     .collection("users")
     .doc(uid)
@@ -260,7 +229,10 @@ export async function getUserProjects(uid: string) {
   const projects = snapshot.docs.map((doc) => doc.id)
 
   return {
+    uid,
+    oid,
     projects,
+    isOwner: uid === oid,
   }
 }
 
@@ -289,31 +261,4 @@ export async function updateProjectName(
   name: string
 ) {
   updateProject(pid, uid, { name })
-}
-
-// Admin
-
-export async function getAdminData() {
-  const projects = db.collectionGroup("projects")
-  const ip = await projects.get()
-  const idsp = ip.docs.map((doc) => {
-    const data = doc.data()
-    return { oid: data.owner, pid: doc.id, ...doc.data() } as ProjectInfo
-  })
-
-  return idsp
-}
-
-export async function logout() {
-  return firebase
-    .auth()
-    .signOut()
-    .then(() => {
-      // Sign-out successful.
-      cookies.remove("auth")
-      router.push("/")
-    })
-    .catch((e) => {
-      console.error(e)
-    })
 }

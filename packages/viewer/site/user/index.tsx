@@ -1,16 +1,11 @@
 // @jsx jsx
 import * as React from "react"
-import { Sun, Moon, Twitter } from "react-feather"
+import { Sun, Moon } from "react-feather"
 import Layout from "./layout"
 import Link from "next/link"
-import { useRouter } from "next/router"
 import exampleLinks from "../static/example-links"
-import { useUser } from "../../auth/useUser"
-import {
-  UserProjectsResponse,
-  createNewProject,
-  logout,
-} from "../../utils/firebase"
+import { createNewProject } from "lib/database"
+import { logout } from "lib/auth-client"
 import { useStateDesigner } from "@state-designer/react"
 import { Project } from "../app/states/index"
 import {
@@ -26,30 +21,24 @@ import {
   IconButton,
   useColorMode,
 } from "theme-ui"
+import * as Types from "types"
 
-const User: React.FC<{ user: any; data: UserProjectsResponse }> = ({
-  user,
-  data,
-}) => {
-  const router = useRouter()
+interface UserProps {
+  user: Types.User
+  data: Types.UserProjectsResponse
+}
 
+const User: React.FC<UserProps> = ({ user, data }) => {
   React.useEffect(() => {
     Project.send("CLOSED_PROJECT")
   }, [])
-
-  React.useEffect(() => {
-    if (data && !data.isAuthenticated) {
-      console.log("Not authenticated, but maybe still a user?", user)
-      router.push("/auth")
-    }
-  }, [data])
 
   return (
     <Layout>
       <Title />
       <PageLayout>
         <Sidebar user={user} />
-        <Content data={data} />
+        <Content user={user} data={data} />
       </PageLayout>
     </Layout>
   )
@@ -173,9 +162,7 @@ const PageLayout: React.FC<{}> = ({ children }) => {
   )
 }
 
-const Content: React.FC<{ data: UserProjectsResponse }> = ({ data }) => {
-  const { user } = useUser()
-
+const Content: React.FC<UserProps> = ({ user, data }) => {
   if (!(user && data)) {
     return <Loading />
   }
@@ -221,11 +208,11 @@ const Content: React.FC<{ data: UserProjectsResponse }> = ({ data }) => {
       <Heading as="h1" sx={{ mt: 1, mb: 3 }}>
         Projects
       </Heading>
-      <NewProjectForm uid={user.id} projects={data.projects} />
+      <NewProjectForm user={user} data={data} />
       <ul>
         {data.projects.map((pid, i) => (
           <li key={i}>
-            <Link href={`/${user.id}/${pid}`}>
+            <Link href={`/${user.uid}/${pid}`}>
               <Styled.a>
                 <Thumbnail />
                 {pid}
@@ -251,10 +238,9 @@ const Thumbnail: React.FC = () => {
   )
 }
 
-const NewProjectForm: React.FC<Pick<
-  UserProjectsResponse,
-  "projects" | "uid"
->> = ({ uid, projects }) => {
+const NewProjectForm: React.FC<UserProps> = ({ user, data }) => {
+  const { uid } = user
+  const { projects } = data
   const local = useStateDesigner({
     data: {
       uid,

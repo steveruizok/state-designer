@@ -14,7 +14,8 @@ import { usePreventZooming, useScaleZooming } from "../../hooks/gestures"
 const Chart: React.FC<{
   state: S.DesignedState<any, any>
   zoomedPath: string
-}> = ({ state, zoomedPath }) => {
+  children?: React.ReactNode
+}> = ({ state, zoomedPath, children }) => {
   const captive = useStateDesigner(state, [state])
 
   const { ref: rCanvas, width: mvCanvasWidth } = useMotionResizeObserver()
@@ -162,6 +163,7 @@ const Chart: React.FC<{
       >
         <Compass />
       </IconButton>
+      {children}
     </motion.div>
   )
 }

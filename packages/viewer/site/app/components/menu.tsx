@@ -1,13 +1,10 @@
 // @jsx jsx
 import * as React from "react"
-import { useUser } from "../../../auth/useUser"
 import { jsx, Button, Flex, IconButton } from "theme-ui"
 import { Home, User } from "react-feather"
 import { useStateDesigner } from "@state-designer/react"
-import { isProjectNameValid, updateProjectName } from "../../../utils/firebase"
 import { useRouter } from "next/router"
 import { Project } from "../states"
-import ValueInput from "./value-input"
 
 const Menu: React.FC = ({}) => {
   const router = useRouter()

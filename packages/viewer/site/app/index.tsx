@@ -5,11 +5,13 @@ import Main from "./components/main"
 import Title from "./components/title"
 import Layout from "./components/layout"
 import Content from "./components/content"
-import DetailRow from "./components/details"
 import Controls from "./components/controls"
 import Tabs from "./components/tabs"
 
-const Viewer: React.FC<{ authenticated: boolean }> = ({ authenticated }) => {
+const Viewer: React.FC<{ authenticated: boolean; owner: boolean }> = ({
+  authenticated,
+  owner,
+}) => {
   return (
     <Layout>
       <Menu />
@@ -18,8 +20,7 @@ const Viewer: React.FC<{ authenticated: boolean }> = ({ authenticated }) => {
       <Content />
       <Main />
       <Tabs />
-      <CodeColumn authenticated={authenticated} />
-      <DetailRow />
+      <CodeColumn authenticated={authenticated} owner={owner} />
     </Layout>
   )
 }

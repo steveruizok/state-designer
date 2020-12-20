@@ -1,11 +1,25 @@
-import dynamic from "next/dynamic"
+import { useEffect } from "react"
+import { GetServerSidePropsContext, GetServerSidePropsResult } from "next"
+import { getCurrentUser, redirectToUserPage } from "lib/auth-server"
+import { login } from "lib/auth-client"
+import * as Types from "types"
 
-const FirebaseAuth = dynamic(() => import("../site/firebase-auth"), {
-  ssr: false,
-})
+export default function Auth({ error }: Types.AuthState) {
+  useEffect(() => {
+    login()
+  }, [])
 
-const Auth = () => {
-  return <FirebaseAuth />
+  return <div></div>
 }
 
-export default Auth
+export async function getServerSideProps(
+  context: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult<Types.AuthState>> {
+  const authState = await getCurrentUser(context)
+
+  if (authState.user) redirectToUserPage(context)
+
+  return {
+    props: authState,
+  }
+}

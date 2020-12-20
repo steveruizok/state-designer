@@ -4,13 +4,14 @@ import { useEffect } from "react"
 import * as Utils from "../app/utils"
 import { createState, useStateDesigner } from "@state-designer/react"
 import { defaultStatics, defaultTheme } from "../static/defaults"
-import { ProjectInfo, subscribeToDocSnapshot } from "../../utils/firebase"
 import Preview from "../app/components/preview"
 import { Flex, IconButton } from "theme-ui"
-import { Minimize, ArrowLeft } from "react-feather"
+import { ArrowLeft } from "react-feather"
+import { ProjectData } from "types"
+import { subscribeToDocSnapshot } from "lib/database"
 import NotFound404 from "../404"
 
-const PreviewPage: React.FC<{ data: ProjectInfo }> = ({ data }) => {
+const PreviewPage: React.FC<{ data: ProjectData }> = ({ data }) => {
   const local = useStateDesigner({
     data: {
       oid: data.oid,

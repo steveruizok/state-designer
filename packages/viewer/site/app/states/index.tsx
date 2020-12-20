@@ -2,6 +2,7 @@
 import { createState } from "@state-designer/react"
 import { createSimpleEditorState } from "./createSimpleEditorState"
 import { createCodeEditorState } from "./createCodeEditorState"
+import * as Types from "types"
 import {
   defaultTheme,
   defaultTests,
@@ -10,9 +11,8 @@ import {
 import {
   updateProject,
   subscribeToDocSnapshot,
-  ProjectResponse,
   forkProject,
-} from "../../../utils/firebase"
+} from "lib/database"
 import router from "next/router"
 import * as Utils from "../../static/scope-utils"
 import Colors from "../../static/colors"
@@ -113,6 +113,8 @@ export const Project = createState({
               "updateFirebase",
             ],
             CHANGED_NAME: "setName",
+            INCREASED_CODE_SIZE: "increaseCodeSize",
+            DECREASED_CODE_SIZE: "decreaseCodeSize",
           },
           states: {
             tabs: {
@@ -210,14 +212,18 @@ export const Project = createState({
       data.pid = ""
       data.isOwner = false
     },
-    setupProject(d, { data }: { data: ProjectResponse }) {
+    setupProject(
+      d,
+      { user, response }: { user: Types.User; response: Types.ProjectResponse }
+    ) {
+      console.log(user, response)
+      d.uid = user.uid
       d.error = ""
-      d.pid = data.pid
-      d.oid = data.oid
-      d.uid = data.uid
-      d.isProject = data.isProject
-      d.isAuthenticated = data.isAuthenticated
-      d.isOwner = data.uid === data.oid
+      d.pid = response.pid
+      d.oid = response.oid
+      d.isProject = response.isProject
+      d.isAuthenticated = user.authenticated
+      d.isOwner = user.uid === response.oid
     },
     subscribeToProjectChanges(data) {
       const { pid, oid } = data
@@ -363,10 +369,44 @@ export const Project = createState({
     updatePayloads(data, { payloads }) {
       data.code.payloads = payloads
     },
+    decreaseCodeSize(data) {
+      if (window.localStorage !== undefined) {
+        const localFontSize = window.localStorage.getItem("sd_fontsize")
+        window.localStorage.setItem(
+          "sd_fontsize",
+          localFontSize === null
+            ? "12"
+            : (parseInt(localFontSize) - 1).toString()
+        )
+      }
+
+      JsxEditorState.send("DECREASED_CODE_SIZE")
+      StateEditorState.send("DECREASED_CODE_SIZE")
+      ThemeEditorState.send("DECREASED_CODE_SIZE")
+      StaticsEditorState.send("DECREASED_CODE_SIZE")
+      TestsEditorState.send("DECREASED_CODE_SIZE")
+    },
+    increaseCodeSize(data) {
+      if (window.localStorage !== undefined) {
+        const localFontSize = window.localStorage.getItem("sd_fontsize")
+        window.localStorage.setItem(
+          "sd_fontsize",
+          localFontSize === null
+            ? "14"
+            : (parseInt(localFontSize) + 1).toString()
+        )
+      }
+
+      JsxEditorState.send("INCREASED_CODE_SIZE")
+      StateEditorState.send("INCREASED_CODE_SIZE")
+      ThemeEditorState.send("INCREASED_CODE_SIZE")
+      StaticsEditorState.send("INCREASED_CODE_SIZE")
+      TestsEditorState.send("INCREASED_CODE_SIZE")
+    },
   },
 })
 
-// Project.onUpdate((state) => console.log(state.active))
+Project.onUpdate((state) => console.log(state.active))
 
 /* -------------------------------------------------- */
 /*                         UI                         */

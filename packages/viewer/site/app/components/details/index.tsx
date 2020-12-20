@@ -13,20 +13,12 @@ const Details: React.FC = (props) => {
   const captive = useStateDesigner(local.data.captive, [local.data.captive])
 
   const mvColum1Width = useMotionValue(0)
-  const mvColum2Width = useMotionValue(0)
-
   const rOffset1 = React.useRef(0)
-  const rOffset2 = React.useRef(0)
 
   const resetColumns = React.useCallback(() => {
     rOffset1.current = 0
-    rOffset2.current = 0
     document.documentElement.style.setProperty(
       "--details-column1-offset",
-      "0px"
-    )
-    document.documentElement.style.setProperty(
-      "--details-column2-offset",
       "0px"
     )
   }, [])
@@ -42,26 +34,14 @@ const Details: React.FC = (props) => {
     )
   }, [])
 
-  const handleDragHandle2Change = React.useCallback((e: any, info: PanInfo) => {
-    const offset = rOffset2.current
-    const next = info.delta.x + offset
-    rOffset2.current = next
-
-    document.documentElement.style.setProperty(
-      "--details-column2-offset",
-      -next + "px"
-    )
-  }, [])
-
   return (
     <Grid
       sx={{
         overflow: "hidden",
         position: "relative",
-        gridArea: "detail",
         gridAutoFlow: "column",
         gridTemplateColumns:
-          "auto clamp(5%, 85%, calc(33% + var(--details-column1-offset))) clamp(5%, 85%, calc(33% + var(--details-column2-offset)))",
+          "auto clamp(5%, 85%, calc(50% + var(--details-column1-offset)))",
         borderTop: "outline",
         borderColor: "border",
         gap: 0,
@@ -79,17 +59,6 @@ const Details: React.FC = (props) => {
           onDoubleClick={resetColumns}
         ></DragHandle>
       </Values>
-      <Tests tests={local.data.tests}>
-        <DragHandle
-          initial={0}
-          min={0}
-          max={0}
-          align={"left"}
-          motionValue={mvColum2Width}
-          onPan={handleDragHandle2Change}
-          onDoubleClick={resetColumns}
-        ></DragHandle>
-      </Tests>
     </Grid>
   )
 }

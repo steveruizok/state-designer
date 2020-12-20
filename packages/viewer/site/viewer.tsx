@@ -1,35 +1,36 @@
 // @refresh reset
 import * as React from "react"
 import NotFound from "./not-found"
-import FirebaseAuth from "./firebase-auth"
 import LoadingScreen from "./loading-screen"
 import Viewer from "./app"
 import { Project } from "./app/states"
 import { useStateDesigner } from "@state-designer/react"
-import { ProjectResponse } from "../utils/firebase"
-import router from "next/router"
-import { useUser } from "../auth/useUser"
+import * as Types from "types"
 
-const App: React.FC<{ data: ProjectResponse }> = ({ data, children }) => {
+interface ViewerProps {
+  user: Types.User
+  response: Types.ProjectResponse
+}
+
+const App: React.FC<ViewerProps> = ({ user, response }) => {
   const project = useStateDesigner(Project)
 
   React.useEffect(() => {
-    if (data) {
-      project.send("OPENED_PROJECT", { data })
-    }
-  }, [data?.pid])
+    if (response) project.send("OPENED_PROJECT", { user, response })
+  }, [response?.pid])
 
-  if (!data || project.isIn("loading")) {
+  if (project.isIn("loading")) {
     return <LoadingScreen key="loading"></LoadingScreen>
   }
 
-  const { oid, pid, uid, isAuthenticated } = data
+  const { pid, isOwner } = response
+  const { uid, authenticated } = user
 
   return project.whenIn({
     loading: <LoadingScreen key="loading"></LoadingScreen>,
-    ready: <Viewer authenticated={isAuthenticated} />,
+    ready: <Viewer authenticated={authenticated} owner={isOwner} />,
     notFound: <NotFound uid={uid} pid={pid} />,
-    authenticating: <FirebaseAuth redirect={`/${oid}/${pid}`} />,
+    authenticating: <LoadingScreen key="authenticating" />,
     default: <div>hmm, there seems to be a problem</div>,
   })
 }

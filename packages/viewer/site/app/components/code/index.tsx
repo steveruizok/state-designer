@@ -4,24 +4,22 @@ import {
   Project,
   StateEditorState,
   JsxEditorState,
-  TestsEditorState,
   StaticsEditorState,
 } from "../../states"
 import { initMonaco } from "./monaco"
 import { useStateDesigner } from "@state-designer/react"
 import JsxEditor from "./jsx-editor"
 import StateEditor from "./state-editor"
-// import ThemeEditor from "./theme-editor"
 import StaticEditor from "./static-editor"
-import TabbedEditor from "./tabbed-editor"
-import TestsEditor from "./tests-editor"
 import SaveRow from "./save-row"
 import { motion } from "framer-motion"
 
-const CodeColumn: React.FC<{ authenticated: boolean }> = ({
+const CodeColumn: React.FC<{ authenticated: boolean; owner: boolean }> = ({
   authenticated,
+  owner,
 }) => {
   const local = useStateDesigner(Project)
+  const canEdit = authenticated && owner
 
   React.useEffect(() => {
     initMonaco()
@@ -47,7 +45,7 @@ const CodeColumn: React.FC<{ authenticated: boolean }> = ({
           height: "100%",
           display: "grid",
           gridTemplateColumns: "100% 100% 100% 100%",
-          gridTemplateRows: "1fr 40px",
+          gridTemplateRows: "1fr auto",
         }}
         transition={{
           type: "spring",
@@ -70,17 +68,12 @@ const CodeColumn: React.FC<{ authenticated: boolean }> = ({
           tests: "tests",
         })}
       >
-        <StateEditor readOnly={!authenticated} />
-        {/* <TabbedEditor readOnly={!local.data.isOwner} /> */}
-        <JsxEditor readOnly={!authenticated} />
-        {/* <ThemeEditor key={"theme"} readOnly={!local.data.isOwner} /> */}
-        <StaticEditor readOnly={!authenticated} />
-        <TestsEditor readOnly={!authenticated} />
-        {authenticated && <SaveRow state={StateEditorState} />}
-        {authenticated && <SaveRow state={JsxEditorState} />}
-        {/* {local.data.isOwner && <SaveRow state={ThemeEditorState} />} */}
-        {authenticated && <SaveRow state={StaticsEditorState} />}
-        {authenticated && <SaveRow state={TestsEditorState} />}
+        <StateEditor readOnly={!canEdit} />
+        <JsxEditor readOnly={!canEdit} />
+        <StaticEditor readOnly={!canEdit} />
+        {canEdit && <SaveRow state={StateEditorState} />}
+        {canEdit && <SaveRow state={JsxEditorState} />}
+        {canEdit && <SaveRow state={StaticsEditorState} />}
       </motion.div>
     </Column>
   )

@@ -60,7 +60,7 @@ const StateEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
           rulers: false,
           quickSuggestions: false,
           fontFamily: "Fira Code",
-          fontSize: 13,
+          fontSize: local.data.fontSize,
           fontWeight: 400,
           readOnly,
           tabSize: 2,

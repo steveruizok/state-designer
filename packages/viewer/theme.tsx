@@ -371,25 +371,21 @@ export default {
       },
     },
     tab: {
-      bg: "transparent",
       fontFamily: "body",
       borderRadius: 0,
       fontWeight: 600,
       minWidth: 80,
       overflow: "hidden",
       cursor: "pointer",
-      color: "primary",
-      "&:active": {
-        color: "accent",
-      },
+      color: "text",
+      bg: "transparent",
       "&:hover": {
-        color: "accent",
+        opacity: 1,
       },
       "&:disabled": {
         color: "inactive",
       },
       "&:focus": {
-        color: "primary",
         outline: "none",
       },
       "&[data-issuppressed='true']": {

@@ -10,14 +10,26 @@ export type CodeEditorOptions = {
 export function createCodeEditorState(
   options: CodeEditorOptions = {} as CodeEditorOptions
 ) {
+  let fontSize = 13
+
+  if (window.localStorage !== undefined) {
+    const localFontSize = window.localStorage.getItem("sd_fontsize")
+    console.log(localFontSize)
+    if (localFontSize !== null) fontSize = parseInt(localFontSize)
+  }
+
   return createState({
     data: {
       globalId: "",
       clean: "",
       dirty: "",
       error: "",
+      fontSize,
     },
-    on: {},
+    on: {
+      INCREASED_CODE_SIZE: "increaseFontSize",
+      DECREASED_CODE_SIZE: "decreaseFontSize",
+    },
     initial: "loading",
     states: {
       loading: {
@@ -77,6 +89,12 @@ export function createCodeEditorState(
       },
     },
     actions: {
+      increaseFontSize(data) {
+        data.fontSize++
+      },
+      decreaseFontSize(data) {
+        data.fontSize--
+      },
       setClean(data, { code }) {
         data.clean = code
       },

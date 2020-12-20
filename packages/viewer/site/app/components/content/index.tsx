@@ -96,7 +96,12 @@ const Content: React.FC = () => {
         </Styled.ul>
       </ContentSection>
       <Box onMouseEnter={() => Highlights.send("CLEARED_HIGHLIGHTS")} />
-      <ContentSection isBottomUp={true} zap={undefined} title="Event Payloads">
+      <ContentSection
+        isBottomUp={true}
+        zap={undefined}
+        title="Event Payloads"
+        startClosed
+      >
         <Payload
           payloads={local.data.code.payloads}
           setPayloads={(payloads) =>

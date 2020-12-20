@@ -53,7 +53,7 @@ const StaticEditor: React.FC<{ readOnly: boolean }> = ({ readOnly }) => {
           quickSuggestions: false,
           scrollBeyondLastLine: false,
           fontFamily: "Fira Code",
-          fontSize: 13,
+          fontSize: local.data.fontSize,
           fontWeight: 400,
           readOnly,
           minimap: { enabled: false },

@@ -1,35 +1,32 @@
-import { getProjectData } from "../../../utils/firebase"
-import { ProjectInfo } from "../../../utils/firebase"
-import NotFound404 from "../../../site/404"
-import { NextPage } from "next"
+import { GetServerSidePropsContext, GetServerSidePropsResult } from "next"
+import { getProjectData } from "lib/database"
+import * as Types from "types"
+import { single } from "utils"
+import NotFound404 from "site/404"
 import dynamic from "next/dynamic"
+const Preview = dynamic(() => import("site/static-preview-page"), {
+  ssr: false,
+})
 
-const StaticPreviewPage = dynamic(
-  () => import("../../../site/static-preview-page"),
-  {
-    ssr: false,
-  }
-)
+interface StaticPreviewPagePageProps {
+  data: Types.ProjectData
+}
 
 /**
  * A preview page that will NOT subscribe to changes to the project document.
  */
-const StaticPreview: NextPage<{ data: ProjectInfo }> = ({ data }) => {
+export default function PreviewPage({ data }: StaticPreviewPagePageProps) {
   if (!data) return <NotFound404 />
-  return <StaticPreviewPage data={data} />
+  return <Preview data={data} />
 }
 
-StaticPreview.getInitialProps = async (ctx) => {
-  let { oid, pid } = ctx.query
+export async function getServerSideProps(
+  context: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult<StaticPreviewPagePageProps>> {
+  const { oid, pid } = context.query
+  const project = await getProjectData(single(pid), single(oid))
 
-  pid = Array.isArray(pid) ? pid[0] : pid
-  oid = Array.isArray(oid) ? oid[0] : oid
-
-  if (!pid || !oid) return { data: undefined }
-
-  const data = await getProjectData(pid, oid)
-
-  return { data }
+  return {
+    props: { data: project },
+  }
 }
-
-export default StaticPreview

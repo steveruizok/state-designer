@@ -10,8 +10,16 @@ const ContentSection: React.FC<{
   zap: boolean | undefined
   onZapChange?: (zap: boolean) => void
   isBottomUp?: boolean
-}> = ({ title, isBottomUp = false, zap, onZapChange, children }) => {
-  const [isCollapsed, setCollapsed] = React.useState(false)
+  startClosed?: boolean
+}> = ({
+  title,
+  isBottomUp = false,
+  startClosed = false,
+  zap,
+  onZapChange,
+  children,
+}) => {
+  const [isCollapsed, setCollapsed] = React.useState(startClosed)
 
   return (
     <motion.div
@@ -24,8 +32,8 @@ const ContentSection: React.FC<{
           borderTop: "none",
         },
       }}
-      variants={{ open: { height: "auto" }, collapsed: { height: 43 } }}
-      initial="open"
+      variants={{ open: { height: "auto" }, collapsed: { height: 46 } }}
+      initial={false}
       animate={isCollapsed ? "collapsed" : "open"}
       transition={{
         type: "spring",
