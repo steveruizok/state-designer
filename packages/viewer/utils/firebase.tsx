@@ -127,7 +127,6 @@ export function updateProject(
 ) {
   return getProject(pid, oid).update({
     ...changes,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
   })
 }
 
