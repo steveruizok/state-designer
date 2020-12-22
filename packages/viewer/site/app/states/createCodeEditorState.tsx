@@ -14,7 +14,6 @@ export function createCodeEditorState(
 
   if (window.localStorage !== undefined) {
     const localFontSize = window.localStorage.getItem("sd_fontsize")
-    console.log(localFontSize)
     if (localFontSize !== null) fontSize = parseInt(localFontSize)
   }
 

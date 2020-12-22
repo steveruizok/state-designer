@@ -216,7 +216,6 @@ export const Project = createState({
       d,
       { user, response }: { user: Types.User; response: Types.ProjectResponse }
     ) {
-      console.log(user, response)
       d.uid = user.uid
       d.error = ""
       d.pid = response.pid
