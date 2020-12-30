@@ -33,12 +33,12 @@ Using State Designer involves three steps:
 
 Your exact usage will depend on your framework:
 
-- [Usage in JavaScript](https://github.com/@state-designer/core#usage)
-- [Usage in React](https://github.com/@state-designer/react#usage)
+- [Usage in JavaScript](https://github.com/steveruizok/state-designer/tree/master/packages/core#usage)
+- [Usage in React](https://github.com/steveruizok/state-designer/tree/master/packages/react#usage)
 
 ## Example
 
-**Note:** This example uses the [React](https://github.com/@state-designer/react) package.
+**Note:** This example uses the [React](https://github.com/steveruizok/state-designer/tree/master/packages/react) package.
 
 [![Edit little-snowflake-rmu8q](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/little-snowflake-rmu8q?fontsize=14&hidenavigation=1&theme=dark)
 
