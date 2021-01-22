@@ -19,7 +19,7 @@ type ReturnedValues<TD, TV extends Record<string, S.Value<TD>>> = {
 /* -------------------------------------------------- */
 
 /**
- * Create a new state from a designuration object.
+ * Create a new state from a design object.
  * @param design The state's design object.
  * @public
  */
