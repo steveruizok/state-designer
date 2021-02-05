@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.4.3
+
+- Adds `useSelector` and `createSelector Hook`.
+
 # 1.2.32
 
 - Adds `useLocalState` and `useGlobalState`, more explicit and cleaner versions of the `useStateDesigner` hook. The `useStateDesigner` hook still works, though the logic is handled by one of the two other hooks.
