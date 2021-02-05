@@ -1,9 +1,5 @@
 import * as React from "react"
-import {
-  useStateDesigner,
-  createState,
-  useUpdateEffect,
-} from "@state-designer/react"
+import { useStateDesigner, createState } from "@state-designer/react"
 
 type ITodo = { id: number; content: string; complete: boolean }
 
@@ -157,11 +153,9 @@ const Todo: React.FC<ITodo> = ({ id, content, complete }) => {
     },
   })
 
-  useUpdateEffect(
-    state,
-    (update) => globalState.send("CHANGED_TODO", update.data),
-    [state.data.content]
-  )
+  React.useEffect(() => {
+    globalState.send("UPDATED_TODO", state.data)
+  }, [state.data.complete])
 
   return (
     <div>

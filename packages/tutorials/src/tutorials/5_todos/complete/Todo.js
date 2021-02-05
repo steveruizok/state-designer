@@ -1,6 +1,6 @@
 import React from "react"
 import { TodoContainer, RemoveButton, Checkbox, TextInput } from "components"
-import { useStateDesigner, useUpdateEffect } from "@state-designer/react"
+import { useStateDesigner } from "@state-designer/react"
 import global from "./globalState"
 
 export default function ({ id = 0, content = "", complete = false }) {
@@ -71,9 +71,9 @@ export default function ({ id = 0, content = "", complete = false }) {
     },
   })
 
-  useUpdateEffect(state, (update) => global.send("UPDATED_TODO", update.data), [
-    state.data.complete,
-  ])
+  React.useEffect(() => {
+    global.send("UPDATED_TODO", state.data)
+  }, [state.data.complete])
 
   return (
     <TodoContainer>
