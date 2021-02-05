@@ -1,6 +1,8 @@
 import { useReducer, useEffect } from "react"
 import { S } from "@state-designer/core"
 
+type InnerState<T> = { count: number; current: T }
+
 /**
  * createSelectorHook
  * @description A function that returns a useSelector hook for the
@@ -12,28 +14,33 @@ import { S } from "@state-designer/core"
  * // In a component
  * const tables = useSelector((state) => state.data.tables)
  */
+
 export default function createSelectorHook<
   State extends S.DesignedState<any, any>
 >(state: State) {
-  function useSelector<T>(
+  return function useSelector<T>(
     selectFn: (update: State) => T,
     compareFn: (prev: T, next: T) => boolean = (prev, next) => prev === next
   ) {
-    const [current, dispatch] = useReducer(
-      (state: T, update: State): T => {
+    const [inner, dispatch] = useReducer(
+      (state: InnerState<T>, update: State): InnerState<T> => {
         const next = selectFn(update)
-        return compareFn(state, next) ? state : next
+        return compareFn(state.current, next)
+          ? state
+          : {
+              count: state.count + 1,
+              current: next,
+            }
       },
       state,
-      (state) => selectFn(state)
+      (state) => ({
+        count: 0,
+        current: selectFn(state),
+      })
     )
 
-    useEffect(() => state.onUpdate((update: State) => dispatch(update)), [
-      dispatch,
-    ])
+    useEffect(() => state.onUpdate((update) => dispatch(update)), [dispatch])
 
-    return current
+    return inner.current
   }
-
-  return useSelector
 }

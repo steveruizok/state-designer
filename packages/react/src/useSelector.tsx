@@ -1,6 +1,8 @@
 import { useReducer, useEffect } from "react"
 import { S } from "@state-designer/core"
 
+type InnerState<T> = { count: number; current: T }
+
 /**
  * useSelector
  * @param state A state created with `createState`.
@@ -13,13 +15,21 @@ export default function useSelector<State extends S.DesignedState, T>(
   selectFn: (update: State) => T,
   compareFn: (prev: T, next: T) => boolean = (prev, next) => prev === next
 ): T {
-  const [current, dispatch] = useReducer(
-    (state: T, update: State): T => {
+  const [inner, dispatch] = useReducer(
+    (state: InnerState<T>, update: State): InnerState<T> => {
       const next = selectFn(update)
-      return compareFn(state, next) ? state : next
+      return compareFn(state.current, next)
+        ? state
+        : {
+            count: state.count + 1,
+            current: next,
+          }
     },
     state,
-    (state) => selectFn(state)
+    (state) => ({
+      count: 0,
+      current: selectFn(state),
+    })
   )
 
   useEffect(() => state.onUpdate((update: State) => dispatch(update)), [
@@ -27,5 +37,5 @@ export default function useSelector<State extends S.DesignedState, T>(
     dispatch,
   ])
 
-  return current
+  return inner.current
 }
