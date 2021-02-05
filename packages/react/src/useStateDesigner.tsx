@@ -44,7 +44,7 @@ export default function useStateDesigner<
 ) {
   const rFirstMount = React.useRef(true)
 
-  const [current, setCurrent] = React.useState<S.DesignedState>(() =>
+  const [current, setCurrent] = React.useState<S.DesignedState<D, V>>(() =>
     "active" in design ? design : createState(design)
   )
 
