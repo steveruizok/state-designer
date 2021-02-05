@@ -1,6 +1,6 @@
 import { S, createState } from "@state-designer/core"
 import * as React from "react"
-import { pick } from "lodash"
+import pick from "lodash-es/pick"
 import useGlobalState from "./useGlobalState"
 import useLocalState from "./useLocalState"
 

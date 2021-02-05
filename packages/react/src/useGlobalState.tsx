@@ -1,5 +1,5 @@
 // @refresh-reset
-import { pick } from "lodash"
+import pick from "lodash-es/pick"
 import * as React from "react"
 import { S } from "@state-designer/core"
 

@@ -1,6 +1,9 @@
-import { last, castArray, isFunction, uniqueId, isUndefined } from "lodash"
+import last from "lodash-es/last"
+import castArray from "lodash-es/castArray"
+import isFunction from "lodash-es/isFunction"
+import uniqueId from "lodash-es/uniqueId"
+import isUndefined from "lodash-es/isUndefined"
 import { produce, enableAllPlugins, setAutoFreeze } from "immer"
-
 import { testEventHandlerConditions } from "./testEventHandlerConditions"
 import { createEventChain } from "./createEventChain"
 import * as S from "./types"

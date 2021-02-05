@@ -1,4 +1,7 @@
-import { forEach, isUndefined, last } from "lodash"
+import last from "lodash-es/last"
+import forEach from "lodash-es/forEach"
+import isUndefined from "lodash-es/isUndefined"
+
 import { testEventHandlerConditions } from "./testEventHandlerConditions"
 import * as S from "./types"
 
