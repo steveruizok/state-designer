@@ -181,12 +181,9 @@ export function getStateTreeFromDesign<
       return
     }
 
-    const withoutLogic = initial as S.InitialStateObjectDesignWithoutLogic<D>
-    const withLogic = initial as S.InitialStateObjectDesignWithLogic<D, C, R>
-
-    if (withLogic.else === undefined) {
-      const init = withoutLogic
-      const target = typeof init === "string" ? init : init.to
+    if (typeof initial === "string" || !("else" in initial)) {
+      // No logic for the initial state
+      const target = typeof initial === "string" ? initial : initial.to
 
       return {
         get: [],
@@ -197,17 +194,18 @@ export function getStateTreeFromDesign<
         to: isFunction(target) ? target : castToNamedFunction(target),
       }
     } else {
-      const init = withLogic
-
+      // Some logic for the initial state
       return {
-        get: getResults(init.get),
-        if: getConditions(init.if),
-        unless: getConditions(init.unless),
-        ifAny: getConditions(init.ifAny),
-        unlessAny: getConditions(init.unlessAny),
-        to: isFunction(init.to) ? init.to : castToNamedFunction(init.to),
-        then: getInitialState(init.then),
-        else: getInitialState(init.else),
+        get: getResults(initial.get),
+        if: getConditions(initial.if),
+        unless: getConditions(initial.unless),
+        ifAny: getConditions(initial.ifAny),
+        unlessAny: getConditions(initial.unlessAny),
+        to: isFunction(initial.to)
+          ? initial.to
+          : castToNamedFunction(initial.to),
+        then: getInitialState(initial.then),
+        else: getInitialState(initial.else),
       }
     }
   }
@@ -227,7 +225,7 @@ export function getStateTreeFromDesign<
     depth: number,
     isInitial: boolean,
     parentType: "branch" | "parallel" | "leaf" | null
-  ): S.State<D, V> {
+  ): S.State<S.DesignedState> {
     // Early error detection
 
     if (state.initial !== undefined && state.states === undefined) {

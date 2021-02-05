@@ -2,269 +2,229 @@
 
 This package includes the core functions of [State Designer](https://statedesigner.com), a JavaScript state management library, together with a React hook for use in React. [Click here](https://statedesigner.com) to learn more.
 
-You can use this package in any React project. It supports TypeScript, too.
+You can use this package in any React project. For other JavaScript projects, see [@state-designer/core](https://github.com/@state-designer/core).
 
-For other JavaScript projects, see [@state-designer/core](https://github.com/@state-designer/core).
+This package includes TypeScript typings.
 
-## Installation
+# Installation
 
 ```bash
 npm install @state-designer/react
+```
 
-# or
-
+```
 yarn add @state-designer/react
 ```
 
 ## Usage
 
-For the basics of State Designer, see the documentation for [@state-designer/core](https://github.com/@state-designer/core).
+You can use the `useStateDesigner` hook to subscribe to either a global state (created with the `createState` function) or a local component state, by passing a configuration object to the hook. You can use the `useSelector` hook to subscribe to only part of a state.
 
-You can use the `useStateDesigner` hook to subscribe to either a global state or a local component state.
+For the basics of State Designer (including the configuration object API) see the documentation for [@state-designer/core](https://github.com/@state-designer/core) or visit [state-designer.com](https://state-designer.com).
 
-### Global State
+# API
 
-To subscribe to a global state:
+- [`useStateDesigner`](#useStateDesigner)
+- [`useSelector`](#useSelector)
+- [`createSelector`](#createSelector)
+- [`useUpdateEffect`](#useUpdateEffect)
 
-1.  Create the state using `createState`.
+---
+
+## `useStateDesigner`
 
 ```js
-// state.js
+const update = useStateDesigner(myState)
+```
 
-import { createState } from "@state-designer/react"
+Subscribes a component to an state created with `createState`.
+
+```js
+import { createState, useStateDesigner } from "@state-designer/react"
 
 export const state = createState({
-  data: { items: 0 },
-  on: {
-    ADDED_ITEMS: {
-      unless: (data, payload) => data.items + payload > 10,
-      do: (data, payload) => (data.items += payload),
+  data: { count: 0 },
+  states: {
+    enabled: {
+      on: {
+        INCREMENTED: { do: (data) => data.count++ },
+        TOGGLED: { to: "disabled" },
+      },
     },
-    RESET: (data) => (data.items = 0),
+    disabled: {
+      on: {
+        TOGGLED: { to: "enabled" },
+      },
+    },
   },
 })
-```
 
-2.  Pass the state to the `useStateDesigner` hook.
-
-```jsx
-// Counter.jsx
-
-import React from "react"
-import { useStateDesigner } from "@state-designer/react"
-import { state } from "./state"
-
-export default function Counter() {
-  const { data, send } = useStateDesigner(state)
-
+function Counter() {
+  const local = useStateDesigner(state)
   return (
-    <div className="Counter">
-      <h2>{data.items}</h2>
-      <button onClick={() => send("ADDED_ITEMS", 2)}>Add two items</button>
-      <button onClick={() => send("RESET")}>Reset</button>
+    <div>
+      <button
+        disabled={!state.can("INCREMENTED")}
+        onClick={() => state.send("INCREMENTED")}
+      >
+        {local.data.count}
+      </button>
+      <button onClick={() => state.send("TOGGLED")}>Toggle</button>
     </div>
   )
 }
 ```
 
-You can subscribe any number of components to the same state.
+### Usage with a Configuration Object
 
-```jsx
-import React from "react"
-import Counter from "./Counter"
-
-export default function App() {
-  return (
-    <div className="App">
-      <Counter />
-      <Counter />
-      <Counter />
-    </div>
-  )
-}
+```js
+const update = useStateDesigner(myState)
 ```
 
-In the example above, all three Counters would share the same state.
+If given a configuration object, the hook will creates a new state and subscribe to it.
 
-#### Sending events
-
-A component does not have to be subscribed to a state in order to send it events. You can call `state.send` from any place in your project. If the event causes an update, then any components that are subscribed to the update will render in response.
-
-```jsx
-import React from "react"
-import Counter from "./Counter"
-import { state } from "./state"
-
-export default function App() {
-  return (
-    <div className="App">
-      <Counter />
-      <Counter />
-      <Counter />
-      <button onClick={() => state.send("RESET")}>Reset</button>
-    </div>
-  )
-}
-```
-
-In the example above, clicking the reset button would reset all three counters.
-
-### Local State
-
-To create and subscribe a local state, pass a configuration object to `useStateDesigner`.
-
-```jsx
-// Counter.jsx
-
-import React from "react"
+```js
 import { useStateDesigner } from "@state-designer/react"
 
-export default function Counter() {
-  const { data, send } = useStateDesigner({
-    data: { items: 0 },
-    on: {
-      ADDED_ITEMS: {
-        unless: (data, payload) => data.items + payload > 10,
-        do: (data, payload) => (data.items += payload),
-      },
-      RESET: (data) => (data.items = 0),
-    },
-  })
-
-  return (
-    <div className="Counter">
-      <h2>{data.items}</h2>
-      <button onClick={() => send("ADDED_ITEMS", 2)}>Add two items</button>
-      <button onClick={() => send("RESET")}>Reset</button>
-    </div>
-  )
-}
-```
-
-With local states, you can use State Designer to manage the state of individual components.
-
-```jsx
-// App.jsx
-
-import React from "react"
-import Counter from "./Counter"
-
-export default function App() {
-  return (
-    <div className="App">
-      <Counter />
-      <Counter />
-      <Counter />
-    </div>
-  )
-}
-```
-
-In the example above, the three `Counter`s in the example below will each maintain their own separate states.
-
-#### Sending events
-
-When using a local state, other components will not be able to directly subscribe to the state's updates and may only `send` it events through the `send` method returned by `useStateDesigner`. This method is stable and can be passed down to children in the same manner as the `dispatch` method described [here](https://reactjs.org/docs/hooks-faq.html#how-to-avoid-passing-callbacks-down).
-
-#### Dependencies
-
-When using a local state, you may also provide an array of dependencies. If the hook finds changes in these dependencies between renders, it will rebuild a new state based on the current configuration. You can use this feature to create dynamic state machines based on a component's props.
-
-```jsx
-function Checkbox({ checked = false }) {
-  const { isIn, send } = useStateDesigner(
-    {
-      initial: checked ? "checked" : "unchecked",
-      states: {
-        checked: {
-          on: { TOGGLE: { to: "unchecked" } },
-        },
-        unchecked: {
-          on: { TOGGLE: { to: "checked" } },
-        },
-      },
-    },
-    [checked]
-  )
-
-  return (
-    <input
-      type="checkbox"
-      checked={isIn("checked")}
-      onChange={() => send("TOGGLE")}
-    />
-  )
-}
-```
-
-In the example above, another component could control the Checkbox through its `checked` prop. When that prop changed, the hook would rebuild a new state with the correct `initial` state.
-
-Note that this is a rather heavy-handed solution and may not be appropriate for complex states. You could achieve the same result with effects that send events in response to changed props.
-
-```jsx
-function Checkbox({ checked = false }) {
-  const { isIn, send } = useStateDesigner({
-    initial: checked ? "checked" : "unchecked",
+function Counter() {
+  const local = useStateDesigner({
+    data: { count: 0 },
     states: {
-      checked: {
-        on: { TOGGLE: { to: "unchecked" } },
+      enabled: {
+        on: {
+          INCREMENTED: { do: (data) => data.count++ },
+          TOGGLED: { to: "disabled" },
+        },
       },
-      unchecked: {
-        on: { TOGGLE: { to: "checked" } },
+      disabled: {
+        on: {
+          TOGGLED: { to: "enabled" },
+        },
       },
     },
   })
 
-  React.useEffect(() => {
-    if ((checked && isIn("unchecked")) || (!checked && isIn("checked"))) {
-      send("TOGGLE")
-    }
-  }, [checked])
-
   return (
-    <input
-      type="checkbox"
-      checked={isIn("checked")}
-      onChange={() => send("TOGGLE")}
-    />
-  )
-}
-```
-
-In the example above, another component could still control the Checkbox through its `checked` prop, however the hook would not rebuild its state.
-
-## Example
-
-[![Edit state-designer-example-react](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/objective-drake-20bkh?fontsize=14&hidenavigation=1&theme=dark)
-
-```jsx
-import React from "react"
-import { useStateDesigner } from "@state-designer/react"
-
-export default function App() {
-  const { data, send } = useStateDesigner({
-    data: { items: 0 },
-    on: {
-      ADDED_ITEMS: {
-        unless: (data, payload) => data.items + payload > 10,
-        do: (data, payload) => (data.items += payload),
-      },
-      RESET: (data) => (data.items = 0),
-    },
-  })
-
-  return (
-    <div className="App">
-      <h2>{data.items}</h2>
-      <button onClick={() => send("ADDED_ITEMS", 2)}>Add two items</button>
-      <button onClick={() => send("RESET")}>Reset</button>
+    <div>
+      <button
+        disabled={!state.can("INCREMENTED")}
+        onClick={() => state.send("INCREMENTED")}
+      >
+        {local.data.count}
+      </button>
+      <button onClick={() => state.send("TOGGLED")}>Toggle</button>
     </div>
   )
 }
 ```
 
-## API
+### Dependencies
 
-### `useStateDesigner`
+When given a configration object, you may also provide an array of dependencies that will, if changed between renders, cause the component to create and subscribe to a new state based on the current configuration object.
 
-Subscribes to an existing state—or, if given a configuration object, creates a new state and subscribes to it. May also accept an array of dependencies that will, if changed between renders, cause the component to create and subscrive to a new state based on the provided configuration object.
+```js
+import { useStateDesigner } from "@state-designer/react"
+
+function Counter({ initial = 0 }) {
+  const local = useStateDesigner(
+    {
+      data: { count: initial },
+      on: { INCREMENTED: { do: (data) => data.count++ } },
+    },
+    [initial]
+  )
+
+  return (
+    <div>
+      <button onClick={() => state.send("INCREMENTED")}>
+        {local.data.count}
+      </button>
+    </div>
+  )
+}
+```
+
+---
+
+### `useSelector`
+
+```js
+const selected = useSelector(state, selectFn)
+```
+
+Subscribe to only certain changes from a state. Pass it a created state, together with a callback function that receives the update and returns some value. Whenever the state updates, the hook will update only if the value returned by your callback function has changed.
+
+```js
+import { createState, useSelector } from "@state-designer/react"
+
+const state = createState({
+  data: {
+    tables: 0,
+    chairs: 0,
+  },
+  on: {
+    ADDED_TABLE: (data) => data.tables++,
+    ADDED_CHAIRS: (data) => data.chairs++,
+  },
+})
+
+// This component will only update when state.data.tables changes.
+function TablesCounter() {
+  const tables = useSelector(state, (state) => state.data.tables)
+  return <button onClick={() => state.send("ADDED_TABLE")}>{tables}</button>
+}
+
+// This component will only update when state.data.chairs changes.
+function ChairsCounter() {
+  const chairs = useSelector(state, (state) => state.data.chairs)
+  return <button onClick={() => state.send("ADDED_CHAIR")}>{chairs}</button>
+}
+```
+
+### Comparisons
+
+The hook will only update if the selector function returns new data. By default, the hook uses strict equality (`a === b`) to compare the previous data with the new data. However, the hook also accepts an optional third argument: a callback function that it will use for comparisons instead.
+
+Each time the state updates, the hook will use the selection function to make a new selection, then call the comparison function with two arguments: the selection currently in state (the "previous" selection) and the new selection just obtained. If the comparison function returns `false`, then the hook will put the new selection into state.
+
+```js
+const tooMany = useSelector(
+  state,
+  (state) => state.data.chairs,
+  (prev, next) => prev > 10 !== next > 10
+)
+```
+
+In the example above, the hook will only change if the state's `data.chairs` property is below 10 and changes to above 10, or if it is above 10 and changes to below 10. A change from 4 to 11 would cause the state to update; a change from 11 to 12 would not.
+
+---
+
+## `createSelectorHook`
+
+```js
+createSelectorHook(state)
+```
+
+This is a helper that will generate a selector hook from a state. The hook returned by `createSelectorHook` is unlike the `useSelector` shown above in that you will not have to enter the state as a first argument.
+
+```js
+import { createState, createSelectorHook } from "@state-designer/react"
+
+const state = createState({
+  data: {
+    tables: 0,
+    chairs: 0,
+  },
+  on: {
+    ADDED_TABLE: (data) => data.tables++,
+    ADDED_CHAIRS: (data) => data.chairs++,
+  },
+})
+
+const useSelector = createSelectorHook(state)
+
+function TablesCounter() {
+  const tables = useSelector((state) => state.data.tables)
+  return <button onClick={() => state.send("ADDED_TABLE")}>{tables}</button>
+}
+```

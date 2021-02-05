@@ -1,4 +1,6 @@
-import { S } from "@state-designer/core"
+import { S, createState } from "@state-designer/core"
+import * as React from "react"
+import { pick } from "lodash"
 import useGlobalState from "./useGlobalState"
 import useLocalState from "./useLocalState"
 
@@ -40,9 +42,63 @@ export default function useStateDesigner<
   design: S.Design<D, R, C, A, Y, T, V> | S.DesignedState<D, V>,
   dependencies: any[] = emptyArray
 ) {
-  if ((design as S.DesignedState<D, V>).active !== undefined) {
-    return useGlobalState(design as S.DesignedState<D, V>)
-  } else {
-    return useLocalState(design as S.Design<D, R, C, A, Y, T, V>, dependencies)
-  }
+  const rFirstMount = React.useRef(true)
+
+  const [current, setCurrent] = React.useState<S.DesignedState>(() =>
+    "active" in design ? design : createState(design)
+  )
+
+  // Global
+  React.useEffect(() => {
+    if (!("active" in design)) return
+
+    setCurrent(design)
+
+    return design.onUpdate((update) =>
+      setCurrent((current) => ({
+        ...current,
+        ...pick(
+          update,
+          "index",
+          "data",
+          "active",
+          "stateTree",
+          "values",
+          "log"
+        ),
+      }))
+    )
+  }, [design])
+
+  // Local
+  React.useEffect(() => {
+    if ("active" in design) return
+
+    function handleUpdate(update: typeof current) {
+      setCurrent((current) => ({
+        ...current,
+        ...pick(
+          update,
+          "index",
+          "data",
+          "active",
+          "stateTree",
+          "values",
+          "log"
+        ),
+      }))
+    }
+
+    // Only create a new state if the `design` property is design object.
+    if (!rFirstMount.current) {
+      const next = createState(design)
+      setCurrent(next)
+      return next.onUpdate(handleUpdate)
+    }
+
+    rFirstMount.current = false
+    return current.onUpdate(handleUpdate)
+  }, [...dependencies])
+
+  return current
 }

@@ -2,20 +2,22 @@ import * as S from "./types"
 import { createDraft, finishDraft, Draft, current } from "immer"
 import { testEventHandlerConditions } from "./testEventHandlerConditions"
 
-export function createEventChain<D>(options: S.EventChainOptions<D>) {
+export function createEventChain<G extends S.DesignedState>(
+  options: S.EventChainOptions<G>
+) {
   let { state, onDelayedOutcome, getFreshDataAfterWait } = options
   let handlers = [...options.handler]
   const { payload } = options
 
   let waiting = false
 
-  let core: S.EventChainCore<D> = {
+  let core: S.EventChainCore<G> = {
     data: options.data,
     payload: options.payload,
     result: options.result,
   }
 
-  let finalOutcome: S.EventChainOutcome<D> = {
+  let finalOutcome: S.EventChainOutcome<G> = {
     ...core,
     shouldBreak: false,
     shouldNotify: false,
@@ -23,12 +25,12 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
     pendingTransition: [],
   }
 
-  let draftCore: Draft<S.EventChainCore<D>> = createDraft(core)
+  let draftCore: Draft<S.EventChainCore<G>> = createDraft(core)
 
   let tResult = options.result
 
-  function complete(draft: Draft<S.EventChainCore<D>>) {
-    core = finishDraft(draft) as S.EventChainCore<D>
+  function complete(draft: Draft<S.EventChainCore<G>>) {
+    core = finishDraft(draft) as S.EventChainCore<G>
     finalOutcome.result = core.result
     finalOutcome.data = core.data
   }
@@ -38,8 +40,8 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
   }
 
   function processEventHandler(
-    eventHandler: S.EventHandler<D>,
-    draft: Draft<S.EventChainCore<D>>
+    eventHandler: S.EventHandler<G>,
+    draft: Draft<S.EventChainCore<G>>
   ): { shouldBreakDueToWait: boolean } {
     if (finalOutcome.shouldBreak) {
       return { shouldBreakDueToWait: false }
@@ -52,8 +54,11 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
     } else if (nextHandlerObject.wait !== undefined) {
       // Calculate wait time from finalOutcome draft
       const waitTime =
-        nextHandlerObject.wait((draft.data as D) as D, payload, draft.result) *
-        1000
+        nextHandlerObject.wait(
+          (draft.data as G["data"]) as G["data"],
+          payload,
+          draft.result
+        ) * 1000
 
       // Notify, if necessary
       if (waiting && finalOutcome.shouldNotify) {
@@ -108,14 +113,14 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
   }
 
   function processHandlerObject(
-    handler: S.EventHandlerObject<D>,
-    draft: Draft<S.EventChainCore<D>>
+    handler: S.EventHandlerObject<G>,
+    draft: Draft<S.EventChainCore<G>>
   ): { shouldBreak: boolean } {
     // Compute a result using original data and draft result
     if (handler.get.length > 0) {
       try {
         for (let resu of handler.get) {
-          tResult = resu(draft.data as D, payload, tResult)
+          tResult = resu(draft.data as G["data"], payload, tResult)
         }
       } catch (e) {
         console.error("Error in event handler object's results! ", e.message)
@@ -129,7 +134,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
     const passedConditions = testEventHandlerConditions(
       handler,
-      curr.data as D,
+      curr.data as G["data"],
       curr.payload,
       curr.result
     )
@@ -143,7 +148,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
 
         try {
           for (let action of handler.do) {
-            action(draft.data as D, curr.payload, curr.result)
+            action(draft.data as G["data"], curr.payload, curr.result)
           }
         } catch (e) {
           console.error("Error in event handler's actions! ", e.message)
@@ -154,7 +159,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
       if (handler.secretlyDo.length > 0) {
         try {
           for (let action of handler.secretlyDo) {
-            action(draft.data as D, curr.payload, curr.result)
+            action(draft.data as G["data"], curr.payload, curr.result)
           }
         } catch (e) {
           console.error("Error in event handler's secret actions! ", e.message)
@@ -166,7 +171,11 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
       // Sends
       if (handler.send !== undefined) {
         try {
-          const event = handler.send(curr.data as D, curr.payload, curr.result)
+          const event = handler.send(
+            curr.data as G["data"],
+            curr.payload,
+            curr.result
+          )
           finalOutcome.pendingSend = event
         } catch (e) {
           console.error("Error computing event handler's send! ", e.message)
@@ -178,7 +187,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
         try {
           finalOutcome.pendingTransition.push(
             ...handler.to.map((t) =>
-              t(curr.data as D, curr.payload, curr.result)
+              t(curr.data as G["data"], curr.payload, curr.result)
             )
           )
           finalOutcome.shouldBreak = true
@@ -197,7 +206,7 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
         try {
           finalOutcome.pendingTransition.push(
             ...handler.secretlyTo.map((t) =>
-              t(curr.data as D, curr.payload, curr.result)
+              t(curr.data as G["data"], curr.payload, curr.result)
             )
           )
 
@@ -221,7 +230,9 @@ export function createEventChain<D>(options: S.EventChainOptions<D>) {
       // Break
       if (handler.break !== undefined) {
         try {
-          if (handler.break(curr.data as D, curr.payload, curr.result)) {
+          if (
+            handler.break(curr.data as G["data"], curr.payload, curr.result)
+          ) {
             return { shouldBreak: true }
           }
         } catch (e) {

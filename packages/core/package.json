@@ -39,7 +39,6 @@
   "dependencies": {
     "immer": "^8.0.1",
     "lodash": "^4.17.15",
-    "lodash-es": "^4.17.15",
     "object.entries": "^1.1.1",
     "object.fromentries": "^2.0.2"
   },

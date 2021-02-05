@@ -10,10 +10,6 @@ import { getStateTreeFromDesign } from "./getStateTreeFromDesign"
 enableAllPlugins()
 setAutoFreeze(false)
 
-type ReturnedValues<TD, TV extends Record<string, S.Value<TD>>> = {
-  [key in keyof TV]: ReturnType<TV[key]>
-}
-
 /* -------------------------------------------------- */
 /*                Create State Designer               */
 /* -------------------------------------------------- */
@@ -31,14 +27,9 @@ export function createState<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
->(
-  design: S.Design<D, R, C, A, Y, T, V>
-): S.DesignedState<
-  D,
-  {
-    [key in keyof V]: ReturnType<V[key]>
-  }
-> {
+>(design: S.Design<D, R, C, A, Y, T, V>) {
+  type ThisState = S.DesignedState<D, V>
+
   let logEnabled = false
 
   /* ------------------ Subscriptions ----------------- 
@@ -98,7 +89,7 @@ export function createState<
    * @param payload The payload (if any) sent with the event that led to the event handler chain.
    */
   function handleEventHandlerChainOutcome(
-    outcome: S.EventChainOutcome<D>,
+    outcome: S.EventChainOutcome<ThisState>,
     payload: any
   ) {
     snapshot.data = outcome.data
@@ -116,12 +107,12 @@ export function createState<
   // Run event handler that updates the global `updates` object,
   // useful for (more or less) synchronous eventss
   function runEventHandlerChain(
-    state: S.State<D, V>,
+    state: S.State<ThisState>,
     eventHandler: S.EventHandler<D>,
     payload: any,
     result: any
   ) {
-    const outcome = createEventChain<D>({
+    const outcome = createEventChain<ThisState>({
       state,
       data: snapshot.data,
       result,
@@ -147,7 +138,7 @@ export function createState<
   // will run its onEvent event, if it has one. If still no transition has
   // occurred, it will move to try its child states.
   function handleEventOnState(
-    state: S.State<D, V>,
+    state: S.State<ThisState>,
     sent: S.Event
   ): { shouldHalt: boolean; shouldNotify: boolean } {
     const record = { shouldHalt: false, shouldNotify: false }
@@ -160,7 +151,7 @@ export function createState<
 
     const eventHandler = state.on[sent.event]
 
-    let outcome: S.EventChainOutcome<D> | undefined = undefined
+    let outcome: S.EventChainOutcome<ThisState> | undefined = undefined
 
     // Run event handler, if present
     if (!isUndefined(eventHandler)) {
@@ -513,7 +504,7 @@ export function createState<
   let interval = -1
   let frameInterval: number | undefined = undefined
   type OnFrameInfo = { payload: any; start: number }
-  const onFrameStates = new Map<S.State<D, V>, OnFrameInfo>([])
+  const onFrameStates = new Map<S.State<ThisState>, OnFrameInfo>([])
 
   /**
    * The main loop to run on each animation frame. Handles the `onRepeat` event on all
@@ -582,7 +573,7 @@ export function createState<
    * @param state The state to add.
    * @param info The payload and start time for this state's loop.
    */
-  function addOnFrameState(state: S.State<D, V>, info: OnFrameInfo) {
+  function addOnFrameState(state: S.State<ThisState>, info: OnFrameInfo) {
     onFrameStates.set(state, info)
     if (frameInterval === undefined) {
       startLoop()
@@ -594,7 +585,7 @@ export function createState<
    * Remove a state from onFrameStates. Will stop the loop if there are no more repeating states
    * @param state The state to remove.
    */
-  function removeOnFrameEventHandler(state: S.State<D, V>) {
+  function removeOnFrameEventHandler(state: S.State<ThisState>) {
     if (onFrameStates.has(state)) {
       onFrameStates.delete(state)
       if (onFrameStates.size === 0) {
@@ -688,7 +679,6 @@ export function createState<
    * state.isIn("on", "stopped") // true if BOTH states are active
    *
    */
-  function isIn(path: string): boolean
   function isIn(...paths: string[]): boolean {
     return castArray(paths)
       .map((path) => (path.startsWith(".") ? path : "." + path))
@@ -708,7 +698,6 @@ export function createState<
    * state.isIn("on", "stopped") // true if EITHER state is active
    *
    */
-  function isInAny(path: string): boolean
   function isInAny(...paths: string[]): boolean {
     return castArray(paths)
       .map((path) => (path.startsWith(".") ? path : "." + path))
@@ -856,15 +845,13 @@ export function createState<
 
   /* --------------------- Kickoff -------------------- */
 
-  type Snapshot = S.DesignedState<D, ReturnedValues<D, V>>
-
   const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
   const initialStateTree = getStateTreeFromDesign(design, id)
 
   let _log: string[] = []
   let _activeStates = StateTree.getActiveStates(initialStateTree)
 
-  const snapshot: Snapshot = {
+  const snapshot = {
     id,
     data: produce(design.data, (d) => d) as D,
     active: getPaths(_activeStates),
@@ -887,6 +874,8 @@ export function createState<
     values: getValues(design.data as D, design.values),
   }
 
+  type Snapshot = typeof snapshot
+
   // Deactivate the tree, then activate it again to set initial active states.
   StateTree.deactivateState(snapshot.stateTree)
   runTransition("root", undefined, undefined) // Will onEnter events matter?
@@ -905,9 +894,7 @@ export function createState<
  * Get paths from an array of states.
  * @param states A set of states
  */
-function getPaths<D, V extends Record<string, S.Value<D>> | never>(
-  states: S.State<D, V>[]
-) {
+function getPaths<G extends S.DesignedState>(states: S.State<G>[]) {
   return states.map((state) => state.path)
 }
 

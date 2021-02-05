@@ -7,7 +7,6 @@ import {
   useStateDesigner,
   useLocalState,
   useGlobalState,
-  useUpdateEffect,
 } from "../"
 
 const configObject = {
@@ -76,10 +75,6 @@ describe("useStateDesigner", () => {
             return data.count * 2
           },
         },
-      })
-
-      useUpdateEffect(state, (update) => {
-        update.values.double
       })
 
       return <div>{state.values.double}</div>

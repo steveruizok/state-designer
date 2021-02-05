@@ -246,7 +246,7 @@ export enum VerboseType {
 
 // State
 
-export interface State<D, V extends Record<string, Value<D>> | never = any> {
+export interface State<G extends DesignedState> {
   name: string
   isInitial: boolean
   parentType: "branch" | "leaf" | "parallel" | null
@@ -262,14 +262,14 @@ export interface State<D, V extends Record<string, Value<D>> | never = any> {
     animationFrame?: number
     cancelAsync?: () => void
   }
-  on: Record<string, EventHandler<D> & ThisType<DesignedState<D, V>>>
-  onEnter?: EventHandler<D>
-  onExit?: EventHandler<D>
-  onEvent?: EventHandler<D>
-  repeat?: RepeatEvent<D>
-  async?: AsyncEvent<D>
-  states: Record<string, State<D, V>>
-  initialFn?: InitialStateObject<D>
+  on: Record<string, EventHandler<G["data"]>>
+  onEnter?: EventHandler<G["data"]>
+  onExit?: EventHandler<G["data"]>
+  onEvent?: EventHandler<G["data"]>
+  repeat?: RepeatEvent<G["data"]>
+  async?: AsyncEvent<G["data"]>
+  states: Record<string, State<G>>
+  initialFn?: InitialStateObject<G["data"]>
   initial?: string
 }
 
@@ -344,13 +344,16 @@ export type SubscriberFn<T> = (update: T) => void
 
 // State Design
 
-export interface DesignedState<D, V extends Record<string, Value<D>> | never> {
+export interface DesignedState<
+  D = any,
+  V extends Record<string, Value<D>> | never = any
+> {
   id: string
   index: number
   data: D
   values: Values<D, V>
   active: string[]
-  stateTree: State<D, V>
+  stateTree: State<this>
   log: string[]
   can: (eventName: string, payload?: any) => boolean
   isIn: (...paths: string[]) => boolean
@@ -362,14 +365,14 @@ export interface DesignedState<D, V extends Record<string, Value<D>> | never> {
   ) => T
   thenSend: (
     eventName: string
-  ) => (eventName: string, payload?: any) => Promise<DesignedState<D, V>>
-  send: (eventName: string, payload?: any) => Promise<DesignedState<D, V>>
-  onUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => () => void
-  getUpdate: (callbackFn: SubscriberFn<DesignedState<D, V>>) => void
+  ) => (eventName: string, payload?: any) => Promise<this>
+  send: (eventName: string, payload?: any) => Promise<this>
+  onUpdate: (callbackFn: SubscriberFn<this>) => () => void
+  getUpdate: (callbackFn: SubscriberFn<this>) => void
   getDesign: () => any
-  forceTransition: (target: string, payload?: any) => DesignedState<D, V>
-  clone: () => DesignedState<D, V>
-  reset: () => DesignedState<D, V>
+  forceTransition: (target: string, payload?: any) => this
+  clone: () => this
+  reset: () => this
   enableLog: (enabled: boolean) => void
 }
 
@@ -381,24 +384,24 @@ export type StateWithDesign<
 
 // Event Handler Chains
 
-export type EventChainOptions<D> = {
-  state: State<D, any>
-  data: D
+export type EventChainOptions<G extends DesignedState> = {
+  state: State<G>
+  data: G["data"]
   result: any
   payload: any
-  handler: EventHandler<D>
-  onDelayedOutcome: EventChainCallback<D>
-  getFreshDataAfterWait: () => D
+  handler: EventHandler<G["data"]>
+  onDelayedOutcome: EventChainCallback<G>
+  getFreshDataAfterWait: () => G["data"]
 }
 
-export type EventChainCore<D> = {
-  data: D
+export type EventChainCore<G extends DesignedState> = {
+  data: G["data"]
   payload: any
   result: any
 }
 
-export type EventChainOutcome<D> = {
-  data: D
+export type EventChainOutcome<G extends DesignedState> = {
+  data: G["data"]
   result: any
   shouldBreak: boolean
   shouldNotify: boolean
@@ -406,4 +409,6 @@ export type EventChainOutcome<D> = {
   pendingSend?: Event
 }
 
-export type EventChainCallback<D> = (outcome: EventChainOutcome<D>) => void
+export type EventChainCallback<G extends DesignedState> = (
+  outcome: EventChainOutcome<G>
+) => void

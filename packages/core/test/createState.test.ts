@@ -383,6 +383,60 @@ describe("createState", () => {
     expect(state.isIn("a2", "b2", "c2")).toBeTruthy()
   })
 
+  it("Should allow initial logic without bailing.", () => {
+    const state = createState({
+      data: {
+        count: 0,
+      },
+      initial: "a",
+      states: {
+        a: {
+          on: {
+            TRIGGER1: { to: "b" },
+          },
+          initial: {
+            if: () => true,
+            to: "a1",
+          },
+          states: {
+            a1: {
+              initial: {
+                if: () => true,
+                to: "a11",
+              },
+              states: {
+                a11: {
+                  onEnter: (d) => d.count++,
+                  on: {
+                    TRIGGER2: { to: "b11" },
+                  },
+                },
+                b11: {},
+              },
+            },
+            a2: {},
+          },
+        },
+        b: {
+          on: {
+            TRIGGER1: { to: "a" },
+          },
+        },
+      },
+    })
+
+    expect(state.isIn("a")).toBeTruthy()
+    expect(state.isIn("a1")).toBeTruthy()
+    expect(state.isIn("a11")).toBeTruthy()
+    state.send("TRIGGER2")
+    expect(state.isIn("b11")).toBeTruthy()
+    state.send("TRIGGER1")
+    expect(state.isIn("b")).toBeTruthy()
+    state.send("TRIGGER1")
+    expect(state.isIn("a11")).toBeTruthy()
+    expect(state.data.count).toEqual(2)
+  })
+
   // Do onExit events work?
 
   it("Should support onEnter and onExit events.", async (done) => {

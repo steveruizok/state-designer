@@ -3,8 +3,6 @@ import { pick } from "lodash"
 import * as React from "react"
 import { createState, S } from "@state-designer/core"
 
-const emptyArray: unknown[] = []
-
 /**
  * Create and subscribe to a new state.
  * @param design A designuration object for a new state.
@@ -19,13 +17,13 @@ export default function useLocalState<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
->(design: S.Design<D, R, C, A, Y, T, V>, dependencies: any[] = emptyArray) {
+>(design: S.Design<D, R, C, A, Y, T, V>, dependencies: any[] = []) {
   const rFirstMount = React.useRef(true)
 
   const [current, setCurrent] = React.useState(() => createState(design))
 
   React.useEffect(() => {
-    function handleUpdate(update: S.DesignedState<any, any>) {
+    function handleUpdate(update: typeof current) {
       setCurrent((current) => ({
         ...current,
         ...pick(
@@ -49,7 +47,8 @@ export default function useLocalState<
 
     rFirstMount.current = false
     return current.onUpdate(handleUpdate)
-  }, dependencies)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...dependencies])
 
   return current
 }

@@ -8,9 +8,7 @@ import * as S from "./types"
  *
  * @param state
  */
-export function deactivateState<D = any>(
-  state: S.State<D, Record<string, S.Value<D>>>
-) {
+export function deactivateState<G extends S.DesignedState>(state: S.State<G>) {
   state.active = false
   for (let childState of Object.values(state.states)) {
     deactivateState(childState)
@@ -23,10 +21,8 @@ export function deactivateState<D = any>(
  *
  * @param state The current state to examine.
  */
-export function getActiveStates<D = any>(
-  state: S.State<D, Record<string, S.Value<D>>>
-) {
-  const acc: S.State<D, Record<string, S.Value<D>>>[] = []
+export function getActiveStates<G extends S.DesignedState>(state: S.State<G>) {
+  const acc: S.State<G>[] = []
 
   if (state.active) {
     acc.push(state)
@@ -49,10 +45,10 @@ export function getActiveStates<D = any>(
  * @param prev Whether we should try to restore this state.
  * @param deep Whether we should also try to restore descendant states.
  */
-export function activateState<D, V extends Record<string, S.Value<D>>>(
-  state: S.State<D, V>,
+export function activateState<G extends S.DesignedState>(
+  state: S.State<G>,
   path: string[],
-  before: S.State<D, V>[],
+  before: S.State<G>[],
   prev: boolean,
   deep: boolean
 ) {
@@ -97,11 +93,11 @@ export function activateState<D, V extends Record<string, S.Value<D>>>(
  * @param state
  * @param path
  */
-export function findTransitionTargets<
-  D extends any,
-  V extends Record<string, S.Value<D>>
->(state: S.State<D, V>, path: string): S.State<D, V>[] {
-  const acc: S.State<D, V>[] = []
+export function findTransitionTargets<G extends S.DesignedState>(
+  state: S.State<G>,
+  path: string
+): S.State<G>[] {
+  const acc: S.State<G>[] = []
 
   let safePath = path.startsWith(".") ? path : "." + path
 
@@ -158,10 +154,10 @@ export function getInitialState<D>(
  * @param payload
  * @param data
  */
-export function setIntitialStates<D, V extends Record<string, S.Value<D>>>(
-  state: S.State<D, V>,
+export function setIntitialStates<G extends S.DesignedState>(
+  state: S.State<G>,
   payload: any,
-  data: D
+  data: G["data"]
 ) {
   if (state.initialFn !== undefined) {
     state.initial = getInitialState(state.initialFn, payload, data)
@@ -175,8 +171,8 @@ export function setIntitialStates<D, V extends Record<string, S.Value<D>>>(
   }
 }
 
-export function endStateIntervals<D, V extends Record<string, S.Value<D>>>(
-  state: S.State<D, V>
+export function endStateIntervals<G extends S.DesignedState>(
+  state: S.State<G>
 ) {
   const { cancelAsync, timeouts, interval, animationFrame } = state.times
 
@@ -206,10 +202,9 @@ export function endStateIntervals<D, V extends Record<string, S.Value<D>>>(
   }
 }
 
-export function recursivelyEndStateIntervals<
-  D,
-  V extends Record<string, S.Value<D>>
->(state: S.State<D, V>) {
+export function recursivelyEndStateIntervals<G extends S.DesignedState>(
+  state: S.State<G>
+) {
   endStateIntervals(state)
   for (let child of Object.values(state.states)) {
     recursivelyEndStateIntervals(child)
