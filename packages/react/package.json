@@ -42,7 +42,7 @@
     "typescript": "^4.1.3"
   },
   "dependencies": {
-    "@state-designer/core": "1.4.4",
+    "@state-designer/core": "latest",
     "lodash": "^4.17.20",
     "lodash-es": "^4.17.20"
   },

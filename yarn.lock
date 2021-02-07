@@ -5045,6 +5045,17 @@
     object.entries "^1.1.1"
     object.fromentries "^2.0.2"
 
+"@state-designer/core@latest":
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/@state-designer/core/-/core-1.4.4.tgz#71efc1cab944cb31f775055e370a0383a20b3f63"
+  integrity sha512-tohSITnx2I4xP6UlLKSbLgnVqQYWcUxTZ5NM2Kp6Kd3TIWFyb8KmdKTGqka1ItlqYb1odZe8eUvvhcPBKCfdEQ==
+  dependencies:
+    immer "^8.0.1"
+    lodash "^4.17.20"
+    lodash-es "^4.17.20"
+    object.entries "^1.1.1"
+    object.fromentries "^2.0.2"
+
 "@state-designer/react@1.2.26":
   version "1.2.26"
   resolved "https://registry.yarnpkg.com/@state-designer/react/-/react-1.2.26.tgz#8269429f4b2bb1ba6f4bf51e86ca49c20794e7f0"
@@ -5052,6 +5063,15 @@
   dependencies:
     "@state-designer/core" "1.2.26"
     lodash-es "^4.17.15"
+
+"@state-designer/react@latest":
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/@state-designer/react/-/react-1.4.4.tgz#3a58403e5cdb3fffc3418208c744e97eca81b613"
+  integrity sha512-4I9F4ekagIZao+6suHok5eoQrUhL95/nFbO9CFAFhcJqhvBY0OLaurMdYwKd4X/8hOBrz/sihe0rb1PaRVqNhw==
+  dependencies:
+    "@state-designer/core" "1.4.4"
+    lodash "^4.17.20"
+    lodash-es "^4.17.20"
 
 "@styled-system/background@^5.1.2":
   version "5.1.2"
