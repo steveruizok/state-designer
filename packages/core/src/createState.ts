@@ -30,7 +30,7 @@ export function createState<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
->(design: S.Design<D, R, C, A, Y, T, V>) {
+>(design: S.Design<D, R, C, A, Y, T, V>): S.DesignedState<D, V> {
   type ThisState = S.DesignedState<D, V>
 
   let logEnabled = false
