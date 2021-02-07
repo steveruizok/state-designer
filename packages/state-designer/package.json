@@ -41,8 +41,8 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@state-designer/core": "1.2.26",
-    "@state-designer/react": "1.2.26"
+    "@state-designer/core": "latest",
+    "@state-designer/react": "latest"
   },
   "husky": {
     "hooks": {
