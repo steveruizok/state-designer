@@ -1,8 +1,8 @@
-import isString from "lodash-es/isString"
-import castArray from "lodash-es/castArray"
-import isNumber from "lodash-es/isNumber"
-import isFunction from "lodash-es/isFunction"
-import isUndefined from "lodash-es/isUndefined"
+import isString from "lodash/isString"
+import castArray from "lodash/castArray"
+import isNumber from "lodash/isNumber"
+import isFunction from "lodash/isFunction"
+import isUndefined from "lodash/isUndefined"
 
 import fromEntries from "object.fromentries"
 import entries from "object.entries"

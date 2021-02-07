@@ -1,8 +1,6 @@
 import { S, createState } from "@state-designer/core"
 import * as React from "react"
-import pick from "lodash-es/pick"
-import useGlobalState from "./useGlobalState"
-import useLocalState from "./useLocalState"
+import pick from "lodash/pick"
 
 const emptyArray: unknown[] = []
 
@@ -18,7 +16,7 @@ const emptyArray: unknown[] = []
 
 export function useStateDesigner<D, V extends Record<string, S.Value<D>>>(
   design: S.DesignedState<D, V>
-): ReturnType<typeof useGlobalState>
+): S.DesignedState<D, V>
 
 export function useStateDesigner<
   D,
@@ -28,7 +26,7 @@ export function useStateDesigner<
   Y extends Record<string, S.Async<D>>,
   T extends Record<string, S.Time<D>>,
   V extends Record<string, S.Value<D>>
->(design: S.Design<D, R, C, A, Y, T, V>): ReturnType<typeof useLocalState>
+>(design: S.Design<D, R, C, A, Y, T, V>): S.DesignedState<D, V>
 
 export default function useStateDesigner<
   D,

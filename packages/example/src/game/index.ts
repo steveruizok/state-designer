@@ -1,6 +1,6 @@
-import range from "lodash-es/range"
-import cloneDeep from "lodash-es/cloneDeep"
-import sample from "lodash-es/sample"
+import range from "lodash/range"
+import cloneDeep from "lodash/cloneDeep"
+import sample from "lodash/sample"
 import { createState } from "@state-designer/core"
 
 import * as Tetris from "./types"

@@ -19,14 +19,15 @@
   },
   "scripts": {
     "start": "tsdx watch",
-    "prebuild": "rimraf dist",
-    "build": "cross-env NODE_ENV=production tsdx build --format=cjs,esm,umd",
-    "prepublish": "npm run build",
-    "start-test": "tsdx test --watchAll",
-    "test": "tsdx test --env=jsdom",
-    "lint": "tsdx lint"
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
   },
   "devDependencies": {
+    "@size-limit/preset-small-lib": "^4.9.2",
     "@types/lodash": "^4.14.168",
     "@types/object.fromentries": "^2.0.0",
     "cross-env": "^7.0.3",
@@ -38,7 +39,6 @@
   "dependencies": {
     "immer": "^8.0.1",
     "lodash": "^4.17.20",
-    "lodash-es": "^4.17.20",
     "object.entries": "^1.1.1",
     "object.fromentries": "^2.0.2"
   },
