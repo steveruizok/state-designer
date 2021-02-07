@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.4.5
+
+- Restores output type for createState, adds exports for `state-designer` package.
+
 # 1.4.3
 
 - Adds `useSelector` and `createSelector Hook`.
