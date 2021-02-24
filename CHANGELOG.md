@@ -1,12 +1,16 @@
 # Changelog
 
+# 1.4.6
+
+- Improves errors. Errors will now include the name of the event that caused the error, as well as the name of the condition, action, transition (etc) where the error occurred.
+
 # 1.4.5
 
-- Restores output type for createState, adds exports for `state-designer` package.
+- Restores output type for `createState`, adds exports for `state-designer` package.
 
 # 1.4.3
 
-- Adds `useSelector` and `createSelector Hook`.
+- Adds `useSelector` and `createSelectorHook`.
 
 # 1.2.32
 
