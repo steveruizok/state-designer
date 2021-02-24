@@ -179,7 +179,8 @@ describe("createState", () => {
     })
 
     expect(counter.data.count).toBe(0)
-    await counter.send("INCREASED").then((c) => c.send("INCREASED"))
+    counter.send("INCREASED").send("INCREASED")
+    // ((c) => c.send("INCREASED"))
     expect(counter.data.count).toBe(2)
   })
 
@@ -885,13 +886,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error while testing conditions! helloWorld is not defined"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error while testing conditions! helloWorld is not defined"
+    )
   })
 
   it("Should throw errors for actions.", () => {
@@ -905,13 +902,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error in action (actionError)! helloWorld is not defined"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error in action (actionError)! helloWorld is not defined"
+    )
   })
 
   it("Should throw errors for results.", () => {
@@ -925,13 +918,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error in results (resultError)! helloWorld is not defined"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error in results (resultError)! helloWorld is not defined"
+    )
   })
 
   it("Should throw errors for transitions.", () => {
@@ -944,13 +933,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error in transitions! Could not find that state (someState)"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error in transitions! Could not find that state (someState)"
+    )
   })
 
   it("Should throw errors for secret actions.", () => {
@@ -964,13 +949,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error in secret action (actionError)! helloWorld is not defined"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error in secret action (actionError)! helloWorld is not defined"
+    )
   })
 
   it("Should throw errors for secret transitions.", () => {
@@ -983,13 +964,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error in transitions! Could not find that state (someState)"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error in transitions! Could not find that state (someState)"
+    )
   })
 
   it("Should throw errors for computed transitions.", () => {
@@ -1003,13 +980,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error computing transition (to)! helloWorld is not defined"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error computing transition (to)! helloWorld is not defined"
+    )
   })
 
   it("Should throw errors for computed secret transitions.", () => {
@@ -1023,13 +996,9 @@ describe("createState", () => {
       },
     })
 
-    stateWithErrors
-      .send("EVENT")
-      .catch((e) =>
-        expect(e.message).toEqual(
-          "EVENT: Error computing secret transition (secretlyTo)! helloWorld is not defined"
-        )
-      )
+    expect(() => stateWithErrors.send("EVENT")).toThrowError(
+      "EVENT: Error computing secret transition (secretlyTo)! helloWorld is not defined"
+    )
   })
 
   it("Should throw errors for state.can.", () => {

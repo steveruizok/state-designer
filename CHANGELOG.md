@@ -1,5 +1,11 @@
 # Changelog
 
+# 1.5.1
+
+- Removes the `send` attribute of event handlers. An event handler can no longer send an event to the state through this property. **This is a breaking change** though this property is rather obscure.
+- Changed `send` to a synchronous function. You can now catch errors in a normal ErrorBoundary component, rather than having to catch and throw on each `send`.
+- Added a third parameter, `onSettle`, to `send`. This is a callback function that will call when the event has settled. This is useful for rare circumstances where a state receives two events at once; in which case, both events will call `onSettle` with the same snapshot. This is a replacement for the async functionality of `send`.
+
 # 1.5.0
 
 - Improves errors. Errors will now include the name of the event that caused the error, as well as the name of the condition, action, transition (etc) where the error occurred.

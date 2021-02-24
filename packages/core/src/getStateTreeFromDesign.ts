@@ -115,14 +115,6 @@ export function getStateTreeFromDesign<
       : getEventFn(item, times, "times")
   }
 
-  function getSend(item: S.SendDesign<D> | undefined): S.Send<D> | undefined {
-    if (isUndefined(item)) return undefined
-    if (isString(item))
-      return castToNamedFunction({ event: item, payload: undefined })
-    if (isFunction(item)) return item
-    return castToNamedFunction(item)
-  }
-
   /**
    * Convert an event handler item config into an event handler item.
    * @param itemCfg
@@ -140,7 +132,6 @@ export function getStateTreeFromDesign<
       secretlyDo: getActions(itemCfg.secretlyDo),
       to: getTransitions(itemCfg.to),
       secretlyTo: getTransitions(itemCfg.secretlyTo),
-      send: getSend(itemCfg.send),
       wait: getTime(itemCfg.wait),
       break: castToFunction(itemCfg.break),
       then: itemCfg.then ? getEventHandler(itemCfg.then) : undefined,

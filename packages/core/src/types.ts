@@ -65,10 +65,6 @@ export type TargetDesign<D> = MaybeArray<string | EventFn<D, string>>
 
 export type Event = { event: string; payload: any }
 
-export type Send<D> = EventFn<D, Event>
-
-export type SendDesign<D> = string | Event | EventFn<D, Event>
-
 // Break
 
 export type Break<D> = EventFn<D, boolean>
@@ -127,7 +123,6 @@ export type EventHandlerObject<D> = {
   secretlyDo: Action<D>[]
   to: Target<D>[]
   secretlyTo: Target<D>[]
-  send?: Send<D>
   wait?: Time<D>
   break?: Break<D>
   then?: EventHandler<D>
@@ -174,10 +169,6 @@ export type EventHandlerObjectDesign<D, R, C, A, T> = {
    * A transition target: either a state's name or path. Defining a target will not cause this handler to trigger an update.
    */
   secretlyTo?: TargetDesign<D>
-  /**
-   * An event name and (optionally) payload to send to the state.
-   */
-  send?: SendDesign<D>
   /**
    * A delay (in seconds) to wait before running this handler object.
    */
@@ -363,10 +354,8 @@ export interface DesignedState<
     reducer?: "value" | "array" | Reducer<T>,
     initial?: any
   ) => T
-  thenSend: (
-    eventName: string
-  ) => (eventName: string, payload?: any) => Promise<this>
-  send: (eventName: string, payload?: any) => Promise<this>
+  thenSend: (eventName: string) => (eventName: string, payload?: any) => this
+  send: (eventName: string, payload?: any) => this
   onUpdate: (callbackFn: SubscriberFn<this>) => () => void
   getUpdate: (callbackFn: SubscriberFn<this>) => void
   getDesign: () => any
@@ -406,7 +395,6 @@ export type EventChainOutcome<G extends DesignedState> = {
   shouldBreak: boolean
   shouldNotify: boolean
   pendingTransition: string[]
-  pendingSend?: Event
 }
 
 export type EventChainCallback<G extends DesignedState> = (

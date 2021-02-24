@@ -3,14 +3,15 @@ import castArray from "lodash/castArray"
 import isFunction from "lodash/isFunction"
 import uniqueId from "lodash/uniqueId"
 import isUndefined from "lodash/isUndefined"
-import { produce, enableAllPlugins, setAutoFreeze } from "immer"
+import { produce, enableES5, enableMapSet, setAutoFreeze } from "immer"
 import { testEventHandlerConditions } from "./testEventHandlerConditions"
 import { createEventChain } from "./createEventChain"
 import * as S from "./types"
 import * as StateTree from "./stateTree"
 import { getStateTreeFromDesign } from "./getStateTreeFromDesign"
 
-enableAllPlugins()
+enableES5()
+enableMapSet()
 setAutoFreeze(false)
 
 /* -------------------------------------------------- */
@@ -96,11 +97,6 @@ export function createState<
     payload: any
   ) {
     snapshot.data = outcome.data
-
-    if (outcome.pendingSend) {
-      const { event, payload: pendingPayload } = outcome.pendingSend
-      send(event, pendingPayload)
-    }
 
     for (let transition of outcome.pendingTransition) {
       runTransition(transition, payload, outcome.result)
@@ -431,7 +427,7 @@ export function createState<
    */
 
   interface EventWithSettle extends S.Event {
-    onSettle: (snapshot: Snapshot) => void
+    onSettle?: (snapshot: Snapshot) => void
   }
 
   let queueState: "ready" | "processing" = "ready"
@@ -477,7 +473,7 @@ export function createState<
 
     // Settle all events in queue with final snapshot
     while (eventsToResolve.length > 0) {
-      eventsToResolve.shift()?.onSettle(snapshot)
+      eventsToResolve.shift()?.onSettle?.(snapshot)
     }
 
     // We may have received more events after notifying or
@@ -492,7 +488,7 @@ export function createState<
     return snapshot
   }
 
-  /* ----------------- Per Framer Loop ---------------- 
+  /* ------------------ Per Frame Loop ---------------- 
 
   When states have an `onRepeat` event without a delay,
   that event will be handled on every animation frame (usually
@@ -630,42 +626,48 @@ export function createState<
   }
 
   /**
-   * Send an event to be processed. The state may be processing another event, so this function
-   * returns a promise that will resolve the next state when the sent event has been processed.
+   * Send an event to be processed. The state may be processing another event, but the events
+   * will settle synchronously. In particularly racey conditions, or where the event causes a
+   * new event to be send to the state, you may pass in a callback that will run when all
+   * queued events have settled.
    * @param eventName The name of the event
-   * @param payload A payload of any type
+   * @param payload An (optional) payload of any type
+   * @param onSettle An (optional) callback to run when the event has settled.
    * @public
    */
-  function send(eventName: string, payload?: any): Promise<Snapshot> {
-    const promise = new Promise<Snapshot>((resolve) => {
-      const onSettle = (snapshot: Snapshot) => {
-        resolve(snapshot)
+  function send(
+    eventName: string,
+    payload?: any,
+    onSettle?: (snapshot: Snapshot) => void
+  ): Snapshot {
+    // const promise = new Promise<Snapshot>((resolve) => {
+
+    eventsToProcess.push({ event: eventName, payload, onSettle })
+
+    if (queueState === "ready") {
+      try {
+        processEventQueue()
+      } catch (e) {
+        throw Error(`${eventName}: ${e.message}`)
       }
+    }
+    // })
 
-      eventsToProcess.push({ event: eventName, payload, onSettle })
+    return snapshot
 
-      if (queueState === "ready") {
-        try {
-          processEventQueue()
-        } catch (e) {
-          throw Error(`${eventName}: ${e.message}`)
-        }
-      }
-    })
-
-    return promise
+    // return promise
   }
 
   // Memoized calls to `send` when payloads aren't needed.
 
   const sendCache = new Map<
     string,
-    (eventName: string, payload?: any) => Promise<Snapshot>
+    (eventName: string, payload?: any) => Snapshot
   >([])
 
   function thenSend(
     eventName: string
-  ): (eventName: string, payload?: any) => Promise<Snapshot> {
+  ): (eventName: string, payload?: any) => Snapshot {
     let cached = sendCache.get(eventName)
 
     if (!cached) {

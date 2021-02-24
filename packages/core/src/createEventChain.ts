@@ -32,7 +32,6 @@ export function createEventChain<G extends S.DesignedState>(
     ...core,
     shouldBreak: false,
     shouldNotify: false,
-    pendingSend: undefined,
     pendingTransition: [],
   }
 
@@ -109,20 +108,6 @@ export function createEventChain<G extends S.DesignedState>(
       // Create human readable form of the draft.
       // TODO: Do we have to do this for every object?
       curr = current(draft)
-
-      // Sends
-      if (handler.send !== undefined) {
-        try {
-          const event = handler.send(
-            curr.data as G["data"],
-            curr.payload,
-            curr.result
-          )
-          finalOutcome.pendingSend = event
-        } catch (e) {
-          throw Error("Error computing send!" + e.message)
-        }
-      }
 
       // Transitions
       if (handler.to.length > 0) {
