@@ -1,6 +1,6 @@
 # Changelog
 
-# 1.4.6
+# 1.5.0
 
 - Improves errors. Errors will now include the name of the event that caused the error, as well as the name of the condition, action, transition (etc) where the error occurred.
 
