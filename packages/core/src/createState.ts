@@ -640,8 +640,6 @@ export function createState<
     payload?: any,
     onSettle?: (snapshot: Snapshot) => void
   ): Snapshot {
-    // const promise = new Promise<Snapshot>((resolve) => {
-
     eventsToProcess.push({ event: eventName, payload, onSettle })
 
     if (queueState === "ready") {
@@ -651,11 +649,8 @@ export function createState<
         throw Error(`${eventName}: ${e.message}`)
       }
     }
-    // })
 
     return snapshot
-
-    // return promise
   }
 
   // Memoized calls to `send` when payloads aren't needed.
