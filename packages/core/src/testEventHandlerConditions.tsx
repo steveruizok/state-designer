@@ -20,7 +20,6 @@ export function testEventHandlerConditions<D, P, R>(
     if (h.unlessAny[0] && !h.unlessAny.some((c) => !c(d, p, r))) return false
     return true
   } catch (e) {
-    console.error(`Error while testing conditions!`, e.message)
-    return false
+    throw Error(`Error while testing conditions! ` + e.message)
   }
 }

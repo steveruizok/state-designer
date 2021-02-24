@@ -872,6 +872,184 @@ describe("createState", () => {
     state.send("INCREASED", { count: 0 })
   })
 
+  /* --------------------- Errors --------------------- */
+
+  it("Should throw errors for conditions.", () => {
+    const stateWithErrors = createState({
+      on: { EVENT: { if: "conditionError" } },
+      conditions: {
+        conditionError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error while testing conditions! helloWorld is not defined"
+        )
+      )
+  })
+
+  it("Should throw errors for actions.", () => {
+    const stateWithErrors = createState({
+      on: { EVENT: { do: "actionError" } },
+      actions: {
+        actionError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error in action (actionError)! helloWorld is not defined"
+        )
+      )
+  })
+
+  it("Should throw errors for results.", () => {
+    const stateWithErrors = createState({
+      on: { EVENT: { get: "resultError" } },
+      results: {
+        resultError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error in results (resultError)! helloWorld is not defined"
+        )
+      )
+  })
+
+  it("Should throw errors for transitions.", () => {
+    const stateWithErrors = createState({
+      on: { EVENT: { to: "someState" } },
+      initial: "a",
+      states: {
+        a: {},
+        b: {},
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error in transitions! Could not find that state (someState)"
+        )
+      )
+  })
+
+  it("Should throw errors for secret actions.", () => {
+    const stateWithErrors = createState({
+      on: { EVENT: { secretlyDo: "actionError" } },
+      actions: {
+        actionError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error in secret action (actionError)! helloWorld is not defined"
+        )
+      )
+  })
+
+  it("Should throw errors for secret transitions.", () => {
+    const stateWithErrors = createState({
+      on: { EVENT: { secretlyTo: "someState" } },
+      initial: "a",
+      states: {
+        a: {},
+        b: {},
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error in transitions! Could not find that state (someState)"
+        )
+      )
+  })
+
+  it("Should throw errors for computed transitions.", () => {
+    const stateWithErrors = createState({
+      // @ts-expect-error
+      on: { EVENT: { to: () => helloWorld } },
+      initial: "a",
+      states: {
+        a: {},
+        b: {},
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error computing transition (to)! helloWorld is not defined"
+        )
+      )
+  })
+
+  it("Should throw errors for computed secret transitions.", () => {
+    const stateWithErrors = createState({
+      // @ts-expect-error
+      on: { EVENT: { secretlyTo: () => helloWorld } },
+      initial: "a",
+      states: {
+        a: {},
+        b: {},
+      },
+    })
+
+    stateWithErrors
+      .send("EVENT")
+      .catch((e) =>
+        expect(e.message).toEqual(
+          "EVENT: Error computing secret transition (secretlyTo)! helloWorld is not defined"
+        )
+      )
+  })
+
+  it("Should throw errors for state.can.", () => {
+    const stateWithErrors = createState({
+      on: { EVENT: { get: "resultError" } },
+      results: {
+        resultError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+    })
+
+    expect(() => stateWithErrors.can("EVENT")).toThrowError(
+      "Error in state.can(EVENT): helloWorld is not defined"
+    )
+  })
+
+  /* ------------------- Value Types ------------------ */
+
   // Do value types work?
   const stateB = createState({
     data: { count: 0 },

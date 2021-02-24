@@ -238,7 +238,7 @@ export function createState<
 
     if (isUndefined(target)) {
       if (__DEV__) {
-        throw Error(`No state with that path (${path}) in the tree!`)
+        throw Error(`Error in transitions! Could not find that state (${path})`)
       } else {
         return
       }
@@ -645,7 +645,11 @@ export function createState<
       eventsToProcess.push({ event: eventName, payload, onSettle })
 
       if (queueState === "ready") {
-        processEventQueue()
+        try {
+          processEventQueue()
+        } catch (e) {
+          throw Error(`${eventName}: ${e.message}`)
+        }
       }
     })
 
@@ -738,8 +742,7 @@ export function createState<
             )
           })
         } catch (e) {
-          console.error(`Error in state.can(${eventName}): ${e.message}.`)
-          return false
+          throw Error(`Error in state.can(${eventName}): ${e.message}`)
         }
       })
     )

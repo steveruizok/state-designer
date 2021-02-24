@@ -2,9 +2,20 @@ import * as S from "./types"
 import { createDraft, finishDraft, Draft, current } from "immer"
 import { testEventHandlerConditions } from "./testEventHandlerConditions"
 
+/**
+ * Handle an event, along with its consequential events.
+ * (Go get a cup of coffee because this is the hard part.)
+ * An event chain will process an array of event handler
+ * objects, each of which may include subchains (via `else`
+ * or `then` properties). Depending on what these objects
+ * do, we may have to update the data draft, break the
+ * chain early, and/or set a flag to notify subscribers
+ * of a change once we're done.
+ * @param options
+ */
 export function createEventChain<G extends S.DesignedState>(
   options: S.EventChainOptions<G>
-) {
+): S.EventChainOutcome<G> {
   let { state, onDelayedOutcome, getFreshDataAfterWait } = options
   let handlers = [...options.handler]
   const { payload } = options
@@ -29,16 +40,162 @@ export function createEventChain<G extends S.DesignedState>(
 
   let tResult = options.result
 
+  // Finish a draft and update the final outcome.
   function complete(draft: Draft<S.EventChainCore<G>>) {
     core = finishDraft(draft) as S.EventChainCore<G>
     finalOutcome.result = core.result
     finalOutcome.data = core.data
   }
 
-  function refresh() {
-    draftCore = createDraft(core)
+  // Process an event handler object.
+  function processHandlerObject(
+    handler: S.EventHandlerObject<G>,
+    draft: Draft<S.EventChainCore<G>>
+  ): { shouldBreak: boolean } {
+    // Compute a result using original data and draft result
+    if (handler.get.length > 0) {
+      let fnName = ""
+      try {
+        for (let result of handler.get) {
+          fnName = result.name
+          tResult = result(draft.data as G["data"], payload, tResult)
+        }
+      } catch (e) {
+        throw Error(`Error in results (${fnName})! ` + e.message)
+      }
+
+      // Save result to draft
+      draft.result = tResult
+    }
+
+    let curr = current(draft)
+
+    const passedConditions = testEventHandlerConditions(
+      handler,
+      curr.data as G["data"],
+      curr.payload,
+      curr.result
+    )
+
+    if (passedConditions) {
+      // Actions
+      if (handler.do.length > 0) {
+        finalOutcome.shouldNotify = true
+        let fnName = ""
+
+        try {
+          for (let action of handler.do) {
+            fnName = action.name
+            action(draft.data as G["data"], curr.payload, curr.result)
+          }
+        } catch (e) {
+          throw Error(`Error in action (${fnName})! ` + e.message)
+        }
+      }
+
+      // Secret actions
+      if (handler.secretlyDo.length > 0) {
+        let fnName = ""
+        try {
+          for (let action of handler.secretlyDo) {
+            fnName = action.name
+            action(draft.data as G["data"], curr.payload, curr.result)
+          }
+        } catch (e) {
+          throw Error(`Error in secret action (${fnName})! ` + e.message)
+        }
+      }
+
+      // Create human readable form of the draft.
+      // TODO: Do we have to do this for every object?
+      curr = current(draft)
+
+      // Sends
+      if (handler.send !== undefined) {
+        try {
+          const event = handler.send(
+            curr.data as G["data"],
+            curr.payload,
+            curr.result
+          )
+          finalOutcome.pendingSend = event
+        } catch (e) {
+          throw Error("Error computing send!" + e.message)
+        }
+      }
+
+      // Transitions
+      if (handler.to.length > 0) {
+        let fnName = ""
+        try {
+          for (let fn of handler.to) {
+            fnName = fn.name
+            finalOutcome.pendingTransition.push(
+              fn(curr.data as G["data"], curr.payload, curr.result)
+            )
+          }
+
+          finalOutcome.shouldBreak = true
+          finalOutcome.shouldNotify = true
+          return { shouldBreak: true }
+        } catch (e) {
+          throw Error(`Error computing transition (${fnName})! ` + e.message)
+        }
+      }
+
+      // Secret Transitions (no notify)
+      if (handler.secretlyTo.length > 0) {
+        let fnName = ""
+        try {
+          for (let fn of handler.secretlyTo) {
+            fnName = fn.name
+            finalOutcome.pendingTransition.push(
+              fn(curr.data as G["data"], curr.payload, curr.result)
+            )
+          }
+
+          finalOutcome.shouldBreak = true
+          return { shouldBreak: true }
+        } catch (e) {
+          throw Error(
+            `Error computing secret transition (${fnName})! ` + e.message
+          )
+        }
+      }
+
+      // Then
+      if (handler.then !== undefined) {
+        processEventHandler([...handler.then], draft)
+      }
+
+      // TODO: Is there a difference between break and halt? Halt breaks all,
+      // break breaks just one subchain, like else or then?
+
+      // Break
+      if (handler.break !== undefined) {
+        try {
+          if (
+            handler.break(curr.data as G["data"], curr.payload, curr.result)
+          ) {
+            return { shouldBreak: true }
+          }
+        } catch (e) {
+          throw Error(
+            `Error computing break (${handler.break.name})! ` + e.message
+          )
+        }
+      }
+    } else {
+      // Else (only if conditions failed)
+      if (handler.else !== undefined) {
+        processEventHandler([...handler.else], draft)
+      }
+    }
+
+    return { shouldBreak: false }
   }
 
+  // Process an event handler (an array of event handler objects)
   function processEventHandler(
     eventHandler: S.EventHandler<G>,
     draft: Draft<S.EventChainCore<G>>
@@ -73,7 +230,8 @@ export function createEventChain<G extends S.DesignedState>(
         core.data = getFreshDataAfterWait() // After the timeout, refresh data
         core.result = undefined // Results can't be carried across!
 
-        refresh()
+        // Refresh
+        draftCore = createDraft(core)
 
         const { shouldBreak } = processHandlerObject(
           nextHandlerObject,
@@ -86,10 +244,10 @@ export function createEventChain<G extends S.DesignedState>(
             draftCore
           )
 
+          // If the event handler produced a wait, then it
+          // will have also refreshed the core and notified
+          // subscribers, if necessary.
           if (shouldBreakDueToWait) {
-            // If the event handler produced a wait, then it
-            // will have also refreshed the core and notified
-            // subscribers, if necessary.
             return
           }
         }
@@ -110,143 +268,6 @@ export function createEventChain<G extends S.DesignedState>(
 
       return { shouldBreakDueToWait: false }
     }
-  }
-
-  function processHandlerObject(
-    handler: S.EventHandlerObject<G>,
-    draft: Draft<S.EventChainCore<G>>
-  ): { shouldBreak: boolean } {
-    // Compute a result using original data and draft result
-    if (handler.get.length > 0) {
-      try {
-        for (let resu of handler.get) {
-          tResult = resu(draft.data as G["data"], payload, tResult)
-        }
-      } catch (e) {
-        console.error("Error in event handler object's results! ", e.message)
-      }
-
-      // Save result to draft
-      draft.result = tResult
-    }
-
-    let curr = current(draft)
-
-    const passedConditions = testEventHandlerConditions(
-      handler,
-      curr.data as G["data"],
-      curr.payload,
-      curr.result
-    )
-
-    // Create temporary human-readable copy of data
-
-    if (passedConditions) {
-      // Actions
-      if (handler.do.length > 0) {
-        finalOutcome.shouldNotify = true
-
-        try {
-          for (let action of handler.do) {
-            action(draft.data as G["data"], curr.payload, curr.result)
-          }
-        } catch (e) {
-          console.error("Error in event handler's actions! ", e.message)
-        }
-      }
-
-      // Secret actions
-      if (handler.secretlyDo.length > 0) {
-        try {
-          for (let action of handler.secretlyDo) {
-            action(draft.data as G["data"], curr.payload, curr.result)
-          }
-        } catch (e) {
-          console.error("Error in event handler's secret actions! ", e.message)
-        }
-      }
-
-      curr = current(draft)
-
-      // Sends
-      if (handler.send !== undefined) {
-        try {
-          const event = handler.send(
-            curr.data as G["data"],
-            curr.payload,
-            curr.result
-          )
-          finalOutcome.pendingSend = event
-        } catch (e) {
-          console.error("Error computing event handler's send! ", e.message)
-        }
-      }
-
-      // Transitions
-      if (handler.to.length > 0) {
-        try {
-          finalOutcome.pendingTransition.push(
-            ...handler.to.map((t) =>
-              t(curr.data as G["data"], curr.payload, curr.result)
-            )
-          )
-          finalOutcome.shouldBreak = true
-          finalOutcome.shouldNotify = true
-          return { shouldBreak: true }
-        } catch (e) {
-          console.error(
-            "Error computing event handler's transition! ",
-            e.message
-          )
-        }
-      }
-
-      // Secret Transitions (no notify)
-      if (handler.secretlyTo.length > 0) {
-        try {
-          finalOutcome.pendingTransition.push(
-            ...handler.secretlyTo.map((t) =>
-              t(curr.data as G["data"], curr.payload, curr.result)
-            )
-          )
-
-          finalOutcome.shouldBreak = true
-          return { shouldBreak: true }
-        } catch (e) {
-          console.error(
-            "Error computing event handler's secret transitions! ",
-            e.message
-          )
-        }
-      }
-
-      // Then
-      if (handler.then !== undefined) {
-        processEventHandler([...handler.then], draft)
-      }
-
-      // TODO: Is there a difference between break and halt? Halt breaks all, break breaks just one subchain, like else or then?
-
-      // Break
-      if (handler.break !== undefined) {
-        try {
-          if (
-            handler.break(curr.data as G["data"], curr.payload, curr.result)
-          ) {
-            return { shouldBreak: true }
-          }
-        } catch (e) {
-          console.error("Error computing event handler's break! ", e.message)
-        }
-      }
-    } else {
-      // Else
-      if (handler.else !== undefined) {
-        processEventHandler([...handler.else], draft)
-      }
-    }
-
-    return { shouldBreak: false }
   }
 
   processEventHandler(handlers, draftCore)
