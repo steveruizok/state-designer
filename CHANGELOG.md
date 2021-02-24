@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.5.2
+
+- Packaging details.
+
 # 1.5.1
 
 - Removes the `send` attribute of event handlers. An event handler can no longer send an event to the state through this property. **This is a breaking change** though this property is rather obscure.
