@@ -4250,6 +4250,17 @@
     object.entries "^1.1.1"
     object.fromentries "^2.0.2"
 
+"@state-designer/core@1.5.3":
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/@state-designer/core/-/core-1.5.3.tgz#910571ded3e5ee76720a2e41853d6b46a1220c80"
+  integrity sha512-aAHKYlF7/zB4pPjq5wagRthgVxeIbZrqAPa/zGikeLPPTY8fwFJCwliW2UGzf9x/3ilZD/At5W+Gax1RstpVtg==
+  dependencies:
+    immer "^8.0.1"
+    lodash "^4.17.20"
+    lodash-es "^4.17.20"
+    object.entries "^1.1.1"
+    object.fromentries "^2.0.2"
+
 "@state-designer/core@latest":
   version "1.4.5"
   resolved "https://registry.yarnpkg.com/@state-designer/core/-/core-1.4.5.tgz#efb4e7ed8f71d354d1cf612183e23c1c0926e0b9"
