@@ -6,7 +6,7 @@ import BranchNode from "./branch-node"
 import LeafNode from "./leaf-node"
 import { Highlights } from "../../states/highlights"
 
-const StateNode = React.forwardRef<HTMLDivElement, { node: S.State<any> }>(
+const StateNode = React.forwardRef<HTMLDivElement, { node: S.State<any, any> }>(
   ({ node }, ref) => {
     const rContainer = React.useRef<HTMLDivElement>(null)
 

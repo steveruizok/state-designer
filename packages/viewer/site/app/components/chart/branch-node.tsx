@@ -6,10 +6,10 @@ import NodeHeading from "./node-heading"
 import StateNode from "./state-node"
 import NodeEvents from "./node-events"
 
-const BranchNode: React.FC<{ node: S.State<any> }> = ({ node }) => {
+const BranchNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
   const childNodes = Object.values(node.states)
 
-  function getSortedBranchChildNodes(nodes: S.State<any>[]) {
+  function getSortedBranchChildNodes(nodes: S.State<any, any>[]) {
     return sortBy(
       // sortBy(nodes, (n) => Object.values(n.states).length).reverse(),
       nodes,
