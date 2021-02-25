@@ -34,6 +34,8 @@ export function createState<
 >(design: S.Design<D, R, C, A, Y, T, V>): S.DesignedState<D, V> {
   type ThisState = S.DesignedState<D, V>
 
+  const { suppressErrors = false } = design.options || ({} as S.DesignOptions)
+
   let logEnabled = design.options?.enableLog
 
   /* ----------------- Error Handling ----------------- */
@@ -43,7 +45,7 @@ export function createState<
       design.options.onError(err)
     }
 
-    if (design.options?.suppressErrors) {
+    if (suppressErrors) {
       if (__DEV__) {
         console.error(err.message)
       }
@@ -249,11 +251,7 @@ export function createState<
     const target = last(targets)
 
     if (isUndefined(target)) {
-      if (__DEV__) {
-        throw Error(`Error in transitions! Could not find that state (${path})`)
-      } else {
-        return
-      }
+      throw Error(`Error in transition (${path})! Could not find that state.`)
     }
 
     // Get the path of state names to the target state
@@ -442,71 +440,75 @@ export function createState<
 
    */
 
-  interface EventWithSettle extends S.Event {
-    onSettle?: (snapshot: Snapshot) => void
-  }
+  // interface EventWithSettle extends S.Event {
+  //   onSettle?: (snapshot: Snapshot) => void
+  // }
 
-  let queueState: "ready" | "processing" = "ready"
-  let processShouldNotify = false
+  // let queueState: "ready" | "processing" = "ready"
+  // let processShouldNotify = false
 
-  const eventsToProcess: EventWithSettle[] = []
-  const eventsToResolve: EventWithSettle[] = []
+  // const eventsToProcess: EventWithSettle[] = []
+  // const eventsToResolve: EventWithSettle[] = []
 
-  /**
-   * Process the queue of received events. If no events are left, finish the
-   * queue by (possibly) notifing subscribers, resolving processed events,
-   * and then preparing to receive new events.
-   */
-  function processEventQueue(): Snapshot {
-    queueState = "processing"
+  // /**
+  //  * Process the queue of received events. If no events are left, finish the
+  //  * queue by (possibly) notifing subscribers, resolving processed events,
+  //  * and then preparing to receive new events.
+  //  */
+  // function processEventQueue(): Snapshot {
+  //   queueState = "processing"
 
-    while (eventsToProcess.length > 0) {
-      const processingEvent = eventsToProcess.shift()
+  //   try {
+  //     while (eventsToProcess.length > 0) {
+  //       const processingEvent = eventsToProcess.shift()
 
-      if (processingEvent === undefined) break
+  //       if (processingEvent === undefined) break
 
-      // If we have an event to process, process it by handling it
-      // on all active states, starting from the root state. Then add
-      // it to the eventsToResolve array so we can resolve it later.
+  //       // If we have an event to process, process it by handling it
+  //       // on all active states, starting from the root state. Then add
+  //       // it to the eventsToResolve array so we can resolve it later.
 
-      let shouldNotify = false
+  //       let shouldNotify = false
 
-      try {
-        const result = handleEventOnState(snapshot.stateTree, processingEvent)
-        shouldNotify = result.shouldNotify
-      } catch (e) {
-        handleError(Error(`${processingEvent.event}: ${e.message}`))
-      }
+  //       try {
+  //         const result = handleEventOnState(snapshot.stateTree, processingEvent)
+  //         shouldNotify = result.shouldNotify
+  //       } catch (e) {
+  //         throw Error(`${processingEvent.event}: ${e.message}`)
+  //       } finally {
+  //         logEvent(processingEvent.event)
 
-      logEvent(processingEvent.event)
+  //         if (shouldNotify) processShouldNotify = true
 
-      if (shouldNotify) processShouldNotify = true
+  //         eventsToResolve.push(processingEvent)
+  //       }
+  //     }
+  //   } catch (e) {
+  //     handleError(e)
+  //   }
 
-      eventsToResolve.push(processingEvent)
-    }
+  //   // Notify subscribers, if needed
+  //   if (processShouldNotify) {
+  //     notifySubscribers()
+  //     processShouldNotify = false
+  //   }
 
-    // Notify subscribers, if needed
-    if (processShouldNotify) {
-      notifySubscribers()
-      processShouldNotify = false
-    }
+  //   // Settle all events in queue with final snapshot
+  //   while (eventsToResolve.length > 0) {
+  //     eventsToResolve.shift()?.onSettle?.(snapshot)
+  //   }
 
-    // Settle all events in queue with final snapshot
-    while (eventsToResolve.length > 0) {
-      eventsToResolve.shift()?.onSettle?.(snapshot)
-    }
+  //   // We may have received more events after notifying or
+  //   // settling events. If so, they'll be waiting, so we
+  //   // should process them now.
+  //   if (eventsToProcess.length > 0) {
+  //     return processEventQueue()
+  //   }
 
-    // We may have received more events after notifying or
-    // settling events. If so, they'll be waiting, so we
-    // should process them now.
-    if (eventsToProcess.length > 0) {
-      return processEventQueue()
-    }
-
-    // Otherwise, finish up by getting ready to receive new events.
-    queueState = "ready"
-    return snapshot
-  }
+  //   // Otherwise, finish up by getting ready to receive new events.
+  //   queueState = "ready"
+  //   return snapshot
+  // }
 
   /* ------------------ Per Frame Loop ---------------- 
 
@@ -660,17 +662,24 @@ export function createState<
     payload?: any,
     onSettle?: (snapshot: Snapshot) => void
   ): Snapshot {
-    eventsToProcess.push({ event: eventName, payload, onSettle })
+    try {
+      const { shouldNotify } = handleEventOnState(snapshot.stateTree, {
+        event: eventName,
+        payload,
+      })
 
-    if (queueState === "ready") {
-      processEventQueue()
+      logEvent(eventName)
+
+      if (shouldNotify) notifySubscribers()
+
+      onSettle?.(snapshot)
+    } catch (e) {
+      handleError(new Error(`${eventName}: ${e.message}`))
     }
-
     return snapshot
   }
 
   // Memoized calls to `send` when payloads aren't needed.
-
   const sendCache = new Map<
     string,
     (eventName: string, payload?: any) => Snapshot
@@ -767,7 +776,9 @@ export function createState<
             )
           })
         } catch (e) {
-          handleError(Error(`Error in state.can(${eventName}): ${e.message}`))
+          handleError(
+            new Error(`Error in state.can (${eventName})! ${e.message}`)
+          )
           return false
         }
       })

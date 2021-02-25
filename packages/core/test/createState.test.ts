@@ -919,7 +919,7 @@ describe("createState", () => {
     })
 
     expect(() => state.send("EVENT")).toThrowError(
-      "EVENT: Error in results (resultError)! helloWorld is not defined"
+      "EVENT: Error in result (resultError)! helloWorld is not defined"
     )
   })
 
@@ -934,7 +934,7 @@ describe("createState", () => {
     })
 
     expect(() => state.send("EVENT")).toThrowError(
-      "EVENT: Error in transitions! Could not find that state (someState)"
+      "EVENT: Error in transition (someState)! Could not find that state"
     )
   })
 
@@ -965,7 +965,7 @@ describe("createState", () => {
     })
 
     expect(() => state.send("EVENT")).toThrowError(
-      "EVENT: Error in transitions! Could not find that state (someState)"
+      "EVENT: Error in transition (someState)! Could not find that state"
     )
   })
 
@@ -1013,8 +1013,36 @@ describe("createState", () => {
     })
 
     expect(() => state.can("EVENT")).toThrowError(
-      "Error in state.can(EVENT): helloWorld is not defined"
+      "Error in state.can (EVENT)! helloWorld is not defined"
     )
+  })
+
+  it("Should accept events even after encountering an error.", () => {
+    const state = createState({
+      data: { count: 0 },
+      on: {
+        EVENT: { get: "resultError" },
+        INCREMENT: (d) => d.count++,
+      },
+      results: {
+        resultError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+    })
+
+    expect(() => state.can("EVENT")).toThrowError(
+      "Error in state.can (EVENT)! helloWorld is not defined"
+    )
+
+    expect(() => state.send("EVENT")).toThrowError(
+      "EVENT: Error in result (resultError)! helloWorld is not defined"
+    )
+
+    state.send("INCREMENT")
+
+    expect(state.data.count).toEqual(1)
   })
 
   /* --------------- Suppressing Errors --------------- */
@@ -1038,7 +1066,7 @@ describe("createState", () => {
     console.error = jest.fn()
     state.send("EVENT")
     expect(console.error).toHaveBeenCalledWith(
-      "EVENT: Error in results (resultError)! helloWorld is not defined"
+      "EVENT: Error in result (resultError)! helloWorld is not defined"
     )
     console.error = t0
   })
@@ -1055,18 +1083,19 @@ describe("createState", () => {
         },
       },
       options: {
+        suppressErrors: false,
         onError,
       },
     })
 
     // Throw an error as usual.
     expect(() => state.send("EVENT")).toThrow(
-      "EVENT: Error in results (resultError)! helloWorld is not defined"
+      "EVENT: Error in result (resultError)! helloWorld is not defined"
     )
 
     // Also call `onError` with the error.
     expect(onError).toHaveBeenCalledWith(
-      Error("EVENT: Error in results (resultError)! helloWorld is not defined")
+      Error("EVENT: Error in result (resultError)! helloWorld is not defined")
     )
   })
 
@@ -1094,7 +1123,7 @@ describe("createState", () => {
 
     // Throw an error as usual.
     expect(() => state.send("EVENT")).not.toThrow(
-      "EVENT: Error in results (resultError)! helloWorld is not defined"
+      "EVENT: Error in result (resultError)! helloWorld is not defined"
     )
 
     // @ts-ignore
@@ -1102,8 +1131,60 @@ describe("createState", () => {
 
     // Also call `onError` with the error.
     expect(onError).toHaveBeenCalledWith(
-      Error("EVENT: Error in results (resultError)! helloWorld is not defined")
+      Error("EVENT: Error in result (resultError)! helloWorld is not defined")
     )
+  })
+
+  it("Should not suppress errors when options are not provided.", () => {
+    const state = createState({
+      on: {
+        RESULT: { get: "resultError" },
+        CONDITION: { if: "conditionError" },
+        ACTION: { if: "conditionError" },
+        SECRET_ACTION: { if: "conditionError" },
+        TRANSITION: { to: "missingState" },
+        SECRET_TRANSITION: { to: "missingState" },
+        // @ts-expect-error
+        SECRET_COMPUTED_TRANSITION: { secretlyTo: () => helloWorld },
+        // @ts-expect-error
+        SECRET_COMPUTED_ACTION: { secretlyDo: () => helloWorld },
+      },
+      results: {
+        resultError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+      conditions: {
+        conditionError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+      actions: {
+        actionError() {
+          // @ts-expect-error
+          return helloWorld
+        },
+      },
+    })
+
+    // @ts-ignore
+    let t1 = __DEV__
+    // @ts-ignore
+    __DEV__ = false
+
+    expect(() => state.send("RESULT")).toThrowError()
+    expect(() => state.send("ACTION")).toThrowError()
+    expect(() => state.send("CONDITION")).toThrowError()
+    expect(() => state.send("SECRET_ACTION")).toThrowError()
+    expect(() => state.send("SECRET_COMPUTED_ACTION")).toThrowError()
+    expect(() => state.send("SECRET_TRANSITION")).toThrowError()
+    expect(() => state.send("SECRET_COMPUTED_TRANSITION")).toThrowError()
+    expect(() => state.can("CONDITION")).toThrowError()
+
+    // @ts-ignore
+    __DEV__ = t1
   })
 
   it("Should suppress errors when options are provided.", () => {
@@ -1140,7 +1221,6 @@ describe("createState", () => {
       },
       options: {
         suppressErrors: true,
-        onError: () => {},
       },
     })
 
@@ -1156,14 +1236,7 @@ describe("createState", () => {
     expect(() => state.send("SECRET_COMPUTEDACTION")).not.toThrowError()
     expect(() => state.send("SECRET_TRANSITION")).not.toThrowError()
     expect(() => state.send("SECRET_COMPUTED_TRANSITION")).not.toThrowError()
-
-    expect(() => state.can("RESULT")).not.toThrowError()
-    expect(() => state.can("ACTION")).not.toThrowError()
     expect(() => state.can("CONDITION")).not.toThrowError()
-    expect(() => state.can("SECRET_ACTION")).not.toThrowError()
-    expect(() => state.can("SECRET_COMPUTEDACTION")).not.toThrowError()
-    expect(() => state.can("SECRET_TRANSITION")).not.toThrowError()
-    expect(() => state.can("SECRET_COMPUTED_TRANSITION")).not.toThrowError()
 
     // @ts-ignore
     __DEV__ = t1

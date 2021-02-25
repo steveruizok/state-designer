@@ -60,7 +60,7 @@ export function createEventChain<G extends S.DesignedState>(
           tResult = result(draft.data as G["data"], payload, tResult)
         }
       } catch (e) {
-        throw Error(`Error in results (${fnName})! ` + e.message)
+        throw Error(`Error in result (${fnName})! ` + e.message)
       }
 
       // Save result to draft

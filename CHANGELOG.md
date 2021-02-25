@@ -1,5 +1,10 @@
 # Changelog
 
+# 1.5.5
+
+- Further improves error handling.
+- Improves testing around error handling.
+
 # 1.5.3
 
 - Further improves error handling.
