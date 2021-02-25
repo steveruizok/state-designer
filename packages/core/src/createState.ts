@@ -469,10 +469,14 @@ export function createState<
       // on all active states, starting from the root state. Then add
       // it to the eventsToResolve array so we can resolve it later.
 
-      const { shouldNotify } = handleEventOnState(
-        snapshot.stateTree,
-        processingEvent
-      )
+      let shouldNotify = false
+
+      try {
+        const result = handleEventOnState(snapshot.stateTree, processingEvent)
+        shouldNotify = result.shouldNotify
+      } catch (e) {
+        handleError(Error(`${processingEvent.event}: ${e.message}`))
+      }
 
       logEvent(processingEvent.event)
 
@@ -659,11 +663,7 @@ export function createState<
     eventsToProcess.push({ event: eventName, payload, onSettle })
 
     if (queueState === "ready") {
-      try {
-        processEventQueue()
-      } catch (e) {
-        handleError(Error(`${eventName}: ${e.message}`))
-      }
+      processEventQueue()
     }
 
     return snapshot
