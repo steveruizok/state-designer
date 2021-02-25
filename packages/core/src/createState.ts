@@ -34,7 +34,23 @@ export function createState<
 >(design: S.Design<D, R, C, A, Y, T, V>): S.DesignedState<D, V> {
   type ThisState = S.DesignedState<D, V>
 
-  let logEnabled = false
+  let logEnabled = design.options?.enableLog
+
+  /* ----------------- Error Handling ----------------- */
+
+  function handleError(err: Error) {
+    if (design.options?.onError) {
+      design.options.onError(err)
+    }
+
+    if (design.options?.suppressErrors) {
+      if (__DEV__) {
+        console.error(err.message)
+      }
+    } else {
+      throw err
+    }
+  }
 
   /* ------------------ Subscriptions ----------------- 
   
@@ -646,7 +662,7 @@ export function createState<
       try {
         processEventQueue()
       } catch (e) {
-        throw Error(`${eventName}: ${e.message}`)
+        handleError(Error(`${eventName}: ${e.message}`))
       }
     }
 
@@ -684,12 +700,18 @@ export function createState<
    *
    */
   function isIn(...paths: string[]): boolean {
-    return castArray(paths)
-      .map((path) => (path.startsWith(".") ? path : "." + path))
-      .every(
-        (path) =>
-          _activeStates.find((state) => state.path.endsWith(path)) !== undefined
-      )
+    try {
+      return castArray(paths)
+        .map((path) => (path.startsWith(".") ? path : "." + path))
+        .every(
+          (path) =>
+            _activeStates.find((state) => state.path.endsWith(path)) !==
+            undefined
+        )
+    } catch (e) {
+      handleError(e)
+      return false
+    }
   }
 
   /**
@@ -703,12 +725,18 @@ export function createState<
    *
    */
   function isInAny(...paths: string[]): boolean {
-    return castArray(paths)
-      .map((path) => (path.startsWith(".") ? path : "." + path))
-      .some(
-        (path) =>
-          _activeStates.find((state) => state.path.endsWith(path)) !== undefined
-      )
+    try {
+      return castArray(paths)
+        .map((path) => (path.startsWith(".") ? path : "." + path))
+        .some(
+          (path) =>
+            _activeStates.find((state) => state.path.endsWith(path)) !==
+            undefined
+        )
+    } catch (e) {
+      handleError(e)
+      return false
+    }
   }
 
   /**
@@ -739,7 +767,8 @@ export function createState<
             )
           })
         } catch (e) {
-          throw Error(`Error in state.can(${eventName}): ${e.message}`)
+          handleError(Error(`Error in state.can(${eventName}): ${e.message}`))
+          return false
         }
       })
     )

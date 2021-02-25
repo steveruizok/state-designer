@@ -1,8 +1,17 @@
 # Changelog
 
+# 1.5.3
+
+- Further improves error handling.
+- Adds `options` object to design. Hey, it took us this long! All options are optional.
+  - `suppressErrors` will prevent functions such as `send` or `can` from throwing errors when found. In dev, the state will still log errors via `console.error`.
+  - `onError` is a callback that, when provided, will receive errors.
+  - `enableLog` will log events into the state's `log` property.
+- As in previous updates, these changes are meant to avoid having to place every `send` under a try/catch block, now that we've moving away from promises in `send`. Certain errors were also proving fatal to the state designer app, and were too slippery for normal techniques.
+
 # 1.5.2
 
-- Packaging details.
+- Minor packaging details.
 
 # 1.5.1
 

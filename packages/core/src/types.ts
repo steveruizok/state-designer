@@ -275,6 +275,12 @@ export interface StateDesign<D, R, C, A, Y, T, V> {
   initial?: InitialStateDesign<D, C, R>
 }
 
+interface DesignOptions {
+  enableLog?: boolean
+  suppressErrors?: boolean
+  onError?: (error: Error) => void
+}
+
 // Design
 
 export interface Design<
@@ -294,6 +300,7 @@ export interface Design<
   asyncs?: Y
   times?: T
   values?: V
+  options?: DesignOptions
 }
 
 export interface DesignWithHelpers<
