@@ -7,10 +7,10 @@ import StateNode from "./state-node"
 import ParallelDivider from "./parallel-divider"
 import NodeEvents from "./node-events"
 
-const ParallelNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
+const ParallelNode: React.FC<{ node: S.State<any> }> = ({ node }) => {
   const childNodes = Object.values(node.states)
 
-  function getSortedParallelChildNodes(nodes: S.State<any, any>[]) {
+  function getSortedParallelChildNodes(nodes: S.State<any>[]) {
     return nodes
     // return sortBy(nodes, (n) => Object.entries(n.states).length)
   }

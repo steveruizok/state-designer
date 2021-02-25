@@ -4,7 +4,7 @@ import { S, useStateDesigner } from "@state-designer/react"
 import { Project } from "../../states/index"
 import { Highlights } from "../../states/highlights"
 
-const NodeEvents: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
+const NodeEvents: React.FC<{ node: S.State<any> }> = ({ node }) => {
   const local = useStateDesigner(Project)
   const events = Object.entries(node.on)
   const captiveData = local.data.captive.data
@@ -68,7 +68,7 @@ export default NodeEvents
 
 const EventButton: React.FC<{
   name: string
-  node: S.State<any, any>
+  node: S.State<any>
   payload: any
   targets: any
   isDisabled: boolean

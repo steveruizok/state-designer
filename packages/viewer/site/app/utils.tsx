@@ -1,10 +1,10 @@
 import { S } from "@state-designer/react"
 
-export function getFlatStates(state: S.State<any, any>): S.State<any, any>[] {
+export function getFlatStates(state: S.State<any>): S.State<any>[] {
   return [state].concat(...Object.values(state.states).map(getFlatStates))
 }
 
-export function getAllEvents(state: S.State<any, any>): string[][] {
+export function getAllEvents(state: S.State<any>): string[][] {
   const localEvents: string[][] = []
 
   localEvents.push(...Object.keys(state.on).map((k) => [state.name, k]))

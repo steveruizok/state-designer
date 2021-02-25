@@ -4,7 +4,7 @@ import { S } from "@state-designer/react"
 import NodeHeading from "./node-heading"
 import NodeEvents from "./node-events"
 
-const LeafNode: React.FC<{ node: S.State<any, any> }> = ({ node }) => {
+const LeafNode: React.FC<{ node: S.State<any> }> = ({ node }) => {
   return (
     <Card
       variant={node.parentType === "parallel" ? "parallelNode" : "node"}

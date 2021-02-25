@@ -6,7 +6,7 @@ import { Disc, MoreVertical } from "react-feather"
 import { Project, UI } from "../../states"
 
 const NodeHeading: React.FC<{
-  node: S.State<any, any>
+  node: S.State<any>
   isParallel?: boolean
 }> = ({ node, isParallel = false }) => {
   return (

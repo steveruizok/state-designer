@@ -10,7 +10,7 @@ import { Highlights } from "../../states/highlights"
 import { S } from "@state-designer/react"
 
 const EventItem: React.FC<{
-  node: S.State<any, any>
+  node: S.State<any>
   highlight: boolean
 }> = ({ node, highlight }) => {
   const { theme } = useThemeUI()
