@@ -1,5 +1,14 @@
 # Changelog
 
+# 1.5.7
+
+- Updates dependencies.
+- Moves docs, editor, example, tutorials, and viewer out of the packages folder. I'm not able to maintain these projects at the moment and I would rather they sit idle for a bit. I'll want to write new docs (and create a new example project) in the future. This package's usage is low enough that I can park these without causing too much disruption.
+
+# 1.5.6
+
+- Package update.
+
 # 1.5.5
 
 - Further improves error handling.

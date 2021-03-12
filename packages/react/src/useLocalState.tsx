@@ -1,5 +1,4 @@
 // @refresh-reset
-import pick from "lodash/pick"
 import * as React from "react"
 import { createState, S } from "@state-designer/core"
 
@@ -26,15 +25,12 @@ export default function useLocalState<
     function handleUpdate(update: typeof current) {
       setCurrent((current) => ({
         ...current,
-        ...pick(
-          update,
-          "index",
-          "data",
-          "active",
-          "stateTree",
-          "values",
-          "log"
-        ),
+        index: update.index,
+        data: update.data,
+        active: update.active,
+        stateTree: update.stateTree,
+        values: update.values,
+        log: update.log,
       }))
     }
 

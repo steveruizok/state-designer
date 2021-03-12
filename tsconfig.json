@@ -3,12 +3,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "tutorials": ["packages/tutorials/src"],
+      "tutorials": ["archive/tutorials/src"],
       "@state-designer/core": ["packages/core/src"],
       "@state-designer/react": ["packages/react/src"],
       "state-designer": ["packages/state-designer/src"],
-      "example": ["packages/example/src"],
-      "docs": ["packages/docs/src"]
+      "example": ["archive/example/src"],
+      "docs": ["archive/docs/src"]
     }
   }
 }

@@ -1,5 +1,4 @@
 // @refresh-reset
-import pick from "lodash/pick"
 import * as React from "react"
 import { S } from "@state-designer/core"
 
@@ -19,15 +18,12 @@ export default function useGlobalState<D, V extends Record<string, S.Value<D>>>(
     return design.onUpdate((update) =>
       setCurrent((current) => ({
         ...current,
-        ...pick(
-          update,
-          "index",
-          "data",
-          "active",
-          "stateTree",
-          "values",
-          "log"
-        ),
+        index: update.index,
+        data: update.data,
+        active: update.active,
+        stateTree: update.stateTree,
+        values: update.values,
+        log: update.log,
       }))
     )
   }, [design])

@@ -26,8 +26,8 @@
 - [x] Move handlers to syncronous state
 - [ ] Nested machines
 
-  - [ ] Fix frozen object errors
-  - [ ] Multiple Parallel Transitions?
+  - [x] Fix frozen object errors
+  - [x] Multiple Parallel Transitions?
 
   ```js
   {
@@ -57,7 +57,7 @@
 - [ ] Testing
   - [x] initial tests
   - [x] transition tests
-  - [ ] complex tests
+  - [x] complex tests
 
 ## React
 
@@ -81,6 +81,7 @@
 - [x] Examples
 - [x] Starters
 - [x] License
+- [ ] Rewrite
 
 ## Viewer
 
@@ -107,5 +108,5 @@
 
 ## Designer
 
-- [ ] Package
-- [ ] Skeleton
+- [x] Package
+- [x] Skeleton

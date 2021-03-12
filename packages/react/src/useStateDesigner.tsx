@@ -1,6 +1,5 @@
 import { S, createState } from "@state-designer/core"
 import * as React from "react"
-import pick from "lodash/pick"
 
 const emptyArray: unknown[] = []
 
@@ -55,15 +54,12 @@ export default function useStateDesigner<
     return design.onUpdate((update) =>
       setCurrent((current) => ({
         ...current,
-        ...pick(
-          update,
-          "index",
-          "data",
-          "active",
-          "stateTree",
-          "values",
-          "log"
-        ),
+        index: update.index,
+        data: update.data,
+        active: update.active,
+        stateTree: update.stateTree,
+        values: update.values,
+        log: update.log,
       }))
     )
   }, [design])
@@ -75,15 +71,12 @@ export default function useStateDesigner<
     function handleUpdate(update: typeof current) {
       setCurrent((current) => ({
         ...current,
-        ...pick(
-          update,
-          "index",
-          "data",
-          "active",
-          "stateTree",
-          "values",
-          "log"
-        ),
+        index: update.index,
+        data: update.data,
+        active: update.active,
+        stateTree: update.stateTree,
+        values: update.values,
+        log: update.log,
       }))
     }
 
