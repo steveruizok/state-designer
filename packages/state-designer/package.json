@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "State Designer, a state management library.",
   "author": "steveruizok",
   "repository": "https://github.com/steveruizok/state-designer",
@@ -62,8 +62,8 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@state-designer/core": "^1.6.2",
-    "@state-designer/react": "^1.6.2",
+    "@state-designer/core": "^1.6.3",
+    "@state-designer/react": "^1.6.3",
     "@types/lodash": "^4.14.168",
     "@types/object.fromentries": "^2.0.0",
     "immer": "^8.0.2",
