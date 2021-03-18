@@ -1,6 +1,6 @@
 {
   "name": "@state-designer/core",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Core package for State Designer, a state management library.",
   "author": "steveruizok",
   "repository": "https://github.com/steveruizok/state-designer",
@@ -19,7 +19,6 @@
     "build": "tsdx build --tsconfig tsconfig.build.json",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build",
     "size": "size-limit",
     "analyze": "size-limit --why"
   },
@@ -63,5 +62,5 @@
     "tslib": "^2.1.0",
     "typescript": "^4.2.3"
   },
-  "gitHead": "9b861612594a49b753e05423838264080d1d6f69"
+  "gitHead": "634febc6165e34300b21316d62ed2406582e5be6"
 }
