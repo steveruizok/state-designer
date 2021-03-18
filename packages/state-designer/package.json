@@ -63,13 +63,7 @@
   },
   "dependencies": {
     "@state-designer/core": "^1.6.4",
-    "@state-designer/react": "^1.6.4",
-    "@types/lodash": "^4.14.168",
-    "@types/object.fromentries": "^2.0.0",
-    "immer": "^8.0.2",
-    "object.entries": "^1.1.3",
-    "object.fromentries": "^2.0.4",
-    "tsdx": "^0.14.1"
+    "@state-designer/react": "^1.6.4"
   },
   "gitHead": "4c8cfd56c58c86d75ab4137bef03891fd95978f9"
 }

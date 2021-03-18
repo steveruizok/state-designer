@@ -49,26 +49,8 @@
       "limit": "10 KB"
     }
   ],
-  "devDependencies": {
-    "@size-limit/preset-small-lib": "^4.10.1",
-    "@types/react": "^17.0.3",
-    "@types/react-dom": "^17.0.2",
-    "husky": "^5.1.3",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
-    "size-limit": "^4.10.1",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.1.0",
-    "typescript": "^4.2.3"
-  },
   "dependencies": {
-    "@state-designer/core": "^1.6.4",
-    "@types/lodash": "^4.14.168",
-    "@types/object.fromentries": "^2.0.0",
-    "immer": "^8.0.2",
-    "object.entries": "^1.1.3",
-    "object.fromentries": "^2.0.4",
-    "tsdx": "^0.14.1"
+    "@state-designer/core": "^1.6.4"
   },
   "gitHead": "4c8cfd56c58c86d75ab4137bef03891fd95978f9"
 }
