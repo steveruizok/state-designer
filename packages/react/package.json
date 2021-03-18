@@ -69,5 +69,6 @@
     "object.entries": "^1.1.3",
     "object.fromentries": "^2.0.4",
     "tsdx": "^0.14.1"
-  }
+  },
+  "gitHead": "3f791edcc8bc2660cfee2768811a50fb62409b54"
 }
