@@ -1,9 +1,9 @@
-import last from "lodash/last"
-import forEach from "lodash/forEach"
-import isUndefined from "lodash/isUndefined"
+import last from 'lodash/last'
+import forEach from 'lodash/forEach'
+import isUndefined from 'lodash/isUndefined'
 
-import { testEventHandlerConditions } from "./testEventHandlerConditions"
-import * as S from "./types"
+import { testEventHandlerConditions } from './testEventHandlerConditions'
+import * as S from './types'
 
 /**
  * Deactivate a state and its children.
@@ -67,7 +67,7 @@ export function activateState<G extends S.DesignedState>(
 
   if (state.initial === undefined) {
     // Skipping Parallel
-    forEach(state.states, (c) => activateState(c, path, before, prev, deep))
+    forEach(state.states, c => activateState(c, path, before, prev, deep))
   } else if (prev && path.length === 0) {
     // Restoring target (down-tree from target)
     const c = state.states[last(state.history) || state.initial]
@@ -102,7 +102,7 @@ export function findTransitionTargets<G extends S.DesignedState>(
 ): S.State<G>[] {
   const acc: S.State<G>[] = []
 
-  let safePath = path.startsWith(".") ? path : "." + path
+  let safePath = path.startsWith('.') ? path : '.' + path
 
   if (state.path.endsWith(safePath)) {
     acc.push(state)
@@ -160,7 +160,7 @@ export function getInitialState<D>(
 export function setIntitialStates<G extends S.DesignedState>(
   state: S.State<G>,
   payload: any,
-  data: G["data"]
+  data: G['data']
 ) {
   if (state.initialFn !== undefined) {
     state.initial = getInitialState(state.initialFn, payload, data)

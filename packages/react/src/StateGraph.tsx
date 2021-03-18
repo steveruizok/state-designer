@@ -1,6 +1,6 @@
-import * as React from "react"
-import { S } from "@state-designer/core"
-import useStateDesigner from "./useStateDesigner"
+import * as React from 'react'
+import { S } from '@state-designer/core'
+import useStateDesigner from './useStateDesigner'
 
 const EventList: React.FC<{
   state: S.State<any>
@@ -61,11 +61,9 @@ const StateNode: React.FC<{
   )
 }
 
-export const StateGraph: React.FC<
-  {
-    state: S.DesignedState<any, any>
-  } & React.HTMLProps<HTMLDivElement>
-> = ({ state, ...rest }) => {
+export const StateGraph: React.FC<{
+  state: S.DesignedState<any, any>
+} & React.HTMLProps<HTMLDivElement>> = ({ state, ...rest }) => {
   const { stateTree } = useStateDesigner(state, [state])
 
   return (

@@ -1,13 +1,13 @@
-import isString from "lodash/isString"
-import castArray from "lodash/castArray"
-import isNumber from "lodash/isNumber"
-import isFunction from "lodash/isFunction"
-import isUndefined from "lodash/isUndefined"
+import isString from 'lodash/isString'
+import castArray from 'lodash/castArray'
+import isNumber from 'lodash/isNumber'
+import isFunction from 'lodash/isFunction'
+import isUndefined from 'lodash/isUndefined'
 
-import fromEntries from "object.fromentries"
-import entries from "object.entries"
+import fromEntries from 'object.fromentries'
+import entries from 'object.entries'
 
-import * as S from "./types"
+import * as S from './types'
 
 if (!Object.fromEntries) Object.fromEntries = fromEntries
 if (!Object.entries) Object.entries = entries
@@ -63,7 +63,7 @@ export function getStateTreeFromDesign<
 
   function castToNamedFunction<T>(item: T): () => T {
     const fn = () => item
-    Object.defineProperty(fn, "name", { value: item, writable: false })
+    Object.defineProperty(fn, 'name', { value: item, writable: false })
     return fn
   }
 
@@ -77,13 +77,13 @@ export function getStateTreeFromDesign<
   function getTransitions(items: S.TargetDesign<D> | undefined): S.Target<D>[] {
     if (isUndefined(items)) return []
     const targets = Array.isArray(items) ? items : [items]
-    return targets.map((t) => (isFunction(t) ? t : castToNamedFunction(t)))
+    return targets.map(t => (isFunction(t) ? t : castToNamedFunction(t)))
   }
 
   function getResults(items: S.MaybeArray<S.ResultDesign<D, R>> | undefined) {
     if (isUndefined(items)) return []
-    return castArray(items).map((item) =>
-      getEventFn(item, config.results, "results")
+    return castArray(items).map(item =>
+      getEventFn(item, config.results, 'results')
     )
   }
 
@@ -91,20 +91,20 @@ export function getStateTreeFromDesign<
     items: S.MaybeArray<S.ConditionDesign<D, C>> | undefined
   ) {
     if (isUndefined(items)) return []
-    return castArray(items).map((item) =>
-      getEventFn(item, config.conditions, "conditions")
+    return castArray(items).map(item =>
+      getEventFn(item, config.conditions, 'conditions')
     )
   }
 
   function getActions(items: S.MaybeArray<S.ActionDesign<D, A>> | undefined) {
     if (isUndefined(items)) return []
-    return castArray(items).map((item) =>
-      getEventFn(item, config.actions, "actions")
+    return castArray(items).map(item =>
+      getEventFn(item, config.actions, 'actions')
     )
   }
 
   function getAsync(item: S.AsyncDesign<D, Y>) {
-    return getEventFn(item, config.asyncs, "asyncs")
+    return getEventFn(item, config.asyncs, 'asyncs')
   }
 
   function getTime(item: S.TimeDesign<D, T> | undefined) {
@@ -112,7 +112,7 @@ export function getStateTreeFromDesign<
 
     return isNumber(item)
       ? castToNamedFunction(item)
-      : getEventFn(item, times, "times")
+      : getEventFn(item, times, 'times')
   }
 
   /**
@@ -146,17 +146,17 @@ export function getStateTreeFromDesign<
   function getEventHandler(
     event: S.EventHandlerDesign<D, R, C, A, T>
   ): S.EventHandler<D> {
-    return castArray(event).map((eventHandler) => {
+    return castArray(event).map(eventHandler => {
       switch (typeof eventHandler) {
-        case "string": {
+        case 'string': {
           if (isUndefined(config.actions)) {
-            throw new Error("Actions is undefined!")
+            throw new Error('Actions is undefined!')
           } else {
             const eventFn = config.actions && config.actions[eventHandler]
             return getEventHandlerObject({ do: eventFn })
           }
         }
-        case "function": {
+        case 'function': {
           return getEventHandlerObject({ do: eventHandler })
         }
         default: {
@@ -177,9 +177,9 @@ export function getStateTreeFromDesign<
       return
     }
 
-    if (typeof initial === "string" || !("else" in initial)) {
+    if (typeof initial === 'string' || !('else' in initial)) {
       // No logic for the initial state
-      const target = typeof initial === "string" ? initial : initial.to
+      const target = typeof initial === 'string' ? initial : initial.to
 
       return {
         get: [],
@@ -220,7 +220,7 @@ export function getStateTreeFromDesign<
     active: boolean,
     depth: number,
     isInitial: boolean,
-    parentType: "branch" | "parallel" | "leaf" | null
+    parentType: 'branch' | 'parallel' | 'leaf' | null
   ): S.State<S.DesignedState> {
     // Early error detection
 
@@ -230,7 +230,7 @@ export function getStateTreeFromDesign<
       )
     }
 
-    const type = state.states ? (state.initial ? "branch" : "parallel") : "leaf"
+    const type = state.states ? (state.initial ? 'branch' : 'parallel') : 'leaf'
 
     return {
       name,
@@ -283,7 +283,7 @@ export function getStateTreeFromDesign<
                 createState(
                   childState,
                   childName,
-                  path + name + ".",
+                  path + name + '.',
                   false,
                   depth + 1,
                   state.initial === childName,
@@ -295,5 +295,5 @@ export function getStateTreeFromDesign<
       ),
     }
   }
-  return createState(config, "root", id + ".", true, 0, true, null)
+  return createState(config, 'root', id + '.', true, 0, true, null)
 }

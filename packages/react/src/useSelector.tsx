@@ -1,5 +1,5 @@
-import { useReducer, useEffect } from "react"
-import { S } from "@state-designer/core"
+import { useReducer, useEffect } from 'react'
+import { S } from '@state-designer/core'
 
 type InnerState<T> = { count: number; current: T }
 
@@ -26,7 +26,7 @@ export default function useSelector<State extends S.DesignedState, T>(
           }
     },
     state,
-    (state) => ({
+    state => ({
       count: 0,
       current: selectFn(state),
     })

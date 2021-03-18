@@ -1,5 +1,5 @@
-import { useReducer, useEffect } from "react"
-import { S } from "@state-designer/core"
+import { useReducer, useEffect } from 'react'
+import { S } from '@state-designer/core'
 
 type InnerState<T> = { count: number; current: T }
 
@@ -33,13 +33,13 @@ export default function createSelectorHook<
             }
       },
       state,
-      (state) => ({
+      state => ({
         count: 0,
         current: selectFn(state),
       })
     )
 
-    useEffect(() => state.onUpdate((update) => dispatch(update)), [dispatch])
+    useEffect(() => state.onUpdate(update => dispatch(update)), [dispatch])
 
     return inner.current
   }

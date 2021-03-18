@@ -1,14 +1,14 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "./tsconfig.build.json",
+  "include": ["packages", "types", "scripts", "example"],
   "compilerOptions": {
+    "allowJs": false,
     "baseUrl": ".",
+    "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
-      "tutorials": ["archive/tutorials/src"],
-      "@state-designer/core": ["packages/core/src"],
-      "@state-designer/react": ["packages/react/src"],
-      "state-designer": ["packages/state-designer/src"],
-      "example": ["archive/example/src"],
-      "docs": ["archive/docs/src"]
+      "@state-designer/core": ["packages/core/dist"],
+      "@state-designer/react": ["packages/react/dist"],
+      "$test/*": ["test/*"]
     }
   }
 }

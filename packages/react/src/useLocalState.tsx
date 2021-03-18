@@ -1,6 +1,6 @@
 // @refresh-reset
-import * as React from "react"
-import { createState, S } from "@state-designer/core"
+import * as React from 'react'
+import { createState, S } from '@state-designer/core'
 
 /**
  * Create and subscribe to a new state.
@@ -23,7 +23,7 @@ export default function useLocalState<
 
   React.useEffect(() => {
     function handleUpdate(update: typeof current) {
-      setCurrent((current) => ({
+      setCurrent(current => ({
         ...current,
         index: update.index,
         data: update.data,

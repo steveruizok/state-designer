@@ -1,6 +1,6 @@
 // @refresh-reset
-import * as React from "react"
-import { S } from "@state-designer/core"
+import * as React from 'react'
+import { S } from '@state-designer/core'
 
 /**
  * Subscribe a component to a state created with createState.
@@ -15,8 +15,8 @@ export default function useGlobalState<D, V extends Record<string, S.Value<D>>>(
   React.useEffect(() => {
     setCurrent(design)
 
-    return design.onUpdate((update) =>
-      setCurrent((current) => ({
+    return design.onUpdate(update =>
+      setCurrent(current => ({
         ...current,
         index: update.index,
         data: update.data,

@@ -1,36 +1,36 @@
-import { createDesign, createState } from "../src"
+import { createDesign, createState } from '../src'
 
 export const design = createDesign({
   data: { count: 0 },
   on: {},
-  initial: "inactive",
+  initial: 'inactive',
   states: {
     inactive: {
       on: {
-        TOGGLE: { to: "active" },
+        TOGGLE: { to: 'active' },
       },
     },
     active: {
       on: {
-        TOGGLE: { to: "inactive" },
-        CLICKED_PLUS: { do: "increment" },
-        CLICKED_MINUS: { do: "increment" },
-        ADDED_BY: { do: "incrementBy" },
+        TOGGLE: { to: 'inactive' },
+        CLICKED_PLUS: { do: 'increment' },
+        CLICKED_MINUS: { do: 'increment' },
+        ADDED_BY: { do: 'incrementBy' },
       },
       onEvent: [
         {
-          if: "atMin",
-          to: "min",
+          if: 'atMin',
+          to: 'min',
         },
         {
-          if: "atMax",
-          to: "max",
+          if: 'atMax',
+          to: 'max',
         },
         {
-          to: "mid",
+          to: 'mid',
         },
       ],
-      initial: "min",
+      initial: 'min',
       states: {
         min: {},
         mid: {},
@@ -61,7 +61,7 @@ export const design = createDesign({
   },
   asyncs: {
     fetchDogImage() {
-      return fetch("https://dog.ceo/api/breeds/image/random")
+      return fetch('https://dog.ceo/api/breeds/image/random')
     },
   },
   times: {
@@ -76,18 +76,18 @@ export const design = createDesign({
 
 export const counterDesign = createDesign({
   data: { count: 1, activations: 0, deactivations: 0 },
-  initial: "inactive",
+  initial: 'inactive',
   states: {
     inactive: {
-      on: { TOGGLED: { to: "active" } },
+      on: { TOGGLED: { to: 'active' } },
     },
     active: {
-      onEnter: (d) => d.activations++,
-      onExit: (d) => d.deactivations++,
+      onEnter: d => d.activations++,
+      onExit: d => d.deactivations++,
       on: {
-        TOGGLED: { to: "inactive" },
-        CLICKED_PLUS: { if: "belowMax", do: "increment" },
-        CLICKED_MINUS: "decrement",
+        TOGGLED: { to: 'inactive' },
+        CLICKED_PLUS: { if: 'belowMax', do: 'increment' },
+        CLICKED_MINUS: 'decrement',
       },
     },
   },

@@ -1,4 +1,4 @@
-import * as S from "./types"
+import * as S from './types'
 
 /* -------------------------------------------------- */
 /*                    Create Design                   */

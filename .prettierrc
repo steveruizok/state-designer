@@ -1,15 +1,5 @@
 {
-  "tabWidth": 2,
-  "useTabs": false,
-  "printWidth": 80,
-  "semi": false,
   "trailingComma": "es5",
-  "overrides": [
-    {
-      "files": ["*.mdx", "*.md"],
-      "options": {
-        "printWidth": 60
-      }
-    }
-  ]
+  "singleQuote": true,
+  "semi": false
 }

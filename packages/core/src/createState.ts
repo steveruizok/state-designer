@@ -1,14 +1,14 @@
-import last from "lodash/last"
-import castArray from "lodash/castArray"
-import isFunction from "lodash/isFunction"
-import uniqueId from "lodash/uniqueId"
-import isUndefined from "lodash/isUndefined"
-import { produce, enableES5, enableMapSet, setAutoFreeze } from "immer"
-import { testEventHandlerConditions } from "./testEventHandlerConditions"
-import { createEventChain } from "./createEventChain"
-import * as S from "./types"
-import * as StateTree from "./stateTree"
-import { getStateTreeFromDesign } from "./getStateTreeFromDesign"
+import last from 'lodash/last'
+import castArray from 'lodash/castArray'
+import isFunction from 'lodash/isFunction'
+import uniqueId from 'lodash/uniqueId'
+import isUndefined from 'lodash/isUndefined'
+import { produce, enableES5, enableMapSet, setAutoFreeze } from 'immer'
+import { testEventHandlerConditions } from './testEventHandlerConditions'
+import { createEventChain } from './createEventChain'
+import * as S from './types'
+import * as StateTree from './stateTree'
+import { getStateTreeFromDesign } from './getStateTreeFromDesign'
 
 enableES5()
 enableMapSet()
@@ -100,7 +100,7 @@ export function createState<
     setValues()
     setLog()
     setActiveStates()
-    subscribers.forEach((subscriber) => subscriber(snapshot))
+    subscribers.forEach(subscriber => subscriber(snapshot))
   }
 
   /* --------------------- Updates -------------------- */
@@ -135,7 +135,7 @@ export function createState<
       result,
       payload,
       handler: eventHandler,
-      onDelayedOutcome: (outcome) => {
+      onDelayedOutcome: outcome => {
         handleEventHandlerChainOutcome(outcome, payload)
 
         if (outcome.shouldNotify) {
@@ -163,7 +163,7 @@ export function createState<
     if (!state.active) return record
 
     const activeChildren = Object.values(state.states).filter(
-      (state) => state.active
+      state => state.active
     )
 
     const eventHandler = state.on[sent.event]
@@ -235,8 +235,8 @@ export function createState<
    * @param result The current result (if any) passed along from the event handler chain.
    */
   function runTransition(path: string, payload: any, result: any) {
-    const isPreviousTransition = path.endsWith(".previous")
-    const isRestoreTransition = path.endsWith(".restore")
+    const isPreviousTransition = path.endsWith('.previous')
+    const isRestoreTransition = path.endsWith('.restore')
 
     if (isPreviousTransition) {
       path = path.slice(0, path.length - 9)
@@ -255,7 +255,7 @@ export function createState<
     }
 
     // Get the path of state names to the target state
-    const pathDown = target.path.split(".").slice(1)
+    const pathDown = target.path.split('.').slice(1)
 
     // Get an array of states that are currently active (before the transition)
     const beforeActive = StateTree.getActiveStates(snapshot.stateTree)
@@ -282,12 +282,12 @@ export function createState<
 
     // Get an array of states that are no longer active
     const deactivatedStates = beforeActive.filter(
-      (state) => !afterActive.includes(state)
+      state => !afterActive.includes(state)
     )
 
     // Get an array of states that have become active
     const newlyActivatedStates = afterActive.filter(
-      (state) => !beforeActive.includes(state)
+      state => !beforeActive.includes(state)
     )
 
     // Deactivated States
@@ -295,7 +295,7 @@ export function createState<
     // - handle onExit events
     // - bail if we've transitioned
 
-    deactivatedStates.forEach((state) => {
+    deactivatedStates.forEach(state => {
       StateTree.endStateIntervals(state)
       removeOnFrameEventHandler(state)
     })
@@ -373,7 +373,7 @@ export function createState<
         state.times.cancelAsync = () => (finished = true)
 
         async.await(snapshot.data, payload, result).then(
-          (resolved) => {
+          resolved => {
             if (finished) return
 
             const localUpdate = runEventHandlerChain(
@@ -385,7 +385,7 @@ export function createState<
 
             if (localUpdate.shouldNotify) notifySubscribers()
           },
-          (rejected) => {
+          rejected => {
             if (!isUndefined(async.onReject)) {
               if (finished) return
 
@@ -429,86 +429,6 @@ export function createState<
     _activeStates = StateTree.getActiveStates(snapshot.stateTree)
     snapshot.active = getPaths(_activeStates)
   }
-
-  /* ---------------- Event Processing ----------------  
-
-   Events sent to the state need to be _processed_ by handling the
-   event in the state tree's active states and then _resolved_ with
-   the resulting state. If an event causes the state to receive more
-   events, then all of those events should resolve the same state and
-   produce as most one notification.
-
-   */
-
-  // interface EventWithSettle extends S.Event {
-  //   onSettle?: (snapshot: Snapshot) => void
-  // }
-
-  // let queueState: "ready" | "processing" = "ready"
-  // let processShouldNotify = false
-
-  // const eventsToProcess: EventWithSettle[] = []
-  // const eventsToResolve: EventWithSettle[] = []
-
-  // /**
-  //  * Process the queue of received events. If no events are left, finish the
-  //  * queue by (possibly) notifing subscribers, resolving processed events,
-  //  * and then preparing to receive new events.
-  //  */
-  // function processEventQueue(): Snapshot {
-  //   queueState = "processing"
-
-  //   try {
-  //     while (eventsToProcess.length > 0) {
-  //       const processingEvent = eventsToProcess.shift()
-
-  //       if (processingEvent === undefined) break
-
-  //       // If we have an event to process, process it by handling it
-  //       // on all active states, starting from the root state. Then add
-  //       // it to the eventsToResolve array so we can resolve it later.
-
-  //       let shouldNotify = false
-
-  //       try {
-  //         const result = handleEventOnState(snapshot.stateTree, processingEvent)
-  //         shouldNotify = result.shouldNotify
-  //       } catch (e) {
-  //         throw Error(`${processingEvent.event}: ${e.message}`)
-  //       } finally {
-  //         logEvent(processingEvent.event)
-
-  //         if (shouldNotify) processShouldNotify = true
-
-  //         eventsToResolve.push(processingEvent)
-  //       }
-  //     }
-  //   } catch (e) {
-  //     handleError(e)
-  //   }
-
-  //   // Notify subscribers, if needed
-  //   if (processShouldNotify) {
-  //     notifySubscribers()
-  //     processShouldNotify = false
-  //   }
-
-  //   // Settle all events in queue with final snapshot
-  //   while (eventsToResolve.length > 0) {
-  //     eventsToResolve.shift()?.onSettle?.(snapshot)
-  //   }
-
-  //   // We may have received more events after notifying or
-  //   // settling events. If so, they'll be waiting, so we
-  //   // should process them now.
-  //   if (eventsToProcess.length > 0) {
-  //     return processEventQueue()
-  //   }
-
-  //   // Otherwise, finish up by getting ready to receive new events.
-  //   queueState = "ready"
-  //   return snapshot
-  // }
 
   /* ------------------ Per Frame Loop ---------------- 
 
@@ -711,11 +631,10 @@ export function createState<
   function isIn(...paths: string[]): boolean {
     try {
       return castArray(paths)
-        .map((path) => (path.startsWith(".") ? path : "." + path))
+        .map(path => (path.startsWith('.') ? path : '.' + path))
         .every(
-          (path) =>
-            _activeStates.find((state) => state.path.endsWith(path)) !==
-            undefined
+          path =>
+            _activeStates.find(state => state.path.endsWith(path)) !== undefined
         )
     } catch (e) {
       handleError(e)
@@ -736,11 +655,10 @@ export function createState<
   function isInAny(...paths: string[]): boolean {
     try {
       return castArray(paths)
-        .map((path) => (path.startsWith(".") ? path : "." + path))
+        .map(path => (path.startsWith('.') ? path : '.' + path))
         .some(
-          (path) =>
-            _activeStates.find((state) => state.path.endsWith(path)) !==
-            undefined
+          path =>
+            _activeStates.find(state => state.path.endsWith(path)) !== undefined
         )
     } catch (e) {
       handleError(e)
@@ -756,12 +674,12 @@ export function createState<
    */
   function can(eventName: string, payload?: any, result?: any): boolean {
     return !isUndefined(
-      _activeStates.find((state) => {
+      _activeStates.find(state => {
         const eventHandler = state.on[eventName]
         if (isUndefined(eventHandler)) return
 
         try {
-          return eventHandler.some((handler) => {
+          return eventHandler.some(handler => {
             result = undefined
 
             for (let resu of handler.get) {
@@ -794,19 +712,19 @@ export function createState<
    */
   function whenIn<T = unknown>(
     paths: Record<string, any>,
-    reducer: "value" | "array" | S.Reducer<T> = "value",
+    reducer: 'value' | 'array' | S.Reducer<T> = 'value',
     initialValue?: any
   ): T {
     const entries: [string, any][] = []
 
     Object.entries(paths).forEach(([key, value]) => {
       let v = isFunction(value) ? value() : value
-      if (key === "root") {
+      if (key === 'root') {
         entries.push([key, v])
       } else {
         if (
-          _activeStates.find((v) => {
-            let safeKey = key.startsWith(".") ? key : "." + key
+          _activeStates.find(v => {
+            let safeKey = key.startsWith('.') ? key : '.' + key
             return v.path.endsWith(safeKey)
           })
         ) {
@@ -817,17 +735,17 @@ export function createState<
 
     if (entries.length === 0) {
       if (!isUndefined(paths.default)) {
-        entries.push(["default", paths.default])
+        entries.push(['default', paths.default])
       }
     }
 
     let returnValue: any
     let rdcr: S.Reducer<T>
 
-    if (reducer === "array") {
+    if (reducer === 'array') {
       returnValue = []
       rdcr = (a, [_, v]) => [...a, v] as any
-    } else if (reducer === "value") {
+    } else if (reducer === 'value') {
       returnValue = undefined
       rdcr = (_, [__, v]) => v
     } else {
@@ -874,13 +792,13 @@ export function createState<
     _log = []
 
     Object.assign(snapshot, {
-      data: produce(design.data, (d) => d) as D,
+      data: produce(design.data, d => d) as D,
       stateTree: getStateTreeFromDesign(design, id),
       log: [],
     })
 
     StateTree.deactivateState(snapshot.stateTree)
-    runTransition("root", undefined, undefined) // Will onEnter events matter?
+    runTransition('root', undefined, undefined) // Will onEnter events matter?
     notifySubscribers()
 
     return snapshot
@@ -888,7 +806,7 @@ export function createState<
 
   /* --------------------- Kickoff -------------------- */
 
-  const id = "#" + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
+  const id = '#' + (isUndefined(design.id) ? `state_${uniqueId()}` : design.id)
   const initialStateTree = getStateTreeFromDesign(design, id)
 
   let _log: string[] = []
@@ -896,7 +814,7 @@ export function createState<
 
   const snapshot = {
     id,
-    data: produce(design.data, (d) => d) as D,
+    data: produce(design.data, d => d) as D,
     active: getPaths(_activeStates),
     stateTree: initialStateTree,
     log: _log,
@@ -921,7 +839,7 @@ export function createState<
 
   // Deactivate the tree, then activate it again to set initial active states.
   StateTree.deactivateState(snapshot.stateTree)
-  runTransition("root", undefined, undefined) // Will onEnter events matter?
+  runTransition('root', undefined, undefined) // Will onEnter events matter?
   setValues()
   setActiveStates()
   setLog()
@@ -938,7 +856,7 @@ export function createState<
  * @param states A set of states
  */
 function getPaths<G extends S.DesignedState>(states: S.State<G>[]) {
-  return states.map((state) => state.path)
+  return states.map(state => state.path)
 }
 
 /**

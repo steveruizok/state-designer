@@ -1,6 +1,6 @@
-import * as S from "./types"
-import { createDraft, finishDraft, Draft, current } from "immer"
-import { testEventHandlerConditions } from "./testEventHandlerConditions"
+import * as S from './types'
+import { createDraft, finishDraft, Draft, current } from 'immer'
+import { testEventHandlerConditions } from './testEventHandlerConditions'
 
 /**
  * Handle an event, along with its consequential events.
@@ -53,11 +53,11 @@ export function createEventChain<G extends S.DesignedState>(
   ): { shouldBreak: boolean } {
     // Compute a result using original data and draft result
     if (handler.get.length > 0) {
-      let fnName = ""
+      let fnName = ''
       try {
         for (let result of handler.get) {
           fnName = result.name
-          tResult = result(draft.data as G["data"], payload, tResult)
+          tResult = result(draft.data as G['data'], payload, tResult)
         }
       } catch (e) {
         throw Error(`Error in result (${fnName})! ` + e.message)
@@ -71,7 +71,7 @@ export function createEventChain<G extends S.DesignedState>(
 
     const passedConditions = testEventHandlerConditions(
       handler,
-      curr.data as G["data"],
+      curr.data as G['data'],
       curr.payload,
       curr.result
     )
@@ -80,12 +80,12 @@ export function createEventChain<G extends S.DesignedState>(
       // Actions
       if (handler.do.length > 0) {
         finalOutcome.shouldNotify = true
-        let fnName = ""
+        let fnName = ''
 
         try {
           for (let action of handler.do) {
             fnName = action.name
-            action(draft.data as G["data"], curr.payload, curr.result)
+            action(draft.data as G['data'], curr.payload, curr.result)
           }
         } catch (e) {
           throw Error(`Error in action (${fnName})! ` + e.message)
@@ -94,11 +94,11 @@ export function createEventChain<G extends S.DesignedState>(
 
       // Secret actions
       if (handler.secretlyDo.length > 0) {
-        let fnName = ""
+        let fnName = ''
         try {
           for (let action of handler.secretlyDo) {
             fnName = action.name
-            action(draft.data as G["data"], curr.payload, curr.result)
+            action(draft.data as G['data'], curr.payload, curr.result)
           }
         } catch (e) {
           throw Error(`Error in secret action (${fnName})! ` + e.message)
@@ -111,12 +111,12 @@ export function createEventChain<G extends S.DesignedState>(
 
       // Transitions
       if (handler.to.length > 0) {
-        let fnName = ""
+        let fnName = ''
         try {
           for (let fn of handler.to) {
             fnName = fn.name
             finalOutcome.pendingTransition.push(
-              fn(curr.data as G["data"], curr.payload, curr.result)
+              fn(curr.data as G['data'], curr.payload, curr.result)
             )
           }
 
@@ -130,12 +130,12 @@ export function createEventChain<G extends S.DesignedState>(
 
       // Secret Transitions (no notify)
       if (handler.secretlyTo.length > 0) {
-        let fnName = ""
+        let fnName = ''
         try {
           for (let fn of handler.secretlyTo) {
             fnName = fn.name
             finalOutcome.pendingTransition.push(
-              fn(curr.data as G["data"], curr.payload, curr.result)
+              fn(curr.data as G['data'], curr.payload, curr.result)
             )
           }
 
@@ -160,7 +160,7 @@ export function createEventChain<G extends S.DesignedState>(
       if (handler.break !== undefined) {
         try {
           if (
-            handler.break(curr.data as G["data"], curr.payload, curr.result)
+            handler.break(curr.data as G['data'], curr.payload, curr.result)
           ) {
             return { shouldBreak: true }
           }
@@ -197,7 +197,7 @@ export function createEventChain<G extends S.DesignedState>(
       // Calculate wait time from finalOutcome draft
       const waitTime =
         nextHandlerObject.wait(
-          (draft.data as G["data"]) as G["data"],
+          (draft.data as G['data']) as G['data'],
           payload,
           draft.result
         ) * 1000

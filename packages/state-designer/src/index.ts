@@ -1,4 +1,4 @@
-import { S, createDesign, createState } from "@state-designer/core"
+import { S, createDesign, createState } from '@state-designer/core'
 import {
   useStateDesigner,
   createSelectorHook,
@@ -6,7 +6,7 @@ import {
   StateGraph,
   useLocalState,
   useGlobalState,
-} from "@state-designer/react"
+} from '@state-designer/react'
 
 export {
   S,

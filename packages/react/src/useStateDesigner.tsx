@@ -1,5 +1,5 @@
-import { S, createState } from "@state-designer/core"
-import * as React from "react"
+import { S, createState } from '@state-designer/core'
+import * as React from 'react'
 
 const emptyArray: unknown[] = []
 
@@ -42,17 +42,17 @@ export default function useStateDesigner<
   const rFirstMount = React.useRef(true)
 
   const [current, setCurrent] = React.useState<S.DesignedState<D, V>>(() =>
-    "active" in design ? design : createState(design)
+    'active' in design ? design : createState(design)
   )
 
   // Global
   React.useEffect(() => {
-    if (!("active" in design)) return
+    if (!('active' in design)) return
 
     setCurrent(design)
 
-    return design.onUpdate((update) =>
-      setCurrent((current) => ({
+    return design.onUpdate(update =>
+      setCurrent(current => ({
         ...current,
         index: update.index,
         data: update.data,
@@ -66,10 +66,10 @@ export default function useStateDesigner<
 
   // Local
   React.useEffect(() => {
-    if ("active" in design) return
+    if ('active' in design) return
 
     function handleUpdate(update: typeof current) {
-      setCurrent((current) => ({
+      setCurrent(current => ({
         ...current,
         index: update.index,
         data: update.data,

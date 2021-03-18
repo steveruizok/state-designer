@@ -1,5 +1,5 @@
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 
 import {
   createDesign,
@@ -7,7 +7,7 @@ import {
   useStateDesigner,
   useLocalState,
   useGlobalState,
-} from "../"
+} from '../'
 
 const configObject = {
   data: { count: 0 },
@@ -20,33 +20,33 @@ const config = createDesign(configObject)
 
 const state = createState(config)
 
-describe("createDesign", () => {
-  it("Should create a config.", () => {
+describe('createDesign', () => {
+  it('Should create a config.', () => {
     expect(config).toBeTruthy()
   })
 })
 
-describe("createState", () => {
-  it("Should create a state.", () => {
+describe('createState', () => {
+  it('Should create a state.', () => {
     expect(state).toBeTruthy()
   })
 })
 
-describe("useLocalState", () => {
-  it("Should have working types", () => {
+describe('useLocalState', () => {
+  it('Should have working types', () => {
     const Example = () => {
       const local = useGlobalState(state)
       return <div>{local.values.double}</div>
     }
 
-    const div = document.createElement("div")
+    const div = document.createElement('div')
     ReactDOM.render(<Example />, div)
     ReactDOM.unmountComponentAtNode(div)
   })
 })
 
-describe("useGlobalState", () => {
-  it("Should have working types", () => {
+describe('useGlobalState', () => {
+  it('Should have working types', () => {
     const Example = () => {
       const local = useLocalState({
         data: { count: 0 },
@@ -59,14 +59,14 @@ describe("useGlobalState", () => {
       return <div>{local.values.double}</div>
     }
 
-    const div = document.createElement("div")
+    const div = document.createElement('div')
     ReactDOM.render(<Example />, div)
     ReactDOM.unmountComponentAtNode(div)
   })
 })
 
-describe("useStateDesigner", () => {
-  it("Should have working types", () => {
+describe('useStateDesigner', () => {
+  it('Should have working types', () => {
     const Example = () => {
       const state = useStateDesigner({
         data: { count: 0 },
@@ -80,70 +80,70 @@ describe("useStateDesigner", () => {
       return <div>{state.values.double}</div>
     }
 
-    const div = document.createElement("div")
+    const div = document.createElement('div')
     ReactDOM.render(<Example />, div)
     ReactDOM.unmountComponentAtNode(div)
   })
 
-  it("Should create / subscribe to a local state from an external config.", () => {
+  it('Should create / subscribe to a local state from an external config.', () => {
     const CounterFromConfig = () => {
       const { data, send } = useStateDesigner(config)
 
       return (
         <div>
           <h1>{data.count}</h1>
-          <button onClick={() => send("ADDED_ONE")}>+1</button>
+          <button onClick={() => send('ADDED_ONE')}>+1</button>
         </div>
       )
     }
 
-    const div = document.createElement("div")
+    const div = document.createElement('div')
     ReactDOM.render(<CounterFromConfig />, div)
     ReactDOM.unmountComponentAtNode(div)
   })
 
-  it("Should create / subscribe to a local state from local config.", () => {
+  it('Should create / subscribe to a local state from local config.', () => {
     const CounterFromLocalConfig = () => {
       const { data, send } = useStateDesigner(configObject)
 
       return (
         <div>
           <h1>{data.count}</h1>
-          <button onClick={() => send("ADDED_ONE")}>+1</button>
+          <button onClick={() => send('ADDED_ONE')}>+1</button>
         </div>
       )
     }
 
-    const div = document.createElement("div")
+    const div = document.createElement('div')
     ReactDOM.render(<CounterFromLocalConfig />, div)
     ReactDOM.unmountComponentAtNode(div)
   })
 
-  it("Should subscribe to an external state (created by createState).", () => {
+  it('Should subscribe to an external state (created by createState).', () => {
     const CounterFromState = () => {
       const { data, send } = useStateDesigner(state)
 
       return (
         <div>
           <h1>{data.count}</h1>
-          <button onClick={() => send("ADDED_ONE")}>+1</button>
+          <button onClick={() => send('ADDED_ONE')}>+1</button>
         </div>
       )
     }
 
-    const div = document.createElement("div")
+    const div = document.createElement('div')
     ReactDOM.render(<CounterFromState />, div)
     ReactDOM.unmountComponentAtNode(div)
   })
 
-  it("Should subscribe multiple components to the same external state.", () => {
+  it('Should subscribe multiple components to the same external state.', () => {
     const SharedCounterA = () => {
       const { data, send } = useStateDesigner(state)
 
       return (
         <div>
           <h1>{data.count}</h1>
-          <button onClick={() => send("ADDED_ONE")}>+1</button>
+          <button onClick={() => send('ADDED_ONE')}>+1</button>
         </div>
       )
     }
@@ -154,7 +154,7 @@ describe("useStateDesigner", () => {
       return (
         <div>
           <h1>{data.count}</h1>
-          <button onClick={() => send("ADDED_ONE")}>+1</button>
+          <button onClick={() => send('ADDED_ONE')}>+1</button>
         </div>
       )
     }
@@ -168,7 +168,7 @@ describe("useStateDesigner", () => {
       )
     }
 
-    const div = document.createElement("div")
+    const div = document.createElement('div')
     ReactDOM.render(<App />, div)
     ReactDOM.unmountComponentAtNode(div)
   })

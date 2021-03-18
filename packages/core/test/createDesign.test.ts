@@ -1,13 +1,13 @@
-import { createDesign } from "../src"
-import { design } from "./shared"
+import { createDesign } from '../src'
+import { design } from './shared'
 
-describe("createDesign", () => {
-  it("Should create a design.", () => {
+describe('createDesign', () => {
+  it('Should create a design.', () => {
     expect(design).toBeTruthy()
     expect(createDesign({})).toBeTruthy()
   })
 
-  it("Should include collections.", () => {
+  it('Should include collections.', () => {
     expect(design.results).toBeTruthy()
     expect(design.conditions).toBeTruthy()
     expect(design.actions).toBeTruthy()

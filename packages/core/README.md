@@ -1,169 +1,103 @@
-# State Designer / Core
+# TSDX User Guide
 
-This package includes the core functions of [State Designer](https://statedesigner.com), a JavaScript state management library. [Click here](https://statedesigner.com) to learn more.
+Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
 
-You can use this package in any JavaScript or TypeScript project.
+> This TSDX setup is meant for developing libraries (not apps!) that can be published to NPM. If you’re looking to build a Node app, you could use `ts-node-dev`, plain `ts-node`, or simple `tsc`.
 
-For React projects, see [@state-designer/react](https://github.com/@state-designer/react).
+> If you’re new to TypeScript, checkout [this handy cheatsheet](https://devhints.io/typescript)
 
-## Installation
+## Commands
+
+TSDX scaffolds your new library inside `/src`.
+
+To run TSDX, use:
 
 ```bash
-npm install @state-designer/core
-
-# or
-
-yarn add @state-designer/core
+npm start # or yarn start
 ```
 
-## Usage
+This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
 
-Using State Designer involves three steps:
+To do a one-off build, use `npm run build` or `yarn build`.
 
-1. Create a state with a configuration object.
-2. Subscribe to the state's updates.
-3. Send events to the state.
+To run tests, use `npm test` or `yarn test`.
 
-### 1. Creating a State
+## Configuration
 
-To create a new **state**, call the `createState` function and pass it a **configuration object**.
+Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
 
-A configuration object defines everything about the state:
+### Jest
 
-- what **data** it controls;
-- how it should respond to **events** ; and
-- how its **child states** are organized
+Jest tests are set up to run with `npm test` or `yarn test`.
 
-```js
-const state = createState({
-  data: { items: 0 },
-  on: {
-    ADDED_ITEM: {
-      unless: (data) => data.items >= 10,
-      do: (data) => data.items++,
-    },
-    RESET: (data) => (data.items = 0),
-  },
-})
+### Bundle Analysis
+
+[`size-limit`](https://github.com/ai/size-limit) is set up to calculate the real cost of your library with `npm run size` and visualize the bundle with `npm run analyze`.
+
+#### Setup Files
+
+This is the folder structure we set up for you:
+
+```txt
+/src
+  index.tsx       # EDIT THIS
+/test
+  blah.test.tsx   # EDIT THIS
+.gitignore
+package.json
+README.md         # EDIT THIS
+tsconfig.json
 ```
 
-The example below is just the start of what you can add to a state's configuration object. [Click here](https://statedesigner.com) to learn more.
+### Rollup
 
-### 2. Subscribing to Updates
+TSDX uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
 
-To subscribe to a state's **updates**, call the state's `onUpdate` method and pass it a callback function to call with each new update.
+### TypeScript
 
-An update includes:
+`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
 
-- The state's current **data**
-- An array of the state's **active** states
-- The full **state tree**
+## Continuous Integration
 
-```js
-state.onUpdate(({ data }) => {
-  document.getElementById("itemsCount").textContent = data.items.toString()
-})
-```
+### GitHub Actions
 
-### 3. Sending Events
+Two actions are added by default:
 
-To send an **event** to the state, call the state's `send` method.
+- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
+- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
 
-The send method takes two arguments:
+## Optimizations
 
-- The name of the event as a string
-- A payload of any type (optional)
+Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
 
 ```js
-document.getElementById("reset_button").onclick = () => {
-  state.send("RESET")
-}
+// ./types/index.d.ts
+declare var __DEV__: boolean;
 
-document.getElementById("plus_two_button").onclick = () => {
-  state.send("ADDED_ITEMS", 2)
+// inside your code...
+if (__DEV__) {
+  console.log('foo');
 }
 ```
 
-## Example
+You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
 
-[![Edit state-designer-vanilla-example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/adoring-nightingale-g7ch1?fontsize=14&hidenavigation=1&theme=dark)
+## Module Formats
 
-```js
-import { createState } from "@state-designer/core"
+CJS, ESModules, and UMD module formats are supported.
 
-// Create state
-const state = createState({
-  data: { items: 0 },
-  on: {
-    ADDED_ITEMS: {
-      unless: (data, payload) => data.items + payload > 10,
-      do: (data, payload) => (data.items += payload),
-    },
-    RESET: (data) => (data.items = 0),
-  },
-})
+The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
 
-// Subscribe to updates
-state.onUpdate(({ data }) => {
-  document.getElementById("itemsCount").textContent = data.items.toString()
-})
+## Named Exports
 
-// Send events
-document.getElementById("reset_button").onclick = () => {
-  state.send("RESET")
-}
+Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
 
-document.getElementById("plus_two_button").onclick = () => {
-  state.send("ADDED_ITEMS", 2)
-}
-```
+## Including Styles
 
-## API
+There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
 
-### `createState`
+For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
 
-Creates a new state from a configuration object.
+## Publishing to NPM
 
-```ts
-const state = createState({
-  data: { items: 0 },
-  on: {
-    CLICKED_PLUS: "increment",
-  },
-  actions: {
-    increment: (data) => data.count++,
-  },
-})
-```
-
-### `createDesign`
-
-> **Note:** This function only exists to provide additional type support in TypeScript projects and in testing where multiple states need to use the same configuration object.
-
-A helper function that creates a configuration object. The configuration provides several additional helpers for creating type-checked actions, events, and other parts of the object.
-
-```ts
-const config = createDesign({
-  data: { items: 0 },
-  on: {
-    CLICKED_PLUS: "increment",
-  },
-  actions: {
-    increment: (data) => data.count++,
-  },
-})
-
-const state = createState(config)
-```
-
-| Helper                         | Description                               |
-| ------------------------------ | ----------------------------------------- |
-| createEventHandlerConfig       | Creates an event handler config.          |
-| createEventHandlerItemConfig   | Creates an event handler item config.     |
-| createAsyncEventHandlerConfig  | Creates an async event handler config.    |
-| createRepeatEventHandlerConfig | Creates a repeating event handler config. |
-| createStateConfig              | Creates a state config.                   |
-| createActionConfig             | Creates an action config.                 |
-| createConditionConfig          | Creates a condition config.               |
-| createResultConfig             | Creates a result config.                  |
-| createTimeConfig               | Creates a time config.                    |
+We recommend using [np](https://github.com/sindresorhus/np).

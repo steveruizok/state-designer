@@ -221,18 +221,18 @@ export type AsyncEventDesign<D, R, C, A, Y, T> = {
 // Verbose Logging Types
 
 export enum VerboseType {
-  Condition = "condition",
-  Action = "action",
-  SecretAction = "secretAction",
-  Event = "event",
-  State = "state",
-  AsyncEvent = "asyncEvent",
-  TransitionEvent = "transitionEvent",
-  RepeatEvent = "repeatEvent",
-  Transition = "transition",
-  Notification = "notification",
-  EventHandler = "eventHandler",
-  Queue = "queue",
+  Condition = 'condition',
+  Action = 'action',
+  SecretAction = 'secretAction',
+  Event = 'event',
+  State = 'state',
+  AsyncEvent = 'asyncEvent',
+  TransitionEvent = 'transitionEvent',
+  RepeatEvent = 'repeatEvent',
+  Transition = 'transition',
+  Notification = 'notification',
+  EventHandler = 'eventHandler',
+  Queue = 'queue',
 }
 
 // State
@@ -240,9 +240,9 @@ export enum VerboseType {
 export interface State<G extends DesignedState> {
   name: string
   isInitial: boolean
-  parentType: "branch" | "leaf" | "parallel" | null
+  parentType: 'branch' | 'leaf' | 'parallel' | null
   depth: number
-  type: "branch" | "leaf" | "parallel"
+  type: 'branch' | 'leaf' | 'parallel'
   active: boolean
   path: string
   history: string[]
@@ -253,14 +253,14 @@ export interface State<G extends DesignedState> {
     animationFrame?: number
     cancelAsync?: () => void
   }
-  on: Record<string, EventHandler<G["data"]>>
-  onEnter?: EventHandler<G["data"]>
-  onExit?: EventHandler<G["data"]>
-  onEvent?: EventHandler<G["data"]>
-  repeat?: RepeatEvent<G["data"]>
-  async?: AsyncEvent<G["data"]>
+  on: Record<string, EventHandler<G['data']>>
+  onEnter?: EventHandler<G['data']>
+  onExit?: EventHandler<G['data']>
+  onEvent?: EventHandler<G['data']>
+  repeat?: RepeatEvent<G['data']>
+  async?: AsyncEvent<G['data']>
   states: Record<string, State<G>>
-  initialFn?: InitialStateObject<G["data"]>
+  initialFn?: InitialStateObject<G['data']>
   initial?: string
 }
 
@@ -358,7 +358,7 @@ export interface DesignedState<
   isInAny: (...paths: string[]) => boolean
   whenIn: <T = unknown>(
     states: { [key: string]: any },
-    reducer?: "value" | "array" | Reducer<T>,
+    reducer?: 'value' | 'array' | Reducer<T>,
     initial?: any
   ) => T
   thenSend: (eventName: string) => (eventName: string, payload?: any) => this
@@ -376,28 +376,28 @@ export interface DesignedState<
 
 export type StateWithDesign<
   State extends Design<unknown, any, any, any, any, any, any>
-> = DesignedState<State["data"], Values<State["data"], State["values"]>>
+> = DesignedState<State['data'], Values<State['data'], State['values']>>
 
 // Event Handler Chains
 
 export type EventChainOptions<G extends DesignedState> = {
   state: State<G>
-  data: G["data"]
+  data: G['data']
   result: any
   payload: any
-  handler: EventHandler<G["data"]>
+  handler: EventHandler<G['data']>
   onDelayedOutcome: EventChainCallback<G>
-  getFreshDataAfterWait: () => G["data"]
+  getFreshDataAfterWait: () => G['data']
 }
 
 export type EventChainCore<G extends DesignedState> = {
-  data: G["data"]
+  data: G['data']
   payload: any
   result: any
 }
 
 export type EventChainOutcome<G extends DesignedState> = {
-  data: G["data"]
+  data: G['data']
   result: any
   shouldBreak: boolean
   shouldNotify: boolean
