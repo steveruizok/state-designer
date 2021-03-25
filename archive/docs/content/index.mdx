@@ -4,7 +4,7 @@ State Designer is a state management library for JavaScript and TypeScript.
 
 As the name suggests, the library treats state as a _design problem_. If you're not exactly sure how the state of a user interface should work, then State Designer can help you figure it out.
 
-- [**Check out the IDE**](https://ide.state-designer.com/)
+- [**Check out the IDE**](https://app.state-designer.com/)
 - [Learn more](/designing-state) about what it means to design for state.
 - [Explore examples](https://tutorials.state-designer.com) like this fun [drawing tool](/examples/drawing/).
 
@@ -12,15 +12,15 @@ As the name suggests, the library treats state as a _design problem_. If you're 
 function Counter() {
   const state = useStateDesigner({
     data: { count: 0 },
-    initial: "stopped",
+    initial: 'stopped',
     states: {
       stopped: {
-        on: { TOGGLED: { to: "running" } },
+        on: { TOGGLED: { to: 'running' } },
       },
       running: {
-        on: { TOGGLED: { to: "stopped" } },
+        on: { TOGGLED: { to: 'stopped' } },
         repeat: {
-          onRepeat: "incrementCount",
+          onRepeat: 'incrementCount',
           delay: 0.2,
         },
       },
@@ -34,10 +34,10 @@ function Counter() {
 
   return (
     <Grid columns="auto 1fr">
-      <Button onClick={() => state.send("TOGGLED")}>
+      <Button onClick={() => state.send('TOGGLED')}>
         {state.whenIn({
-          running: "Stop",
-          stopped: "Start",
+          running: 'Stop',
+          stopped: 'Start',
         })}
       </Button>
       <Heading as="h1">{state.data.count}</Heading>
