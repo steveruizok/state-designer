@@ -1,6 +1,6 @@
 # State Designer
 
-> ⚠️ This project is not yet fully documented. The best way to explore the project is through its [tutorials](https://codesandbox.io/s/github/steveruizok/state-designer/tree/master/packages/tutorials) package.
+> ⚠️ This project is not yet fully documented. The best way to explore the project is through its [tutorials](https://codesandbox.io/s/github/steveruizok/state-designer/tree/master/archive/tutorials) package.
 
 State Designer is a JavaScript and TypeScript library for managing the state of a user interface. It prioritizes the design experience, making it easy to experiment with ideas, iterate on solutions, and communicate the final result.
 
