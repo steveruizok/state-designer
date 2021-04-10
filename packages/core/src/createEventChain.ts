@@ -1,7 +1,7 @@
 import * as S from './types'
 import { createDraft, finishDraft, Draft, current } from 'immer'
 import { testEventHandlerConditions } from './testEventHandlerConditions'
-
+import customError from './customError'
 /**
  * Handle an event, along with its consequential events.
  * (Go get a cup of coffee because this is the hard part.)
@@ -60,7 +60,7 @@ export function createEventChain<G extends S.DesignedState>(
           tResult = result(draft.data as G['data'], payload, tResult)
         }
       } catch (e) {
-        throw Error(`Error in result (${fnName})! ` + e.message)
+        throw customError(`Error in result (${fnName})!`, e)
       }
 
       // Save result to draft
@@ -88,7 +88,7 @@ export function createEventChain<G extends S.DesignedState>(
             action(draft.data as G['data'], curr.payload, curr.result)
           }
         } catch (e) {
-          throw Error(`Error in action (${fnName})! ` + e.message)
+          throw customError(`Error in action (${fnName})!`, e)
         }
       }
 
@@ -101,7 +101,7 @@ export function createEventChain<G extends S.DesignedState>(
             action(draft.data as G['data'], curr.payload, curr.result)
           }
         } catch (e) {
-          throw Error(`Error in secret action (${fnName})! ` + e.message)
+          throw customError(`Error in secret action (${fnName})!`, e)
         }
       }
 
@@ -124,7 +124,7 @@ export function createEventChain<G extends S.DesignedState>(
           finalOutcome.shouldNotify = true
           return { shouldBreak: true }
         } catch (e) {
-          throw Error(`Error computing transition (${fnName})! ` + e.message)
+          throw customError(`Error computing transition (${fnName})!`, e)
         }
       }
 
@@ -142,9 +142,7 @@ export function createEventChain<G extends S.DesignedState>(
           finalOutcome.shouldBreak = true
           return { shouldBreak: true }
         } catch (e) {
-          throw Error(
-            `Error computing secret transition (${fnName})! ` + e.message
-          )
+          throw customError(`Error computing secret transition (${fnName})!`, e)
         }
       }
 
@@ -165,9 +163,7 @@ export function createEventChain<G extends S.DesignedState>(
             return { shouldBreak: true }
           }
         } catch (e) {
-          throw Error(
-            `Error computing break (${handler.break.name})! ` + e.message
-          )
+          throw customError(`Error computing break (${handler.break.name})!`, e)
         }
       }
     } else {

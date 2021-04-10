@@ -14,7 +14,9 @@ const state = createState({
     chairs: 0,
   },
   on: {
-    ADDED_TABLE: data => data.tables++,
+    ADDED_TABLE: data => {
+      data.tables++
+    },
     ADDED_CHAIR: data => data.chairs++,
   },
   values: {

@@ -9,6 +9,7 @@ import { createEventChain } from './createEventChain'
 import * as S from './types'
 import * as StateTree from './stateTree'
 import { getStateTreeFromDesign } from './getStateTreeFromDesign'
+import customError from './customError'
 
 enableES5()
 enableMapSet()
@@ -40,7 +41,11 @@ export function createState<
 
   /* ----------------- Error Handling ----------------- */
 
-  function handleError(err: Error) {
+  function handleError(err: Error, prefix?: string) {
+    if (prefix) {
+      err.message = prefix + ': ' + err.message
+    }
+
     if (design.options?.onError) {
       design.options.onError(err)
     }
@@ -594,7 +599,7 @@ export function createState<
 
       onSettle?.(snapshot)
     } catch (e) {
-      handleError(new Error(`${eventName}: ${e.message}`))
+      handleError(e, eventName)
     }
     return snapshot
   }
@@ -637,7 +642,7 @@ export function createState<
             _activeStates.find(state => state.path.endsWith(path)) !== undefined
         )
     } catch (e) {
-      handleError(e)
+      handleError(customError(`Error testing isIn(${paths.join()})!`, e))
       return false
     }
   }
@@ -661,7 +666,7 @@ export function createState<
             _activeStates.find(state => state.path.endsWith(path)) !== undefined
         )
     } catch (e) {
-      handleError(e)
+      handleError(customError(`Error testing isInAny(${paths.join()})!`, e))
       return false
     }
   }
@@ -694,9 +699,7 @@ export function createState<
             )
           })
         } catch (e) {
-          handleError(
-            new Error(`Error in state.can (${eventName})! ${e.message}`)
-          )
+          handleError(customError(`Error testing can(${eventName})!`, e))
           return false
         }
       })

@@ -1013,7 +1013,7 @@ describe('createState', () => {
     })
 
     expect(() => state.can('EVENT')).toThrowError(
-      'Error in state.can (EVENT)! helloWorld is not defined'
+      'Error testing can(EVENT)! helloWorld is not defined'
     )
   })
 
@@ -1033,7 +1033,7 @@ describe('createState', () => {
     })
 
     expect(() => state.can('EVENT')).toThrowError(
-      'Error in state.can (EVENT)! helloWorld is not defined'
+      'Error testing can(EVENT)! helloWorld is not defined'
     )
 
     expect(() => state.send('EVENT')).toThrowError(

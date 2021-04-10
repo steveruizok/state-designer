@@ -1,103 +1,169 @@
-# TSDX User Guide
+# State Designer / Core
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
+This package includes the core functions of [State Designer](https://statedesigner.com), a JavaScript state management library. [Click here](https://statedesigner.com) to learn more.
 
-> This TSDX setup is meant for developing libraries (not apps!) that can be published to NPM. If you’re looking to build a Node app, you could use `ts-node-dev`, plain `ts-node`, or simple `tsc`.
+You can use this package in any JavaScript or TypeScript project.
 
-> If you’re new to TypeScript, checkout [this handy cheatsheet](https://devhints.io/typescript)
+For React projects, see [@state-designer/react](https://github.com/@state-designer/react).
 
-## Commands
-
-TSDX scaffolds your new library inside `/src`.
-
-To run TSDX, use:
+## Installation
 
 ```bash
-npm start # or yarn start
+npm install @state-designer/core
+
+# or
+
+yarn add @state-designer/core
 ```
 
-This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
+## Usage
 
-To do a one-off build, use `npm run build` or `yarn build`.
+Using State Designer involves three steps:
 
-To run tests, use `npm test` or `yarn test`.
+1. Create a state with a configuration object.
+2. Subscribe to the state's updates.
+3. Send events to the state.
 
-## Configuration
+### 1. Creating a State
 
-Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
+To create a new **state**, call the `createState` function and pass it a **configuration object**.
 
-### Jest
+A configuration object defines everything about the state:
 
-Jest tests are set up to run with `npm test` or `yarn test`.
-
-### Bundle Analysis
-
-[`size-limit`](https://github.com/ai/size-limit) is set up to calculate the real cost of your library with `npm run size` and visualize the bundle with `npm run analyze`.
-
-#### Setup Files
-
-This is the folder structure we set up for you:
-
-```txt
-/src
-  index.tsx       # EDIT THIS
-/test
-  blah.test.tsx   # EDIT THIS
-.gitignore
-package.json
-README.md         # EDIT THIS
-tsconfig.json
-```
-
-### Rollup
-
-TSDX uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
-
-### TypeScript
-
-`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
-
-## Continuous Integration
-
-### GitHub Actions
-
-Two actions are added by default:
-
-- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
-- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
-
-## Optimizations
-
-Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
+- what **data** it controls;
+- how it should respond to **events** ; and
+- how its **child states** are organized
 
 ```js
-// ./types/index.d.ts
-declare var __DEV__: boolean;
+const state = createState({
+  data: { items: 0 },
+  on: {
+    ADDED_ITEM: {
+      unless: data => data.items >= 10,
+      do: data => data.items++,
+    },
+    RESET: data => (data.items = 0),
+  },
+})
+```
 
-// inside your code...
-if (__DEV__) {
-  console.log('foo');
+The example below is just the start of what you can add to a state's configuration object. [Click here](https://statedesigner.com) to learn more.
+
+### 2. Subscribing to Updates
+
+To subscribe to a state's **updates**, call the state's `onUpdate` method and pass it a callback function to call with each new update.
+
+An update includes:
+
+- The state's current **data**
+- An array of the state's **active** states
+- The full **state tree**
+
+```js
+state.onUpdate(({ data }) => {
+  document.getElementById('itemsCount').textContent = data.items.toString()
+})
+```
+
+### 3. Sending Events
+
+To send an **event** to the state, call the state's `send` method.
+
+The send method takes two arguments:
+
+- The name of the event as a string
+- A payload of any type (optional)
+
+```js
+document.getElementById('reset_button').onclick = () => {
+  state.send('RESET')
+}
+
+document.getElementById('plus_two_button').onclick = () => {
+  state.send('ADDED_ITEMS', 2)
 }
 ```
 
-You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
+## Example
 
-## Module Formats
+[![Edit state-designer-vanilla-example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/adoring-nightingale-g7ch1?fontsize=14&hidenavigation=1&theme=dark)
 
-CJS, ESModules, and UMD module formats are supported.
+```js
+import { createState } from '@state-designer/core'
 
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+// Create state
+const state = createState({
+  data: { items: 0 },
+  on: {
+    ADDED_ITEMS: {
+      unless: (data, payload) => data.items + payload > 10,
+      do: (data, payload) => (data.items += payload),
+    },
+    RESET: data => (data.items = 0),
+  },
+})
 
-## Named Exports
+// Subscribe to updates
+state.onUpdate(({ data }) => {
+  document.getElementById('itemsCount').textContent = data.items.toString()
+})
 
-Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
+// Send events
+document.getElementById('reset_button').onclick = () => {
+  state.send('RESET')
+}
 
-## Including Styles
+document.getElementById('plus_two_button').onclick = () => {
+  state.send('ADDED_ITEMS', 2)
+}
+```
 
-There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
+## API
 
-For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
+### `createState`
 
-## Publishing to NPM
+Creates a new state from a configuration object.
 
-We recommend using [np](https://github.com/sindresorhus/np).
+```ts
+const state = createState({
+  data: { items: 0 },
+  on: {
+    CLICKED_PLUS: 'increment',
+  },
+  actions: {
+    increment: data => data.count++,
+  },
+})
+```
+
+### `createDesign`
+
+> **Note:** This function only exists to provide additional type support in TypeScript projects and in testing where multiple states need to use the same configuration object.
+
+A helper function that creates a configuration object. The configuration provides several additional helpers for creating type-checked actions, events, and other parts of the object.
+
+```ts
+const config = createDesign({
+  data: { items: 0 },
+  on: {
+    CLICKED_PLUS: 'increment',
+  },
+  actions: {
+    increment: data => data.count++,
+  },
+})
+
+const state = createState(config)
+```
+
+| Helper                         | Description                               |
+| ------------------------------ | ----------------------------------------- |
+| createEventHandlerConfig       | Creates an event handler config.          |
+| createEventHandlerItemConfig   | Creates an event handler item config.     |
+| createAsyncEventHandlerConfig  | Creates an async event handler config.    |
+| createRepeatEventHandlerConfig | Creates a repeating event handler config. |
+| createStateConfig              | Creates a state config.                   |
+| createActionConfig             | Creates an action config.                 |
+| createConditionConfig          | Creates a condition config.               |
+| createResultConfig             | Creates a result config.                  |
+| createTimeConfig               | Creates a time config.                    |
