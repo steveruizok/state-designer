@@ -2,7 +2,7 @@
 
 State Designer is a JavaScript and TypeScript library for managing the state of a user interface. It prioritizes the design experience, making it easy to experiment with ideas, iterate on solutions, and communicate the final result.
 
-- **See examples in [React](https://codesandbox.io/s/state-designer-react-typescript-op1qk) and [TypeScript](https://codesandbox.io/s/state-designer-react-r0z0v).**
+- **See examples in [React](https://codesandbox.io/s/state-designer-react-r0z0v) and [TypeScript](https://codesandbox.io/s/state-designer-react-typescript-op1qk).**
 - **Learn more at [state-designer.com](https://state-designer.com).**
 
 ## Features
