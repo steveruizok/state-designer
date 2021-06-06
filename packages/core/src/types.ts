@@ -366,6 +366,7 @@ export interface DesignedState<
   onUpdate: (callbackFn: SubscriberFn<this>) => () => void
   getUpdate: (callbackFn: SubscriberFn<this>) => void
   getDesign: () => any
+  forceData: (data: D) => this
   forceTransition: (target: string, payload?: any) => this
   clone: () => this
   reset: () => this

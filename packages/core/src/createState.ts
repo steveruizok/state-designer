@@ -3,7 +3,7 @@ import castArray from 'lodash/castArray'
 import isFunction from 'lodash/isFunction'
 import uniqueId from 'lodash/uniqueId'
 import isUndefined from 'lodash/isUndefined'
-import { produce, enableES5, enableMapSet, setAutoFreeze } from 'immer'
+import { produce, enableMapSet, setAutoFreeze } from 'immer'
 import { testEventHandlerConditions } from './testEventHandlerConditions'
 import { createEventChain } from './createEventChain'
 import * as S from './types'
@@ -11,7 +11,6 @@ import * as StateTree from './stateTree'
 import { getStateTreeFromDesign } from './getStateTreeFromDesign'
 import customError from './customError'
 
-enableES5()
 enableMapSet()
 setAutoFreeze(false)
 
@@ -786,6 +785,13 @@ export function createState<
     return snapshot
   }
 
+  function forceData(data: D): Snapshot {
+    snapshot.data = data
+    logEvent('Forced data.')
+    notifySubscribers()
+    return snapshot
+  }
+
   /**
    * Reset state based on original design.
    */
@@ -819,6 +825,7 @@ export function createState<
     id,
     data: produce(design.data, d => d) as D,
     active: getPaths(_activeStates),
+    values: getValues(design.data as D, design.values),
     stateTree: initialStateTree,
     log: _log,
     index: 0,
@@ -831,11 +838,11 @@ export function createState<
     getDesign,
     onUpdate,
     getUpdate,
+    enableLog,
+    forceData,
+    forceTransition,
     clone,
     reset,
-    forceTransition,
-    enableLog,
-    values: getValues(design.data as D, design.values),
   }
 
   type Snapshot = typeof snapshot

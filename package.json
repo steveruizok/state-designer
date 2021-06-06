@@ -1,6 +1,6 @@
 {
   "name": "state-designer",
-  "version": "1.7.0",
+  "version": "1.7.2",
   "private": true,
   "devDependencies": {
     "@changesets/changelog-github": "^0.2.7",

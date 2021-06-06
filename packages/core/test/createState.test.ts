@@ -873,6 +873,54 @@ describe('createState', () => {
     state.send('INCREASED', { count: 0 })
   })
 
+  /* ------------------ Forced Stuff ------------------ */
+
+  it('Should force transitions.', () => {
+    const state = createState({
+      initial: 'a',
+      states: {
+        a: {
+          initial: 'a1',
+          states: {
+            a1: {},
+            a2: {},
+          },
+        },
+        b: {
+          initial: 'b1',
+          states: {
+            b1: {},
+            b2: {
+              initial: 'bb1',
+              states: {
+                bb1: {},
+                bb2: {},
+              },
+            },
+          },
+        },
+      },
+    })
+
+    state.forceTransition('b.b2.bb2')
+    expect(state.isIn('b.b2.bb2')).toBeTruthy()
+  })
+
+  it('Should force data.', () => {
+    const state = createState({
+      data: { count: 0 },
+      on: { INCREASED: { do: 'increment' } },
+      actions: {
+        increment(d) {
+          d.count++
+        },
+      },
+    })
+
+    state.forceData({ count: 2 })
+    expect(state.data.count).toEqual(2)
+  })
+
   /* --------------------- Errors --------------------- */
 
   it('Should throw errors for conditions.', () => {

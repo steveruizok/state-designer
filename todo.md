@@ -31,7 +31,7 @@
 
   ```js
   {
-    to: ["bold.disabled", "italic.disabled"]
+    to: ['bold.disabled', 'italic.disabled']
   }
   ```
 
@@ -54,7 +54,7 @@
     - [x] `send`
       - [x] async/await send
       - [x] send method chaining (async)
-- [ ] Testing
+- [x] Testing
   - [x] initial tests
   - [x] transition tests
   - [x] complex tests
