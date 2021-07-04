@@ -34,7 +34,8 @@ export function createState<
 >(design: S.Design<D, R, C, A, Y, T, V>): S.DesignedState<D, V> {
   type ThisState = S.DesignedState<D, V>
 
-  const { suppressErrors = false } = design.options || ({} as S.DesignOptions)
+  const { options = {} } = design
+  const { suppressErrors = false, onSend } = options
 
   let logEnabled = design.options?.enableLog
 
@@ -597,9 +598,12 @@ export function createState<
       if (shouldNotify) notifySubscribers()
 
       onSettle?.(snapshot)
+
+      onSend?.(eventName, payload, shouldNotify)
     } catch (e) {
       handleError(e, eventName)
     }
+
     return snapshot
   }
 

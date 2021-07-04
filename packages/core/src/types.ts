@@ -279,6 +279,7 @@ export interface DesignOptions {
   enableLog?: boolean
   suppressErrors?: boolean
   onError?: (error: Error) => void
+  onSend?: (eventName: string, payload: any, didCauseUpdate: boolean) => void
 }
 
 // Design

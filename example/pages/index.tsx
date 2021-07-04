@@ -27,6 +27,11 @@ const state = createState({
       return 100 - data.chairs
     },
   },
+  options: {
+    onSend: (eventName, payload, didUpdate) => {
+      console.log(eventName, payload, didUpdate)
+    },
+  },
 })
 
 const useSelector = createSelectorHook(state)
