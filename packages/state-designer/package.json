@@ -1,9 +1,12 @@
 {
   "name": "state-designer",
-  "version": "2.0.0",
+  "version": "2.0.3",
   "private": false,
   "description": "State Designer, a state management library.",
   "author": "steveruizok",
   "repository": "https://github.com/steveruizok/state-designer",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@state-designer/react": "latest"
+  }
 }

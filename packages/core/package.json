@@ -1,15 +1,13 @@
 {
   "name": "@state-designer/core",
-  "version": "2.0.0",
-  "private": false,
+  "version": "2.0.3",
   "description": "Core package for State Designer, a state management library.",
   "author": "steveruizok",
   "repository": "https://github.com/steveruizok/state-designer",
-  "license": "MIT",
-  "dependencies": {
-    "lodash": "^4.17.21"
-  },
+  "private": false,
   "devDependencies": {
-    "immer": "^9.0.5"
+    "@types/lodash": "^4.14.171",
+    "immer": "^9.0.5",
+    "lodash": "^4.17.21"
   }
 }

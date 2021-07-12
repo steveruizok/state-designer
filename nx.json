@@ -14,12 +14,7 @@
     "default": {
       "runner": "@nrwl/workspace/tasks-runners/default",
       "options": {
-        "cacheableOperations": [
-          "build",
-          "lint",
-          "test",
-          "e2e"
-        ]
+        "cacheableOperations": ["build", "lint", "test", "e2e"]
       }
     }
   },
@@ -36,25 +31,17 @@
       "tags": []
     },
     "example": {
-      "tags": [
-        "react"
-      ]
+      "tags": ["react"]
     },
     "example-e2e": {
       "tags": [],
-      "implicitDependencies": [
-        "example"
-      ]
+      "implicitDependencies": ["example"]
     },
     "react": {
-      "implicitDependencies": [
-        "core"
-      ]
+      "implicitDependencies": ["core"]
     },
     "state-designer": {
-      "implicitDependencies": [
-        "core"
-      ]
+      "implicitDependencies": ["react"]
     }
   },
   "workspaceLayout": {
