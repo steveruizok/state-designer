@@ -1,0 +1,27 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2017", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@state-designer/core": ["packages/core/src/index.ts"],
+      "@state-designer/react": ["packages/react/src/index.ts"],
+      "@state-designer/state-designer": [
+        "packages/state-designer/src/index.ts"
+      ],
+      "state-designer": ["packages/state-designer/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

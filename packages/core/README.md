@@ -39,10 +39,10 @@ const state = createState({
   data: { items: 0 },
   on: {
     ADDED_ITEM: {
-      unless: data => data.items >= 10,
-      do: data => data.items++,
+      unless: (data) => data.items >= 10,
+      do: (data) => void data.items++,
     },
-    RESET: data => (data.items = 0),
+    RESET: (data) => void (data.items = 0),
   },
 })
 ```
@@ -97,9 +97,9 @@ const state = createState({
   on: {
     ADDED_ITEMS: {
       unless: (data, payload) => data.items + payload > 10,
-      do: (data, payload) => (data.items += payload),
+      do: (data, payload) => void (data.items += payload),
     },
-    RESET: data => (data.items = 0),
+    RESET: (data) => void (data.items = 0),
   },
 })
 
@@ -131,7 +131,7 @@ const state = createState({
     CLICKED_PLUS: 'increment',
   },
   actions: {
-    increment: data => data.count++,
+    increment: (data) => void data.count++,
   },
 })
 ```
@@ -149,7 +149,7 @@ const config = createDesign({
     CLICKED_PLUS: 'increment',
   },
   actions: {
-    increment: data => data.count++,
+    increment: (data) => void data.count++,
   },
 })
 

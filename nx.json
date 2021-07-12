@@ -1,0 +1,64 @@
+{
+  "npmScope": "state-designer",
+  "affected": {
+    "defaultBase": "master"
+  },
+  "implicitDependencies": {
+    "package.json": {
+      "dependencies": "*",
+      "devDependencies": "*"
+    },
+    ".eslintrc.json": "*"
+  },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "@nrwl/workspace/tasks-runners/default",
+      "options": {
+        "cacheableOperations": [
+          "build",
+          "lint",
+          "test",
+          "e2e"
+        ]
+      }
+    }
+  },
+  "targetDependencies": {
+    "build": [
+      {
+        "target": "build",
+        "projects": "dependencies"
+      }
+    ]
+  },
+  "projects": {
+    "core": {
+      "tags": []
+    },
+    "example": {
+      "tags": [
+        "react"
+      ]
+    },
+    "example-e2e": {
+      "tags": [],
+      "implicitDependencies": [
+        "example"
+      ]
+    },
+    "react": {
+      "implicitDependencies": [
+        "core"
+      ]
+    },
+    "state-designer": {
+      "implicitDependencies": [
+        "core"
+      ]
+    }
+  },
+  "workspaceLayout": {
+    "appsDir": "packages",
+    "libsDir": "packages"
+  }
+}
