@@ -26,8 +26,8 @@ Using State Designer involves three steps:
 
 Your exact usage will depend on your framework:
 
-- [Usage in JavaScript](https://github.com/@state-designer/core#usage)
-- [Usage in React](https://github.com/@state-designer/react#usage)
+- [Usage in JavaScript](https://github.com/steveruizok/state-designer/tree/master/packages/core#usage)
+- [Usage in React](https://github.com/steveruizok/state-designer/tree/master/packages/react#usage)
 
 ## Inspiration
 
