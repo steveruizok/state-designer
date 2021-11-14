@@ -1,0 +1,16 @@
+# Transition Events
+
+You can fire **transition events** automatically as you transition between states.
+
+```jsx
+onEnter: { do: () => console.log("Entered the state!") },
+onExit: { do: () => console.log("Left the state!") },
+onEvent: { do: () => console.log("Something happened while I was active!") }
+```
+
+<PageLinks
+  backTo={"/docs/learn/results"}
+  back={"Results"}
+  nextTo={"/docs/learn/repeat-events"}
+  next={"Repeat Events"}
+/>

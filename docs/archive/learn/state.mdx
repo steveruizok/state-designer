@@ -1,0 +1,26 @@
+# State
+
+At the heart of State Designer is the **state**. A state stores information about a user interface and controls how and when that information should change. It also provides tools to help you use the state in your project.
+
+> 🏆 **Challenge**
+>
+> Can you change the example's code so that the count starts at 10?
+
+### Creating a State
+
+To create a state, pass a **configuration** object to the [`useStateDesigner`](/docs/api/useStateDesigner) hook.
+
+<LiveView snippet="state" />
+
+A state's configuration contains everything about the state: its initial data and all of its events, child states, and collections. We'll learn about each part of a state's configuration in the following articles.
+
+> **Tip:** If you want to use the same state with more than one component, you can create a state with the [`createState`](/docs/api/useStateDesigner) function, then pass the state to the `useStateDesigner` hook. To learn more, check out the [`useStateDesigner`](/docs/api/useStateDesigner) article.
+
+In the next article, we'll learn how to configure a state to respond to events.
+
+<PageLinks
+  backTo={"/docs/learn/intro"}
+  back={"Intro"}
+  nextTo={"/docs/learn/events"}
+  next={"Events"}
+/>

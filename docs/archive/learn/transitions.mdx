@@ -1,0 +1,63 @@
+# Transitions
+
+**Transitions** allow you to changing which states are active and which are inactive.
+
+You can define transitions in the `to` property of an event handler object.
+
+## Targets
+
+You can target a state by its name. Targets are evaluated beginning at the root of your configuration object. If you have two states with the same name, the most "shallow" state will be targeted.
+
+```js
+on: {
+  TOGGLED: { to: "bold" },
+}
+```
+
+## Path Targets
+
+Sometimes you may want to use the same state name at multiple places in your configuration object. In this case, you could target a specific state by including one or more of its anscestor states, separated by decimal points, in your target string. This type of string is called a path.
+
+```js
+on: {
+  TOGGLED: { to: "bold.enabled"},
+}
+```
+
+You can target states using deep links. Each state has a path that starts with `root` and includes all of its ancestor states. For example, a state named `weight` that you've defined at the root of your configuration object would have the path `root.weight`, while its child state named `bold` would have the path `root.weight.bold`.
+
+You can use a state's path—or the end of the path—in a transition, as well as in any helper function. In each case, a matching target would have a path that ends with the provided string.
+
+```js
+whenIn({
+  "bold.enabled": 800,
+  "bold.disabled": 400,
+  "italic.enabled": "italic",
+  "italic.disabled": "normal",
+})
+```
+
+## Previous and Restore
+
+When you transition to a component state—a state with both states and an `initial` property—that state will automatically activate its initial child state. If you instead want to activate whichever child state was active previously, you can add `.previous` to your transition target.
+
+```js
+on: {
+  TOGGLED: { to: "bold.previous"},
+}
+```
+
+You might also want to restore _that_ state's children, too. To restore an entire branch of your state tree to how it was before, add `.restore` to your transition target.
+
+```js
+on: {
+  TOGGLED: { to: "style.restore"},
+}
+```
+
+<PageLinks
+  backTo={"/docs/learn/states"}
+  back={"States"}
+  nextTo={"/docs/learn/data"}
+  next={"Data"}
+/>

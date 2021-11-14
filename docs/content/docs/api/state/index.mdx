@@ -1,0 +1,385 @@
+# State
+
+This article describes the state API.
+
+You can create a state by passing a [design](/docs/api/design) object to the [`createState`](/docs/api/createState) function—or, in a React project, the [`createStateDesigner`](/docs/api/useStateDesigner) hook. Once you've created a state, you can use and interact with it using the values and methods described below.
+
+### What is a State?
+
+A `state` manages information about the state of a user interface. It stores the current version of that information and controls when and how it can change. When the information does change, a `state` can notify other parts of your project so that everything stays in sync.
+
+The core of the state object is the snapshot of the state's current information:
+
+- [`data`](/docs/api/state#data)
+- [`active`](/docs/api/state#active)
+- [`values`](/docs/api/state#values)
+- [`stateTree`](/docs/api/state#state-tree)
+
+It also contains several helpers to interpret that information:
+
+- [`isIn`](/docs/api/state#is-in)
+- [`isInAny`](/docs/api/state#is-in-any)
+- [`whenIn`](/docs/api/state#whenIn)
+
+It also contains a function that you can use to send events to the state:
+
+- [`send`](/docs/api/state#send)
+
+And a function to subscribe to its changes:
+
+- [`onUpdate`](/docs/api/state#on-update)
+
+---
+
+## `data`
+
+The `data` property corresponds to the design's `data` property, except that `state.data` will always store the most recent version of the `data`.
+
+```js live=true log=true
+const state = createState({
+  data: { count: 2 },
+})
+
+return log(state.data)
+```
+
+When an event occurs that changes the state's `data`, the `data` property will store the latest version.
+
+```js live=true log=true
+const state = createState({
+  data: { count: 2 },
+  on: { INCREASE: (data) => data.count++ },
+})
+
+state.send("INCREASE")
+return log(state.data)
+```
+
+The `data` value is immutable: it will be new after each change. Its _properties_ will only be new if those properties have changed during the update.
+
+```js live=true log=true
+const state = createState({
+  data: {
+    user: {
+      name: "Steve",
+      age: 93,
+    },
+    count: 4,
+  },
+  on: {
+    INCREASE: (data) => data.count++,
+    AGE: (data) => data.user.age++,
+  },
+})
+
+const { data } = state
+
+state.send("INCREASE")
+// state.send("AGE")
+
+return log({
+  dataIsNew: state.data !== data,
+  userIsNew: state.data.user !== data.user,
+})
+```
+
+## `values`
+
+The `values` property contains the state's current computed values. This object corresponds to the design object's [`values`](/api/design#values) object, except that the `state.values` object contains the results of the design's functions.
+
+```js live=true log=true
+const state = createState({
+  data: { count: 2 },
+  values: {
+    double(data) {
+      return data.count * 2
+    },
+    lastUpdated() {
+      return new Date().toLocaleTimeString("en-gb")
+    },
+  },
+})
+
+return log(state.values)
+```
+
+Whenever the state updates, it will re-compute its `values` by running each function again. Like `data`, this object will be new after each update.
+
+```js live=true log=true
+const state = createState({
+  data: { count: 2 },
+  on: {
+    INCREASE: (data) => data.count++,
+  },
+  values: {
+    double(data) {
+      return data.count * 2
+    },
+  },
+})
+
+const initial = state.values
+state.send("INCREASE")
+return log([initial, state.values])
+```
+
+## `isIn`
+
+The `isIn` function will return `true` if the indicated state is currently active.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {
+      on: { TOGGLE: { to: "low" } },
+    },
+    low: {
+      on: { TOGGLE: { to: "high" } },
+    },
+  },
+})
+
+state.isIn("high") // true
+state.send("TOGGLE")
+state.isIn("high") // false
+```
+
+### Using Paths
+
+You can indicate a state node with either its name or its path.
+
+```js
+state.isIn("active")
+state.isIn("bold.active")
+state.isIn("text.bold.active")
+```
+
+> **Tip:** Technically, the state's name is a path with a depth of only one. A state's path is made up of its parent states, separated by periods. A full path might look something like `#state_id.root.text.bold.active`.
+>
+> Indicating states with paths is useful when your design includes multiple states that share the same name, such as `bold.active` and `italic.active`.
+
+### Testing Multiple States
+
+You can also use the `isIn` method to test if more than one state is active. When testing multiple states, the method will return `true` only if _all_ of the indicated states are active.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {},
+    low: {},
+    med: {},
+  },
+})
+
+state.isIn("low", "med") // false
+state.isIn("high", "low") // false
+state.isIn("high", "root") // true
+```
+
+## `isInAny`
+
+The `isInAny` method works exactly like `isIn` except that when testing multiple states it will return `true` if _any_ of the indicated states are active.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {},
+    low: {},
+    med: {},
+  },
+})
+
+state.isIn("low", "med") // false
+state.isIn("high", "low") // true
+// highlight-next-line
+state.isIn("high", "root") // true
+```
+
+## `whenIn`
+
+The `whenIn` helper method allows you to return different values depending on which states are active.
+
+```js
+buttonText = state.whenIn({
+  stopped: "Play",
+  playing: "Stop",
+}) // "Play"
+
+state.send("PLAYED") // Transition to `playing`
+
+buttonText = state.whenIn({
+  stopped: "Play",
+  playing: "Stop",
+}) // "Stop"
+```
+
+### Using Paths
+
+As with `isIn`, you can indicate a state using a path of any depth.
+
+```js
+state.whenIn({
+  heading: "H1",
+  "text.subheading": "H2",
+  "editing.text.body": "Body",
+})
+```
+
+### Output
+
+By default, the `whenIn` helper will return a value. If multiple indicated states are active, then this value will be the last active state indicated.
+
+```js
+state.whenIn({
+  asleep: "Asleep",
+  awake: "Awake", // Active
+  working: "Working", // Active
+}) // "Working"
+```
+
+You can use the method's second argument to produce different results. This argument is `"value"` by default, but you can also set it to `"array"`.
+
+```js
+state.whenIn(
+  {
+    asleep: "Asleep",
+    awake: "Awake", // Active
+    working: "Working", // Active
+  },
+  "array"
+) // ["Awake", "Working"]
+```
+
+You can also set it to a reducer function. In this case, you can provide the reducer's initial value as the function's third argument.
+
+```js
+state.whenIn(
+  {
+    asleep: "Asleep",
+    awake: "Awake", // Active
+    working: "Working", // Active
+  },
+  (acc, cur) => acc + " and " + cur,
+  "I'm "
+) // "I'm Awake and Working"
+```
+
+> **Tip:** In React, you can use the `whenIn` helper to return different JSX depending on the currently active state(s). When using the `"array"` format, remember to add a unqiue [`key` property](https://reactjs.org/docs/lists-and-keys.html#keys) to each element.
+>
+> ```jsx
+> <ul>
+>   {whenIn({
+>     asleep: <li key="0">Asleep</li>,
+>     awake: <li key="1">Awake</li>,
+>     working: <li key="2">Working</li>,
+>   })}
+> </ul>
+> ```
+
+## `active`
+
+The `active` property contains an array of paths for all active states.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {
+      on: { TOGGLE: { to: "low" } },
+    },
+    low: {
+      on: { TOGGLE: { to: "high" } },
+    },
+  },
+})
+
+state.active // ["#state_id.root", "#state.id_root.high"]
+```
+
+## `stateTree`
+
+The `stateTree` property includes the full tree of all state nodes.
+
+```js
+const state = createState({
+  initial: "high",
+  states: {
+    high: {
+      on: { TOGGLE: { to: "low" } },
+    },
+    low: {
+      on: { TOGGLE: { to: "high" } },
+    },
+  },
+})
+
+// Print the entire state tree
+console.log(
+  JSON.stringify(
+    state.stateTree,
+    (k, v) => (typeof v === "function" ? v.name : v),
+    2
+  )
+)
+```
+
+> **Tip:** For now, at least, this object is mutable—but for heaven's sake, don't mutate it! Use it instead for debugging, visualization, and to better understand the relationship between a state design and the resulting state tree.
+
+## `onUpdate`
+
+You can subscribe to a state's changes by passing a callback function to the state's `onUpdate` method. When a state changes, it will call each subscribed callback with itself as the only argument.
+
+> **Note:** The state passed to the callback is the same as (or strictly equal to) the state that was originally subscribed to. Its methods, such as `send` will also be the same. However, the state will have new `data` and `active` properties following each update.
+>
+> ```js
+> const state = createState(myDesign)
+>
+> const { data, active, send } = state
+>
+> state.onUpdate((update) => {
+>   console.log(update === state) // true
+>
+>   // Compared with state values
+>   console.log("data", update.data === state.data) // true
+>   console.log("active", update.active === state.active) // true
+>   console.log("send", update.send === state.send) // true
+>
+>   // Compared with destructured values
+>   console.log("data", update.data === data) // false
+>   console.log("active", update.active === active) // false
+>   console.log("send", update.send === send) // true
+> })
+> ```
+
+The `onUpdate` method returns a second function that will cancel the subscription.
+
+```js
+const state = createState(myDesign)
+
+cancel = state.onUpdate((update) => {
+  // Do something
+})
+
+cancel()
+```
+
+> **Tip:** You could use this to cleanup a subscription that you've made in an effect:
+>
+> ```jsx
+> const state = createState(myDesign)
+>
+> function Example() {
+>   const [state, setState] = React.useState()
+>
+>   React.useEffect(() => {
+>     return state.onUpdate((update) => setState(update.data))
+>   }, [])
+>
+>   return <div>...</div>
+> }
+> ```
+>
+> The [`useStateDesigner`](/docs/api/useStateDesigner) hook takes care of this for you, though!

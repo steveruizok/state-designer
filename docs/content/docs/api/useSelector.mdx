@@ -1,0 +1,73 @@
+# useStateDesigner
+
+```js
+const selected = useSelector(state, selectFn)
+```
+
+Use `useSelector` to subscribe a component to only certain changes from a state. Whenever the data returned by the `selectFn` changes, the component will update.
+
+Pass it a created state, together with a callback function that receives the update and returns a value (the "selected value"). Whenever the state updates, the hook will check to see whether the data returned by the callback has changed. The component will only update if the selected value has changed.
+
+```js
+import { createState, useSelector } from '@state-designer/react'
+
+const state = createState({
+  data: {
+    count: 0,
+    users: {
+      '0': { id: 0, name: 'Li' },
+      '1': { id: 1, name: 'Reya' },
+      '2': { id: 2, name: 'Shawn' },
+    },
+  },
+  on: {
+    INCREMENTED: data => data.count++,
+    DECREMENTED: data => data.count--,
+  },
+  values: {
+    userNames(data) {
+      return Object.values(data.users).map(user => user.name)
+    },
+  },
+})
+
+// This component will only update when the count changes
+function Counter() {
+  const count = useSelector(state, state => state.data.count)
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => state.send('DECREMENTED')}>-</button>
+      <button onClick={() => state.send('INCREMENTED')}>+</button>
+    </div>
+  )
+}
+```
+
+### Comparisons
+
+By default, the hook uses strict equality (`a === b`) to compare the previous selected value with the new selected value. For better control, the hook also accepts an optional third argument: a callback function that it will use for comparisons instead.
+
+```js
+function UserNames() {
+  const userNames = useSelector(
+    state => state.values.userNames,
+    (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  )
+
+  return (
+    <div>
+      <h1>User Names</h1>
+      <ol>
+        {userNames.map((name, i) => (
+          <li key={i}>{name}</li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+```
+
+> You can think of the comparison function as `shouldSkipUpdate` rather than `shouldUpdate`. The component will only update if this comparison function returns `false`.
+
+Consider the example above, where the `values.users` value will be recomputed on each state update. We would need to use a "deep comparison" function to better detect mutations.

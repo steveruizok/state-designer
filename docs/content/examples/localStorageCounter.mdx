@@ -1,0 +1,40 @@
+# Local Storage Counter
+
+```tsx
+import React from "react"
+import { useStateDesigner } from "@state-designer/react"
+
+function saveCounterData(data) {
+  const string = JSON.stringify(data)
+  localStorage.setItem("counter_data", string)
+}
+
+function localCounterData() {
+  const string = localStorage.getItem("counter_data")
+  return string && JSON.parse(string)
+}
+
+export function Counter({ id, onClick }) {
+  const { data, send, onUpdate } = useStateDesigner({
+    data: localCounterData() || { count: 0 },
+    on: {
+      CLICKED: (data) => data.count++,
+    },
+  })
+
+  // highlight-start
+  React.useEffect(() => {
+    const cancelFunction = onUpdate(({ data }) => {
+      saveCounterData(data)
+    })
+    return cancelFunction
+  }, [])
+  // highlight-end
+
+  return (
+    <div>
+      <button onClick={() => send("CLICKED")}>Click here!</button>
+    </div>
+  )
+}
+```

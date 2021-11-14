@@ -1,0 +1,160 @@
+# useStateDesigner
+
+```ts
+useStateDesigner(source: state | config, dependencies?: any[]): state
+```
+
+The `useStateDesigner` hook will subscribe a component to a state's updates. Any time the state updates, so will the component.
+
+You can use the hook in two different ways, depending on whether you want to subscribe a component to existing state or to a new state created just for the component.
+
+## External State Pattern
+
+If you pass `useStateDesigner` a **state** that you've created somewhere else (such as with [`createState`](/docs/api/createState)) then the hook will subscribe the component to the state's updates.
+
+```jsx
+import { createState } from "@state-designer/core"
+import { useStateDesigner } from "@state-designer/react"
+
+const counter = createState({ data: { count: 1 } })
+
+function Example() {
+  // highlight-next-line
+  const state = useStateDesigner(counter)
+  return <h1>{state.data.count}</h1>
+}
+```
+
+You can use this pattern to subscribe multiple components all to the same state. In this way, you can use State Designer to create **global states** that drive updates to many parts of your project.
+
+> **Tip:** A component does not have to be _subscribed_ to a state in order to use the state's `send` method to send it events. [See an example](https://codesandbox.io/s/using-send-method-withput-subscribing-sp6bw).
+
+## Internal State Pattern
+
+You can also pass `useStateDesigner` a **configuration object** instead. In this case, the hook will use the config to create a _new_ state and then subscribe to its updates.
+
+```jsx
+import { createState } from "@state-designer/core"
+import { useStateDesigner } from "@state-designer/react"
+
+function Example() {
+  // highlight-next-line
+  const state = useStateDesigner({ data: { count: 1 } })
+  return <h1>{state.data.count}</h1>
+}
+```
+
+This pattern is useful for inputs, buttons, and other reusable components that each require their own **local states**.
+
+### Dependencies
+
+If you're using the internal state pattern, you can pass the `useStateDesigner` hook a second argument: an array of dependencies. If the hook finds changes in these dependencies between renders, it will rebuild a new state based on the current config.
+
+```jsx
+function Counter({ count = 1 }) {
+  // highlight-next-line
+  const state = useStateDesigner(
+    {
+      data: { count },
+      on: { CLICKED: (data) => data.count++ },
+    },
+    [count]
+  )
+  return <h1>{state.data.count}</h1>
+}
+```
+
+In the example above, another component could control the Counter component through its `count` prop. When that prop changed, the hook would rebuild a new state with the correct `data.count`.
+
+That this is a rather heavy-handed solution and may not be appropriate for complex states, especially those with a mix of controlled and uncontrolled values as in the example below. In these cases, you could achieve the same result with effects that send events to the state.
+
+```jsx
+function Counter({ count = 1 }) {
+  // highlight-next-line
+  const state = useStateDesigner({
+    data: {
+      count,
+      hovers: 0,
+    },
+    on: {
+      CLICKED: (data) => data.count++,
+      HOVERED: (data) => data.hovers++,
+      UPDATED_FROM_PROPS: (data, payload) => (data.count = payload),
+    },
+  })
+
+  React.useEffect(() => {
+    state.send("UPDATED_FROM_PROPS", count)
+  }, [count])
+
+  return <h1>{state.data.count}</h1>
+}
+```
+
+In the example above, another component could still control `data.count` through its `count` prop, however the hook would not rebuild its state and so would preserve its `data.hovers`.
+
+## Passing State to Children
+
+In most cases, you can use props to pass down parts of a state to a component's children.
+
+```jsx
+function Parent() {
+  const { data } = useStateDesigner({ ... })
+  return <Child someProp={data.foo}/>
+}
+
+function Child(props) {
+  return <div>{props.someProp}</div>
+}
+```
+
+You might also want to pass down the state's `send` method. This method is stable and can be used the same manner as the `dispatch` method described [here](https://reactjs.org/docs/hooks-faq.html#how-to-avoid-passing-callbacks-down).
+
+```jsx
+function Parent() {
+  const { send } = useStateDesigner({ ... })
+  return <Child send={send}/>
+}
+
+function Child(props) {
+  return <button onClick={() => props.send('SOME_EVENT')}/>
+}
+```
+
+### Subscribing Children to State
+
+You may sometimes want to subscribe a component's child directly to same state as the parent. This is easily done if both components are using the external state pattern.
+
+```jsx
+import counter from "./counter"
+
+function Parent() {
+  const { data } = useStateDesigner(counter)
+  return <Child />
+}
+
+function Child(props) {
+  const { send } = useStateDesigner(counter)
+  return <button onClick={() => send("SOME_EVENT")} />
+}
+```
+
+You can subscribe a component to its parent's internal state, too. When using the internal state pattern, pass down the state returned by the `useStateDesigner` hook. Other components can then subscribe to this state using the external state pattern.
+
+```jsx
+function Parent() {
+  const localState = useStateDesigner({ ... })
+  return <Child state={localState}/>
+}
+
+function Child({ state }) {
+  const { send } = useStateDesigner(state)
+  return <button onClick={() => send("SOME_EVENT")} />
+}
+```
+
+[Click here](https://codesandbox.io/s/passing-state-to-children-syrc1) to see this pattern in action.
+
+## Note on Mutability
+
+The state returned from `useStateDesigner` is a mix of immutable and mutable data. Each update returned from the hook is a new object comprised of the source state's immutable `data`, `active`, and `stateTree` properties, together with the source state's original stable methods, such as `send`, `isIn`, and `onUpdate`.

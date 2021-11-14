@@ -1,0 +1,902 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>state-designer</title><meta name="description" content="Documentation for state-designer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">state-designer</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>state-designer</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography"><div style="text-align: center; transform: scale(.5);">
+  <img src="card-repo.png"/>
+</div>
+
+
+<a href="#tldrawcore" id="tldrawcore" style="color: inherit; text-decoration: none;">
+  <h1>@tldraw/core</h1>
+</a>
+<p>This package contains the <code>Renderer</code> and core utilities used by <a href="https://tldraw.com">tldraw</a>.</p>
+<p>You can use this package to build projects like <a href="https://tldraw.com">tldraw</a>, where React components are rendered on a canvas user interface. Check out the <a href="https://core-steveruiz.vercel.app/">advanced example</a>.</p>
+<p>💕 Love this library? Consider <a href="https://github.com/sponsors/steveruizok?frequency=recurring&amp;sponsor=steveruizok">becoming a sponsor</a>.</p>
+
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h2>Installation</h2>
+</a>
+<p>Use your package manager of choice to install <code>@tldraw/core</code> and its peer dependencies.</p>
+<pre><code class="language-bash"><span class="hl-0">yarn add @tldraw/core</span><br/><span class="hl-1"># or</span><br/><span class="hl-0">npm i @tldraw/core</span>
+</code></pre>
+
+<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
+  <h2>Examples</h2>
+</a>
+<p>There are two examples in this repository.</p>
+<p>The <strong>simple</strong> example in the <code>example</code> folder shows a minimal use of the library. It does not do much but this should be a good reference for the API without too much else built on top.</p>
+<p>The <strong>advanced</strong> example in the <code>example-advanced</code> folder shows a more realistic use of the library. (Try it <a href="https://core-steveruiz.vercel.app/">here</a>). While the fundamental patterns are the same, this example contains features such as: panning, pinching, and zooming the camera; creating, cloning, resizing, and deleting shapes; keyboard shortcuts, brush-selection; shape-snapping; undo, redo; and more. Much of the code in the advanced example comes from the <a href="https://tldraw.com">@tldraw/tldraw</a> codebase.</p>
+<p>If you&#39;re working on an app that uses this library, I recommend referring back to the advanced example for tips on how you might implement these features for your own project.</p>
+
+<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+  <h2>Usage</h2>
+</a>
+<p>Import the <code>Renderer</code> React component and pass it the required props.</p>
+<pre><code class="language-tsx"><span class="hl-2">import</span><span class="hl-0"> </span><span class="hl-3">*</span><span class="hl-0"> </span><span class="hl-2">as</span><span class="hl-0"> </span><span class="hl-4">React</span><span class="hl-0"> </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&quot;react&quot;</span><br/><span class="hl-2">import</span><span class="hl-0"> { </span><span class="hl-4">Renderer</span><span class="hl-0">, </span><span class="hl-4">TLShape</span><span class="hl-0">, </span><span class="hl-4">TLShapeUtil</span><span class="hl-0">, </span><span class="hl-4">Vec</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;@tldraw/core&#39;</span><br/><span class="hl-2">import</span><span class="hl-0"> { </span><span class="hl-4">BoxShape</span><span class="hl-0">, </span><span class="hl-4">BoxUtil</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&quot;./shapes/box&quot;</span><br/><br/><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-6">shapeUtils</span><span class="hl-0"> = { </span><span class="hl-4">box:</span><span class="hl-0"> </span><span class="hl-3">new</span><span class="hl-0"> </span><span class="hl-7">BoxUtil</span><span class="hl-0">() }</span><br/><br/><span class="hl-3">function</span><span class="hl-0"> </span><span class="hl-7">App</span><span class="hl-0">() {</span><br/><span class="hl-0">  </span><span class="hl-3">const</span><span class="hl-0"> [</span><span class="hl-6">page</span><span class="hl-0">, </span><span class="hl-6">setPage</span><span class="hl-0">] = </span><span class="hl-4">React</span><span class="hl-0">.</span><span class="hl-7">useState</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-4">id:</span><span class="hl-0"> </span><span class="hl-5">&quot;page&quot;</span><br/><span class="hl-0">    </span><span class="hl-4">shapes</span><span class="hl-0">: {</span><br/><span class="hl-0">      </span><span class="hl-5">&quot;box1&quot;</span><span class="hl-4">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-4">id:</span><span class="hl-0"> </span><span class="hl-5">&#39;box1&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-4">type:</span><span class="hl-0"> </span><span class="hl-5">&#39;box&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-4">parentId:</span><span class="hl-0"> </span><span class="hl-5">&#39;page&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-4">childIndex:</span><span class="hl-0"> </span><span class="hl-8">0</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-4">point:</span><span class="hl-0"> [</span><span class="hl-8">0</span><span class="hl-0">, </span><span class="hl-8">0</span><span class="hl-0">],</span><br/><span class="hl-0">        </span><span class="hl-4">size:</span><span class="hl-0"> [</span><span class="hl-8">100</span><span class="hl-0">, </span><span class="hl-8">100</span><span class="hl-0">],</span><br/><span class="hl-0">        </span><span class="hl-4">rotation:</span><span class="hl-0"> </span><span class="hl-8">0</span><span class="hl-0">,</span><br/><span class="hl-0">      }</span><br/><span class="hl-0">    },</span><br/><span class="hl-0">    </span><span class="hl-4">bindings:</span><span class="hl-0"> {}</span><br/><span class="hl-0">  })</span><br/><br/><span class="hl-0">  </span><span class="hl-3">const</span><span class="hl-0"> [</span><span class="hl-6">pageState</span><span class="hl-0">, </span><span class="hl-6">setPageState</span><span class="hl-0">] = </span><span class="hl-4">React</span><span class="hl-0">.</span><span class="hl-7">useState</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-4">id:</span><span class="hl-0"> </span><span class="hl-5">&quot;page&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-4">selectedIds:</span><span class="hl-0"> [],</span><br/><span class="hl-0">    </span><span class="hl-4">camera:</span><span class="hl-0"> {</span><br/><span class="hl-0">      </span><span class="hl-4">point:</span><span class="hl-0"> [</span><span class="hl-8">0</span><span class="hl-0">,</span><span class="hl-8">0</span><span class="hl-0">],</span><br/><span class="hl-0">      </span><span class="hl-4">zoom:</span><span class="hl-0"> </span><span class="hl-8">1</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">  })</span><br/><br/><span class="hl-0">  </span><span class="hl-2">return</span><span class="hl-0"> (</span><span class="hl-9">&lt;</span><span class="hl-10">Renderer</span><br/><span class="hl-0">    </span><span class="hl-11">page</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">page</span><span class="hl-3">}</span><br/><span class="hl-0">    </span><span class="hl-11">pageState</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">pageState</span><span class="hl-3">}</span><br/><span class="hl-0">    </span><span class="hl-11">shapeUtils</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">myShapes</span><span class="hl-3">}</span><br/><span class="hl-0">  </span><span class="hl-9">/&gt;</span><span class="hl-0">)</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
+  <h2>Documentation</h2>
+</a>
+
+<a href="#renderer" id="renderer" style="color: inherit; text-decoration: none;">
+  <h3><code>Renderer</code></h3>
+</a>
+<p>To avoid unnecessary renders, be sure to pass &quot;stable&quot; values as props to the <code>Renderer</code>. Either define these values outside of the parent component, or place them in React state, or memoize them with <code>React.useMemo</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>page</code></td>
+<td><a href="#tlpage"><code>TLPage</code></a></td>
+<td>The current page object.</td>
+</tr>
+<tr>
+<td><code>pageState</code></td>
+<td><a href="#tlpagestate"><code>TLPageState</code></a></td>
+<td>The current page&#39;s state.</td>
+</tr>
+<tr>
+<td><code>shapeUtils</code></td>
+<td><a href="#tlshapeutils"><code>TLShapeUtils</code></a></td>
+<td>The shape utilities used to render the shapes.</td>
+</tr>
+</tbody></table>
+<p>In addition to these required props, the Renderer accents many other <strong>optional</strong> props.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>containerRef</code></td>
+<td><code>React.MutableRefObject</code></td>
+<td>A React ref for the container, where CSS variables will be added.</td>
+</tr>
+<tr>
+<td><code>theme</code></td>
+<td><code>object</code></td>
+<td>An object with overrides for the Renderer&#39;s default colors.</td>
+</tr>
+<tr>
+<td><code>hideBounds</code></td>
+<td><code>boolean</code></td>
+<td>Do not show the bounding box for selected shapes.</td>
+</tr>
+<tr>
+<td><code>hideHandles</code></td>
+<td><code>boolean</code></td>
+<td>Do not show handles for shapes with handles.</td>
+</tr>
+<tr>
+<td><code>hideBindingHandles</code></td>
+<td><code>boolean</code></td>
+<td>Do not show binding controls for selected shapes with bindings.</td>
+</tr>
+<tr>
+<td><code>hideResizeHandles</code></td>
+<td><code>boolean</code></td>
+<td>Do not show resize handles for selected shapes.</td>
+</tr>
+<tr>
+<td><code>hideRotateHandles</code></td>
+<td><code>boolean</code></td>
+<td>Do not show rotate handles for selected shapes.</td>
+</tr>
+<tr>
+<td><code>snapLines</code></td>
+<td><a href="#tlsnapline"><code>TLSnapLine</code></a>[]</td>
+<td>An array of &quot;snap&quot; lines.</td>
+</tr>
+<tr>
+<td><code>users</code></td>
+<td><code>object</code></td>
+<td>A table of <a href="#tluser"><code>TLUser</code></a>s.</td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code>object</code></td>
+<td>The current user&#39;s <a href="#tluser"><code>TLUser</code></a> id.</td>
+</tr>
+</tbody></table>
+<p>The theme object accepts valid CSS colors for the following properties:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>foreground</code></td>
+<td>The primary (usually &quot;text&quot;) color</td>
+</tr>
+<tr>
+<td><code>background</code></td>
+<td>The default page&#39;s background color</td>
+</tr>
+<tr>
+<td><code>brushFill</code></td>
+<td>The fill color of the brush selection box</td>
+</tr>
+<tr>
+<td><code>brushStroke</code></td>
+<td>The stroke color of the brush selection box</td>
+</tr>
+<tr>
+<td><code>selectFill</code></td>
+<td>The fill color of the selection bounds</td>
+</tr>
+<tr>
+<td><code>selectStroke</code></td>
+<td>The stroke color of the selection bounds and handles</td>
+</tr>
+</tbody></table>
+<p>The Renderer also accepts many (optional) event callbacks.</p>
+<table>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onPan</code></td>
+<td>Panned with the mouse wheel</td>
+</tr>
+<tr>
+<td><code>onZoom</code></td>
+<td>Zoomed with the mouse wheel</td>
+</tr>
+<tr>
+<td><code>onPinchStart</code></td>
+<td>Began a two-pointer pinch</td>
+</tr>
+<tr>
+<td><code>onPinch</code></td>
+<td>Moved their pointers during a pinch</td>
+</tr>
+<tr>
+<td><code>onPinchEnd</code></td>
+<td>Stopped a two-pointer pinch</td>
+</tr>
+<tr>
+<td><code>onPointerDown</code></td>
+<td>Started pointing</td>
+</tr>
+<tr>
+<td><code>onPointerMove</code></td>
+<td>Moved their pointer</td>
+</tr>
+<tr>
+<td><code>onPointerUp</code></td>
+<td>Ended a point</td>
+</tr>
+<tr>
+<td><code>onPointCanvas</code></td>
+<td>Pointed the canvas</td>
+</tr>
+<tr>
+<td><code>onDoubleClickCanvas</code></td>
+<td>Double-pointed the canvas</td>
+</tr>
+<tr>
+<td><code>onRightPointCanvas</code></td>
+<td>Right-pointed the canvas</td>
+</tr>
+<tr>
+<td><code>onDragCanvas</code></td>
+<td>Dragged the canvas</td>
+</tr>
+<tr>
+<td><code>onReleaseCanvas</code></td>
+<td>Stopped pointing the canvas</td>
+</tr>
+<tr>
+<td><code>onHoverShape</code></td>
+<td>Moved their pointer onto a shape</td>
+</tr>
+<tr>
+<td><code>onUnhoverShape</code></td>
+<td>Moved their pointer off of a shape</td>
+</tr>
+<tr>
+<td><code>onPointShape</code></td>
+<td>Pointed a shape</td>
+</tr>
+<tr>
+<td><code>onDoubleClickShape</code></td>
+<td>Double-pointed a shape</td>
+</tr>
+<tr>
+<td><code>onRightPointShape</code></td>
+<td>Right-pointed a shape</td>
+</tr>
+<tr>
+<td><code>onDragShape</code></td>
+<td>Dragged a shape</td>
+</tr>
+<tr>
+<td><code>onReleaseShape</code></td>
+<td>Stopped pointing a shape</td>
+</tr>
+<tr>
+<td><code>onHoverHandle</code></td>
+<td>Moved their pointer onto a shape handle</td>
+</tr>
+<tr>
+<td><code>onUnhoverHandle</code></td>
+<td>Moved their pointer off of a shape handle</td>
+</tr>
+<tr>
+<td><code>onPointHandle</code></td>
+<td>Pointed a shape handle</td>
+</tr>
+<tr>
+<td><code>onDoubleClickHandle</code></td>
+<td>Double-pointed a shape handle</td>
+</tr>
+<tr>
+<td><code>onRightPointHandle</code></td>
+<td>Right-pointed a shape handle</td>
+</tr>
+<tr>
+<td><code>onDragHandle</code></td>
+<td>Dragged a shape handle</td>
+</tr>
+<tr>
+<td><code>onReleaseHandle</code></td>
+<td>Stopped pointing shape handle</td>
+</tr>
+<tr>
+<td><code>onHoverBounds</code></td>
+<td>Moved their pointer onto the selection bounds</td>
+</tr>
+<tr>
+<td><code>onUnhoverBounds</code></td>
+<td>Moved their pointer off of the selection bounds</td>
+</tr>
+<tr>
+<td><code>onPointBounds</code></td>
+<td>Pointed the selection bounds</td>
+</tr>
+<tr>
+<td><code>onDoubleClickBounds</code></td>
+<td>Double-pointed the selection bounds</td>
+</tr>
+<tr>
+<td><code>onRightPointBounds</code></td>
+<td>Right-pointed the selection bounds</td>
+</tr>
+<tr>
+<td><code>onDragBounds</code></td>
+<td>Dragged the selection bounds</td>
+</tr>
+<tr>
+<td><code>onReleaseBounds</code></td>
+<td>Stopped the selection bounds</td>
+</tr>
+<tr>
+<td><code>onHoverBoundsHandle</code></td>
+<td>Moved their pointer onto a selection bounds handle</td>
+</tr>
+<tr>
+<td><code>onUnhoverBoundsHandle</code></td>
+<td>Moved their pointer off of a selection bounds handle</td>
+</tr>
+<tr>
+<td><code>onPointBoundsHandle</code></td>
+<td>Pointed a selection bounds handle</td>
+</tr>
+<tr>
+<td><code>onDoubleClickBoundsHandle</code></td>
+<td>Double-pointed a selection bounds handle</td>
+</tr>
+<tr>
+<td><code>onRightPointBoundsHandle</code></td>
+<td>Right-pointed a selection bounds handle</td>
+</tr>
+<tr>
+<td><code>onDragBoundsHandle</code></td>
+<td>Dragged a selection bounds handle</td>
+</tr>
+<tr>
+<td><code>onReleaseBoundsHandle</code></td>
+<td>Stopped a selection bounds handle</td>
+</tr>
+<tr>
+<td><code>onShapeClone</code></td>
+<td>Clicked on a shape&#39;s clone handle</td>
+</tr>
+<tr>
+<td><code>onShapeChange</code></td>
+<td>A shape&#39;s component prompted a change</td>
+</tr>
+<tr>
+<td><code>onShapeBlur</code></td>
+<td>A shape&#39;s component was prompted a blur</td>
+</tr>
+<tr>
+<td><code>onRenderCountChange</code></td>
+<td>The number of rendered shapes changed</td>
+</tr>
+<tr>
+<td><code>onBoundsChange</code></td>
+<td>The Renderer&#39;s screen bounding box of the component changed</td>
+</tr>
+<tr>
+<td><code>onError</code></td>
+<td>The Renderer encountered an error</td>
+</tr>
+</tbody></table>
+<p>The <code>@tldraw/core</code> library provides types for most of the event handlers:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>TLPinchEventHandler</code></td>
+</tr>
+<tr>
+<td><code>TLPointerEventHandler</code></td>
+</tr>
+<tr>
+<td><code>TLCanvasEventHandler</code></td>
+</tr>
+<tr>
+<td><code>TLBoundsEventHandler</code></td>
+</tr>
+<tr>
+<td><code>TLBoundsHandleEventHandler</code></td>
+</tr>
+<tr>
+<td><code>TLShapeChangeHandler</code></td>
+</tr>
+<tr>
+<td><code>TLShapeBlurHandler</code></td>
+</tr>
+<tr>
+<td><code>TLShapeCloneHandler</code></td>
+</tr>
+</tbody></table>
+
+<a href="#tlpage" id="tlpage" style="color: inherit; text-decoration: none;">
+  <h3><code>TLPage</code></h3>
+</a>
+<p>An object describing the current page. It contains:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>A unique id for the page.</td>
+</tr>
+<tr>
+<td><code>shapes</code></td>
+<td><a href="#tlshape"><code>TLShape{}</code></a></td>
+<td>A table of shapes.</td>
+</tr>
+<tr>
+<td><code>bindings</code></td>
+<td><a href="#tlbinding"><code>TLBinding{}</code></a></td>
+<td>A table of bindings.</td>
+</tr>
+<tr>
+<td><code>backgroundColor</code></td>
+<td><code>string</code></td>
+<td>(optional) The page&#39;s background fill color. Will also overwrite the theme.</td>
+</tr>
+</tbody></table>
+
+<a href="#tlpagestate" id="tlpagestate" style="color: inherit; text-decoration: none;">
+  <h3><code>TLPageState</code></h3>
+</a>
+<p>An object describing the current page. It contains:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>The corresponding page&#39;s id</td>
+</tr>
+<tr>
+<td><code>selectedIds</code></td>
+<td><code>string[]</code></td>
+<td>An array of selected shape ids</td>
+</tr>
+<tr>
+<td><code>camera</code></td>
+<td><code>object</code></td>
+<td>An object describing the camera state</td>
+</tr>
+<tr>
+<td><code>camera.point</code></td>
+<td><code>number[]</code></td>
+<td>The camera&#39;s <code>[x, y]</code> coordinates</td>
+</tr>
+<tr>
+<td><code>camera.zoom</code></td>
+<td><code>number</code></td>
+<td>The camera&#39;s zoom level</td>
+</tr>
+<tr>
+<td><code>pointedId</code></td>
+<td><code>string</code></td>
+<td>(optional) The currently pointed shape id</td>
+</tr>
+<tr>
+<td><code>hoveredId</code></td>
+<td><code>string</code></td>
+<td>(optional) The currently hovered shape id</td>
+</tr>
+<tr>
+<td><code>editingId</code></td>
+<td><code>string</code></td>
+<td>(optional) The currently editing shape id</td>
+</tr>
+<tr>
+<td><code>bindingId</code></td>
+<td><code>string</code></td>
+<td>(optional) The currently editing binding.</td>
+</tr>
+<tr>
+<td><code>brush</code></td>
+<td><code>TLBounds</code></td>
+<td>(optional) A <code>Bounds</code> for the current selection box</td>
+</tr>
+</tbody></table>
+
+<a href="#tlshape" id="tlshape" style="color: inherit; text-decoration: none;">
+  <h3><code>TLShape</code></h3>
+</a>
+<p>An object that describes a shape on the page. The shapes in your document should extend this interface with other properties. See <a href="#shape-type">Shape Type</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>The shape&#39;s id.</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>string</code></td>
+<td>The type of the shape, corresponding to the <code>type</code> of a <a href="#tlshapeutil"><code>TLShapeUtil</code></a></td>
+</tr>
+<tr>
+<td><code>parentId</code></td>
+<td><code>string</code></td>
+<td>The id of the shape&#39;s parent (either the current page or another shape)</td>
+</tr>
+<tr>
+<td><code>childIndex</code></td>
+<td><code>number</code></td>
+<td>the order of the shape among its parent&#39;s children</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>the name of the shape</td>
+</tr>
+<tr>
+<td><code>point</code></td>
+<td><code>number[]</code></td>
+<td>the shape&#39;s current <code>[x, y]</code> coordinates on the page</td>
+</tr>
+<tr>
+<td><code>rotation</code></td>
+<td><code>number</code></td>
+<td>(optiona) The shape&#39;s current rotation in radians</td>
+</tr>
+<tr>
+<td><code>children</code></td>
+<td><code>string[]</code></td>
+<td>(optional) An array containing the ids of this shape&#39;s children</td>
+</tr>
+<tr>
+<td><code>handles</code></td>
+<td><code>{}</code></td>
+<td>(optional) A table of <a href="#tlhandle"><code>TLHandle</code></a> objects</td>
+</tr>
+<tr>
+<td><code>isGhost</code></td>
+<td><code>boolean</code></td>
+<td>(optional) True if the shape is &quot;ghosted&quot;, e.g. while deleting</td>
+</tr>
+<tr>
+<td><code>isLocked</code></td>
+<td><code>boolean</code></td>
+<td>(optional) True if the shape is locked</td>
+</tr>
+<tr>
+<td><code>isHidden</code></td>
+<td><code>boolean</code></td>
+<td>(optional) True if the shape is hidden</td>
+</tr>
+<tr>
+<td><code>isEditing</code></td>
+<td><code>boolean</code></td>
+<td>(optional) True if the shape is currently editing</td>
+</tr>
+<tr>
+<td><code>isGenerated</code></td>
+<td><code>boolean</code></td>
+<td>optional) True if the shape is generated programatically</td>
+</tr>
+<tr>
+<td><code>isAspectRatioLocked</code></td>
+<td><code>boolean</code></td>
+<td>(optional) True if the shape&#39;s aspect ratio is locked</td>
+</tr>
+</tbody></table>
+
+<a href="#tlhandle" id="tlhandle" style="color: inherit; text-decoration: none;">
+  <h3><code>TLHandle</code></h3>
+</a>
+<p>An object that describes a relationship between two shapes on the page.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>An id for the handle</td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td><code>number</code></td>
+<td>The handle&#39;s order within the shape&#39;s handles</td>
+</tr>
+<tr>
+<td><code>point</code></td>
+<td><code>number[]</code></td>
+<td>The handle&#39;s <code>[x, y]</code> coordinates</td>
+</tr>
+</tbody></table>
+<p>When a shape with handles is the only selected shape, the <code>Renderer</code> will display its handles. You can respond to interactions with these handles using the `on</p>
+
+<a href="#tlbinding" id="tlbinding" style="color: inherit; text-decoration: none;">
+  <h3><code>TLBinding</code></h3>
+</a>
+<p>An object that describes a relationship between two shapes on the page.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>A unique id for the binding</td>
+</tr>
+<tr>
+<td><code>fromId</code></td>
+<td><code>string</code></td>
+<td>The id of the shape where the binding begins</td>
+</tr>
+<tr>
+<td><code>toId</code></td>
+<td><code>string</code></td>
+<td>The id of the shape where the binding begins</td>
+</tr>
+</tbody></table>
+
+<a href="#tlsnapline" id="tlsnapline" style="color: inherit; text-decoration: none;">
+  <h3><code>TLSnapLine</code></h3>
+</a>
+<p>A snapline is an array of points (formatted as <code>[x, y]</code>) that represent a &quot;snapping&quot; line.</p>
+
+<a href="#tlshapeutil" id="tlshapeutil" style="color: inherit; text-decoration: none;">
+  <h3><code>TLShapeUtil</code></h3>
+</a>
+<p>The <code>TLShapeUtil</code> is an abstract class that you can extend to create utilities for your custom shapes. See the <a href="#creating-shapes">Creating Shapes</a> guide to learn more.</p>
+
+<a href="#tluser" id="tluser" style="color: inherit; text-decoration: none;">
+  <h3><code>TLUser</code></h3>
+</a>
+<p>A <code>TLUser</code> is the presence information for a multiplayer user. The user&#39;s pointer location and selections will be shown on the canvas. If the <code>TLUser</code>&#39;s id matches the <code>Renderer</code>&#39;s <code>userId</code> prop, then the user&#39;s cursor and selections will not be shown.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>A unique id for the user</td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The user&#39;s color, used for indicators</td>
+</tr>
+<tr>
+<td><code>point</code></td>
+<td><code>number[]</code></td>
+<td>The user&#39;s pointer location on the page</td>
+</tr>
+<tr>
+<td><code>selectedIds[]</code></td>
+<td><code>string[]</code></td>
+<td>The user&#39;s selected shape ids</td>
+</tr>
+</tbody></table>
+
+<a href="#utils" id="utils" style="color: inherit; text-decoration: none;">
+  <h3><code>Utils</code></h3>
+</a>
+<p>A general purpose utility class. See source for more.</p>
+
+<a href="#guide-creating-shapes" id="guide-creating-shapes" style="color: inherit; text-decoration: none;">
+  <h2>Guide: Creating Shapes</h2>
+</a>
+<p>The <code>Renderer</code> component has no built-in shapes. It&#39;s up to you to define every shape that you want to see on the canvas. While these shapes are highly reusable between projects, you&#39;ll need to define them using the API described below.</p>
+<blockquote>
+<p>For several example shapes, see the folder <code>/example/src/shapes/</code>.</p>
+</blockquote>
+
+<a href="#shape-type" id="shape-type" style="color: inherit; text-decoration: none;">
+  <h3>Shape Type</h3>
+</a>
+<p>Your first task is to define an interface for the shape that extends <code>TLShape</code>. It must have a <code>type</code> property.</p>
+<pre><code class="language-ts"><span class="hl-1">// BoxShape.ts</span><br/><span class="hl-2">import</span><span class="hl-0"> </span><span class="hl-2">type</span><span class="hl-0"> { </span><span class="hl-4">TLShape</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;@tldraw/core&#39;</span><br/><br/><span class="hl-2">export</span><span class="hl-0"> </span><span class="hl-3">interface</span><span class="hl-0"> </span><span class="hl-10">BoxShape</span><span class="hl-0"> </span><span class="hl-3">extends</span><span class="hl-0"> </span><span class="hl-10">TLShape</span><span class="hl-0"> {</span><br/><span class="hl-0">  </span><span class="hl-4">type</span><span class="hl-0">: </span><span class="hl-5">&#39;box&#39;</span><br/><span class="hl-0">  </span><span class="hl-4">size</span><span class="hl-0">: </span><span class="hl-10">number</span><span class="hl-0">[]</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#component" id="component" style="color: inherit; text-decoration: none;">
+  <h3>Component</h3>
+</a>
+<p>Next, use <code>TLShapeUtil.Indicator</code> to create a second component for your shape&#39;s <code>Component</code>. The <code>Renderer</code> will use this component to display the shape on the canvas.</p>
+<pre><code class="language-tsx"><span class="hl-1">// BoxComponent.ts</span><br/><br/><span class="hl-2">import</span><span class="hl-0"> </span><span class="hl-3">*</span><span class="hl-0"> </span><span class="hl-2">as</span><span class="hl-0"> </span><span class="hl-4">React</span><span class="hl-0"> </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;react&#39;</span><br/><span class="hl-2">import</span><span class="hl-0"> { </span><span class="hl-4">shapeComponent</span><span class="hl-0">, </span><span class="hl-4">SVGContainer</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;@tldraw/core&#39;</span><br/><span class="hl-2">import</span><span class="hl-0"> </span><span class="hl-2">type</span><span class="hl-0"> { </span><span class="hl-4">BoxShape</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;./BoxShape&#39;</span><br/><br/><span class="hl-2">export</span><span class="hl-0"> </span><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-6">BoxComponent</span><span class="hl-0"> = </span><span class="hl-4">TLShapeUtil</span><span class="hl-0">.</span><span class="hl-7">Component</span><span class="hl-0">&lt;</span><span class="hl-10">BoxShape</span><span class="hl-0">, </span><span class="hl-10">SVGSVGElement</span><span class="hl-0">&gt;(</span><br/><span class="hl-0">  ({ </span><span class="hl-4">shape</span><span class="hl-0">, </span><span class="hl-4">events</span><span class="hl-0">, </span><span class="hl-4">meta</span><span class="hl-0"> }, </span><span class="hl-4">ref</span><span class="hl-0">) </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-6">color</span><span class="hl-0"> = </span><span class="hl-4">meta</span><span class="hl-0">.</span><span class="hl-4">isDarkMode</span><span class="hl-0"> ? </span><span class="hl-5">&#39;white&#39;</span><span class="hl-0"> : </span><span class="hl-5">&#39;black&#39;</span><br/><br/><span class="hl-0">    </span><span class="hl-2">return</span><span class="hl-0"> (</span><br/><span class="hl-0">      </span><span class="hl-9">&lt;</span><span class="hl-10">SVGContainer</span><span class="hl-0"> </span><span class="hl-11">ref</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">ref</span><span class="hl-3">}</span><span class="hl-0"> </span><span class="hl-3">{</span><span class="hl-0">...</span><span class="hl-4">events</span><span class="hl-3">}</span><span class="hl-9">&gt;</span><br/><span class="hl-0">        </span><span class="hl-9">&lt;</span><span class="hl-12">rect</span><br/><span class="hl-0">          </span><span class="hl-11">width</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">shape</span><span class="hl-13">.</span><span class="hl-4">size</span><span class="hl-13">[</span><span class="hl-8">0</span><span class="hl-13">]</span><span class="hl-3">}</span><br/><span class="hl-0">          </span><span class="hl-11">height</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">shape</span><span class="hl-13">.</span><span class="hl-4">size</span><span class="hl-13">[</span><span class="hl-8">1</span><span class="hl-13">]</span><span class="hl-3">}</span><br/><span class="hl-0">          </span><span class="hl-11">stroke</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">color</span><span class="hl-3">}</span><br/><span class="hl-0">          </span><span class="hl-11">strokeWidth</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-8">2</span><span class="hl-3">}</span><br/><span class="hl-0">          </span><span class="hl-11">strokeLinejoin</span><span class="hl-0">=</span><span class="hl-5">&quot;round&quot;</span><br/><span class="hl-0">          </span><span class="hl-11">fill</span><span class="hl-0">=</span><span class="hl-5">&quot;none&quot;</span><br/><span class="hl-0">          </span><span class="hl-11">pointerEvents</span><span class="hl-0">=</span><span class="hl-5">&quot;all&quot;</span><br/><span class="hl-0">        </span><span class="hl-9">/&gt;</span><br/><span class="hl-0">      </span><span class="hl-9">&lt;/</span><span class="hl-10">SVGContainer</span><span class="hl-9">&gt;</span><br/><span class="hl-0">    )</span><br/><span class="hl-0">  }</span><br/><span class="hl-0">)</span>
+</code></pre>
+<p>Your component can return HTML elements or SVG elements. If your shape is returning only SVG elements, wrap it in an <code>SVGContainer</code>. If your shape returns HTML elements, wrap it in an <code>HTMLContainer</code>. Not that you must set <code>pointerEvents</code> manually on the shapes you wish to receive pointer events.</p>
+<p>The component will receive the following props:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>shape</code></td>
+<td><code>TLShape</code></td>
+<td>The shape from <code>page.shapes</code> that is being rendered</td>
+</tr>
+<tr>
+<td><code>meta</code></td>
+<td><code>{}</code></td>
+<td>The value provided to the <code>Renderer</code>&#39;s <code>meta</code> prop</td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td><code>{}</code></td>
+<td>Several pointer events that should be set on the container element</td>
+</tr>
+<tr>
+<td><code>isSelected</code></td>
+<td><code>boolean</code></td>
+<td>The shape is selected (its <code>id</code> is in <code>pageState.selectedIds</code>)</td>
+</tr>
+<tr>
+<td><code>isHovered</code></td>
+<td><code>boolean</code></td>
+<td>The shape is hovered (its <code>id</code> is <code>pageState.hoveredId</code>)</td>
+</tr>
+<tr>
+<td><code>isEditing</code></td>
+<td><code>boolean</code></td>
+<td>The shape is being edited (its <code>id</code> is <code>pageState.editingId</code>)</td>
+</tr>
+<tr>
+<td><code>isGhost</code></td>
+<td><code>boolean</code></td>
+<td>The shape is ghosted or is the child of a ghosted shape.</td>
+</tr>
+<tr>
+<td><code>isChildOfSelected</code></td>
+<td><code>boolean</code></td>
+<td>The shape is the child of a selected shape.</td>
+</tr>
+<tr>
+<td><code>onShapeChange</code></td>
+<td><code>Function</code></td>
+<td>The callback provided to the <code>Renderer</code>&#39;s <code>onShapeChange</code> prop</td>
+</tr>
+<tr>
+<td><code>onShapeBlur</code></td>
+<td><code>Function</code></td>
+<td>The callback provided to the <code>Renderer</code>&#39;s <code>onShapeBlur</code> prop</td>
+</tr>
+</tbody></table>
+
+<a href="#indicator" id="indicator" style="color: inherit; text-decoration: none;">
+  <h3>Indicator</h3>
+</a>
+<p>Next, use <code>TLShapeUtil.Indicator</code> to create a second component for your shape&#39;s <code>Indicator</code>. This component is shown when the shape is hovered or selected. Your <code>Indicator</code> must return SVG elements only.</p>
+<pre><code class="language-tsx"><span class="hl-1">// BoxIndicator.ts</span><br/><br/><span class="hl-2">export</span><span class="hl-0"> </span><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-6">BoxIndicator</span><span class="hl-0"> = </span><span class="hl-4">TLShapeUtil</span><span class="hl-0">.</span><span class="hl-7">Indicator</span><span class="hl-0">&lt;</span><span class="hl-10">BoxShape</span><span class="hl-0">&gt;(({ </span><span class="hl-4">shape</span><span class="hl-0"> }) </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">  </span><span class="hl-2">return</span><span class="hl-0"> (</span><br/><span class="hl-0">    </span><span class="hl-9">&lt;</span><span class="hl-12">rect</span><br/><span class="hl-0">      </span><span class="hl-11">fill</span><span class="hl-0">=</span><span class="hl-5">&quot;none&quot;</span><br/><span class="hl-0">      </span><span class="hl-11">stroke</span><span class="hl-0">=</span><span class="hl-5">&quot;dodgerblue&quot;</span><br/><span class="hl-0">      </span><span class="hl-11">strokeWidth</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-8">1</span><span class="hl-3">}</span><br/><span class="hl-0">      </span><span class="hl-11">width</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">shape</span><span class="hl-13">.</span><span class="hl-4">size</span><span class="hl-13">[</span><span class="hl-8">0</span><span class="hl-13">]</span><span class="hl-3">}</span><br/><span class="hl-0">      </span><span class="hl-11">height</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">shape</span><span class="hl-13">.</span><span class="hl-4">size</span><span class="hl-13">[</span><span class="hl-8">1</span><span class="hl-13">]</span><span class="hl-3">}</span><br/><span class="hl-0">    </span><span class="hl-9">/&gt;</span><br/><span class="hl-0">  )</span><br/><span class="hl-0">})</span>
+</code></pre>
+<p>The indicator component will receive the following props:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>shape</code></td>
+<td><code>TLShape</code></td>
+<td>The shape from <code>page.shapes</code> that is being rendered</td>
+</tr>
+<tr>
+<td><code>meta</code></td>
+<td>{}</td>
+<td>The value provided to the <code>Renderer</code>&#39;s <code>meta</code> prop</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code>TLUser</code></td>
+<td>The user when shown in a multiplayer session</td>
+</tr>
+<tr>
+<td><code>isSelected</code></td>
+<td><code>boolean</code></td>
+<td>Whether the current shape is selected (true if its <code>id</code> is in <code>pageState.selectedIds</code>)</td>
+</tr>
+<tr>
+<td><code>isHovered</code></td>
+<td><code>boolean</code></td>
+<td>Whether the current shape is hovered (true if its <code>id</code> is <code>pageState.hoveredId</code>)</td>
+</tr>
+</tbody></table>
+
+<a href="#shapeutil" id="shapeutil" style="color: inherit; text-decoration: none;">
+  <h3>ShapeUtil</h3>
+</a>
+<p>Next, create a &quot;shape util&quot; for your shape. This is a class that extends <code>TLShapeUtil</code>. The <code>Renderer</code> will use an instance of this class to answer questions about the shape: what it should look like, where it is on screen, whether it can rotate, etc.</p>
+<pre><code class="language-ts"><span class="hl-1">// BoxUtil.ts</span><br/><br/><span class="hl-2">import</span><span class="hl-0"> { </span><span class="hl-4">Utils</span><span class="hl-0">, </span><span class="hl-4">TLBounds</span><span class="hl-0">, </span><span class="hl-4">TLShapeUtil</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;@tldraw/core&#39;</span><br/><span class="hl-2">import</span><span class="hl-0"> { </span><span class="hl-4">BoxComponent</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;./BoxComponent&#39;</span><br/><span class="hl-2">import</span><span class="hl-0"> { </span><span class="hl-4">BoxIndicator</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;./BoxIndicator&#39;</span><br/><span class="hl-2">import</span><span class="hl-0"> </span><span class="hl-2">type</span><span class="hl-0"> { </span><span class="hl-4">BoxShape</span><span class="hl-0"> } </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-5">&#39;./BoxShape&#39;</span><br/><br/><span class="hl-2">export</span><span class="hl-0"> </span><span class="hl-3">class</span><span class="hl-0"> </span><span class="hl-10">BoxUtil</span><span class="hl-0"> </span><span class="hl-3">extends</span><span class="hl-0"> </span><span class="hl-10">TLShapeUtil</span><span class="hl-0">&lt;</span><span class="hl-10">BoxShape</span><span class="hl-0">, </span><span class="hl-10">SVGSVGElement</span><span class="hl-0">&gt; {</span><br/><span class="hl-0">  </span><span class="hl-4">Component</span><span class="hl-0"> = </span><span class="hl-4">BoxComponent</span><br/><br/><span class="hl-0">  </span><span class="hl-4">Indicator</span><span class="hl-0"> = </span><span class="hl-4">BoxIndicator</span><br/><br/><span class="hl-0">  </span><span class="hl-7">getBounds</span><span class="hl-0"> = (</span><span class="hl-4">shape</span><span class="hl-0">: </span><span class="hl-10">BoxShape</span><span class="hl-0">): </span><span class="hl-10">TLBounds</span><span class="hl-0"> </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-3">const</span><span class="hl-0"> [</span><span class="hl-6">width</span><span class="hl-0">, </span><span class="hl-6">height</span><span class="hl-0">] = </span><span class="hl-4">shape</span><span class="hl-0">.</span><span class="hl-4">size</span><br/><br/><span class="hl-0">    </span><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-6">bounds</span><span class="hl-0"> = {</span><br/><span class="hl-0">      </span><span class="hl-4">minX:</span><span class="hl-0"> </span><span class="hl-8">0</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-4">maxX:</span><span class="hl-0"> </span><span class="hl-4">width</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-4">minY:</span><span class="hl-0"> </span><span class="hl-8">0</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-4">maxY:</span><span class="hl-0"> </span><span class="hl-4">height</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-4">width</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-4">height</span><span class="hl-0">,</span><br/><span class="hl-0">    }</span><br/><br/><span class="hl-0">    </span><span class="hl-2">return</span><span class="hl-0"> </span><span class="hl-4">Utils</span><span class="hl-0">.</span><span class="hl-7">translateBounds</span><span class="hl-0">(</span><span class="hl-4">bounds</span><span class="hl-0">, </span><span class="hl-4">shape</span><span class="hl-0">.</span><span class="hl-4">point</span><span class="hl-0">)</span><br/><span class="hl-0">  }</span><br/><span class="hl-0">}</span>
+</code></pre>
+<p>Set the <code>Component</code> field to your component and the <code>Indicator</code> field to your indicator component. Then define the <code>getBounds</code> method. This method will receive a shape and should return a <code>TLBounds</code> object.</p>
+<p>You may also set the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>showCloneHandles</code></td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+<td>Whether to display clone handles when the shape is the only selected shape</td>
+</tr>
+<tr>
+<td><code>hideBounds</code></td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+<td>Whether to hide the bounds when the shape is the only selected shape</td>
+</tr>
+<tr>
+<td><code>isStateful</code></td>
+<td><code>boolean</code></td>
+<td><code>false</code></td>
+<td>Whether the shape has its own React state. When true, the shape will not be unmounted when off-screen</td>
+</tr>
+</tbody></table>
+
+<a href="#shapeutils-object" id="shapeutils-object" style="color: inherit; text-decoration: none;">
+  <h3>ShapeUtils Object</h3>
+</a>
+<p>Finally, create a mapping of your project&#39;s shape utils and the <code>type</code> properties of their corresponding shapes. Pass this object to the <code>Renderer</code>&#39;s <code>shapeUtils</code> prop.</p>
+<pre><code class="language-tsx"><span class="hl-1">// App.tsx</span><br/><br/><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-6">shapeUtils</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-4">box:</span><span class="hl-0"> </span><span class="hl-3">new</span><span class="hl-0"> </span><span class="hl-7">BoxUtil</span><span class="hl-0">(),</span><br/><span class="hl-0">  </span><span class="hl-4">circle:</span><span class="hl-0"> </span><span class="hl-3">new</span><span class="hl-0"> </span><span class="hl-7">CircleUtil</span><span class="hl-0">(),</span><br/><span class="hl-0">  </span><span class="hl-4">text:</span><span class="hl-0"> </span><span class="hl-3">new</span><span class="hl-0"> </span><span class="hl-7">TextUtil</span><span class="hl-0">(),</span><br/><span class="hl-0">}</span><br/><br/><span class="hl-2">export</span><span class="hl-0"> </span><span class="hl-3">function</span><span class="hl-0"> </span><span class="hl-7">App</span><span class="hl-0">() {</span><br/><span class="hl-0">  </span><span class="hl-1">// ...</span><br/><br/><span class="hl-0">  </span><span class="hl-2">return</span><span class="hl-0"> </span><span class="hl-9">&lt;</span><span class="hl-10">Renderer</span><span class="hl-0"> </span><span class="hl-11">page</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">page</span><span class="hl-3">}</span><span class="hl-0"> </span><span class="hl-11">pageState</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">pageState</span><span class="hl-3">}</span><span class="hl-0"> </span><span class="hl-3">{</span><span class="hl-0">...</span><span class="hl-4">etc</span><span class="hl-3">}</span><span class="hl-0"> </span><span class="hl-11">shapeUtils</span><span class="hl-0">=</span><span class="hl-3">{</span><span class="hl-4">shapeUtils</span><span class="hl-3">}</span><span class="hl-0"> </span><span class="hl-9">/&gt;</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#local-development" id="local-development" style="color: inherit; text-decoration: none;">
+  <h2>Local Development</h2>
+</a>
+<p>To start the development servers for the package and the advanced example:</p>
+<ul>
+<li>Run <code>yarn</code> to install dependencies.</li>
+<li>Run <code>yarn start</code>.</li>
+<li>Open <code>localhost:5420</code>.</li>
+</ul>
+<p>You can also run:</p>
+<ul>
+<li><code>start:advanced</code> to start development servers for the package and the advanced example.</li>
+<li><code>start:simple</code> to start development servers for the package and the simple example.</li>
+<li><code>test</code> to execute unit tests via <a href="https://jestjs.io">Jest</a>.</li>
+<li><code>docs</code> to build the docs via <a href="https://typedoc.org/">ts-doc</a>.</li>
+<li><code>build</code> to build the package.</li>
+</ul>
+
+<a href="#example" id="example" style="color: inherit; text-decoration: none;">
+  <h2>Example</h2>
+</a>
+<p>See the <code>example</code> folder or this <a href="https://codesandbox.io/s/laughing-elion-gp0kx">CodeSandbox</a> example.</p>
+
+<a href="#community" id="community" style="color: inherit; text-decoration: none;">
+  <h2>Community</h2>
+</a>
+
+<a href="#support" id="support" style="color: inherit; text-decoration: none;">
+  <h3>Support</h3>
+</a>
+<p>Need help? Please <a href="https://github.com/tldraw/core/issues/new">open an issue</a> for support.</p>
+
+<a href="#discussion" id="discussion" style="color: inherit; text-decoration: none;">
+  <h3>Discussion</h3>
+</a>
+<p>Want to connect with other devs? Visit the <a href="https://discord.gg/s4FXZ6fppJ">Discord channel</a>.</p>
+
+<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+  <h3>License</h3>
+</a>
+<p>This project is licensed under MIT. If you&#39;re using the library in a commercial product, please consider <a href="https://github.com/sponsors/steveruizok?frequency=recurring&amp;sponsor=steveruizok">becoming a sponsor</a>.</p>
+
+<a href="#author" id="author" style="color: inherit; text-decoration: none;">
+  <h2>Author</h2>
+</a>
+<ul>
+<li><a href="https://twitter.com/steveruizok">@steveruizok</a></li>
+</ul>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class="label tsd-is-external"><span>Internals</span></li><li class="label tsd-is-external"><span>Externals</span></li><li class=" tsd-kind-namespace tsd-is-external"><a href="modules/S.html">S</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-variable tsd-is-external"><a href="modules.html#StateGraph" class="tsd-kind-icon">State<wbr/>Graph</a></li><li class="tsd-kind-function tsd-has-type-parameter tsd-is-external"><a href="modules.html#createDesign" class="tsd-kind-icon">create<wbr/>Design</a></li><li class="tsd-kind-function tsd-has-type-parameter tsd-is-external"><a href="modules.html#createSelectorHook" class="tsd-kind-icon">create<wbr/>Selector<wbr/>Hook</a></li><li class="tsd-kind-function tsd-has-type-parameter tsd-is-external"><a href="modules.html#createState" class="tsd-kind-icon">create<wbr/>State</a></li><li class="tsd-kind-function tsd-has-type-parameter tsd-is-external"><a href="modules.html#useGlobalState" class="tsd-kind-icon">use<wbr/>Global<wbr/>State</a></li><li class="tsd-kind-function tsd-has-type-parameter tsd-is-external"><a href="modules.html#useLocalState" class="tsd-kind-icon">use<wbr/>Local<wbr/>State</a></li><li class="tsd-kind-function tsd-has-type-parameter tsd-is-external"><a href="modules.html#useSelector" class="tsd-kind-icon">use<wbr/>Selector</a></li><li class="tsd-kind-function tsd-has-type-parameter tsd-is-external"><a href="modules.html#useStateDesigner" class="tsd-kind-icon">use<wbr/>State<wbr/>Designer</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

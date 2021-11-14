@@ -1,0 +1,44 @@
+# Repeat Events
+
+You can use a **repeat event** to run the same event automatically on a regular interval while a state is active. When the state becomes inactive, the interval will automatically end.
+
+```jsx
+repeat: {
+  event: {
+    do: () => console.log("tick!"),
+    delay: 1
+  }
+}
+```
+
+The delay is measured in seconds. If you leave out the delay, the event will run on every animation frame.
+
+```jsx
+repeat: {
+  event: {
+    do: () => console.log("tick!"),
+    delay: 1
+  }
+}
+```
+
+In both cases, the event's initial result will include the total duration of the event as well as the elapsed time since the last time it ran.
+
+```jsx
+repeat: {
+  event: {
+    do: (data, payload, result) => {
+      console.log("It's been " + result.duration + " since this timer started.")
+      console.log("It's been " + result.elapsed + " since this function last ran.")
+      },
+    delay: 1
+  }
+}
+```
+
+<PageLinks
+  backTo={"/docs/learn/transition-events"}
+  back={"Transition Events"}
+  nextTo={"/docs/learn/async-events"}
+  next={"Async Events"}
+/>

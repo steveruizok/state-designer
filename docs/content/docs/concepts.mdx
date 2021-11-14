@@ -1,0 +1,260 @@
+# Concepts
+
+Even if you've worked with state machines and state charts before, it's a good idea to start with some of the core concepts that underpin `state-designer`'s design.
+
+The name **State Designer** is a play on words: in programming, we use the term [state](https://bit.ly/2V9umVa) to refer to the current snapshot of a system's information. At the same time, the information in a system often describes the system in terms of certain "states", such as _loading_, _success_, and _error_.
+
+In this second context, the term "state" describes a mode, status, or other specific way of being, that effects how the system should appear or behave.
+
+, you'll be configuring an event-based system. that can respond predictably to a specific set of events.
+
+---
+
+# State
+
+In its most simple terms, a user interface displays information to a user and enables the user to change that information. If an event occurs that causes the state to change, then the user interface should also change to reflect the new _state_ of that information.
+
+We use the term **state** to refer to this information: the current snapshot of all the information that matters to the user interface.
+
+## What's in a State?
+
+A user interface can rely on several different types of information. Some states include raw words and numbers, like the content of a text input or the time remaining in a video.
+
+Most states also include some sort of status, such as whether an input is being edited, or whether a video is stopped, playing, or paused. Confusingly, a status like this is also commonly referred to as a "state". This means that a user interface's _information state_ might also include which of its states, like playing or paused, are currently active.
+
+To keep with our examples, a text input might have a state like this:
+
+```
+Text input
+  ├── data:
+  │   └── text = "stevecase@aol.c"
+  └── states:
+      ├── not editing = not active
+      └── editing = active
+```
+
+While a video player could have a state like this:
+
+```
+Video Player
+  ├── data:
+  │   ├── time remaining = 4
+  │   └── duration = 27
+  └── states:
+      ├── stopped = not active
+      ├── playing = not active
+      └── paused = active
+```
+
+Maybe you can imagine how these states would look in a user interface. There could be a dark outline around the editing input or a darkened screen in the paused video. There might be a blinking cursor at the end of the user's text, or, for the video, a progress bar that's almost at the end.
+
+## Changing the State With Events
+
+At the start of this article, we learned that all states are subject to change as the result of **events**. Events might be the result of user action, such as clicking on a button, or they might be the result of the state's internal logic.
+
+In our text input example, a user might also click into the input to begin editing its content or might click out to stop editing. Each of these would be a separate event. The user might also type using their keyboard, and each key press would be an event.
+
+```
+Text input
+  ├── data
+  ├── states
+  └── events:
+      ├── clicked into input → "editing
+      ├── clicked out of input → "not editing
+      └── pressed key = update "text"
+```
+
+In our video player example, a user could click the play or pause buttons, and these would be events, too. However, a playing video would need to update the time remaining. This would also be an event, though an event that happened automatically.
+
+```
+Video player
+  ├── data
+  ├── states
+  └── events:
+      ├── clicked stop → "stopped
+      ├── clicked play → "playing
+      ├── clicked pause → "paused
+      ├── video ended → "stopped
+      └── every second = update "current time"
+```
+
+## Events Belong to States
+
+One of the challenges in designing a user interface is knowing _when_ to respond to events. In many cases, the result of an event depends on which of the state's states are currently active.
+
+For example, in our text input, pressing a key on the keyboard should only change the input's text if the user is actually editing the input. So it makes sense to organize our events as "belonging tos; and then only accept events that belong to active states.
+
+Our text input's state could look like this:
+
+```
+Text input
+  ├── data
+  └── states:
+      ├── editing
+      │   └── events:
+      │       ├── clicked out of input → not editing
+      │       └── pressed key = update text
+      └── not editing
+          └── events:
+              └── clicked into input → editing
+```
+
+And our video player's state would look like this:
+
+```
+Video Player
+  ├── data
+  └── states:
+      ├── stopped
+      │   └── events:
+      │       └── clicked play → "playing
+      ├── playing
+      │   └── events:
+      │       ├── clicked pause → paused
+      │       ├── clicked stop → stopped
+      │       ├── every second = update current time
+      │       └── video ended → stopped
+      └── paused
+          └── events:
+              ├── clicked play → playing
+              └── clicked stop → stopped
+```
+
+## Problems to Solve
+
+While we may be able to describe simple user interfaces with only a handful of states, more complex interfaces reveal new problems.
+
+Let's say we had a simple toggle like this:
+
+```
+Toggle
+  └── states:
+      ├── active
+      │   └── events:
+      │       └── clicked → inactive
+      └── inactive
+          └── events:
+              └── clicked → active
+```
+
+What if we wanted the option to disable the toggle? A disabled toggle could still be active or inactive, so we couldn't just add an additional state. Our first thought might be to create additional states like this:
+
+```
+Toggle
+  └── states:
+      ├── active and disabled
+      ├── active and not disabled
+      │   └── events:
+      │       └── clicked → inactive
+      ├── inactive and disabled
+      └── inactive and not disabled
+          └── events:
+              └── clicked → active
+```
+
+This might work for our toggle, but it would take us down a path toward a "state explosion".
+
+Adding "disabled" took us from two states to four states—but adding a "hovered would take us from four states to eight, and so on. The number of states would grow exponentially as we created new states to cover every possible combination.
+
+We can avoid this problem in two ways: nested states and parallel states.
+
+## Nesting States
+
+In the same way that we've assigned events to our states, let's also give them states, too. Here's our toggle again, but this time with two states, disabled and enabled, that each have active and inactive states.
+
+```
+Toggle
+  └── states:
+      ├── disabled
+      │   └── states:
+      │       ├── active
+      │       └── inactive
+      └── enabled
+          └── states:
+                ├── active
+                │   └── events:
+                │       └── clicked → inactive
+                └── inactive
+                    └── events:
+                        └── clicked → active
+```
+
+## Parallel States
+
+Another solution would be to introduce the idea of parallel states—or sibling states that could all be active at once. This way, if we wanted to introduce a hover state that would have no practical effect on the events in the rest of our states, we could organize our tree like this:
+
+```
+Toggle
+  └── states:
+      ├── hover
+      ¦     └── states:
+      ¦           ├── active
+      ¦           └── inactive
+      └── value
+            └── states:
+                  ├── disabled
+                  │    └── states:
+                  │         ├── active
+                  │         └── inactive
+                  └── enabled
+                       └── states:
+                            ├── active
+                            └── inactive
+```
+
+Here we could allow the hover and value states to be active simultaneously.
+
+---
+
+For example, has three states: stopped, playing, and paused, however two of these states—playing and paused—might be active at the same time.
+
+Rather than redefining our states (say, into playing-and-paused and playing-and-not-paused), we could nest paused under playing.
+
+```
+Video player
+  ├── data
+  └── states:
+    ├── stopped
+    └── playing
+      └── states:
+         ├── paused
+         └── not paused
+
+```
+
+In this way, we could avoid repetition.
+
+---
+
+As designers, we have several powerful technologies for ensuring that the user interface is an accurate reflection of state.
+
+two main parts: the presentation, or the part of the interface that the user sees, and the state, or the information that the presentation—well, presents.
+
+Sometimes that information is data, like the time of day. Other times, the state reflects a
+
+One of the
+
+In a blog part of the interface.
+
+In State Designer, we create a **state** by passing a configuration object—or **config**—to the `createState` function.
+
+```js
+import { createState } from "@state-designer/core"
+
+const state = createState({ data: { count: 1 } })
+```
+
+The config object will contain everything about the state: its events, initial data, a tree of child states, and collections of re-usable functions. We'll learn about all of these parts in the following articles.
+
+Complex states can become quite large. To help you keep your config on track, the `createState` function offers TypeScript support in editors that support it.
+
+> **Tip:** To create a config separately without losing this type support, use the `createDesign` function. [Learn more](/docs/api/createDesign).
+
+A state wouldn't be worth much if it couldn't change. In the next article, we'll learn to subscribe to a state's updates when they happen.
+
+<PageLinks
+  backTo={"/docs/learn/intro"}
+  back={"Intro"}
+  nextTo={"/docs/learn/updates"}
+  next={"Updates"}
+/>

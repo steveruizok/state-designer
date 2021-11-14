@@ -1,0 +1,231 @@
+# States
+
+In a State Designer machine, a state describes a specific status, mode, or other way that the overall system may be.
+
+States serve two purposes: they allow events to be disabled
+
+## `on`
+
+An object containing the state's events.
+
+```jsx
+createState({
+  initial: "stopped",
+  states: {
+    playing: {
+      // highlight-start
+      on: {
+        PRESSED_STOP: { to: "stopped" },
+      },
+      // highlight-end
+    },
+    stopped: {
+      // highlight-start
+      on: {
+        PRESSED_PLAY: { to: "playing" },
+      },
+      // highlight-end
+    },
+  },
+})
+```
+
+If the machine receives a corresponding event while the state is active, then the machine will handle that event. In the example above, the machine will ignore the `TURN_ON` event unless its _stopped_ state is active.
+
+## `onEnter`
+
+An event handled when the state becomes active.
+
+```jsx
+createState({
+  initial: "stopped",
+  states: {
+    playing: {
+      // highlight-start
+      onEnter: {
+        do: () => console.log("Entered playing!"),
+      },
+      // highlight-end
+      on: {
+        PRESSED_STOP: { to: "stopped" },
+      },
+    },
+    stopped: {
+      on: {
+        PRESSED_PLAY: { to: "playing" },
+      },
+    },
+  },
+})
+```
+
+In the example above, the machine will log `"Entered playing!"` to the console as soon as its _playing_ state becomes active.
+
+**Note**: this property is not available on the root state.
+
+## `onExit`
+
+An event handled when the state is de-activated.
+
+```jsx
+createState({
+  initial: "stopped",
+  states: {
+    playing: {
+      on: {
+        PRESSED_STOP: { to: "stopped" },
+      },
+    },
+    stopped: {
+      // highlight-start
+      onExit: {
+        do: () => console.log("Leaving stopped!"),
+      },
+      // highlight-end
+      on: {
+        PRESSED_PLAY: { to: "playing" },
+      },
+    },
+  },
+})
+```
+
+In the example above, the machine will log `"Leaving stopped!"` to the console as soon as its _stopped_ state ceases to be active.
+
+**Note**: this property is not available on the root state.
+
+## `onEvent`
+
+An event handled whenever the machine handles any other event while the state is active.
+
+```jsx
+createState({
+  data: {
+    count: 0,
+    changes: 0,
+  },
+  states: {
+    reading: {
+      // highlight-start
+      onEvent: {
+        do: (data) => data.changes++,
+      },
+      // highlight-end
+      on: {
+        CLICKED_MINUS: { do: (data) => data.count-- },
+        CLICKED_PLUS: { do: (data) => data.count++ },
+      },
+    },
+  },
+})
+```
+
+In the example above, the machine will increment `data.changes` each time it receives either a `CLICKED_PLUS` or `CLICKED_MINUS` event.
+
+## `async`
+
+An asynchonous event to handle when the state becomes active.
+
+```jsx
+createState({
+  initial: "idle",
+  states: {
+    idle: {
+      on: {
+        LOAD_DATA: { to: "loading" },
+      },
+    },
+    loading: {
+      // highlight-start
+      async: {
+        await: () => fetch("https://dog.ceo/api/breeds/image/random"),
+        onResolve: { to: "success" },
+        onReject: { to: "error" },
+      },
+      // highlight-end
+    },
+    success: {},
+    error: {},
+  },
+})
+```
+
+In the example above, when the machine enters the _loading_ state, it will attempt to fetch data from the URL provided. If the fetch promise resolves, then the machine will transition to the _success_ state. If the fetch promise encounters and error and rejects, then the machine will transition to the _error_ state.
+
+## `initial`
+
+The name of a state's initial child state.
+
+```jsx
+createState({
+  initial: "turned_off",
+  states: {
+    turned_on: {
+      // highlight-next-line
+      initial: "dim",
+      states: {
+        dim: {
+          on: { BRIGHTENED: { to: "normal" } },
+        },
+        bright: {
+          on: { DIMMED: { to: "dim" } },
+        },
+      },
+    },
+    turned_off: {
+      on: { TOGGLED: { to: "turned_on" } },
+    },
+  },
+})
+```
+
+## `states`
+
+An object containing the state's child states.
+
+```jsx
+createState({
+  initial: "turned_off",
+  states: {
+    turned_on: {
+      initial: "dim",
+      // highlight-start
+      states: {
+        dim: {
+          on: { BRIGHTENED: { to: "normal" } },
+        },
+        bright: {
+          on: { DIMMED: { to: "dim" } },
+        },
+      },
+      // highlight-end
+    },
+    turned_off: {
+      on: { TOGGLED: { to: "turned_on" } },
+    },
+  },
+})
+```
+
+Because state can have child states, a machine's states come together to form a _tree_ of states.
+
+### Parallel States
+
+States that have child states but do _not_ have an `initial` property are termed **parallel states**.
+
+When a parallel state becomes active, _all_ of its child states will simultaneously become active.
+
+### Branch States
+
+States that have both child states and an `initial` property are termed **branch states**.
+
+When a branch state becomes active, its initial state will also become active.
+
+There are two exceptions to this rule:
+
+- If the branch state has been active before, and if the transition was a direct transition to the state with a `previous` modifier, then its previously active state will become active again.
+- If the branch state, and if the transition had a `restore` modifier, then its previously active state will become active again, and _all child states_ will likewise be restored to their previously active states.
+
+**Note:** In both cases, transitioning to a child state will also activate its parent.
+
+See [Transitions](/docs/transitions) for more on `previous` and `restore`.

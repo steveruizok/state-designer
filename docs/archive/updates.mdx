@@ -1,0 +1,20 @@
+# Updates
+
+In State Designer, we call a state's changes **updates**. You can **subscribe** to a state's updates by passing a callback function to the state's `onUpdate` method.
+
+```js
+state.onUpdate(() => {
+  countElement.textContent = state.data.count
+})
+```
+
+The state will call this function each time it updates. In the function's body, you can use the state's current information to update other parts of your project. To learn more about the `onUpdate` method, see [its page](/docs/api/onUpdate) in the API section.
+
+So far we've been learning to use State Designer in a regular JavaScript project. In the next article, we'll learn to use State Designer in a **React** project with the `useStateDesigner` hook.
+
+<PageLinks
+  backTo={"/docs/learn/state"}
+  back={"State"}
+  nextTo={"/docs/learn/react-hook"}
+  next={"React Hook"}
+/>

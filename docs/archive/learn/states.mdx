@@ -1,0 +1,112 @@
+# States
+
+When describing a user interface, we often use words like "stopped", "playing", or "paused" to describe the different ways that the interface can be. If we made these into a list, we would end up with a set of **states**, each of which might be active or inactive at a given moment.
+
+You can define these states in your state's configuration object.
+
+```js
+const state = useStateDesigner({
+  initial: "checked",
+  states: {
+    checked: {},
+    unchecked: {},
+  },
+})
+```
+
+> **Note:**&nbsp;&nbsp;We're overloading the word state here, sorry. In State Designer, the word "state" will generally refer to the current snapshot of all the information that matters to a user interface. However, _that_ state might also include information about which of the interface's "states" are currently active—is it playing or paused?
+
+## Initial State
+
+The **initial** property defines which of a state's states should be active first.
+
+<LiveView snippet={"statesToggle"} />
+
+> 🏆 **Challenge**
+>
+> Can you change the code so that the checkbox is checked?
+
+This kind of state—a state with both `states` and an `initial` state—is called a **compound state**. In a compound state, only one of its states can ever be active at a time. And so, when you define an `initial` property, the state with that name will start out as active and all other states will start out as inactive.
+
+## Transitioning Between States
+
+You can use the `to` property of a handler object to transition from one state to another. In a compound state, transitioning to a new state will deactivate its siblings.
+
+<LiveView snippet={"statesToggleSend"} />
+
+We'll cover more about transitions in the next article.
+
+## State Events
+
+Any state can have its own set of events, too.
+
+<LiveView snippet={"statesToggleEvents"} />
+
+**A state's events may only trigger while that state is active**. An inactive state's events will be ignored. This makes it possible to respond to the same event in different ways, depending on which states are currently active.
+
+In the example above, we've set up the checkbox to send `"TOGGLED"` each time that a user clicks the checkbox. In the state's configuration, the `checked` and `unchecked` states are both configured to handle this event in different ways. However, only one event will ever trigger at once, depending on which state is active.
+
+## Which States are Active?
+
+When you call `useStateDesigner`, the hook will return several helper methods that you can use to determine which states are active and which are inactive.
+
+### isIn
+
+You've already seen the [`isIn`](/docs/api/state#isIn) helper, which will return true or false depending on whether the provided state is active.
+
+```js
+state.isIn("checked") // true
+```
+
+You can also call `isIn` with more than one state name. In this case, the function will return true only if _all_ of the provided states are currently active.
+
+```js
+state.isIn("checked") // true
+state.isIn("checked", "unchecked") // false
+```
+
+### isInAny
+
+The [`isInAny`](/docs/api/state#isInAny) helper works just like `isIn`, except it will return true if _any_ of the provided states are currently active.
+
+```js
+state.isInAny("checked") // true
+state.isInAny("checked", "unchecked") // true
+```
+
+### whenIn
+
+You can use the [`whenIn`](/docs/api/state#isIn) helper to return different values depending on which states are active.
+
+<LiveView snippet={"statesToggleWhenIn"} />
+
+These three helpers gets their names from a popular metaphor for states: rooms in a building that can be entered and exited. Just like a person moving between rooms, your state can only be in one room at a time. But what if that room has another room inside of it?
+
+## Nested States
+
+One of the most powerful parts of State Designer (and its inspiration, [statecharts](https://statecharts.github.io/)) is the idea that any state can have its own states, too. You can add states to a state in the same way that you've added states to the root of your configuration object.
+
+<LiveView snippet={"statesNestedToggle"} />
+
+Whenever a **parent state** becomes active, its initial **child state** will also become active. You can then transition between those **sibling states**, too. When you deactivate a state by transitioning away from it, all of the state's **children** will also deactivate.
+
+In this (contrived, over-sized) example, the `checked` state has two child states: `hovered` and `unhovered`. When a user transitions to the `checked` state, the `hovered` state will also automatically activate because it is the `checked` state's initial state.
+
+Mousing over and away from the button will cause transitions between the `hovered` and `unhovered` states. Clicking the button again deactivates `checked` and all of its children (`hovered` and `unhovered`) too.
+
+> **Note:**&nbsp;&nbsp;Now we're _really_ overloading the word "state". Your state can include states, each of which can have its own state. And, as you might have guessed already—your state is also a state.
+
+## Parallel States
+
+So far, we've looked at states that can only have one active child at a time, as specified by the `initial` property. Howver, if you _don't_ provide an initial property on a parent state, then any time that state is active, _all_ of its child states will be active, too.
+
+<LiveView snippet={"statesParallel"} />
+
+Parallel states are necessary for more complex state relationships such as the one above. Without parallel states, we would need to create combinatorial states, like `bold_and_underlined`. The number of such states would grow exponentially as we added more possible cominations.
+
+<PageLinks
+  backTo={"/docs/learn/event-handlers"}
+  back={"Handlers"}
+  nextTo={"/docs/learn/transitions"}
+  next={"Transitions"}
+/>
