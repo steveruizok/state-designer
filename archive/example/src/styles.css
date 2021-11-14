@@ -1,0 +1,65 @@
+@font-face {
+  font-family: "Gameboy";
+  src: url(/fonts/gameboy.ttf);
+}
+
+html,
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --gb-body: #c5c0be;
+  --gb-grey: #8f8e93;
+  --gb-lgrey: #bab6ad;
+  --gb-dark: #404040;
+  --gb-mdark: #6c7353;
+  --gb-mlight: #8b956d;
+  --gb-light: #c5d0a1;
+  --gb-accent: #b83f76;
+  --cell-size: 24px;
+}
+
+body {
+  box-sizing: border-box;
+  background-color: var(--gb-body);
+}
+
+.App {
+  font-family: Gameboy;
+  justify-content: center;
+  display: flex;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.Bricks {
+  width: 24px;
+  background-image: url(/images/bricks.svg);
+  background-size: 24px;
+}
+
+.Screen {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0px;
+  border: 4px inset var(--gb-grey);
+  background-color: var(--gb-light);
+  border-radius: 4px;
+}
+
+.Screen > * {
+  margin-right: 4px;
+}
+
+.Stats {
+  margin: 16px;
+}
+
+li[data-active="true"] {
+  color: var(--gb-accent);
+}
+
+li[data-active="false"] {
+  color: #000;
+}
