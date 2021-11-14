@@ -1,1 +1,1 @@
-declare module 'object.entries';
+declare module 'object.entries'

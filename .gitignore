@@ -1,10 +1,10 @@
-*.log
-.DS_Store
-dist
-node_modules
-package-lock.json
-yarn.lock
-!/yarn.lock
+**/node_modules/
+**/build/
+**
+**/dist/
+**/docs/
+**/.idea/*
 
-.yalc
-yalc.lock
+.DS_Store
+coverage
+*.log

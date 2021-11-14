@@ -1,27 +1,32 @@
 {
-  "compileOnSave": false,
   "compilerOptions": {
-    "rootDir": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
     "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
+    "emitDeclarationOnly": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
-    "target": "es2015",
+    "importsNotUsedAsValues": "error",
+    "incremental": true,
+    "jsx": "preserve",
+    "lib": ["dom", "esnext"],
     "module": "esnext",
-    "lib": ["es2017", "dom"],
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@state-designer/core": ["packages/core/src/index.ts"],
-      "@state-designer/react": ["packages/react/src/index.ts"],
-      "@state-designer/state-designer": [
-        "packages/state-designer/src/index.ts"
-      ],
-      "state-designer": ["packages/state-designer/src/index.ts"]
-    }
-  },
-  "exclude": ["node_modules", "tmp"]
+    "strict": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "stripInternal": true,
+    "target": "es6",
+    "types": ["node", "jest", "@testing-library/jest-dom", "@testing-library/react"]
+  }
 }

@@ -1,11 +1,36 @@
 {
+  "version": "3.0.0",
   "name": "state-designer",
-  "version": "2.0.3",
-  "private": false,
-  "description": "State Designer, a state management library.",
-  "author": "steveruizok",
-  "repository": "https://github.com/steveruizok/state-designer",
+  "description": "State management with state-charts.",
+  "author": "@steveruizok",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steveruizok/state-designer/core.git"
+  },
   "license": "MIT",
+  "keywords": [
+    "react",
+    "state",
+    "statechart"
+  ],
+  "files": [
+    "dist/**/*"
+  ],
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "scripts": {
+    "start": "node scripts/dev & yarn types:dev",
+    "build": "node scripts/build && yarn types:build",
+    "types:dev": "tsc -w --p tsconfig.build.json",
+    "types:build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch"
+  },
   "dependencies": {
     "@state-designer/react": "latest"
   }
