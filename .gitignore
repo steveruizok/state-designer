@@ -1,10 +1,11 @@
-**/node_modules/
+**/*/node_modules/
 **/build/
 **
 **/dist/
 **/docs/
 **/.idea/*
 
-.DS_Store
+
+**/*/.DS_Store
 coverage
 *.log
