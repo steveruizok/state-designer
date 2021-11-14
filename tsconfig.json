@@ -1,0 +1,19 @@
+{
+  "composite": true,
+  "extends": "./tsconfig.base.json",
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts"],
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/react" },
+    { "path": "./packages/state-designer" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@state-designer/core": ["./packages/core"],
+      "@state-designer/react": ["./packages/react"],
+      "state-designer": ["./packages/state-designer"]
+    }
+  }
+}

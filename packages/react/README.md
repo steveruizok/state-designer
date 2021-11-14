@@ -40,7 +40,7 @@ const update = useStateDesigner(myState)
 Subscribes a component to an state created with `createState`.
 
 ```js
-import { createState, useStateDesigner } from "@state-designer/react"
+import { createState, useStateDesigner } from '@state-designer/react'
 
 export const state = createState({
   data: { count: 0 },
@@ -48,12 +48,12 @@ export const state = createState({
     enabled: {
       on: {
         INCREMENTED: { do: (data) => data.count++ },
-        TOGGLED: { to: "disabled" },
+        TOGGLED: { to: 'disabled' },
       },
     },
     disabled: {
       on: {
-        TOGGLED: { to: "enabled" },
+        TOGGLED: { to: 'enabled' },
       },
     },
   },
@@ -63,13 +63,10 @@ function Counter() {
   const local = useStateDesigner(state)
   return (
     <div>
-      <button
-        disabled={!state.can("INCREMENTED")}
-        onClick={() => state.send("INCREMENTED")}
-      >
+      <button disabled={!state.can('INCREMENTED')} onClick={() => state.send('INCREMENTED')}>
         {local.data.count}
       </button>
-      <button onClick={() => state.send("TOGGLED")}>Toggle</button>
+      <button onClick={() => state.send('TOGGLED')}>Toggle</button>
     </div>
   )
 }
@@ -84,7 +81,7 @@ const update = useStateDesigner(myState)
 If given a configuration object, the hook will creates a new state and subscribe to it.
 
 ```js
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesigner } from '@state-designer/react'
 
 function Counter() {
   const local = useStateDesigner({
@@ -93,12 +90,12 @@ function Counter() {
       enabled: {
         on: {
           INCREMENTED: { do: (data) => data.count++ },
-          TOGGLED: { to: "disabled" },
+          TOGGLED: { to: 'disabled' },
         },
       },
       disabled: {
         on: {
-          TOGGLED: { to: "enabled" },
+          TOGGLED: { to: 'enabled' },
         },
       },
     },
@@ -106,13 +103,10 @@ function Counter() {
 
   return (
     <div>
-      <button
-        disabled={!state.can("INCREMENTED")}
-        onClick={() => state.send("INCREMENTED")}
-      >
+      <button disabled={!state.can('INCREMENTED')} onClick={() => state.send('INCREMENTED')}>
         {local.data.count}
       </button>
-      <button onClick={() => state.send("TOGGLED")}>Toggle</button>
+      <button onClick={() => state.send('TOGGLED')}>Toggle</button>
     </div>
   )
 }
@@ -123,7 +117,7 @@ function Counter() {
 When given a configration object, you may also provide an array of dependencies that will, if changed between renders, cause the component to create and subscribe to a new state based on the current configuration object.
 
 ```js
-import { useStateDesigner } from "@state-designer/react"
+import { useStateDesigner } from '@state-designer/react'
 
 function Counter({ initial = 0 }) {
   const local = useStateDesigner(
@@ -136,9 +130,7 @@ function Counter({ initial = 0 }) {
 
   return (
     <div>
-      <button onClick={() => state.send("INCREMENTED")}>
-        {local.data.count}
-      </button>
+      <button onClick={() => state.send('INCREMENTED')}>{local.data.count}</button>
     </div>
   )
 }
@@ -155,7 +147,7 @@ const selected = useSelector(state, selectFn)
 Subscribe to only certain changes from a state. Pass it a created state, together with a callback function that receives the update and returns some value. Whenever the state updates, the hook will update only if the value returned by your callback function has changed.
 
 ```js
-import { createState, useSelector } from "@state-designer/react"
+import { createState, useSelector } from '@state-designer/react'
 
 const state = createState({
   data: {
@@ -171,13 +163,13 @@ const state = createState({
 // This component will only update when state.data.tables changes.
 function TablesCounter() {
   const tables = useSelector(state, (state) => state.data.tables)
-  return <button onClick={() => state.send("ADDED_TABLE")}>{tables}</button>
+  return <button onClick={() => state.send('ADDED_TABLE')}>{tables}</button>
 }
 
 // This component will only update when state.data.chairs changes.
 function ChairsCounter() {
   const chairs = useSelector(state, (state) => state.data.chairs)
-  return <button onClick={() => state.send("ADDED_CHAIR")}>{chairs}</button>
+  return <button onClick={() => state.send('ADDED_CHAIR')}>{chairs}</button>
 }
 ```
 
@@ -208,7 +200,7 @@ createSelectorHook(state)
 This is a helper that will generate a selector hook from a state. The hook returned by `createSelectorHook` is unlike the `useSelector` shown above in that you will not have to enter the state as a first argument.
 
 ```js
-import { createState, createSelectorHook } from "@state-designer/react"
+import { createState, createSelectorHook } from '@state-designer/react'
 
 const state = createState({
   data: {
@@ -225,6 +217,6 @@ const useSelector = createSelectorHook(state)
 
 function TablesCounter() {
   const tables = useSelector((state) => state.data.tables)
-  return <button onClick={() => state.send("ADDED_TABLE")}>{tables}</button>
+  return <button onClick={() => state.send('ADDED_TABLE')}>{tables}</button>
 }
 ```

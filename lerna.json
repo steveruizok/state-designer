@@ -1,0 +1,10 @@
+{
+  "version": "3.0.0",
+  "registry": "https://registry.npmjs.org/",
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "npmClient": "yarn",
+  "useWorkspaces": true
+}
