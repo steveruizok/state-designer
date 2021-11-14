@@ -10,8 +10,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "node scripts/dev.mjs -w",
-    "build": "node scripts/build.mjs"
+    "start": "node scripts/dev.mjs -w"
   },
   "files": [],
   "devDependencies": {

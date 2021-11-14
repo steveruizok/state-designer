@@ -17,8 +17,7 @@
     "packages/core",
     "packages/react",
     "packages/state-designer",
-    "example",
-    "site"
+    "example"
   ],
   "scripts": {
     "start": "lerna run start --stream --parallel",
