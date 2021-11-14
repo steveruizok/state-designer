@@ -1,9 +1,9 @@
-import useLocalState from './lib/useLocalState'
-import useGlobalState from './lib/useGlobalState'
-import useStateDesigner from './lib/useStateDesigner'
-import useSelector from './lib/useSelector'
-import createSelectorHook from './lib/createSelectorHook'
-import { StateGraph } from './lib/StateGraph'
+import useLocalState from './useLocalState'
+import useGlobalState from './useGlobalState'
+import useStateDesigner from './useStateDesigner'
+import useSelector from './useSelector'
+import createSelectorHook from './createSelectorHook'
+import { StateGraph } from './StateGraph'
 import { S, createDesign, createState } from '@state-designer/core'
 
 export {
