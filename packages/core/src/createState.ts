@@ -603,9 +603,9 @@ export function createState<
    * @param paths The paths to check
    * @public
    * @example
-   * state.isIn("playing")
-   * state.isIn("playing.paused")
-   * state.isIn("on", "stopped") // true if EITHER state is active
+   * state.isInAny("playing")
+   * state.isInAny("playing.paused")
+   * state.isInAny("on", "stopped") // true if EITHER state is active
    *
    */
   function isInAny(...paths: string[]): boolean {
